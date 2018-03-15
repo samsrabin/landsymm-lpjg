@@ -1,45 +1,54 @@
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+## Calibrate LPJ-GUESS crop yields against FAO data
 
-When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
+These MATLAB scripts and functions read LPJ-GUESS crop yield outputs and calibrate them against FAO yield data at the country level, according to a mapping of crop types specified by the user. The calibration factors are the result of a slope-only regression (i.e., with Y-intercept set to 0).
 
-*We recommend that you open this README in another tab as you perform the tasks below. You can [watch our video](https://youtu.be/0ocf7u76WSo) for a full demo of all the steps in this tutorial. Open the video in a new tab to avoid leaving Bitbucket.*
 
----
+## Master script
 
-## Edit a file
+In addition to the included files, you also need a master script. It should look something like this:
 
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
+```matlab
+%% Information about this calibration run
 
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+version_name = 'remap2_PLUM6xtra_WWSW' ;   % calib_ver = 16
+filename_guess_yield = '/Volumes/WDMPP_Storage/PLUM/trunk_runs_external/calib.remap2.PLUM6xtra_WWSW.1901-2005/output-2018-02-16-185453/yield.out.gz' ;
+filename_guess_landuse = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v2/LU_xtraCROPtoPAST.remapv2.20180214.m0.txt' ;
+filename_guess_cropfrac = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v2/cropfracs.remapv2.20180214.m0.assignWWorSW_cruncep.txt' ;
 
----
 
-## Create a file
+%% Other options
 
-Next, you’ll add a new file to this repository.
+% Calibration version
+calib_ver = 16 ;
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+% Years for calibration
+year1 = 1995 ;
+yearN = 2005 ;
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+% Paths to calibration code and data
+dir_code = '/Users/Shared/PLUM/crop_calib_code/' ;
+dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
 
----
+% Path to figure output directory
+dir_outfigs = '/Users/Shared/PLUM/crop_calibration_for_PLUM/figures/' ;
 
-## Clone a repository
 
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
+%% Do it
 
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
+% Add code files to path (just for this session)
+addpath(genpath(dir_code))
 
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
+crop_calibration
+
+
+%% Save figure
+
+out_file = [dir_outfigs version_name '_v' num2str(calib_ver) '.pdf'] ;
+export_fig(out_file,'-r300')
+```
+
+
+
+
+
+
