@@ -111,6 +111,12 @@ for c_plot = 1:Ncrops_plot
         includeThese = ~ignore_obs_Cc(:,c_plot) & ~ignore_sim_Cc(:,c_data) ;
         disp(['Including ' num2str(length(find(includeThese))) '/' num2str(length(includeThese)) ' countries.'])
         tmpO = yield_in_obs_Cyc(includeThese,:,c_plot) ;
+        if ~isequal(size(yield_in_obs_Cyc),size(yield_in_sim_Cyc))
+            yield_in_sim_Cyc = permute(yield_in_sim_Cyc,[2 1 3]) ;
+            if ~isequal(size(yield_in_obs_Cyc),size(yield_in_sim_Cyc))
+                error('yield_in_obs_Cyc and yield_in_sim_Cyc are different sizes, even after attempted fix!')
+            end
+        end
         tmpS = yield_in_sim_Cyc(includeThese,:,c_data) ;
         if do_wtd_reg
 %             tmpW = weights_regr_Cyc(:,:,c_plot) ;
@@ -141,7 +147,11 @@ for c_plot = 1:Ncrops_plot
             bad = cond1 | cond2 | cond3 ;
         end
         if ~any(find(~bad))
-            error('No cells found!')
+%             error('No cells found!')
+            if all(cond2)
+                warning(['No data found for ' thisCrop_plot '! Skipping.'])
+                continue
+            end
         end
         if any(isinf(tmpO))
             error('any(isinf(tmpO))')
@@ -164,7 +174,7 @@ for c_plot = 1:Ncrops_plot
         end
     end
         
-    calib_factors_u(c_plot) = lscov(tmpS,tmpO) ;
+    calib_factors_u(c_plot) = lscov(tmpS(:),tmpO(:)) ;
     disp(['Calibration factor, unweighted = ' num2str(calib_factors_u(c_plot))])
     if do_wtd_reg
         calib_factors_w(c_plot) = lscov(tmpS,tmpO,tmpW) ;

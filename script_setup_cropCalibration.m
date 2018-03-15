@@ -3,6 +3,11 @@ countries_YX = flipud(dlmread('country_boundaries62892.noNeg99.extrapd.asc','',6
 countries_YX(countries_YX<=0) = NaN ;
 countries_key = readtable('country_boundaries_codes4.csv') ;
 
+if exist('filename_guess_gridlist','var')
+    gl = lpjgu_matlab_readTable_then2map(filename_guess_gridlist) ;
+    countries_YX(~gl.mask_YX) = NaN ;
+end
+
 % Merge South Sudan with Sudan if not needed
 if yearN < 2011 && combine_sudans
     countries_YX(countries_YX==countries_key.numCode(strcmp(countries_key.Country,'South Sudan'))) = countries_key.numCode(strcmp(countries_key.Country,'Sudan')) ;
@@ -49,7 +54,7 @@ if isequal(missing_list,[158 238])
 elseif missing_list == 238
     warning('These are the Falkland Islands. Not sure if FAO data includes them in Argentina/GB.')
 else
-    error('Some unexpected countries are missing!')
+    warning('Some unexpected countries are missing!')
 end
 listCountries_map_present = {} ;
 for c = 1:Ncountries_key
