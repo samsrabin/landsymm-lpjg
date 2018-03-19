@@ -32,7 +32,7 @@ addpath(genpath(dir_data))
 script_setup_cropCalibration
 
 
-%% Read LPJ-GUESS data
+%% Read LPJ-GUESS data and finish countries processing
 
 if calib_ver<=4
     script_import_lpj_yields
@@ -41,6 +41,8 @@ elseif calib_ver>=5 && calib_ver<=16
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
+
+script_adjust_countries
 
 
 % %% DIVIDE YIELDS BY 2
@@ -94,19 +96,15 @@ if ~twofiles
     listCountries_map_present_all = listCountries_map_present ;
 end
 
-if ~exist('croparea_lpj_Ccy','var')
-    disp('Making LPJ _Ccy datasets... ')
-    verbose = false ;
-    total_lpj_YXcy_comb2 = total_lpj_YXcy_comb(:,:,:,yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN) ;
-    croparea_lpj_YXcy_comb2 = croparea_lpj_YXcy_comb(:,:,:,yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN) ;
-    [croparea_lpj_Ccy,total_lpj_Ccy,yield_lpj_Ccy] = ...
-        YXcy_to_Ccy(total_lpj_YXcy_comb2,croparea_lpj_YXcy_comb2,...
-        countries_YX,countries_key,listCountries_map_present_all,...
-        verbose) ;
-    disp('Done.')
-else
-    disp('LPJ Ccy datasets already made. Skipping.')
-end
+disp('Making LPJ _Ccy datasets... ')
+verbose = false ;
+total_lpj_YXcy_comb2 = total_lpj_YXcy_comb(:,:,:,yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN) ;
+croparea_lpj_YXcy_comb2 = croparea_lpj_YXcy_comb(:,:,:,yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN) ;
+[croparea_lpj_Ccy,total_lpj_Ccy,yield_lpj_Ccy] = ...
+    YXcy_to_Ccy(total_lpj_YXcy_comb2,croparea_lpj_YXcy_comb2,...
+    countries_YX,countries_key,listCountries_map_present_all,...
+    verbose) ;
+disp('Done.')
 
 
 
@@ -281,7 +279,7 @@ end
 if calib_ver==11
     ignore_lpj_Cc = countries2ignore(croparea_lpj_4cal_Ccy) ;
     ignore_fa2_Cc = countries2ignore(croparea_fa2_4cal_Ccy) ;
-elseif calib_ver>=1 || calib_ver<=16
+elseif calib_ver>=1 && calib_ver<=16
     ignore_lpj_Cc = false(size(croparea_lpj_4cal_Ccy,1),size(croparea_lpj_4cal_Ccy,2)) ;
     ignore_fa2_Cc = false(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,2)) ;
 else

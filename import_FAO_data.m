@@ -295,6 +295,10 @@ if check_country_names
                 listCountries_map_present_all(strcmp(listCountries_map_present_all,thisCountry)) = [] ;
             end
         end
+%         disp('IN FAO DATA1 :')
+%         disp(listCountries_fao1)
+%         disp('IN FAO DATA2 :')
+%         disp(listCountries_fao2)
         
         
     end
