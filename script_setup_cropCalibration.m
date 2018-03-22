@@ -17,12 +17,25 @@ else
 end
 
 % Import land area (km2)
-gcel_area_YXqd = transpose(ncread('staticData_quarterdeg.nc','carea')) ;
-land_frac_YXqd = 1 - flipud(transpose(ncread('staticData_quarterdeg.nc','icwtr'))) ;
-land_area_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
-%%%%% Convert to half-degree
-tmp = land_area_YXqd(:,1:2:1440) + land_area_YXqd(:,2:2:1440) ;
-land_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-clear tmp
-%%%%% Convert to ha
+if false % Put your calib_ver here if you want it to use the MCD12C1-derived land area.
+         % This is necessary for anything other than 0.5 degree.
+    xres = 360/size(countries_YX,2) ;
+    yres = 180/size(countries_YX,1) ;
+    if xres ~= yres
+        error('To use this land area map, xres must == yres.')
+    end
+    landarea_file = ['land_area_km2_fromMCD12C1_' num2str(xres) 'deg.mat'] ;
+    load(landarea_file) ;
+elseif calib_ver <= 16
+    gcel_area_YXqd = transpose(ncread('staticData_quarterdeg.nc','carea')) ;
+    land_frac_YXqd = 1 - flipud(transpose(ncread('staticData_quarterdeg.nc','icwtr'))) ;
+    land_area_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
+    %%%%% Convert to half-degree
+    tmp = land_area_YXqd(:,1:2:1440) + land_area_YXqd(:,2:2:1440) ;
+    land_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
+    clear tmp ;
+else
+    error(['calib_ver ' num2str(calib_ver) ' not recognized in "Import land area"'])
+end
+%%%%% Convert from km2 to ha
 land_area_YX = land_area_YX * 100 ;
