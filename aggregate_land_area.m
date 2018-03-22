@@ -40,6 +40,9 @@ elseif xres_in~=xres_out || yres_in~=yres_out
         error('Error in Y aggregation.')
     end
     
+else
+    land_area_YX_out = land_area_YX_in ;
+    
 end
 
 
