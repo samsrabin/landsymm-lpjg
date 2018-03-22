@@ -216,33 +216,6 @@ else
     if verboseIfNoMat || verbose
         disp('      Determining X and Y resolution...')
     end
-%     minX = Inf ;
-%     minY = Inf ;
-%     Ncells = length(in_lons) ;
-%     progress = 0 ;
-%     progress_step_pct = 25 ;
-%     tic ;
-%     for c = 1:Ncells
-%         this_lon = in_lons(c) ;
-%         this_lat = in_lats(c) ;
-%         if ~(yres_in>0)
-%             those_lats = in_lats(in_lons==this_lon & in_lats~=this_lat) ;
-%             those_lats_diff = abs(those_lats - this_lat) ;
-%             minY = min([minY min(those_lats_diff)]) ;
-%         end
-%         if ~(xres_in>0)
-%             those_lons = in_lons(in_lats==this_lat & in_lons~=this_lon) ;
-%             those_lons_diff = abs(those_lons - this_lon) ;
-%             minX = min([minX min(those_lons_diff)]) ;
-%         end
-%         
-%         % Update progress
-%         if rem(c,ceil(Ncells*progress_step_pct/100))==0
-%             progress = progress + progress_step_pct ;
-%             disp(['         ' num2str(progress) '% complete (' toc_hms(toc) ')'])
-%         end
-%     end
-
     if ~(xres_in>0)
         unique_lats = unique(in_lats) ;
         minX = Inf ;
@@ -268,7 +241,6 @@ else
     if verboseIfNoMat || verbose
         disp(['      Assuming X res. = ' num2str(minX) ', Y res. = ' num2str(minY)])
     end
-    
 end
 
 
@@ -288,7 +260,7 @@ if rem(in_lons(1)*100,50)~=0
         lon_min = -178.25 ;
         lon_max = 178.75 ;
     elseif 100*xres/2 ~= abs(rem(in_lons(1)*100,50))
-        error('How do I deal with this orientation (lon.)?')
+        error(['How do I deal with this orientation (lon.)? I think xres=' num2str(xres) ' and yres=' num2str(yres) '. If that''s wrong, try specifying them as name-value pairs in function call.'])
     else
         lon_min = lon_min + xres/2 ;
         lon_max = lon_max + xres/2 ;
@@ -300,7 +272,7 @@ if rem(in_lats(1)*100,50)~=0
         lat_min = -88.25 ;
         lat_max = 88.75 ;
     elseif 100*yres/2 ~= abs(rem(in_lats(1)*100,50))
-        error('How do I deal with this orientation (lat.)?')
+        error(['How do I deal with this orientation (lat.)? I think xres=' num2str(xres) ' and yres=' num2str(yres) '. If that''s wrong, try specifying them as name-value pairs in function call.'])
     else
         lat_min = lat_min + yres/2 ;
         lat_max = lat_max + yres/2 ;
