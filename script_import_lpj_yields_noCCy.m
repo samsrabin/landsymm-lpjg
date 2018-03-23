@@ -23,9 +23,10 @@ if strcmp(filename_guess_yield(end-2:end),'.gz')
 end
 
 % Convert from gridlist to map
-yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'xres',0.5,'yres',0.5,'force_mat_save',true) ;
-cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'xres',0.5,'yres',0.5,'force_mat_save',true) ;
-landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'xres',0.5,'yres',0.5,'force_mat_save',true) ;
+yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
+cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
+landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
+
 
 % Trim out CC3G, CC4G, and OtHr from yield_lpj
 % toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic')) ;
