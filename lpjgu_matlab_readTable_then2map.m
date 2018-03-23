@@ -315,47 +315,24 @@ if verboseIfNoMat || verbose
     disp('      Getting indices to convert list to map...')
 end
 Ncells = length(in_lons) ;
-list_to_map = nan(Ncells,1) ;
-found = true(size(list_to_map)) ;
-progress = 0 ;
-progress_step_pct = 25 ;
-tic ;
-for c = 1:Ncells
-    thisIndex = find(in_latsMap==in_lats(c) & in_lonsMap==in_lons(c)) ;
-    if ~isempty(thisIndex)
-        list_to_map(c) = thisIndex ;
-    else
-        found(c) = false ;
-        if length(find(~found))==1
-            warning(['Some cells from input are getting ignored '...
-                'at output resolution ' num2str(360/size(in_lonsMap,2)) ' lon. x'...
-                num2str(180/size(in_lonsMap,1)) ' lat.'])
-        end
-    end
-    
-    % Update progress
-    if verboseIfNoMat || verbose
-        if rem(c,ceil(Ncells*progress_step_pct/100))==0
-            progress = progress + progress_step_pct ;
-            disp(['         ' num2str(progress) '% complete (' toc_hms(toc) ')'])
-        end
-    end
+lons_vec = in_lonsMap(1,:) ;
+lats_vec = in_latsMap(:,1) ;
+[~,lons_inds] = ismember(in_lons,lons_vec) ;
+[~,lats_inds] = ismember(in_lats,lats_vec) ;
+found = ~(lons_inds==0 | lats_inds==0) ;
+if any(~found)
+    warning([num2str(length(find(~found))) ' cells being ignored.'])
+    lons_inds(~found) = [] ;
+    lats_inds(~found) = [] ;
 end
-
-% There should be at least one cell mapped!
-if ~any(~isnan(list_to_map))
-    error('Something went badly wrong.')
-end
-
-% Deal with skipped cells
-list_to_map(~found) = [] ;
+list_to_map = sub2ind(size(in_lonsMap),lats_inds,lons_inds) ;
 
 % Sanity checks
 if any(isnan(list_to_map))
     error('Somehow list_to_map contains NaN.')
 end
-if length(list_to_map) ~= Ncells
-    error('length(list_to_map) ~= Ncells')
+if length(list_to_map) ~= Ncells-length(find(~found))
+    error('length(list_to_map) ~= Ncells-length(find(~found))')
 end
 end
 
