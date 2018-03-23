@@ -5,6 +5,8 @@ p = inputParser ;
 addRequired(p,'in_file',@ischar) ;
 addOptional(p,'xres',NaN,@isnumeric) ;
 addOptional(p,'yres',NaN,@isnumeric) ;
+addOptional(p,'lat_orient','',@isstr) ;
+addOptional(p,'lon_orient','',@isstr) ;
 addOptional(p,'verbose',true,@islogical) ;
 addOptional(p,'verboseIfNoMat',false,@islogical) ;
 addOptional(p,'force_mat_save',false,@islogical) ;
@@ -19,6 +21,15 @@ verboseIfNoMat = p.Results.verboseIfNoMat ;
 force_mat_save = p.Results.force_mat_save ;
 force_mat_nosave = p.Results.force_mat_nosave ;
 list_to_map_in = p.Results.list_to_map_in ;
+lat_orient = p.Results.lat_orient ;
+lon_orient = p.Results.lon_orient ;
+
+if ~isempty(lat_orient) && ~(strcmp(lat_orient,'lower') || strcmp(lat_orient,'center')  || strcmp(lat_orient,'upper'))
+    error(['If providing lat_orient, it must be either lower, center, or upper. (' lat_orient ')'])
+end
+if ~isempty(lon_orient) && ~(strcmp(lon_orient,'left') || strcmp(lon_orient,'center')  || strcmp(lon_orient,'right'))
+    error(['If providing lon_orient, it must be either left, center, or right. (' lon_orient ')'])
+end
 
 % pFields = fieldnames(p.Results) ;
 % Nfields = length(pFields) ;
@@ -36,7 +47,7 @@ if force_mat_nosave && force_mat_save
     error('force_mat_save and force_mat_nosave can''t both be true.')
 end
 if verboseIfNoMat && verbose
-%     warning('Because verboseIfNoMat==true, setting verbose=false.')
+    %     warning('Because verboseIfNoMat==true, setting verbose=false.')
     verbose = false ;
 end
 
@@ -70,10 +81,10 @@ if exist(in_matfile_maps,'file')
             consistentnantestmap = sum(sum(isnan(theseMaps),4),3) ;
             if ~isequal(unique(consistentnantestmap(:)),[0;size(theseMaps,3)*size(theseMaps,4)])
                 warning(sprintf(['out_struct.list_to_map (N=' num2str(length(out_struct.list_to_map)) ') does not match gltestmap (N=' num2str(length(sort(possiblenewgl))) ').'...
-                                 '\n...but NaNs are not consistent across variables (and/or years, if included), so not changing.']))
+                    '\n...but NaNs are not consistent across variables (and/or years, if included), so not changing.']))
             else
                 warning(sprintf(['out_struct.list_to_map (N=' num2str(length(out_struct.list_to_map)) ') does not match gltestmap (N=' num2str(length(sort(possiblenewgl))) ').\n'...
-                                 '...Fixing.']))
+                    '...Fixing.']))
                 out_struct.list_to_map = possiblenewgl ;
             end
         end
@@ -96,7 +107,7 @@ else
     if verboseIfNoMat || verbose
         disp('   Making maps...')
     end
-    [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,verboseIfNoMat,verbose) ;
+    [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,lat_orient,lon_orient,verboseIfNoMat,verbose) ;
     if is_gridlist
         mask_YX = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,verboseIfNoMat,verbose) ;
     else
@@ -137,7 +148,7 @@ end
 
 
 
-function [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,verboseIfNoMat,verbose)
+function [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,lat_orient,lon_orient,verboseIfNoMat,verbose)
 
 % Get table info
 in_lons = in_table.Lon ;
@@ -157,7 +168,7 @@ end
 [xres,yres] = process_resolution(xres,yres,in_lons,in_lats,verboseIfNoMat,verbose) ;
 
 % Get ready for mapping
-[lons_map,lats_map] = set_up_maps(xres,yres,in_lons,in_lats) ;
+[lons_map,lats_map] = set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient) ;
 
 % Get indices for mapping
 if isempty(list_to_map_in)
@@ -218,28 +229,14 @@ else
     end
     if ~(xres_in>0)
         unique_lats = unique(in_lats) ;
-        minX = Inf ;
-        for L = 1:length(unique_lats)
-            this_lat = unique_lats(L) ;
-            those_lons = sort(in_lons(in_lats==this_lat)) ;
-            those_lons_diff = abs(those_lons(1:end-1) - those_lons(2:end)) ;
-            minX = min([minX min(those_lons_diff)]) ;
-        end
-        xres_out = minX ;
+        xres_out = min(abs(unique_lats(1:end-1)-unique_lats(2:end))) ;
     end
     if ~(yres_in>0)
         unique_lons = unique(in_lons) ;
-        minY = Inf ;
-        for L = 1:length(unique_lons)
-            this_lon = unique_lons(L) ;
-            those_lats = sort(in_lats(in_lons==this_lon)) ;
-            those_lats_diff = abs(those_lats(1:end-1) - those_lats(2:end)) ;
-            minY = min([minY min(those_lats_diff)]) ;
-        end
-        yres_out = minY ;
+        yres_out = min(abs(unique_lons(1:end-1)-unique_lons(2:end))) ;
     end
     if verboseIfNoMat || verbose
-        disp(['      Assuming X res. = ' num2str(minX) ', Y res. = ' num2str(minY)])
+        disp(['      Assuming X res. = ' num2str(xres_out) ', Y res. = ' num2str(yres_out)])
     end
 end
 
@@ -248,35 +245,62 @@ end
 end
 
 
-function [out_lons_map,out_lats_map] = set_up_maps(xres,yres,in_lons,in_lats)
+function [out_lons_map,out_lats_map] = set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient)
+
+% Determine orientation, if needed
+if isempty(lat_orient)
+    if any(in_lats==-90)
+        lat_orient = 'lower' ;
+    elseif any(in_lats==90)
+        lat_orient = 'upper' ;
+    elseif any(in_lats-yres/2==-90 | in_lats+yres/2==90)
+        lat_orient = 'center' ;
+    else
+        if any(rem(in_lats,yres)==0)
+            lat_orient = 'lower' ;
+        else
+            lat_orient = 'center' ;
+        end
+    end
+    disp(['      Assuming lat_orient = ' lat_orient '.'])
+end
+if isempty(lon_orient)
+    if any(in_lons==-180)
+        lon_orient = 'left' ;
+    elseif any(in_lons==180)
+        lon_orient = 'right' ;
+    elseif any(in_lons-xres/2==-180 | in_lons+xres/2==180)
+        lon_orient = 'center' ;
+    else
+        if any(rem(in_lons,xres)==0)
+            lon_orient = 'left' ;
+        else
+            lon_orient = 'center' ;
+        end
+    end
+    disp(['      Assuming lon_orient = ' lon_orient '.'])
+end
+
 % Set up maps
-lon_min = -180 ;
-lat_min = -90 ;
-lon_max = 180-xres ;
-lat_max = 90-yres ;
-if rem(in_lons(1)*100,50)~=0
-    if xres==3 && yres==3 && rem(max(in_lons-0.25),1.5)==0
-        % Specifically set up to deal with some weird gridlist
-        lon_min = -178.25 ;
-        lon_max = 178.75 ;
-    elseif 100*xres/2 ~= abs(rem(in_lons(1)*100,50))
-        error(['How do I deal with this orientation (lon.)? I think xres=' num2str(xres) ' and yres=' num2str(yres) '. If that''s wrong, try specifying them as name-value pairs in function call.'])
-    else
-        lon_min = lon_min + xres/2 ;
-        lon_max = lon_max + xres/2 ;
-    end
+if strcmp(lat_orient,'lower')
+    lat_min = -90 ;
+    lat_max = 90-yres ;
+elseif strcmp(lat_orient,'upper')
+    lat_min = -90+yres ;
+    lat_max = 90 ;
+elseif strcmp(lat_orient,'center')
+    lat_min = -90+yres/2 ;
+    lat_max = 90-yres/2 ;
 end
-if rem(in_lats(1)*100,50)~=0
-    if xres==3 && yres==3 && rem(max(in_lats-0.25),1.5)==0
-        % Specifically set up to deal with some weird gridlist
-        lat_min = -88.25 ;
-        lat_max = 88.75 ;
-    elseif 100*yres/2 ~= abs(rem(in_lats(1)*100,50))
-        error(['How do I deal with this orientation (lat.)? I think xres=' num2str(xres) ' and yres=' num2str(yres) '. If that''s wrong, try specifying them as name-value pairs in function call.'])
-    else
-        lat_min = lat_min + yres/2 ;
-        lat_max = lat_max + yres/2 ;
-    end
+if strcmp(lon_orient,'left')
+    lon_min = -180 ;
+    lon_max = 180-xres ;
+elseif strcmp(lon_orient,'right')
+    lon_min = -180+xres ;
+    lon_max = 180 ;
+elseif strcmp(lon_orient,'center')
+    lon_min = -180+xres/2 ;
+    lon_max = 180-xres/2 ;
 end
 lons = lon_min:xres:lon_max ;
 lats = lat_min:yres:lat_max ;
@@ -337,7 +361,7 @@ end
 
 
 function out_maps = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,...
-                              verboseIfNoMat,verbose)
+    verboseIfNoMat,verbose)
 
 Nlon = 360 / xres ;
 Nlat = 180 / yres ;
