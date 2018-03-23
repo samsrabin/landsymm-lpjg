@@ -11,7 +11,7 @@ elseif calib_ver == 13
     listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Pulses','Soybeans','Rice'} ;
 elseif calib_ver == 14
     listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Rice'} ;
-elseif calib_ver <= 10
+elseif calib_ver <= 10 || calib_ver == 17
     listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi'} ;
 else
     error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb.']) ;

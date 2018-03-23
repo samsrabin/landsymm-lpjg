@@ -131,11 +131,11 @@ end ; clear C
 
 for c = 1:Ncrops_out
     if ~any(~isnan(total_fao_Ccy(:,c,:)))
-        error(['total_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
+        warning(['total_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
     elseif ~any(~isnan(croparea_fao_Ccy(:,c,:)))
-        error(['croparea_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
+        warning(['croparea_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
     elseif ~any(~isnan(yield_fao_Ccy(:,c,:)))
-        error(['yield_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
+        warning(['yield_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
     end
 end ; clear c
 

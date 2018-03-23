@@ -10,7 +10,7 @@ check_country_names = true ;
 Ncountries = length(listCountries_map_present) ;
 
 % Import
-if calib_ver <= 4 || calib_ver==6 || calib_ver==7 || calib_ver==11
+if calib_ver <= 4 || calib_ver==6 || calib_ver==7 || calib_ver==11 || calib_ver==17
     fao_filename = 'FAOSTAT_20160928.csv' ;
     fao_filename_trimmed = [fao_filename '.trimmed.txt'] ;
 elseif calib_ver==5
@@ -50,7 +50,7 @@ if ~exist(fao_filename_trimmed,'file')
     disp('Saving to TXT file...')
     writetable(fao,fao_filename_trimmed) ;
 else
-    if calib_ver<=4 || calib_ver==6 || calib_ver==7 || calib_ver==8 || calib_ver==11
+    if calib_ver<=4 || calib_ver==6 || calib_ver==7 || calib_ver==8 || calib_ver==11 || calib_ver==17
         disp('Reading FAO data from TXT file...')
         fao = readtable(fao_filename_trimmed) ;
         twofiles = false ;

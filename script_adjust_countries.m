@@ -3,7 +3,7 @@ gl.mask_YX = ~isnan(mean(mean(croparea_lpj_YXcy_comb,4),3)) ;
 if ~isequal(size(gl.mask_YX),size(countries_YX))
     error('~isequal(size(gl.mask_YX),size(countries_YX))')
 end
-if false % Put calib_ver==XX here if you want to use a mask
+if calib_ver==17 % Put calib_ver==XX here if you want to use a mask
     if exist('filename_guess_gridlist','var')
         gl = lpjgu_matlab_readTable_then2map(filename_guess_gridlist) ;
     end
@@ -49,7 +49,7 @@ if false % Put calib_ver==XX here if you want to try and fix this
             error('How did that masking not work???')
         end
     end
-elseif calib_ver<=16
+elseif calib_ver<=17
     if any(inGlNotCtries_YX(:))
         warning([num2str(length(find(inGlNotCtries_YX))) ' cells in LPJ-GUESS output but not countries map! These will be ignored in calibration. To view: figure;pcolor(inGlNotCtries_YX);shading flat'])
     end
@@ -167,13 +167,13 @@ end
 
 % Check that every mapped code is found in the key
 Ncountries_key = length(countries_key.numCode) ;
-countries_map = unique(countries_YX(~isnan(countries_YX))) ;
-Ncountries_map = length(countries_map) ;
+countries_in_map = unique(countries_YX(~isnan(countries_YX))) ;
+Ncountries_map = length(countries_in_map) ;
 missing = ones(size(countries_YX)) ;
 missing(isnan(countries_YX)) = 0 ;
 missing_list = [] ;
 for c = 1:Ncountries_map
-    thisCountry_fromMap = countries_map(c) ;
+    thisCountry_fromMap = countries_in_map(c) ;
     if ~any(countries_key.numCode==thisCountry_fromMap)
         missing(countries_YX==thisCountry_fromMap) = 2 ;
         missing_list = [missing_list thisCountry_fromMap] ;

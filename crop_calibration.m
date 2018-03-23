@@ -36,12 +36,12 @@ script_setup_cropCalibration
 
 if calib_ver<=4
     script_import_lpj_yields
-elseif calib_ver>=5 && calib_ver<=16
+elseif calib_ver>=5 && calib_ver<=17
     script_import_lpj_yields_noCCy
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
-
+%%
 script_adjust_countries
 
 
@@ -137,7 +137,7 @@ reg_line_width = 3 ;
 fig_font_size = 16 ;
 
 % Miscanthus file
-if calib_ver==11
+if calib_ver==11 || calib_ver==17
     miscanthus_file = '' ;
 elseif calib_ver<=16
     miscanthus_file = 'Miscanthus_yields_for_plot.mat' ;
@@ -232,6 +232,19 @@ elseif calib_ver<=10
         eval(['yield_lpj_4cal_Cyc(:,:,c) = yield_lpj_4cal_tmp.' thisCrop '_Cy ;']) ;
     end
     clear yield_lpj_4cal_tmp
+elseif calib_ver==17
+    listCrops_4cal = {'TeWW','TeSW','TeCo','TrRi'} ;
+    Ncrops_4cal = length(listCrops_4cal) ;
+    yield_lpj_4cal_tmp.TeWW_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi('TeWW'),:)) ;
+    yield_lpj_4cal_tmp.TeSW_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi('TeSW'),:)) ;
+    yield_lpj_4cal_tmp.TeCo_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi('TeCo'),:)) ;
+    yield_lpj_4cal_tmp.TrRi_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi('TrRi'),:)) ;
+    yield_lpj_4cal_Cyc = nan([size(yield_lpj_4cal_tmp.TeWW_Cy) length(listCrops_4cal)]) ;
+    for c = 1:length(listCrops_4cal)
+        thisCrop = listCrops_4cal{c} ;
+        eval(['yield_lpj_4cal_Cyc(:,:,c) = yield_lpj_4cal_tmp.' thisCrop '_Cy ;']) ;
+    end
+    clear yield_lpj_4cal_tmp
 else
     error(['calib_ver ' num2str(calib_ver) ' not recognized in "Convert to form for regression."']) ;
 end
@@ -271,12 +284,17 @@ elseif calib_ver==14
     FA2_to_PLUM_key{getPi2('Maize')}     = {'Maize'} ;
     FA2_to_PLUM_key{getPi2('Rice')}      = {'Rice'} ;
     FA2_to_PLUM_key{getPi2('Sorghum')}   = {'Sorghum'} ;
+elseif calib_ver==17
+    FA2_to_PLUM_key{getPi2('TeWW')}  = {'CerealsC3'} ;
+    FA2_to_PLUM_key{getPi2('TeSW')}  = {'OtherC3'} ;
+    FA2_to_PLUM_key{getPi2('TeCo')}  = {'CerealsC4'} ;
+    FA2_to_PLUM_key{getPi2('TrRi')}  = {'Rice'} ;
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
 
 % Remove countries where LPJG and/or FAO have 0 area
-if calib_ver==11
+if calib_ver==11 || calib_ver==17
     ignore_lpj_Cc = countries2ignore(croparea_lpj_4cal_Ccy) ;
     ignore_fa2_Cc = countries2ignore(croparea_fa2_4cal_Ccy) ;
 elseif calib_ver>=1 && calib_ver<=16
@@ -302,7 +320,7 @@ if isempty(regWeight_basedOn)
 else
     if calib_ver==11
         error('Add code to do weights when ignoring countries.')
-    elseif ~(calib_ver>=1 || calib_ver<=16)
+    elseif ~(calib_ver>=1 || calib_ver<=17)
         error(['calib_ver (' num2str(calib_ver) ') not recognized! In "Get weights for regression"'])
     end
     weights_fa2_4cal_Cyc = nan(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,3),size(croparea_fa2_4cal_Ccy,2)) ;
@@ -339,19 +357,22 @@ else
 end
 
 % Get weights for plotting point size
-% weights4pts_Cyc = nan(size(croparea_fa2_4cal_Cyc)) ;
-for c = 1:Ncrops_fa2o
-    tmp = croparea_fa2_4cal_Cyc(:,:,c) ./ max(max(croparea_fa2_4cal_Cyc(:,:,c))) ;
-    tmp = tmp / max(max(tmp)) ;
-    if max(max(tmp)) ~= 1
-        error(['max(max(tmp)) = ' num2str(max(max(tmp)))])
+if strcmp(scatter_style,'size_weighted')
+    for c = 1:Ncrops_fa2o
+        tmp = croparea_fa2_4cal_Cyc(:,:,c) ./ max(max(croparea_fa2_4cal_Cyc(:,:,c))) ;
+        tmp = tmp / max(max(tmp)) ;
+        if max(max(tmp)) ~= 1
+            error(['max(max(tmp)) = ' num2str(max(max(tmp)))])
+        end
+        weights4pts_Cyc(:,:,c) = tmp ;
+        clear tmp
+        %     weights4pts_Cyc = weights_fa2_4cal_Cyc(:,:,c)./max(max(weights_fa2_4cal_Cyc(:,:,c))) ;
+    end ; clear c
+    if any(weights4pts_Cyc<0)
+        error('Some value of weights4pts_Cyc is < 0.')
     end
-    weights4pts_Cyc(:,:,c) = tmp ;
-    clear tmp
-%     weights4pts_Cyc = weights_fa2_4cal_Cyc(:,:,c)./max(max(weights_fa2_4cal_Cyc(:,:,c))) ;
-end ; clear c
-if any(weights4pts_Cyc<0)
-    error('Some value of weights4pts_Cyc is < 0.')
+else
+    weights4pts_Cyc = nan(size(croparea_fa2_4cal_Cyc)) ;
 end
 
 % Rearrange if needed

@@ -19,7 +19,7 @@ end
 % Import land area (km2)
 xres = 360/size(countries_YX,2) ;
 yres = 180/size(countries_YX,1) ;
-if false % Put your calib_ver here if you want it to use MCD12C1-derived land area.
+if calib_ver==17 % Put your calib_ver here if you want it to use MCD12C1-derived land area.
     if xres ~= yres
         error('To use this land area map, xres must == yres.')
     end

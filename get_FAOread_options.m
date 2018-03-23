@@ -2,7 +2,7 @@ function [strip_fao_nans, fix_cotedivoire, combine_sudans,...
     combine_subChinas, combine_subChinas_map, combine_serbmont] ...
     = get_FAOread_options(calib_ver)
 
-latest_calib_ver = 16 ;
+latest_calib_ver = 17 ;
 
 % Strip NaNs from FAO data?
 if calib_ver>=5 && calib_ver<=latest_calib_ver
