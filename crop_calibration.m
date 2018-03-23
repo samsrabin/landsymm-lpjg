@@ -54,7 +54,7 @@ script_adjust_countries
 
 %% Read FAO data
 
-% UNITS
+% UNITS FOR FAO INPUTS
 %    Area harvested: ha
 %    Production:     metric tons
 %    Yield:          Hg/ha

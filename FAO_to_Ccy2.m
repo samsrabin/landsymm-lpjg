@@ -7,9 +7,6 @@ function [croparea_fao_Ccy,total_fao_Ccy,yield2_fao_Ccy] = ...
 % Extract to separate tables
 croparea_fao = fao(exact_string_in_cellarray(fao.ElementName,'Area harvested',true,true),:) ;
 total_fao = fao(exact_string_in_cellarray(fao.ElementName,'Production',true,true),:) ;
-yield_fao = fao(exact_string_in_cellarray(fao.ElementName,'Yield',true,true),:) ;
-hg_to_t = 1e-4 ;
-yield_fao.Value = yield_fao.Value * hg_to_t ;
 
 % Create country-crop-year arrays
 Ncountries = length(listCountries_map_present) ;
@@ -18,7 +15,6 @@ Ncrops_in = length(listCrops_fa2i) ;
 Ncrops_out = length(listCrops_fa2o) ;
 croparea_fao_Ccy = nan(Ncountries,Ncrops_out,Nyears_fao) ;
 total_fao_Ccy = nan(Ncountries,Ncrops_out,Nyears_fao) ;
-yield_fao_Ccy = nan(Ncountries,Ncrops_out,Nyears_fao) ;
 found_in_fao = false(size(listCountries_map_present)) ;
 % found_crops = false(
 for c = 1:Ncrops_in
@@ -48,7 +44,6 @@ for c = 1:Ncrops_in
     % Otherwise, get FAO data for this crop.
     croparea_thisCrop = croparea_fao(strcmp(croparea_fao.ItemName,thisCrop_FAO),:) ;
     total_thisCrop = total_fao(strcmp(total_fao.ItemName,thisCrop_FAO),:) ;
-    yield_thisCrop = yield_fao(strcmp(yield_fao.ItemName,thisCrop_FAO),:) ;
     
     % Sanity check
     if isempty(croparea_thisCrop)
@@ -101,22 +96,7 @@ for c = 1:Ncrops_in
             clear tmp*
             found_in_fao(C) = true ;
         end
-        
-        % Yield
-        thisCountry_yield_indices = find(strcmp(yield_thisCrop.AreaName,thisCountry)) ;
-        if any(thisCountry_yield_indices)
-            % Get this country's area of this crop
-            tmp_thisCountry = yield_thisCrop(thisCountry_yield_indices,:) ;
-            % Get this country's existing area in this category
-            tmp = squeeze(yield_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year))) ;
-            tmp(isnan(tmp)) = 0 ;   % If this country-PLUMcrop-year combo has no data yet, convert from NaN to zero for addition
-            % Add this crop to existing area
-            tmp = tmp + tmp_thisCountry.Value ;
-            yield_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year)) = tmp ;
-            clear tmp*
-            found_in_fao(C) = true ;
-        end
-                        
+                                
         clear thisCountry*
     end ; clear C   % Country loop
     clear i *thisCrop*
@@ -134,17 +114,13 @@ for c = 1:Ncrops_out
         warning(['total_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
     elseif ~any(~isnan(croparea_fao_Ccy(:,c,:)))
         warning(['croparea_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
-    elseif ~any(~isnan(yield_fao_Ccy(:,c,:)))
-        warning(['yield_fao_Ccy(:,' num2str(c) ',:) has no non-NaN values.'])
     end
 end ; clear c
 
 % Reconcile FAO NaNs
 any_fao_nan = (isnan(total_fao_Ccy) | isnan(croparea_fao_Ccy)) ;
-% any_fao_nan = (isnan(total_fao_Ccy) | isnan(croparea_fao_Ccy)) | isnan(yield_fao_Ccy)) ;
 total_fao_Ccy(any_fao_nan) = NaN ;
 croparea_fao_Ccy(any_fao_nan) = NaN ;
-yield_fao_Ccy(any_fao_nan) = NaN ;
 
 % There shouldn't be any FAO production if no FAO data
 if any(total_fao_Ccy>0 & croparea_fao_Ccy==0)
@@ -155,13 +131,10 @@ end
 yield2_fao_Ccy = total_fao_Ccy ./ croparea_fao_Ccy ;
 
 % Sanity checks
-if any(yield_fao_Ccy~=yield2_fao_Ccy)
-    warning('Discrepancies in yield!')
-end
 if any(isinf(yield2_fao_Ccy(:)))
     if ~ignoreInfYield
-        error('At least one member of yield_fao_Ccy is Inf!')
+        error('At least one member of yield2_fao_Ccy is Inf!')
     else
-        warning('At least one member of yield_fao_Ccy is Inf! IGNORING')
+        warning('At least one member of yield2_fao_Ccy is Inf! IGNORING')
     end
 end
