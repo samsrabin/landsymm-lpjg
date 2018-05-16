@@ -3,7 +3,8 @@ function [total_fa2_Ccy, croparea_fa2_Ccy, yield_fa2_Ccy, ...
     listCrops_fa2o, Ncrops_fa2o, ...
     listCountries_map_present_all, ...
     is_tropical, is_xtratrop, ...
-    calib_ver_used, twofiles] ...
+    calib_ver_used, twofiles, ...
+    yieldWasInf_fa2_Ccy] ...
     = get_fao_data(year1,yearN,calib_ver,...
     Ncountries, listCountries_map_present, countries_YX, countries_key)
 
@@ -13,6 +14,8 @@ function [total_fa2_Ccy, croparea_fa2_Ccy, yield_fa2_Ccy, ...
 %    Yield:          Hg/ha
 
 check_country_names = true ;
+
+yearList = year1:yearN ;
 
 if calib_ver<9
     error('Currently get_fao_data() is only tested for calib_ver>=9.')
@@ -385,20 +388,20 @@ ignoreNoData = true ;
         disp('Getting FA2 _Ccy arrays...')
         [total_fa2_Ccy,croparea_fa2_Ccy,yield_fa2_Ccy] = ...
             FAO_to_Ccy2(fao,FAO_to_FAO_key,listCountries_map_present,...
-            listCrops_fa2i,listCrops_fa2o,year1:yearN,verbose,...
+            listCrops_fa2i,listCrops_fa2o,yearList,verbose,...
             ignoreInfYield,ignoreNoData) ;
     else
         disp('Getting FA2 _Ccy array: Area...')
         croparea_fa2_Ccy = ...
             FAO_to_Ccy2_areaOnly(fao1,FAO_to_FAO_key1,listCountries_map_present_all,...
-            listCrops_fa2i1,listCrops_fa2o,year1:yearN,verbose,...
+            listCrops_fa2i1,listCrops_fa2o,yearList,verbose,...
             ignoreNoData) ;
         disp('Done.')
         disp(' ')
         disp('Getting FA2 _Ccy array: Production...')
         total_fa2_Ccy = ...
             FAO_to_Ccy2_totalOnly(fao2,FAO_to_FAO_key2,listCountries_map_present_all,...
-            listCrops_fa2i2,listCrops_fa2o,year1:yearN,verbose,...
+            listCrops_fa2i2,listCrops_fa2o,yearList,verbose,...
             ignoreInfYield,ignoreNoData) ;
         % Reconcile FAO NaNs
         either_fa2_nan = (isnan(total_fa2_Ccy) | isnan(croparea_fa2_Ccy)) ;
@@ -410,15 +413,22 @@ ignoreNoData = true ;
         end
         % Calculate yield (tDM/ha)
         yield_fa2_Ccy = total_fa2_Ccy ./ croparea_fa2_Ccy ;
+        yieldWasInf_fa2_Ccy = isinf(yield_fa2_Ccy) ;
         % Sanity check
-        if any(isinf(yield_fa2_Ccy(:)))
+        if any(yieldWasInf_fa2_Ccy(:))
             if ~ignoreInfYield
                 error('At least one member of yield_fa2_Ccy is Inf!')
             else
                 warning('At least one member of yield_fa2_Ccy is Inf! IGNORING')
-                total_fa2_Ccy(isinf(yield_fa2_Ccy)) = NaN ;
-                croparea_fa2_Ccy(isinf(yield_fa2_Ccy)) = NaN ;
-                yield_fa2_Ccy(isinf(yield_fa2_Ccy)) = NaN ;
+                badCountries = listCountries_map_present_all(squeeze(sum(sum(yieldWasInf_fa2_Ccy,2),3))>0) ;
+                badCrops = listCrops_fa2o(squeeze(sum(sum(yieldWasInf_fa2_Ccy,1),3))>0) ;
+                badYears = yearList(squeeze(sum(sum(yieldWasInf_fa2_Ccy,2),1))>0) ;
+                if length(badCountries)==1 && length(badCrops)==1
+                    warning(['This is ' badCrops{1} ' in ' badCountries{1} ' for ' num2str(length(badYears)) ' years.'])
+                end
+                total_fa2_Ccy(yieldWasInf_fa2_Ccy) = NaN ;
+                croparea_fa2_Ccy(yieldWasInf_fa2_Ccy) = NaN ;
+                yield_fa2_Ccy(yieldWasInf_fa2_Ccy) = NaN ;
             end
         end
     end
