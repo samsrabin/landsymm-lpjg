@@ -41,7 +41,7 @@ elseif calib_ver>=5 && calib_ver<=17
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
-%%
+
 script_adjust_countries
 
 
@@ -76,13 +76,17 @@ getPi = @(x) find(strcmp(listCrops_lpj_comb,x)) ;
 
 % tmp_fao_yearList = 1961:2010 ;
 % [tmp_total_fa2_Ccy, tmp_croparea_fa2_Ccy, tmp_yield_fa2_Ccy, ...
-%     listCrops_fa2o] ...
+%     ~, listCrops_fa2o, ~, ...
+%     listCountries_map_present_all, ~, ~, ~, ~, ...
+%     yieldWasInf_fa2_Ccy] ...
 %     = get_fao_data(tmp_fao_yearList(1),tmp_fao_yearList(end),calib_ver,...
 %     Ncountries, listCountries_map_present, countries_YX, countries_key) ;
-% 
-% tmp_outFile = ['/Users/Shared/PLUM/crop_calibration_for_PLUM/FAOdata_' num2str(tmp_fao_yearList(1)) '-' num2str(tmp_fao_yearList(end)) '_calibVer' num2str(calib_ver) '.mat'] ;
+% %%
+% tmp_outFile = ['/Users/Shared/PLUM/crop_calib_data/fao/FAOdata_' num2str(tmp_fao_yearList(1)) '-' num2str(tmp_fao_yearList(end)) '_calibVer' num2str(calib_ver) '.mat'] ;
 % if ~exist(tmp_outFile,'file')
-%     save(tmp_outFile,'tmp_total_fa2_Ccy','tmp_croparea_fa2_Ccy','tmp_yield_fa2_Ccy','listCrops_fa2o','tmp_fao_yearList') ;
+%     save(tmp_outFile,'tmp_total_fa2_Ccy','tmp_croparea_fa2_Ccy',...
+%         'tmp_yield_fa2_Ccy','listCrops_fa2o','tmp_fao_yearList',...
+%         'listCountries_map_present_all','yieldWasInf_fa2_Ccy') ;
 % else
 %     error('tmp_outFile already exists!')
 % end
@@ -140,6 +144,7 @@ fig_font_size = 16 ;
 if calib_ver==11 || calib_ver==17
     miscanthus_file = '' ;
 elseif calib_ver<=16
+    warning('Using horrible Miscanthus kludge from miscanthus_calibration_kludge.m!')
     miscanthus_file = 'Miscanthus_yields_for_plot.mat' ;
 else
     error(['calib_ver ' num2str(calib_ver) ' not recognized in "Miscanthus file"'])
@@ -384,7 +389,7 @@ if Ncrops_4cal==1 && ismatrix(yield_fa2_4cal_Cyc) && ~isvector(yield_fa2_4cal_Cy
 end
 
 % Do regression: All points
-disp('ALL POINTS')    
+disp('ALL POINTS')
 [calib_factors_u,calib_factors_w] = ...
             do_crop_regression(yield_fa2_4cal_Cyc,yield_lpj_4cal_Cyc,...
                                ignore_fa2_Cc,ignore_lpj_Cc,...

@@ -20,6 +20,14 @@ if verboseIfNoMat && verbose
     verbose = false ;
 end
 
+% If in_file is symlink, replace it with its target
+[s,w] = unix(['[[ -L ' in_file ' ]] && echo true']) ;
+if s==0 && contains(w,'true') % is symlink
+    disp('Symlink; pointing to target instead.')
+    [~,w] = unix(['stat -f "%Y" ' in_file]) ;
+    in_file = regexprep(w,'[\n\r]+','') ; % Remove extraneous newline
+end
+
 if strcmp(in_file(end-2:end),'.gz')
     in_file = in_file(1:end-3) ;
 end

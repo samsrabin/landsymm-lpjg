@@ -7,6 +7,24 @@ function croparea_fao_Ccy = ...
 % Extract to separate tables
 croparea_fao = fao(exact_string_in_cellarray(fao.ElementName,'Area harvested',true,true),:) ;
 
+% Change listCrops_fa2i and in2out_key if necessary
+croparea_fao_uniqueitems = unique(croparea_fao.ItemName) ;
+if length(find(contains(listCrops_fa2i,'Rice, paddy')))==1 ...
+        && ~any(contains(croparea_fao_uniqueitems,'Rice, paddy')) ...
+        && length(find(contains(croparea_fao_uniqueitems,'Rice paddy')))==1
+    listCrops_fa2i = strrep(listCrops_fa2i,'Rice, paddy','Rice paddy') ;
+end
+for c = 1:length(in2out_key)
+    thisKey = in2out_key{c} ;
+    if length(find(contains(thisKey,'Rice, paddy')))==1 ...
+            && ~any(contains(croparea_fao_uniqueitems,'Rice, paddy')) ...
+            && length(find(contains(croparea_fao_uniqueitems,'Rice paddy')))==1
+        thisKey = strrep(thisKey,'Rice, paddy','Rice paddy') ;
+        in2out_key{c} = thisKey ;
+    end
+end
+    
+
 % Create country-crop-year arrays
 Ncountries = length(listCountries_map_present) ;
 Nyears_fao = length(listYears_fao) ;
