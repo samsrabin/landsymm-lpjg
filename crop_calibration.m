@@ -141,7 +141,7 @@ reg_line_width = 3 ;
 fig_font_size = 16 ;
 
 % Miscanthus file
-if calib_ver==11 || calib_ver==17
+if calib_ver==11 || calib_ver==17 || is_isimip
     miscanthus_file = '' ;
 elseif calib_ver<=16
     warning('Using horrible Miscanthus kludge from miscanthus_calibration_kludge.m!')
@@ -213,11 +213,9 @@ elseif calib_ver>=12 && calib_ver<=16
         thisCrop = listCrops_4cal{c} ;
         eval(['yield_lpj_4cal_tmp.' thisCrop '_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi(thisCrop),:)) ;']) ;
     end
-%     yield_lpj_4cal_tmp.TeSW_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi('TeSW'),:)) ;
-%     yield_lpj_4cal_tmp.TeCo_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi('TeCo'),:)) ;
-%     yield_lpj_4cal_tmp.TrRi_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi('TrRi'),:)) ;
-%     yield_lpj_4cal_tmp.TeWWorSW_Cy = max(cat(3,yield_lpj_4cal_tmp.TeWW_Cy,yield_lpj_4cal_tmp.TeSW_Cy),[],3) ;
-    yield_lpj_4cal_Cyc = nan([size(yield_lpj_4cal_tmp.Rice_Cy) length(listCrops_4cal)]) ;
+%     yield_lpj_4cal_Cyc = nan([size(yield_lpj_4cal_tmp.Rice_Cy) length(listCrops_4cal)]) ;
+    tmp = size(total_lpj_Ccy) ;
+    yield_lpj_4cal_Cyc = nan(tmp([1 3 2])) ;
     for c = 1:length(listCrops_4cal)
         thisCrop = listCrops_4cal{c} ;
         eval(['yield_lpj_4cal_Cyc(:,:,c) = yield_lpj_4cal_tmp.' thisCrop '_Cy ;']) ;
@@ -271,12 +269,31 @@ elseif calib_ver==11
     FA2_to_PLUM_key{getPi2('GlyM')}  = {'Soybean'} ;
     FA2_to_PLUM_key{getPi2('FaBe')}  = {'Faba bean'} ;
 elseif calib_ver==12 || calib_ver==15 || calib_ver==16
-    FA2_to_PLUM_key{getPi2('CerealsC3')}  = {'Wheat'} ;
-    FA2_to_PLUM_key{getPi2('CerealsC4')}  = {'Maize'} ;
-    FA2_to_PLUM_key{getPi2('Rice')}  = {'Rice'} ;
-    FA2_to_PLUM_key{getPi2('Oilcrops')}  = {'Oilcrops'} ;
-    FA2_to_PLUM_key{getPi2('StarchyRoots')}  = {'Starchy roots'} ;
-    FA2_to_PLUM_key{getPi2('Pulses')}  = {'Pulses'} ;
+%     FA2_to_PLUM_key{getPi2('CerealsC3')}  = {'Wheat'} ;
+%     FA2_to_PLUM_key{getPi2('CerealsC4')}  = {'Maize'} ;
+%     FA2_to_PLUM_key{getPi2('Rice')}  = {'Rice'} ;
+%     FA2_to_PLUM_key{getPi2('Oilcrops')}  = {'Oilcrops'} ;
+%     FA2_to_PLUM_key{getPi2('StarchyRoots')}  = {'Starchy roots'} ;
+%     FA2_to_PLUM_key{getPi2('Pulses')}  = {'Pulses'} ;
+    % "If" tests added for compatibility with ISIMIP runs
+    if any(strcmp(listCrops_4cal,'CerealsC3'))
+        FA2_to_PLUM_key{getPi2('CerealsC3')}  = {'Wheat'} ;
+    end
+    if any(strcmp(listCrops_4cal,'CerealsC4'))
+        FA2_to_PLUM_key{getPi2('CerealsC4')}  = {'Maize'} ;
+    end
+    if any(strcmp(listCrops_4cal,'Rice'))
+        FA2_to_PLUM_key{getPi2('Rice')}  = {'Rice'} ;
+    end
+    if any(strcmp(listCrops_4cal,'Oilcrops'))
+        FA2_to_PLUM_key{getPi2('Oilcrops')}  = {'Oilcrops'} ;
+    end
+    if any(strcmp(listCrops_4cal,'StarchyRoots'))
+        FA2_to_PLUM_key{getPi2('StarchyRoots')}  = {'Starchy roots'} ;
+    end
+    if any(strcmp(listCrops_4cal,'Pulses'))
+        FA2_to_PLUM_key{getPi2('Pulses')}  = {'Pulses'} ;
+    end
 elseif calib_ver==13
     FA2_to_PLUM_key{getPi2('Wheat')}     = {'Wheat'} ;
     FA2_to_PLUM_key{getPi2('Maize')}     = {'Maize'} ;
@@ -377,10 +394,11 @@ if strcmp(scatter_style,'size_weighted')
         error('Some value of weights4pts_Cyc is < 0.')
     end
 else
-    weights4pts_Cyc = nan(size(croparea_fa2_4cal_Cyc)) ;
+%     weights4pts_Cyc = nan(size(croparea_fa2_4cal_Cyc)) ;
+    weights4pts_Cyc = [] ;
 end
 
-% Rearrange if needed
+%% Rearrange if needed
 if Ncrops_4cal==1 && ismatrix(yield_fa2_4cal_Cyc) && ~isvector(yield_fa2_4cal_Cyc)
     yield_fa2_4cal_Cyc = reshape(yield_fa2_4cal_Cyc,[size(yield_fa2_4cal_Cyc,1) 1 size(yield_fa2_4cal_Cyc,2)]) ;
     yield_lpj_4cal_Cyc = reshape(yield_lpj_4cal_Cyc,[size(yield_lpj_4cal_Cyc,1) 1 size(yield_lpj_4cal_Cyc,2)]) ;
@@ -388,7 +406,102 @@ if Ncrops_4cal==1 && ismatrix(yield_fa2_4cal_Cyc) && ~isvector(yield_fa2_4cal_Cy
     weights4pts_Cyc = reshape(weights4pts_Cyc,[size(weights4pts_Cyc,1) 1 size(weights4pts_Cyc,2)]) ;
 end
 
-% Do regression: All points
+%% Do regression: All points
+
+% Stuff for compatibility with ISIMIP runs
+if ~exist('yield_fa2_4cal_Cyc_ORIG','var')
+    yield_fa2_4cal_Cyc_ORIG = yield_fa2_4cal_Cyc ;
+else
+    yield_fa2_4cal_Cyc = yield_fa2_4cal_Cyc_ORIG ;
+end
+if ~exist('ignore_fa2_Cc_ORIG','var')
+    ignore_fa2_Cc_ORIG = ignore_fa2_Cc ;
+else
+    ignore_fa2_Cc = ignore_fa2_Cc_ORIG ;
+end
+if ~exist('weights_fa2_4cal_Cyc_ORIG','var')
+    weights_fa2_4cal_Cyc_ORIG = weights_fa2_4cal_Cyc ;
+else
+    weights_fa2_4cal_Cyc = weights_fa2_4cal_Cyc_ORIG ;
+end
+if ~exist('weights4pts_Cyc_ORIG','var')
+    weights4pts_Cyc_ORIG = weights4pts_Cyc ;
+else
+    weights4pts_Cyc = weights4pts_Cyc_ORIG ;
+end
+if ~exist('listCrops_fa2o_ORIG','var')
+    listCrops_fa2o_ORIG = listCrops_fa2o ;
+else
+    listCrops_fa2o = listCrops_fa2o_ORIG ;
+end
+if ~any(strcmp(listCrops_4cal,'CerealsC3'))
+    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Wheat')) = [] ;
+    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Wheat')) = [] ;
+    if ~isempty(weights_fa2_4cal_Cyc)
+        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Wheat')) = [] ;
+    end
+    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
+        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Wheat')) = [] ;
+    end
+    listCrops_fa2o(strcmp(listCrops_fa2o,'Wheat')) = [] ;
+end
+if ~any(strcmp(listCrops_4cal,'CerealsC4'))
+    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Maize')) = [] ;
+    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Maize')) = [] ;
+    if ~isempty(weights_fa2_4cal_Cyc)
+        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Maize')) = [] ;
+    end
+    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
+        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Maize')) = [] ;
+    end
+    listCrops_fa2o(strcmp(listCrops_fa2o,'Maize')) = [] ;
+end
+if ~any(strcmp(listCrops_4cal,'Rice'))
+    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Rice')) = [] ;
+    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Rice')) = [] ;
+    if ~isempty(weights_fa2_4cal_Cyc)
+        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Rice')) = [] ;
+    end
+    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
+        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Rice')) = [] ;
+    end
+    listCrops_fa2o(strcmp(listCrops_fa2o,'Rice')) = [] ;
+end
+if ~any(strcmp(listCrops_4cal,'Oilcrops'))
+    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
+    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
+    if ~isempty(weights_fa2_4cal_Cyc)
+        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
+    end
+    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
+        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
+    end
+    listCrops_fa2o(strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
+end
+if ~any(strcmp(listCrops_4cal,'StarchyRoots'))
+    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
+    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
+    if ~isempty(weights_fa2_4cal_Cyc)
+        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
+    end
+    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
+        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
+    end
+    listCrops_fa2o(strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
+end
+if ~any(strcmp(listCrops_4cal,'Pulses'))
+    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Pulses')) = [] ;
+    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Pulses')) = [] ;
+    if ~isempty(weights_fa2_4cal_Cyc)
+        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Pulses')) = [] ;
+    end
+    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
+        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Pulses')) = [] ;
+    end
+    listCrops_fa2o(strcmp(listCrops_fa2o,'Pulses')) = [] ;
+end
+
+
 disp('ALL POINTS')
 [calib_factors_u,calib_factors_w] = ...
             do_crop_regression(yield_fa2_4cal_Cyc,yield_lpj_4cal_Cyc,...

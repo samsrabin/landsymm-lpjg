@@ -225,6 +225,10 @@ for c = 1:Ncrops_lpj_comb
     combined_YXcy_cropfrac(:,:,c,:) = frac_comb ;
 end
 
+if isempty(find(~isnan(combined_YXcy_yield),1))
+    error('isempty(find(~isnan(combined_YXcy_yield),1))')
+end
+
 if isfield(yield_lpj,'list_to_map')
     yield_lpj_comb.list_to_map = yield_lpj.list_to_map ;
 end

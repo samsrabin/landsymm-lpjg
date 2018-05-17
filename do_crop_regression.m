@@ -13,8 +13,8 @@ function [calib_factors_u,calib_factors_w] = ...
 
 % Set up input arguments
 p = inputParser ;
-addRequired(p,'yield_in_obs_Cyc',@(x) isnumeric(x) & ndims(x)==3) ;
-addRequired(p,'yield_in_sim_Cyc',@(x) isnumeric(x) & ndims(x)==3) ;
+addRequired(p,'yield_in_obs_Cyc',@(x) isnumeric(x) & (ismatrix(x)|ndims(x)==3)) ;
+addRequired(p,'yield_in_sim_Cyc',@(x) isnumeric(x) & (ismatrix(x)|ndims(x)==3)) ;
 addRequired(p,'ignore_obs_Cc',@(x) islogical(x) & ismatrix(x)) ;
 addRequired(p,'ignore_sim_Cc',@(x) islogical(x) & ismatrix(x)) ;
 addRequired(p,'weights_regr_Cyc',@(x) (isnumeric(x) & ndims(x)==3) | isempty(x)) ;
