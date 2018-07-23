@@ -1,11 +1,11 @@
 function total_fao_Ccy = ...
             FAO_to_Ccy2_totalOnly(fao,in2out_key,listCountries_map_present,...
             listCrops_fa2i,listCrops_fa2o,listYears_fao,...
-            verbose,ignoreInfYield,ignoreNoData)
+            verbose,ignoreInfYield,ignoreNoData,faoCommBalElement)
             
 
 % Extract to separate tables
-total_fao = fao(exact_string_in_cellarray(fao.ElementName,'Production',true,true),:) ;
+total_fao = fao(exact_string_in_cellarray(fao.ElementName,faoCommBalElement,true,true),:) ;
 
 % Create country-crop-year arrays
 Ncountries = length(listCountries_map_present) ;
