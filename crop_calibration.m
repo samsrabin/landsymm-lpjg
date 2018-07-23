@@ -141,7 +141,7 @@ reg_line_width = 3 ;
 fig_font_size = 16 ;
 
 % Miscanthus file
-if calib_ver==11 || calib_ver==17 || is_isimip
+if calib_ver==11 || calib_ver==17 || is_ggcmi
     miscanthus_file = '' ;
 elseif calib_ver<=16
     warning('Using horrible Miscanthus kludge from miscanthus_calibration_kludge.m!')
@@ -275,7 +275,7 @@ elseif calib_ver==12 || calib_ver==15 || calib_ver==16
 %     FA2_to_PLUM_key{getPi2('Oilcrops')}  = {'Oilcrops'} ;
 %     FA2_to_PLUM_key{getPi2('StarchyRoots')}  = {'Starchy roots'} ;
 %     FA2_to_PLUM_key{getPi2('Pulses')}  = {'Pulses'} ;
-    % "If" tests added for compatibility with ISIMIP runs
+    % "If" tests added for compatibility with GGCMI runs
     if any(strcmp(listCrops_4cal,'CerealsC3'))
         FA2_to_PLUM_key{getPi2('CerealsC3')}  = {'Wheat'} ;
     end
@@ -398,7 +398,7 @@ else
     weights4pts_Cyc = [] ;
 end
 
-%% Rearrange if needed
+% Rearrange if needed
 if Ncrops_4cal==1 && ismatrix(yield_fa2_4cal_Cyc) && ~isvector(yield_fa2_4cal_Cyc)
     yield_fa2_4cal_Cyc = reshape(yield_fa2_4cal_Cyc,[size(yield_fa2_4cal_Cyc,1) 1 size(yield_fa2_4cal_Cyc,2)]) ;
     yield_lpj_4cal_Cyc = reshape(yield_lpj_4cal_Cyc,[size(yield_lpj_4cal_Cyc,1) 1 size(yield_lpj_4cal_Cyc,2)]) ;
@@ -406,9 +406,9 @@ if Ncrops_4cal==1 && ismatrix(yield_fa2_4cal_Cyc) && ~isvector(yield_fa2_4cal_Cy
     weights4pts_Cyc = reshape(weights4pts_Cyc,[size(weights4pts_Cyc,1) 1 size(weights4pts_Cyc,2)]) ;
 end
 
-%% Do regression: All points
+% Do regression: All points
 
-% Stuff for compatibility with ISIMIP runs
+% Stuff for compatibility with GGCMI runs
 if ~exist('yield_fa2_4cal_Cyc_ORIG','var')
     yield_fa2_4cal_Cyc_ORIG = yield_fa2_4cal_Cyc ;
 else

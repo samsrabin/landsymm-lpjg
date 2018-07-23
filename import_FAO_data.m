@@ -54,7 +54,8 @@ if ~exist(fao_filename_trimmed,'file')
 else
     if calib_ver<=4 || calib_ver==6 || calib_ver==7 || calib_ver==8 || calib_ver==11 || calib_ver==17
         disp('Reading FAO data from TXT file...')
-        fao = readtable(fao_filename_trimmed) ;
+%         fao = readtable(fao_filename_trimmed) ;
+        fao = readtable(fao_filename_trimmed,'Format','%u%s%u%s%u%s%u%u%s%f%s') ;
         twofiles = false ;
     elseif calib_ver==5
         disp('Reading FAO data from TXT file 1...')
@@ -87,6 +88,27 @@ else
     else
         error(['calib_ver not recognized: ' num2str(calib_ver)])
     end
+    
+    if calib_ver==17                                             % Block added AB 2018-06-20
+        fao(:,contains(fao.Properties.VariableNames,{'Code','Unit','Flag'})) = [] ;
+        fao = fao(:,[1 3 2 4 5]) ;
+        fao.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
+        
+        % Trim any rows with no data
+        fao(cellfun(@isempty,fao.Value),:) = [] ;
+        
+        % Force numbers to numeric
+        fao_orig = fao ;
+        disp('Forcing numbers to numeric (year)...')
+        tmp = cellfun(@str2num,fao.Year) ;
+        fao.Year = tmp ;
+        clear tmp
+        disp('Forcing numbers to numeric (value)...')
+        tmp = cellfun(@str2num,fao.Value) ;    %    'UniformOutput', false added
+        fao.Value = tmp ;
+        clear tmp
+        disp('Done forcing numbers to numeric.')
+    end   
     
     % Restrict data to years of interest
     if ~twofiles
@@ -144,7 +166,8 @@ else
     
     if combine_subChinas
         if ~twofiles
-            fao = fao(~cellstrfind(fao.AreaName,'China,',true,true),:) ;
+%             fao = fao(~cellstrfind(fao.AreaName,'China,',true,true),:) ;
+            fao = fao(~contains(fao.AreaName,'China,'),:) ;
         else
             if calib_ver==5
                 % For PRODUCTION data, get rid of sub-Chinas

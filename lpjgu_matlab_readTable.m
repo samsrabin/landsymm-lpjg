@@ -55,7 +55,7 @@ else
         if verbose || verboseIfNoMat
             disp([dispPrefix '      Deleting unzipped in_file...'])
         end
-        err2 = system(['rm ' in_file]) ;
+        err2 = system(['rm "' in_file '"']) ;
         if err2~=0
             error('Error in rm.')
         end
@@ -74,7 +74,7 @@ standardize_colnames()
                 if verbose || verboseIfNoMat
                     disp([dispPrefix '   Unzipping in_file...'])
                 end
-                err1 = system(['gunzip < ' in_file_gz ' > ' in_file]) ;
+                err1 = system(['gunzip < "' in_file_gz '" > "' in_file '"']) ;
                 if err1~=0
                     error('Error in gunzip.')
                 end

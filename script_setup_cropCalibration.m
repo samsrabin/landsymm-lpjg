@@ -16,13 +16,13 @@ else
     countries_key.Properties.VariableNames = {'Country','numCode'} ;
 end
 
-% Is this an ISIMIP run?
-is_isimip = contains(version_name,'isimip') ;
+% Is this a GGCMI run?
+is_ggcmi = contains(version_name,'ggcmi') | contains(version_name,'GGCMI') ;
 
 % Import land area (km2)
 xres = 360/size(countries_YX,2) ;
 yres = 180/size(countries_YX,1) ;
-if ~is_isimip
+if ~is_ggcmi
     if calib_ver==17 % Put your calib_ver here if you want it to use MCD12C1-derived land area.
         if xres ~= yres
             error('To use this land area map, xres must == yres.')

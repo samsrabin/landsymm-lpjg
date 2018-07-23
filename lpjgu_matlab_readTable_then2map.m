@@ -183,10 +183,12 @@ if isempty(list_to_map_in)
     [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose) ;
 else
     if length(in_lons) ~= length(list_to_map_in)
-        error('length(in_lons) ~= length(list_to_map_in)')
+        warning('length(in_lons) ~= length(list_to_map_in)! Ignoring list_to_map_in.')
+        [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose) ;
+    else
+        list_to_map = list_to_map_in ;
+        found = true(size(list_to_map)) ;
     end
-    list_to_map = list_to_map_in ;
-    found = true(size(list_to_map)) ;
 end
 
 end

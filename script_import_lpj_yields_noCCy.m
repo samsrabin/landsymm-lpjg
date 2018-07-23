@@ -1,4 +1,4 @@
-if ~is_isimip
+if ~is_ggcmi
     if strcmp(version_name,'stijn_20180119')
         if calib_ver ~= 11
             error('When doing stijn_20180119, you must use calib_ver=11.')
@@ -20,12 +20,12 @@ if ~is_isimip
 end
 
 % Trim names
-if ~is_isimip && strcmp(filename_guess_yield(end-2:end),'.gz')
+if ~is_ggcmi && strcmp(filename_guess_yield(end-2:end),'.gz')
     filename_guess_yield = filename_guess_yield(1:end-3) ;
 end
 
 % Import yields and land uses
-if ~is_isimip
+if ~is_ggcmi
     yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
     cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
     landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
@@ -34,7 +34,7 @@ end
 
 % Trim out CC3G, CC4G, and OtHr from yield_lpj
 % toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic')) ;
-if ~is_isimip
+if ~is_ggcmi
     toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic') ...
         | strcmp(yield_lpj.varNames,'OtHr') | strcmp(yield_lpj.varNames,'OtHri')) ;
     if ~isempty(toRemove)
@@ -64,7 +64,7 @@ end
 
 % 2014 land use is repeated for 2015
 % if max(landuse_lpj.yearList==2015)
-if ~is_isimip && max(yield_lpj.yearList)==2015
+if ~is_ggcmi && max(yield_lpj.yearList)==2015
     if max(cropfrac_lpj.yearList)==2014
         cropfrac_lpj.maps_YXvy(:,:,:,size(cropfrac_lpj.maps_YXvy,4)+1) = cropfrac_lpj.maps_YXvy(:,:,:,size(cropfrac_lpj.maps_YXvy,4)) ;
         cropfrac_lpj.yearList(length(cropfrac_lpj.yearList)+1) = cropfrac_lpj.yearList(length(cropfrac_lpj.yearList)) + 1 ;
@@ -80,23 +80,23 @@ if ~is_isimip && max(yield_lpj.yearList)==2015
 end
 
 % Align years, if necessary
-if ~is_isimip && ~isequal(yield_lpj.yearList,cropfrac_lpj.yearList)
+if ~is_ggcmi && ~isequal(yield_lpj.yearList,cropfrac_lpj.yearList)
     [~,~,IB] = intersect(yield_lpj.yearList,cropfrac_lpj.yearList) ;
     cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,:,IB) ;
     cropfrac_lpj.yearList = cropfrac_lpj.yearList(IB) ;
 end
-if ~is_isimip && ~isequal(yield_lpj.yearList,landuse_lpj.yearList)
+if ~is_ggcmi && ~isequal(yield_lpj.yearList,landuse_lpj.yearList)
     [~,~,IB] = intersect(yield_lpj.yearList,landuse_lpj.yearList) ;
     landuse_lpj.maps_YXvy = landuse_lpj.maps_YXvy(:,:,:,IB) ;
     landuse_lpj.yearList = landuse_lpj.yearList(IB) ;
 end
-if ~is_isimip && (~isequal(yield_lpj.yearList,cropfrac_lpj.yearList) || ~isequal(yield_lpj.yearList,landuse_lpj.yearList))
+if ~is_ggcmi && (~isequal(yield_lpj.yearList,cropfrac_lpj.yearList) || ~isequal(yield_lpj.yearList,landuse_lpj.yearList))
     error('Yearlists don''t match!')
 end
 
 % Combine WW and SW, if necessary
 % if strcmp(version_name,'plumTypes_assignWWSW')
-if ~is_isimip && (any(strcmp(yield_lpj.varNames,'CerealsC3w')) || any(strcmp(yield_lpj.varNames,'CerealsC3s')))
+if ~is_ggcmi && (any(strcmp(yield_lpj.varNames,'CerealsC3w')) || any(strcmp(yield_lpj.varNames,'CerealsC3s')))
     warning('Combining WW and SW.')
     % Rainfed
     i_yield_rf = [find(strcmp(yield_lpj.varNames,'CerealsC3w')) find(strcmp(yield_lpj.varNames,'CerealsC3s'))] ;
@@ -129,7 +129,7 @@ if ~is_isimip && (any(strcmp(yield_lpj.varNames,'CerealsC3w')) || any(strcmp(yie
 end
 
 % Stijn didn't include irrigated of these?
-if ~is_isimip && strcmp(version_name,'stijn_20180119')
+if ~is_ggcmi && strcmp(version_name,'stijn_20180119')
     tmpRemoveList = {'FaBei','GlyMi','TrSoi'} ;
     for c = 1:length(tmpRemoveList)
         thisCrop = tmpRemoveList{c} ;
@@ -168,7 +168,7 @@ cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
 Nyears_lpj = length(landuse_lpj.yearList) ;
 
 % Convert yield from kgDM/m2 to tDM/ha
-if ~is_isimip
+if ~is_ggcmi
     yield_lpj.maps_YXvy = yield_lpj.maps_YXvy * 1e4 * 1e-3 ;
 end
 
