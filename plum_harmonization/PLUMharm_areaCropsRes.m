@@ -504,9 +504,21 @@ for d = 1:length(PLUM_in_toptop)
         % Calculate changes in PLUM agri grids at 2 degrees
         %%% Negative indicates LOSS of thisAgri area
         agri_d_YXv = in_y1_2deg_agri_YXv - in_y0_2deg_agri_YXv ;
+        nfert_d_YXv = in_y1_nfert_2deg.maps_YXv - in_y0_nfert_2deg.maps_YXv ;
+        irrig_d_YXv = in_y1_irrig_2deg.maps_YXv - in_y0_irrig_2deg.maps_YXv ;
 
         % Apply changes to previous grid (@2deg)
         mid1_y1_2deg_agri_YXv = out_y0_2deg_agri_YXv + agri_d_YXv ;
+        mid_y1_2deg_nfert_YXv = out_y0_nfert_2deg.maps_YXv + nfert_d_YXv ;
+        mid_y1_2deg_irrig_YXv = out_y0_irrig_2deg.maps_YXv + irrig_d_YXv ;
+        
+        % Do not allow invalid management inputs. Could conceivably be
+        % moved to after ringRedist, which would in some sense get at the
+        % "redistribution of negative or excess management inputs," which
+        % we are not currently doing.
+        mid_y1_2deg_nfert_YXv(mid_y1_2deg_nfert_YXv<0) = 0 ;
+        mid_y1_2deg_irrig_YXv(mid_y1_2deg_irrig_YXv<0) = 0 ;
+        mid_y1_2deg_irrig_YXv(mid_y1_2deg_irrig_YXv>1) = 1 ;
 
         % Debugging output
         mid1_y1_2deg_ntrl_YX = out_y0_2deg.maps_YXv(:,:,strcmp(out_y0_2deg.varNames,'NATURAL')) ...
