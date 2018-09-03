@@ -13,7 +13,6 @@ out_YXv = nan(size(in_YXv)) ;
 Ncrops_lpjg = length(LPJGcrops) ;
 for c = 1:Ncrops_lpjg
     if strcmp(LPJGcrops{c},'ExtraCrop') || strcmp(LPJGcrops{c},'Miscanthus')
-        disp(LPJGcrops{c})
         out_YXv(:,:,c) = zeros(size(landArea_YX)) ;
         continue
     end
@@ -25,7 +24,7 @@ out_YXv(repmat(landArea_YX==0,[1 1 Ncrops_lpjg])) = 0 ;
 
 % Do not allow negative values
 if ~allow_neg && any(out_YXv(:)<0)
-    warning('Setting negative members of out_YXv to zero.')
+%     warning('Setting negative members of out_YXv to zero.')
     out_YXv(out_YXv<0) = 0 ;
 end
 
@@ -35,7 +34,7 @@ if ~allow_tooHigh
     max_mgmt(nansum(nansum(area_YXv,1),2)==0) = 0 ;
     max_mgmt_YXv = repmat(max_mgmt,[size(landArea_YX) 1]) ;
     if any(out_YXv(:) > max_mgmt_YXv(:))
-        warning('Limiting some members of out_YXv to maximum observed before interpolation.')
+%         warning('Limiting some members of out_YXv to maximum observed before interpolation.')
         is2much = out_YXv > max_mgmt_YXv ;
         out_YXv(is2much) = max_mgmt_YXv(is2much) ;
     end

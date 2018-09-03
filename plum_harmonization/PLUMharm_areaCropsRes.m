@@ -262,11 +262,11 @@ luh2_base_irrig_2deg.varNames = LPJGcrops ;
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
 
 % Interpolate management inputs
-luh2_base_nfert_2deg = PLUMharm_interpolateMgmt(...
-    luh2_base_nfert_2deg, landArea_2deg_YX, luh2_base.maps_YXv(:,:,isCrop),...
+luh2_base_nfert_2deg.maps_YXv = PLUMharm_interpolateMgmt(...
+    luh2_base_nfert_2deg.maps_YXv, luh2_base.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
     LPJGcrops, inpaint_method) ;
-luh2_base_irrig_2deg = PLUMharm_interpolateMgmt(...
-    luh2_base_irrig_2deg, landArea_2deg_YX, luh2_base.maps_YXv(:,:,isCrop),...
+luh2_base_irrig_2deg.maps_YXv = PLUMharm_interpolateMgmt(...
+    luh2_base_irrig_2deg.maps_YXv, luh2_base.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
     LPJGcrops, inpaint_method) ;
 
 % Get LUH2 2-deg fraction that is vegetated, barren
@@ -358,6 +358,8 @@ for d = 1:length(PLUM_in_toptop)
     end
 
     bareFrac_y0_YX = luh2_bareFrac_YX ;
+    latestPLUMin_nfert_2deg_YXv = -1*ones([size(landArea_2deg_YX) Ncrops_lpjg]) ;
+    latestPLUMin_irrig_2deg_YXv = -1*ones([size(landArea_2deg_YX) Ncrops_lpjg]) ;
     clear out_* in_*
     for y = 1:length(years)
         
@@ -372,13 +374,18 @@ for d = 1:length(PLUM_in_toptop)
             out_y0_2deg = luh2_base_2deg ;
             out_y0_agri_YXv = luh2_base.maps_YXv(:,:,isAgri) ;
             out_y0_2deg_agri_YXv = luh2_base_2deg.maps_YXv(:,:,isAgri) ;
+            out_y0_nfert_2deg = luh2_base_nfert_2deg ;
+            out_y0_irrig_2deg = luh2_base_irrig_2deg ;
         elseif y==1
             error('Something seems to be wrong with code to restart harmonization after base_year+1.')
+            error('Also need to somehow reload "latest PLUMorig management."')
             file_in = [removeslashifneeded(PLUM_in_top) '.harm/' num2str(thisYear-1) '/LandCoverFract.base' num2str(base_year) '.txt'] ;
 %             disp(['out_y0 from ' file_in])
-            [out_y0, out_y0_2deg] = ...
+            [out_y0, out_y0_2deg, out_y0_nfert_2deg, out_y0_irrig_2deg, ...
+                latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, ...
-                LUnames, bareFrac_y0_YX, PLUMtoLPJG, LPJGcrops, norm2extra) ;
+                landArea_2deg_YX, LUnames, bareFrac_y0_YX, PLUMtoLPJG, LPJGcrops, ...
+                norm2extra, inpaint_method) ;
             bareFrac_y0_YX = out_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
             out_y0_agri_YXv = out_y0.maps_YXv(:,:,isAgri) ;
             out_y0_2deg_agri_YXv = out_y0_2deg.maps_YXv(:,:,isAgri) ;
@@ -386,14 +393,31 @@ for d = 1:length(PLUM_in_toptop)
 %             out_y0_2deg_vegdFrac_YX = out_y0_2deg_vegd_YX ./ landArea_2deg_YX ;
 %             out_y0_2deg_bare_YX = landArea_2deg_YX - out_y0_2deg_vegd_YX ;
         end
+        
+        % Import for debugging redistribution
+        if do_debug
+            if y==1
+                file_in = [PLUM_base_in '/LandCoverFract.txt'] ;
+                [~, in_y0orig_2deg, in_y0orig_nfert_2deg, in_y0orig_irrig_2deg, ...
+                    ~, ~] = ...
+                    PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
+                    LUnames, bareFrac_y0_YX, latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, PLUMtoLPJG, LPJGcrops, norm2extra) ;
+            end
+        else
+            diffO_YXv = [] ;
+            in_y0orig_2deg = [] ;
+            in_y1orig_2deg = [] ;
+        end
 
         % Import and process previous year, if needed
         if ~exist('in_y0','var')
             file_in = [PLUM_in_top num2str(thisYear-1) '/LandCoverFract.txt'] ;
 %             disp(['in_y0 from ' file_in])
-            [in_y0, in_y0_2deg] = ...
-                PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, ...
-                LUnames, bareFrac_y0_YX, PLUMtoLPJG, LPJGcrops, norm2extra) ;
+            [in_y0, in_y0_2deg, in_y0_nfert_2deg, in_y0_irrig_2deg, ...
+                latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
+                PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
+                LUnames, bareFrac_y0_YX, latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
+                PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
             bareFrac_y0_YX = in_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
             in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
             in_y0_2deg_agri_YXv = in_y0_2deg.maps_YXv(:,:,isAgri) ;
@@ -405,9 +429,11 @@ for d = 1:length(PLUM_in_toptop)
         % Import this year and convert to area
         file_in = [PLUM_in_top num2str(thisYear) '/LandCoverFract.txt'] ;
 %         disp(['in_y1 from ' file_in])
-        [in_y1, in_y1_2deg] = ...
-            PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, LUnames, ...
-            bareFrac_y0_YX, PLUMtoLPJG, LPJGcrops, norm2extra) ;
+        [in_y1, in_y1_2deg, in_y1_nfert_2deg, in_y1_irrig_2deg, ...
+            latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
+            PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
+            LUnames, bareFrac_y0_YX, latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
+            PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
         in_y1_agri_YXv = in_y1.maps_YXv(:,:,isAgri) ;
         in_y1_2deg_agri_YXv = in_y1_2deg.maps_YXv(:,:,isAgri) ;
         in_y1_ntrl_YX = in_y1.maps_YXv(:,:,strcmp(in_y1.varNames,'NATURAL')) ;
@@ -418,6 +444,12 @@ for d = 1:length(PLUM_in_toptop)
         in_y1_2deg_vegd_YX = sum(in_y1_2deg.maps_YXv(:,:,notBare),3) ;
         in_y1_2deg_vegdFrac_YX = in_y1_2deg_vegd_YX ./ landArea_2deg_YX ;
         in_y1_2deg_bare_YX = landArea_2deg_YX - in_y1_2deg_vegd_YX ;
+        
+        % Import for debugging redistribution
+        if do_debug
+            in_y1orig_2deg = in_y1_2deg ;
+            diffO_YXv = in_y1orig_2deg.maps_YXv - in_y0orig_2deg.maps_YXv ;
+        end
         
         % Make sure that total global loss of a land use does not exceed
         % the total global area of that land use.
@@ -463,22 +495,6 @@ for d = 1:length(PLUM_in_toptop)
                 pause(0.1)
             end
         end; clear *_thisLU*
-
-        % Import for debugging redistribution
-        if do_debug
-            if y==1
-                file_in = [PLUM_base_in '/LandCoverFract.txt'] ;
-                [~, in_y0orig_2deg] = ...
-                    PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, LUnames, ...
-                    bareFrac_y0_YX, PLUMtoLPJG, LPJGcrops, norm2extra) ;
-            end
-            in_y1orig_2deg = in_y1_2deg ;
-            diffO_YXv = in_y1orig_2deg.maps_YXv - in_y0orig_2deg.maps_YXv ;
-        else
-            diffO_YXv = [] ;
-            in_y0orig_2deg = [] ;
-            in_y1orig_2deg = [] ;
-        end
 
         % Debugging output
         if do_debug
@@ -721,6 +737,8 @@ for d = 1:length(PLUM_in_toptop)
             in_y0_2deg_vegd_YX = in_y1_2deg_vegd_YX ;
             in_y0_2deg_vegdFrac_YX = in_y1_2deg_vegdFrac_YX ;
             in_y0_2deg_bare_YX = in_y1_2deg_bare_YX ;
+            in_y0_nfert_2deg = in_y1_nfert_2deg ;
+            in_y0_irrig_2deg = in_y1_irrig_2deg ;
             if do_debug
                 in_y0orig_2deg = in_y1orig_2deg ;
             end
