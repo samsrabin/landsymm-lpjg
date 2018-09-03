@@ -1,11 +1,12 @@
-function out_y1_2deg_agri_YXv = ...
+function [out_y1_2deg_agri_YXv, out_y1_2deg_nfert_YXv, out_y1_2deg_irrig_YXv] = ...
     PLUMharm_ringRedist_areaCropsRes(...
     mid_y1_2deg_agri_YXv, ...
     vegd_2deg_y1_YX, ...
     total_unmet_agri_YXv, ...
     landArea_2deg_YX, ...
     debugIJ, in_y0orig_2deg, in_y1orig_2deg, out_y0_2deg_agri_YXv, ...
-    nonResNtrl_YX, LUnames_agri)
+    nonResNtrl_YX, LUnames_agri, ...
+    mid_y1_2deg_nfert_YXv, mid_y1_2deg_irrig_YXv)
 % Loop through every 2-degree gridcell. If a gridcell has unmet crop
 % or pasture, look for place to put this unmet amount in neighboring
 % rings, starting with gridcells that are 1 unit away, then 2, etc.
@@ -14,6 +15,7 @@ function out_y1_2deg_agri_YXv = ...
 % 2-degree gridcell.
 
 Nagri = size(mid_y1_2deg_agri_YXv,3) ;
+hasMgmtInput = ~contains(LUnames_agri,{'PASTURE','ExtraCrop'}) ;
 
 % Create grids for tracking displaced agriculture
 % debugIJ = [999 999] ;
@@ -35,6 +37,8 @@ if do_debug
 end
 
 out_y1_2deg_agri_YXv = mid_y1_2deg_agri_YXv ;
+out_y1_2deg_nfert_YXv = mid_y1_2deg_nfert_YXv ;
+out_y1_2deg_irrig_YXv = mid_y1_2deg_irrig_YXv ;
 
 ny = size(landArea_2deg_YX,1) ;
 nx = size(landArea_2deg_YX,2) ;
@@ -70,22 +74,48 @@ for k = ks
                 if do_debug && k+1==debugIJ(1) && m+1==debugIJ(2)
                     fprintf('%s, j = %d, total_unmet_this_YX(thisCell) = %0.4g\n',...
                         LUnames_agri{i},j,total_unmet_this_YX(thisCell)) ;
+%                     if strcmp(LUnames_agri{i},'PASTURE')
+%                         keyboard
+%                     end
                 end
                 % Calculate the total agricultural (crop+past) area
                 out_y1_2deg_agri_YX = sum(out_y1_2deg_agri_YXv,3) ;
+                % Get current management inputs
+                if hasMgmtInput(i)
+                    out_y1_2deg_this_nfert_YX = out_y1_2deg_nfert_YXv(:,:,i) ;
+                    out_y1_2deg_this_irrig_YX = out_y1_2deg_irrig_YXv(:,:,i) ;
+                else
+                    out_y1_2deg_this_nfert_YX = [] ;
+                    out_y1_2deg_this_irrig_YX = [] ;
+                end
                 % Set up rings and indices
                 this_rings_YX(thisCell) = j;
                 i_k = mod(k + (-j:j),ny) + 1 ;
                 i_m = mod(m + (-j:j),nx) + 1 ;
                 [I_K,I_M] = meshgrid(i_k,i_m);
                 tmp = reshape(cat(2,I_K',I_M'),[],2) ;
+                if j==1
+                    innerCells = thisCell ;
+                else % use thisRing from previous iteration of while loop
+                    innerCells = thisRing ;
+                end
                 thisRing = sub2ind(size(total_unmet_this_YX),tmp(:,1),tmp(:,2)) ;
-                [out_y1_2deg_this_YX, total_unmet_this_YX, displaced_this_YX, this_meanDist_YX] = ...
+                [out_y1_2deg_this_YX, total_unmet_this_YX, ...
+                    out_y1_2deg_this_nfert_YX, out_y1_2deg_this_irrig_YX, ...
+                    displaced_this_YX, this_meanDist_YX] = ...
                     PLUMharm_doRings_areaCropsRes(...
-                    out_y1_2deg_this_YX, out_y1_2deg_agri_YX, total_unmet_this_YX, displaced_this_YX, ...
-                    thisCell, thisRing, nonResNtrl_YX, this_meanDist_YX) ;
+                    out_y1_2deg_this_YX, out_y1_2deg_agri_YX, total_unmet_this_YX, ...
+                    out_y1_2deg_this_nfert_YX, out_y1_2deg_this_irrig_YX, ...
+                    displaced_this_YX, ...
+                    thisCell, thisRing, innerCells, nonResNtrl_YX, this_meanDist_YX) ;
                 out_y1_2deg_agri_YXv(:,:,i) = out_y1_2deg_this_YX ;
-                meanDist_YXv(:,:,i) = this_meanDist_YX ;
+                if hasMgmtInput(i)
+                    out_y1_2deg_nfert_YXv(:,:,i) = out_y1_2deg_this_nfert_YX ;
+                    out_y1_2deg_irrig_YXv(:,:,i) = out_y1_2deg_this_irrig_YX ;
+                end
+                if do_debug
+                    meanDist_YXv(:,:,i) = this_meanDist_YX ;
+                end
                 
             end % while loop
             total_unmet_agri_YXv(:,:,i) = total_unmet_this_YX ;
@@ -134,10 +164,14 @@ end
 end
 
 
-function [out_YX, total_unmet_YX, displaced_YX, this_meanDist_YX] = ...
+function [out_YX, total_unmet_YX, ...
+    out_nfert_YX, out_irrig_YX, ...
+    displaced_YX, this_meanDist_YX] = ...
     PLUMharm_doRings_areaCropsRes( ...
-    out_YX, out_agri_YX, total_unmet_YX, displaced_YX, ...
-    thisCell, thisRing, nonResNtrl_YX, this_meanDist_YX)
+    out_YX, out_agri_YX, total_unmet_YX, ...
+    out_nfert_YX, out_irrig_YX, ...
+    displaced_YX, thisCell, thisRing, innerCells, ...
+    nonResNtrl_YX, this_meanDist_YX)
 
 %%% Internals
 % avail_space = "other" area in thisRing
@@ -145,6 +179,13 @@ function [out_YX, total_unmet_YX, displaced_YX, this_meanDist_YX] = ...
 %%% Outputs
 % displaced_YX = net area of this land type moved from or to this gridcell.
 %                Negative value indicates ???
+
+thisRing_notThisCell = thisRing ;
+thisRing_notThisCell(thisRing_notThisCell==thisCell) = [] ;
+[~,IA,~] = intersect(thisRing,innerCells,'stable') ;
+thisRing_isInnerCell = false(size(thisRing)) ;
+thisRing_isInnerCell(IA) = true ;
+j = (sqrt(length(thisRing))-1)/2 ;   % What ring are we on?
 
 % if thisCell needs to give THISLU to the rest of the ring
 % (i.e., thisCell had more vegetated area than allowed, or more non-NATURAL
@@ -166,12 +207,37 @@ if total_unmet_YX(thisCell)>0
             total_unmet_YX(thisCell) = 0;
         end
         out_thisRing_new = out_YX(thisRing) + to_ring ;
+        to_ring_notThisCell = to_ring(thisRing_notThisCell~=thisCell) ;
+        % Check that you do not have to_ring too much >0 in interior of ring.
+        % THIS CAN HAPPEN BECAUSE AVAIL_SPACE CAN BE >0 IN INTERIOR. I DO
+        % NOT UNDERSTAND WHY. HOPEFULLY ALWAYS TINY.
+        if any(to_ring(thisRing_isInnerCell)>1e-3)
+            error('How do you have to_ring>0 in cell(s) not on ring perimeter?')
+        end
+        out_thisRingNotThisCell_new = out_YX(thisRing_notThisCell) + to_ring_notThisCell ;
+        % This cell is giving area to other cells in ring. So here, we
+        % update the recipient cells' management inputs by merging in those
+        % of the donor cell.
+        if ~isempty(out_nfert_YX)
+            now_weighted = out_nfert_YX(thisRing_notThisCell) .* out_YX(thisRing_notThisCell)./out_thisRingNotThisCell_new ;
+            new_weighted = out_nfert_YX(thisCell)              * to_ring_notThisCell         ./out_thisRingNotThisCell_new ;
+            now_weighted(out_thisRingNotThisCell_new==0) = 0 ;
+            new_weighted(out_thisRingNotThisCell_new==0) = 0 ;
+            out_nfert_YX(thisRing_notThisCell) = now_weighted + new_weighted ;
+        end
+        if ~isempty(out_irrig_YX)
+            now_weighted = out_irrig_YX(thisRing_notThisCell) .* out_YX(thisRing_notThisCell)./out_thisRingNotThisCell_new ;
+            new_weighted = out_irrig_YX(thisCell)              * to_ring_notThisCell         ./out_thisRingNotThisCell_new ;
+            now_weighted(out_thisRingNotThisCell_new==0) = 0 ;
+            new_weighted(out_thisRingNotThisCell_new==0) = 0 ;
+            out_irrig_YX(thisRing_notThisCell) = now_weighted + new_weighted ;
+        end
+        % Update debugging info
         if ~isempty(displaced_YX)
             displaced_YX(thisRing) = displaced_YX(thisRing) + to_ring;
             % This cell is giving area to other cells in ring. So here, we
             % update this_meanDist_YX, which keeps track of the mean
             % distance (in # rings) that area in each cell came from.
-            j = (sqrt(length(thisRing))-1)/2 ;   % What ring are we on?
             now_weighted = this_meanDist_YX(thisRing) .* out_YX(thisRing)./out_thisRing_new ;
             new_weighted =                          j  * to_ring./out_thisRing_new ;
             now_weighted(out_thisRing_new==0) = 0 ;
