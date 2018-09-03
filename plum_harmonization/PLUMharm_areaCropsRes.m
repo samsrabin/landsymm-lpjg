@@ -121,7 +121,7 @@ landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 % (This also masks where needed due to harmonization of LUH2+PLUM masks)
 luh2_base.maps_YXv = luh2_base.maps_YXv .* landArea_YXv ;
 
-% Import LUH2 base_year crop fractions
+% Import base_year crop fractions
 % remaps_v4 has setAside and unhandledCrops in CC3G and CC4G. In the next
 % step, we will combine CC3G and CC4G into ExtraCrop. (Was called SetAside,
 % but renamed to avoid confusion, considering that this is not just
@@ -155,6 +155,24 @@ LPJGcrops = tmp ;
 Ncrops_lpjg = length(LPJGcrops) ;
 Nagri = Ncrops_lpjg + 1 ;
 clear tmp
+% Get "irrigation intensity" as fraction of thisCrop that is irrigated
+% (later, will interpolate to cells without any of thisCrop)
+luh2_base_irrig.varNames = LPJGcrops ;
+luh2_base_irrig.maps_YXv = nan([size(landArea_YX) Ncrops_lpjg],'single') ;
+for c = 1:Ncrops_lpjg
+    thisCrop = LPJGcrops{c} ;
+    if strcmp(thisCrop,'ExtraCrop')
+        luh2_base_irrig.maps_YXv(:,:,c) = zeros(size(landArea_YX)) ;
+        continue
+    end
+    thisCropI = [thisCrop 'i'] ;
+    thisCropR_YX = luh2_base_cropf.maps_YXv(:,:,strcmp(luh2_base_cropf.varNames,thisCrop)) ;
+    thisCropI_YX = luh2_base_cropf.maps_YXv(:,:,strcmp(luh2_base_cropf.varNames,thisCropI)) ;
+    thisCrop_YX = thisCropR_YX + thisCropI_YX ;
+    tmp_YX = thisCropI_YX ./ thisCrop_YX ;
+    tmp_YX(thisCrop_YX==0) = NaN ;
+    luh2_base_irrig.maps_YXv(:,:,c) = tmp_YX ;
+end
 % Combine irrigated and rainfed
 any_irrigated = ~isequal(luh2_base_cropf.varNames,LPJGcrops) ;
 if any_irrigated
@@ -174,9 +192,33 @@ if any_irrigated
             tmp.maps_YXv(:,:,c) = luh2_base_cropf.maps_YXv(:,:,is_thisCrop) ;
         end
     end
+    clear luh2_base_cropf
     luh2_base_cropf = tmp ;
     clear tmp
 end
+
+% Read baseline fertilization
+% (later, will interpolate to cells without any of thisCrop)
+luh2_base_nfert = lpjgu_matlab_readTable_then2map('/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt',...
+    'verboseIfNoMat',false,'force_mat_save',true) ;
+% Get just base year, if needed
+if isfield(luh2_base_nfert,'yearList')
+    tmp = luh2_base_nfert.maps_YXvy(:,:,luh2_base_nfert.yearList==base_year) ;
+    luh2_base_nfert = rmfield(luh2_base_nfert,{'maps_YXvy','yearList'}) ;
+    luh2_base_nfert.maps_YXv = tmp ;
+    clear tmp
+end
+% Add ExtraCrop, if needed
+if any(strcmp(LPJGcrops,'ExtraCrop')) && ~any(strcmp(luh2_base_nfert.varNames,'ExtraCrop'))
+    luh2_base_nfert.varNames = [luh2_base_nfert.varNames {'ExtraCrop'}] ;
+    luh2_base_nfert.maps_YXv = cat(3,luh2_base_nfert.maps_YXv,zeros(size(landArea_YX))) ;
+end
+[~,IA,IB] = intersect(LPJGcrops,luh2_base_nfert.varNames,'stable') ;
+if ~isequal(IA',1:Ncrops_lpjg)
+    error('Issue with crop compatibility between LPJGcrops and baseline Nfert.')
+end
+luh2_base_nfert.maps_YXv = luh2_base_nfert.maps_YXv(:,:,IB) ;
+luh2_base_nfert.varNames = LPJGcrops ;
 
 % Convert luh2_base to have individual crops instead of CROPLAND
 if ~exist('luh2_base_orig','var')
@@ -210,6 +252,10 @@ luh2_bareFrac_YX = luh2_bare_YX ./ landArea_YX ;
 % Aggregate from 0.5º to 2º
 luh2_base_2deg.maps_YXv = PLUMharm_aggregate(luh2_base.maps_YXv,0.5,2) ;
 luh2_base_2deg.varNames = luh2_base.varNames ;
+luh2_base_nfert_2deg.maps_YXv = PLUMharm_aggregate_mgmt(luh2_base_nfert.maps_YXv,luh2_base.maps_YXv(:,:,isCrop),0.5,2) ;
+luh2_base_nfert_2deg.varNames = LPJGcrops ;
+luh2_base_irrig_2deg.maps_YXv = PLUMharm_aggregate_mgmt(luh2_base_irrig.maps_YXv,luh2_base.maps_YXv(:,:,isCrop),0.5,2) ;
+luh2_base_irrig_2deg.varNames = LPJGcrops ;
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
 
 % Get LUH2 2-deg fraction that is vegetated, barren
