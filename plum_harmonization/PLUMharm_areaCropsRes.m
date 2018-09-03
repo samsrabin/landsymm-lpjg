@@ -12,6 +12,9 @@ PLUM_in_toptop = {...
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
+              
+% Method for inpaint_nans()
+inpaint_method = 0 ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
 debugIJ_2deg = [] ;
@@ -257,6 +260,14 @@ luh2_base_nfert_2deg.varNames = LPJGcrops ;
 luh2_base_irrig_2deg.maps_YXv = PLUMharm_aggregate_mgmt(luh2_base_irrig.maps_YXv,luh2_base.maps_YXv(:,:,isCrop),0.5,2) ;
 luh2_base_irrig_2deg.varNames = LPJGcrops ;
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
+
+% Interpolate management inputs
+luh2_base_nfert_2deg = PLUMharm_interpolateMgmt(...
+    luh2_base_nfert_2deg, landArea_2deg_YX, luh2_base.maps_YXv(:,:,isCrop),...
+    LPJGcrops, inpaint_method) ;
+luh2_base_irrig_2deg = PLUMharm_interpolateMgmt(...
+    luh2_base_irrig_2deg, landArea_2deg_YX, luh2_base.maps_YXv(:,:,isCrop),...
+    LPJGcrops, inpaint_method) ;
 
 % Get LUH2 2-deg fraction that is vegetated, barren
 luh2_vegd_2deg_YX = sum(luh2_base_2deg.maps_YXv(:,:,notBare),3) ;

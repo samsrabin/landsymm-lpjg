@@ -35,26 +35,26 @@ end
 out_YXv = zeros(size(in_YXv,1)/res_ratio, ...
                size(in_YXv,2)/res_ratio, ...
                size(in_YXv,3)) ;
-outArea_YX = out_YXv ;
+outArea_YXv = out_YXv ;
 for i = 1:res_ratio
     % Area in new row
     newArea = tmpArea(i:res_ratio:end,:,:) ;
     % The current value of mgmt input, weighted by area totaled so far as
     % fraction of so-far plus new area
-    out2wtd = out_YXv .* outArea_YX./(outArea_YX+newArea) ;
+    out2wtd = out_YXv .* outArea_YXv./(outArea_YXv+newArea) ;
     % The value of mgmt input in the new row, weighted by area in new
     % row as fraction of so-far plus new area
-    new2wtd = tmp(i:res_ratio:end,:,:) .* newArea./(outArea_YX+newArea) ;
+    new2wtd = tmp(i:res_ratio:end,:,:) .* newArea./(outArea_YXv+newArea) ;
     % Where no so-far or new area, set old and new values to zero.
-    out2wtd(outArea_YX+newArea==0) = 0 ;
-    new2wtd(outArea_YX+newArea==0) = 0 ;
+    out2wtd(outArea_YXv+newArea==0) = 0 ;
+    new2wtd(outArea_YXv+newArea==0) = 0 ;
     % Update aggregated management input and area
     out_YXv = out2wtd + new2wtd;
-    outArea_YX = outArea_YX + newArea ;
+    outArea_YXv = outArea_YXv + newArea ;
 end
 
 % Where there is no area, set mgmt to NaN
-out_YXv(outArea_YX==0) = NaN ;
+out_YXv(outArea_YXv==0) = NaN ;
 
 
 end
