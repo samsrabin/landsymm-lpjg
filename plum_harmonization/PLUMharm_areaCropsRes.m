@@ -4,7 +4,7 @@
 
 base_year = 2010 ;
 year1 = 2011 ;
-yearN = 2050 ;
+yearN = 2015 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
@@ -819,6 +819,8 @@ for d = 1:length(PLUM_in_toptop)
             out_y0_2deg_agri_YXv = out_y1_2deg_agri_YXv ;
             out_y0_agri_YXv = out_y1_agri_YXv ;
             bareFrac_y0_YX = in_y1_bareFrac_YX ;
+            out_y0_nfert_2deg.maps_YXv = out_y1_2deg_nfert_YXv ;
+            out_y0_irrig_2deg.maps_YXv = out_y1_2deg_irrig_YXv ;
             in_y0_2deg_vegd_YX = in_y1_2deg_vegd_YX ;
             in_y0_nfert_2deg = in_y1_nfert_2deg ;
             in_y0_irrig_2deg = in_y1_irrig_2deg ;

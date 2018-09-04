@@ -13,7 +13,7 @@ runList = {'SSP1.v10.s1' ;
 
 base_year = 2010 ;
 
-yearList = 2011:2050 ;
+yearList = 2011:2015 ;
 
 norm2extra = 0.177 ;
 
