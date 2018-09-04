@@ -17,11 +17,11 @@ PLUM_in_toptop = {...
 inpaint_method = 0 ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
-% debugIJ_2deg = [] ;
+debugIJ_2deg = [] ;
 % debugIJ_2deg = [67 42] ;
 % debugIJ_2deg = [73 122] ;
 % debugIJ_2deg = [23 176] ;
-debugIJ_2deg = [28 149] ;
+% debugIJ_2deg = [28 149] ;
 
 % Save?
 save_halfDeg = false ;
@@ -608,7 +608,7 @@ for d = 1:length(PLUM_in_toptop)
         end
 
         % Loop through all 2-degree gridcells and distribute the new crop and
-        % pasture changes to the half-degree gridcells within.
+        % pasture area changes to the half-degree gridcells within.
         %
         % If the crop or pasture change is a decrease, apply the same
         % PERCENTAGE decrease to all half-degree crop or pasture gridcells 
@@ -623,6 +623,10 @@ for d = 1:length(PLUM_in_toptop)
             landArea_YX, landArea_2deg_YX, ...
             out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, out_y0_agri_YXv, ...
             luh2_vegd_YX, luh2_vegd_YX, conserv_tol_pct) ;
+        
+        % Distribute management inputs from 2-degree to half-degree cells.
+        out_y1_nfert_YXv = PLUMharm_distMgmt(out_y1_2deg_nfert_YXv,2,0.5) ;
+        out_y1_irrig_YXv = PLUMharm_distMgmt(out_y1_2deg_irrig_YXv,2,0.5) ;
 
         % Ensure cells in range [0,in_y1_vegd_YX] (extreme deviations were checked
         % in loop)
