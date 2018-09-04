@@ -2,8 +2,8 @@
 %%% Testing harmonized PLUM land use trajectory %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-thisVer = '' ;
-% thisVer = 'v2.' ;
+% thisVer = '' ;
+thisVer = 'orig.' ;
 
 runList = {'SSP1.v10.s1' ;
 %             'SSP3.v10.s1' ;
@@ -259,7 +259,7 @@ for r = 1:Nruns
     [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
         [topDir thisRun], base_year, yearList, ...
         landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-        is2deg, bareFrac_y0_YX, norm2extra, inpaint_method) ;
+        is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, '') ;
     PLUMorig_YXvyr(:,:,:,:,r) = S_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
     PLUMorig_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
     PLUMorig_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
@@ -270,7 +270,7 @@ for r = 1:Nruns
     [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
         [topDir thisRun '.harm'],base_year,yearList, ...
         landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-        is2deg, [], 0, []) ;
+        is2deg, [], 0, [], thisVer) ;
     PLUMharm_YXvyr(:,:,:,:,r) = S_out.maps_YXvy ;
     PLUMharm_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy ;
     PLUMharm_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy ;
@@ -375,7 +375,7 @@ for v = 1:Ncrops
 end
 
 % Save
-export_fig([out_dir 'timeSeries_nfert.pdf']) ;
+% export_fig([out_dir 'timeSeries_nfert.pdf']) ;
 
 
 

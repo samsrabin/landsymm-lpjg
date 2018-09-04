@@ -1,13 +1,13 @@
 function [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
     inDir,base_year,yearList, ...
     landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-    is2deg, bareFrac_y0_YX, norm2extra, inpaint_method)
+    is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, thisVer)
 
 % Does MAT-file already exist?
-MATfile = [inDir '.processed.mat'] ;
+MATfile = [inDir '.processed.' thisVer 'mat'] ;
 if exist(MATfile,'file')
     MATfile_info = dir(MATfile) ;
-    [~, TXTfile] = unix(['ls -t ' inDir '/*/*.txt | head -n 1  | tr -d ''\n''']) ;
+    [~, TXTfile] = unix(['ls -t ' inDir '/*/*.' thisVer 'txt | head -n 1  | tr -d ''\n''']) ;
     TXTfile_info = dir(TXTfile) ;
     if MATfile_info.datenum > TXTfile_info.datenum
         S_out = [] ;
