@@ -3,7 +3,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_year = 2010 ;
-lastYear = 2013 ;
+year1 = 2011 ;
+yearN = 2050 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
@@ -13,13 +14,9 @@ PLUM_in_toptop = {...
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
               
-% Use "latest PLUM management" in cells that don't have thisCrop thisYear
-% but did in a previous year? FALSE = rely solely on interpolation of
-% thisYear's thisMgmt.
-useLatestPLUMmgmt = false ;
-              
-% Method for inpaint_nans()
-inpaint_method = 0 ;
+% Save?
+save_halfDeg = true ;
+save_2deg = false ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
 debugIJ_2deg = [] ;
@@ -28,9 +25,15 @@ debugIJ_2deg = [] ;
 % debugIJ_2deg = [23 176] ;
 % debugIJ_2deg = [28 149] ;
 
-% Save?
-save_halfDeg = false ;
-save_2deg = false ;
+% Method for inpaint_nans()
+inpaint_method = 0 ;
+
+% Use "latest PLUM management" in cells that don't have thisCrop thisYear
+% but did in a previous year? FALSE = rely solely on interpolation of
+% thisYear's thisMgmt.
+useLatestPLUMmgmt = false ;
+
+
 
 
 %% Setup
@@ -324,9 +327,12 @@ disp('Done importing reference data.')
 
 % The years we want to produce PLUM outputs for (will begin with
 % transitions from years(1)-1 to years(1)
-years = base_year+(1:(lastYear-base_year)) ;
-% years = 2012:lastYear ;
-% years = 2013 ;
+years = year1:yearN ;
+if year1 <= base_year
+    error('year1 (%d) must be > base_year (%d)!\n', year1, base_year)
+elseif year1 > yearN
+    error('year1 (%d) must be <= yearN (%d)!\n', year1, yearN)
+end
 
 for d = 1:length(PLUM_in_toptop)
 
@@ -381,30 +387,16 @@ for d = 1:length(PLUM_in_toptop)
         % Import previous harmonized year, if needed
         if thisYear-1 == base_year
             out_y0 = luh2_base ;
-%             disp('out_y0 from luh2')
+            disp('out_y0 from luh2')
             out_y0_2deg = luh2_base_2deg ;
             out_y0_agri_YXv = luh2_base.maps_YXv(:,:,isAgri) ;
             out_y0_2deg_agri_YXv = luh2_base_2deg.maps_YXv(:,:,isAgri) ;
             out_y0_nfert_2deg = luh2_base_nfert_2deg ;
             out_y0_irrig_2deg = luh2_base_irrig_2deg ;
         elseif y==1
-            warning('Something seems to be wrong with code to restart harmonization after base_year+1.')
-            warning('Also need to somehow reload "latest PLUMorig management."')
-            file_in = [removeslashifneeded(PLUM_in_top) '.harm/' num2str(thisYear-1) '/LandCoverFract.base' num2str(base_year) '.txt'] ;
-%             disp(['out_y0 from ' file_in])
-            [out_y0, out_y0_2deg, out_y0_nfert_2deg, out_y0_irrig_2deg, ...
-                latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
-                PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, ...
-                landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
-                latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
-                PLUMtoLPJG, LPJGcrops, ...
-                norm2extra, inpaint_method) ;
-            bareFrac_y0_YX = out_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
-            out_y0_agri_YXv = out_y0.maps_YXv(:,:,isAgri) ;
-            out_y0_2deg_agri_YXv = out_y0_2deg.maps_YXv(:,:,isAgri) ;
-%             out_y0_2deg_vegd_YX = sum(out_y0_2deg.maps_YXv(:,:,notBare),3) ;
-%             out_y0_2deg_vegdFrac_YX = out_y0_2deg_vegd_YX ./ landArea_2deg_YX ;
-%             out_y0_2deg_bare_YX = landArea_2deg_YX - out_y0_2deg_vegd_YX ;
+            file_in = [removeslashifneeded(PLUM_in_top) '.harm/' num2str(thisYear-1) 'post.base' num2str(base_year) '.mat'] ;
+            disp(['*y0* from ' file_in])
+            load(file_in) ;
         end
         
         % Import for debugging redistribution
@@ -427,7 +419,7 @@ for d = 1:length(PLUM_in_toptop)
         % Import and process previous year, if needed
         if ~exist('in_y0','var')
             file_in = [PLUM_in_top num2str(thisYear-1) '/LandCoverFract.txt'] ;
-%             disp(['in_y0 from ' file_in])
+            disp(['in_y0 from ' file_in])
             [in_y0, in_y0_2deg, in_y0_nfert_2deg, in_y0_irrig_2deg, ...
                 latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
@@ -437,13 +429,11 @@ for d = 1:length(PLUM_in_toptop)
             in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
             in_y0_2deg_agri_YXv = in_y0_2deg.maps_YXv(:,:,isAgri) ;
             in_y0_2deg_vegd_YX = sum(in_y0_2deg.maps_YXv(:,:,notBare),3) ;
-            in_y0_2deg_vegdFrac_YX = in_y0_2deg_vegd_YX ./ landArea_2deg_YX ;
-            in_y0_2deg_bare_YX = landArea_2deg_YX - in_y0_2deg_vegd_YX ;
         end
 
         % Import this year and convert to area
         file_in = [PLUM_in_top num2str(thisYear) '/LandCoverFract.txt'] ;
-%         disp(['in_y1 from ' file_in])
+        disp(['in_y1 from ' file_in])
         [in_y1, in_y1_2deg, in_y1_nfert_2deg, in_y1_irrig_2deg, ...
             latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
             PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
@@ -457,8 +447,6 @@ for d = 1:length(PLUM_in_toptop)
         in_y1_vegdFrac_YX = in_y1_vegd_YX ./ landArea_YX ;
         in_y1_bareFrac_YX = in_y1_bare_YX ./ landArea_YX ;
         in_y1_2deg_vegd_YX = sum(in_y1_2deg.maps_YXv(:,:,notBare),3) ;
-        in_y1_2deg_vegdFrac_YX = in_y1_2deg_vegd_YX ./ landArea_2deg_YX ;
-        in_y1_2deg_bare_YX = landArea_2deg_YX - in_y1_2deg_vegd_YX ;
         
         % Import for debugging redistribution
         if do_debug
@@ -813,31 +801,33 @@ for d = 1:length(PLUM_in_toptop)
         end
 
         % Prepare for next iteration
+        clear out_y1_past_YX
         if y < length(years)
             in_y0 = in_y1 ;
             in_y0_2deg = in_y1_2deg ;
             in_y0_agri_YXv = in_y1_agri_YXv ;
             in_y0_2deg_agri_YXv = in_y1_2deg_agri_YXv ;
-            %%%
-%             out_y0 = out_y1 ;
             [~,IA,IB] = intersect(out_y0.varNames,LUnames_agri,'stable') ;
             out_y0.maps_YXv(:,:,IA) = out_y1_agri_YXv(:,:,IB) ;
             clear IA IB
             out_y0.maps_YXv(:,:,strcmp(LUnames,'NATURAL')) = out_y1_ntrl_YX ;
             out_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) = out_y1_bare_YX ;
-            %%%
             out_y0_2deg_agri_YXv = out_y1_2deg_agri_YXv ;
             out_y0_agri_YXv = out_y1_agri_YXv ;
             bareFrac_y0_YX = in_y1_bareFrac_YX ;
             in_y0_2deg_vegd_YX = in_y1_2deg_vegd_YX ;
-            in_y0_2deg_vegdFrac_YX = in_y1_2deg_vegdFrac_YX ;
-            in_y0_2deg_bare_YX = in_y1_2deg_bare_YX ;
             in_y0_nfert_2deg = in_y1_nfert_2deg ;
             in_y0_irrig_2deg = in_y1_irrig_2deg ;
             if do_debug
                 in_y0orig_2deg = in_y1orig_2deg ;
             end
             clear *y1*
+        end
+        
+        % Save full-precision outputs for use in restarting
+        if save_2deg || save_halfDeg
+            save([PLUM_out_top num2str(thisYear) 'post.base' num2str(base_year) '.mat'], ...
+                '*y0*','latestPLUMin_*','-v7.3') ;
         end
 
         disp(['  Done (' toc_hms(toc) ').'])

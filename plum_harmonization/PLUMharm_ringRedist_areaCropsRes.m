@@ -212,7 +212,8 @@ if total_unmet_YX(thisCell)>0
         % THIS CAN HAPPEN BECAUSE AVAIL_SPACE CAN BE >0 IN INTERIOR. I DO
         % NOT UNDERSTAND WHY. HOPEFULLY ALWAYS TINY.
         if any(to_ring(thisRing_isInnerCell)>1e-3)
-            error('How do you have to_ring>0 in cell(s) not on ring perimeter?')
+            warning('How do you have to_ring>1e-3 (%0.4f) in cell(s) not on ring perimeter? (thisCell = %d)\n', ...
+                    max(to_ring(thisRing_isInnerCell)), thisCell)
         end
         out_thisRingNotThisCell_new = out_YX(thisRing_notThisCell) + to_ring_notThisCell ;
         % This cell is giving area to other cells in ring. So here, we
