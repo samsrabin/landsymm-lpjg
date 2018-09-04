@@ -7,7 +7,7 @@ function [S, S_2deg, S_nfert_2deg, S_irrig_2deg, ...
 
 PUTURBANHERE = 'BARREN' ;
 cf_ktNha_kgNm2 = 1e-4 ;
-
+useLatestPLUMmgmt = ~isempty(latestPLUMin_nfert_2deg_YXv) ;
 
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
@@ -54,6 +54,10 @@ else
     S_cropf = lpjgu_matlab_readTable_then2map(file_in_cropfrac,'verboseIfNoMat',false,'force_mat_nosave',true) ;
     PLUMcrops = S_cropf.varNames ;
     S_cropa.maps_YXv = S_cropf.maps_YXv .* S_lcf.maps_YXv(:,:,strcmp(S_lcf.varNames,'CROPLAND')) ;
+    file_in_nfert = strrep(file_in_lcf,'LandCoverFract','Fert') ;
+    S_nfert = lpjgu_matlab_readTable_then2map(file_in_nfert,'verboseIfNoMat',false,'force_mat_nosave',true) ;
+    file_in_irrig = strrep(file_in_lcf,'LandCoverFract','Irrig') ;
+    S_irrig = lpjgu_matlab_readTable_then2map(file_in_irrig,'verboseIfNoMat',false,'force_mat_nosave',true) ;
 end
 % Translate PLUM crop names to LPJ-GUESS crop names, if necessary
 [~,IA] = intersect(LPJGcrops,PLUMcrops,'stable') ;
@@ -152,8 +156,10 @@ end
 % Update "most recent PLUMin management."
 % Returns -1 if latest is -1 (i.e., thisCell has never had thisCrop in PLUM
 % record)
-latestPLUMin_nfert_2deg_YXv = nanmax(latestPLUMin_nfert_2deg_YXv,S_nfert_2deg.maps_YXv) ;
-latestPLUMin_irrig_2deg_YXv = nanmax(latestPLUMin_irrig_2deg_YXv,S_irrig_2deg.maps_YXv) ;
+if useLatestPLUMmgmt
+    latestPLUMin_nfert_2deg_YXv = nanmax(latestPLUMin_nfert_2deg_YXv,S_nfert_2deg.maps_YXv) ;
+    latestPLUMin_irrig_2deg_YXv = nanmax(latestPLUMin_irrig_2deg_YXv,S_irrig_2deg.maps_YXv) ;
+end
 
 % Interpolate management inputs
 S_nfert_2deg2.maps_YXv = PLUMharm_interpolateMgmt(...
@@ -163,12 +169,14 @@ S_irrig_2deg2.maps_YXv = PLUMharm_interpolateMgmt(...
     S_irrig_2deg.maps_YXv, S_2deg.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
     LPJGcrops, inpaint_method) ;
 
-% % In cells that previously had thisCrop but now do not, replace
-% % interpolated value with latestPLUMin value
-% repl_YXv = S_2deg.maps_YXv(:,:,isCrop)==0 & latestPLUMin_nfert_2deg_YXv>=0 ;
-% S_nfert_2deg2.maps_YXv(repl_YXv) = latestPLUMin_nfert_2deg_YXv(repl_YXv) ;
-% repl_YXv = S_2deg.maps_YXv(:,:,isCrop)==0 & latestPLUMin_irrig_2deg_YXv>=0 ;
-% S_irrig_2deg2.maps_YXv(repl_YXv) = latestPLUMin_irrig_2deg_YXv(repl_YXv) ;
+% In cells that previously had thisCrop but now do not, replace
+% interpolated value with latestPLUMin value
+if useLatestPLUMmgmt
+    repl_YXv = S_2deg.maps_YXv(:,:,isCrop)==0 & latestPLUMin_nfert_2deg_YXv>=0 ;
+    S_nfert_2deg2.maps_YXv(repl_YXv) = latestPLUMin_nfert_2deg_YXv(repl_YXv) ;
+    repl_YXv = S_2deg.maps_YXv(:,:,isCrop)==0 & latestPLUMin_irrig_2deg_YXv>=0 ;
+    S_irrig_2deg2.maps_YXv(repl_YXv) = latestPLUMin_irrig_2deg_YXv(repl_YXv) ;
+end
 
 % Save managmeent
 S_nfert_2deg.maps_YXv = S_nfert_2deg2.maps_YXv ;

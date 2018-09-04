@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_year = 2010 ;
-lastYear = 2100 ;
+lastYear = 2013 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
@@ -12,6 +12,11 @@ PLUM_in_toptop = {...
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
+              
+% Use "latest PLUM management" in cells that don't have thisCrop thisYear
+% but did in a previous year? FALSE = rely solely on interpolation of
+% thisYear's thisMgmt.
+useLatestPLUMmgmt = false ;
               
 % Method for inpaint_nans()
 inpaint_method = 0 ;
@@ -25,7 +30,7 @@ debugIJ_2deg = [] ;
 
 % Save?
 save_halfDeg = false ;
-save_2Deg = false ;
+save_2deg = false ;
 
 
 %% Setup
@@ -321,7 +326,7 @@ disp('Done importing reference data.')
 % transitions from years(1)-1 to years(1)
 years = base_year+(1:(lastYear-base_year)) ;
 % years = 2012:lastYear ;
-% years = 2015 ;
+% years = 2013 ;
 
 for d = 1:length(PLUM_in_toptop)
 
@@ -359,8 +364,13 @@ for d = 1:length(PLUM_in_toptop)
     end
 
     bareFrac_y0_YX = luh2_bareFrac_YX ;
-    latestPLUMin_nfert_2deg_YXv = -1*ones([size(landArea_2deg_YX) Ncrops_lpjg]) ;
-    latestPLUMin_irrig_2deg_YXv = -1*ones([size(landArea_2deg_YX) Ncrops_lpjg]) ;
+    if useLatestPLUMmgmt
+        latestPLUMin_nfert_2deg_YXv = -1*ones([size(landArea_2deg_YX) Ncrops_lpjg]) ;
+        latestPLUMin_irrig_2deg_YXv = -1*ones([size(landArea_2deg_YX) Ncrops_lpjg]) ;
+    else
+        latestPLUMin_nfert_2deg_YXv = [] ;
+        latestPLUMin_irrig_2deg_YXv = [] ;
+    end
     clear out_* in_*
     for y = 1:length(years)
         
@@ -378,14 +388,16 @@ for d = 1:length(PLUM_in_toptop)
             out_y0_nfert_2deg = luh2_base_nfert_2deg ;
             out_y0_irrig_2deg = luh2_base_irrig_2deg ;
         elseif y==1
-            error('Something seems to be wrong with code to restart harmonization after base_year+1.')
-            error('Also need to somehow reload "latest PLUMorig management."')
+            warning('Something seems to be wrong with code to restart harmonization after base_year+1.')
+            warning('Also need to somehow reload "latest PLUMorig management."')
             file_in = [removeslashifneeded(PLUM_in_top) '.harm/' num2str(thisYear-1) '/LandCoverFract.base' num2str(base_year) '.txt'] ;
 %             disp(['out_y0 from ' file_in])
             [out_y0, out_y0_2deg, out_y0_nfert_2deg, out_y0_irrig_2deg, ...
                 latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, ...
-                landArea_2deg_YX, LUnames, bareFrac_y0_YX, PLUMtoLPJG, LPJGcrops, ...
+                landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
+                latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
+                PLUMtoLPJG, LPJGcrops, ...
                 norm2extra, inpaint_method) ;
             bareFrac_y0_YX = out_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
             out_y0_agri_YXv = out_y0.maps_YXv(:,:,isAgri) ;
@@ -453,6 +465,7 @@ for d = 1:length(PLUM_in_toptop)
             in_y1orig_2deg = in_y1_2deg ;
             diffO_YXv = in_y1orig_2deg.maps_YXv - in_y0orig_2deg.maps_YXv ;
         end
+        
         
         % Make sure that total global loss of a land use does not exceed
         % the total global area of that land use.
@@ -697,6 +710,37 @@ for d = 1:length(PLUM_in_toptop)
                 'progress_step_pct', 20, ...
                 'verbose', false) ;
             clear out_y1
+            
+            % Save new Fert.txt (0.5-degree)
+            out_y1.maps_YXv = out_y1_nfert_YXv ;
+            out_y1.varNames = LPJGcrops ;
+            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+            file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.txt'] ;
+            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                'outPrec', outPrec, ...
+                'outWidth', outWidth, ...
+                'delimiter', delimiter, ...
+                'overwrite', overwrite, ...
+                'fancy', fancy, ...
+                'progress_step_pct', 20, ...
+                'verbose', false) ;
+            clear out_y1
+            
+            % Save new Irrig.txt (0.5-degree)
+            out_y1.maps_YXv = out_y1_irrig_YXv ;
+            out_y1.varNames = LPJGcrops ;
+            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+            file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.txt'] ;
+            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                'outPrec', outPrec, ...
+                'outWidth', outWidth, ...
+                'delimiter', delimiter, ...
+                'overwrite', overwrite, ...
+                'fancy', fancy, ...
+                'progress_step_pct', 20, ...
+                'verbose', false) ;
+            clear out_y1
+            
         end
 
         if save_2deg
@@ -726,6 +770,37 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.varNames = LPJGcrops ;
             [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
             file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.2deg.txt'] ;
+            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                'outPrec', outPrec, ...
+                'outWidth', outWidth, ...
+                'delimiter', delimiter, ...
+                'overwrite', overwrite, ...
+                'fancy', fancy, ...
+                'progress_step_pct', 20, ...
+                'verbose', false) ;
+            clear out_y1
+            
+            % Save new Fert.txt (2-degree)
+            out_y1.maps_YXv = out_y1_2deg_nfert_YXv ;
+            out_y1.varNames = LPJGcrops ;
+            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+            file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.txt'] ;
+            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                'outPrec', outPrec, ...
+                'outWidth', outWidth, ...
+                'delimiter', delimiter, ...
+                'overwrite', overwrite, ...
+                'fancy', fancy, ...
+                'progress_step_pct', 20, ...
+                'verbose', false) ;
+            clear out_y1
+            
+            % Save new Irrig.txt (2-degree)
+            out_y1.maps_YXv = out_y1_2deg_irrig_YXv ;
+            out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
+            out_y1.varNames = LPJGcrops ;
+            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+            file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.2deg.txt'] ;
             lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                 'outPrec', outPrec, ...
                 'outWidth', outWidth, ...
