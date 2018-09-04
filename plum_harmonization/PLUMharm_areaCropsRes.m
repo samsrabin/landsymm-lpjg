@@ -700,7 +700,9 @@ for d = 1:length(PLUM_in_toptop)
             clear out_y1
             
             % Save new Fert.txt (0.5-degree)
-            out_y1.maps_YXv = out_y1_nfert_YXv ;
+            % Convert from kg/m2 to kg/ha for compatibility with original
+            % PLUM style.
+            out_y1.maps_YXv = 1e4*out_y1_nfert_YXv ;
             out_y1.varNames = LPJGcrops ;
             [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
             file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.txt'] ;
@@ -769,7 +771,9 @@ for d = 1:length(PLUM_in_toptop)
             clear out_y1
             
             % Save new Fert.txt (2-degree)
-            out_y1.maps_YXv = out_y1_2deg_nfert_YXv ;
+            % Convert from kg/m2 to kg/ha for compatibility with original
+            % PLUM style.
+            out_y1.maps_YXv = 1e4*out_y1_2deg_nfert_YXv ;
             out_y1.varNames = LPJGcrops ;
             [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
             file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.txt'] ;

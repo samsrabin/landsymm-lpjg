@@ -7,7 +7,7 @@ function [S, S_nfert, S_irrig, ...
         PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method)
 
 PUTURBANHERE = 'BARREN' ;
-cf_ktNha_kgNm2 = 1e-4 ;
+cf_kgNha_kgNm2 = 1e-4 ;
 useLatestPLUMmgmt = ~isempty(latestPLUMin_nfert_2deg_YXv) ;
 doInterp = ~isempty(inpaint_method) ;
 
@@ -107,8 +107,8 @@ S_cropArea.maps_YXv = S.maps_YXv(:,:,isCrop) ;
 S_nfert.maps_YXv(S_cropArea.maps_YXv==0) = NaN ;
 S_irrig.maps_YXv(S_cropArea.maps_YXv==0) = NaN ;
 
-% Convert ktN/ha to kgN/m2
-S_nfert.maps_YXv = S_nfert.maps_YXv * cf_ktNha_kgNm2 ;
+% Convert kgN/ha to kgN/m2
+S_nfert.maps_YXv = S_nfert.maps_YXv * cf_kgNha_kgNm2 ;
 
 % Match mask with overall mask
 S.maps_YXv(landArea_YXv==0) = NaN ;
