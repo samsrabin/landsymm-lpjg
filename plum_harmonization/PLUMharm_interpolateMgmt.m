@@ -12,7 +12,7 @@ allow_tooHigh = true ;
 out_YXv = nan(size(in_YXv)) ;
 Ncrops_lpjg = length(LPJGcrops) ;
 for c = 1:Ncrops_lpjg
-    if strcmp(LPJGcrops{c},'ExtraCrop') || strcmp(LPJGcrops{c},'Miscanthus')
+    if strcmp(LPJGcrops{c},'ExtraCrop') || ~any(any(in_YXv(:,:,c)>0))
         out_YXv(:,:,c) = zeros(size(landArea_YX)) ;
         continue
     end
