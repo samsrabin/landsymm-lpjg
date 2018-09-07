@@ -16,7 +16,7 @@ PLUM_in_toptop = {...
               
 % Save?
 save_halfDeg = true ;
-save_2deg = false ;
+save_2deg = true ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
 debugIJ_2deg = [] ;
@@ -433,7 +433,7 @@ for d = 1:length(PLUM_in_toptop)
 
         % Import this year and convert to area
         file_in = [PLUM_in_top num2str(thisYear) '/LandCoverFract.txt'] ;
-%         disp(['in_y1 from ' file_in])
+        disp(['in_y1 from ' file_in])
         [in_y1, ~, ~, in_y1_2deg, in_y1_nfert_2deg, in_y1_irrig_2deg, ...
             latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
             PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
