@@ -13,7 +13,7 @@ runList = {'SSP1.v10.s1' ;
 
 base_year = 2010 ;
 
-yearList = 2011:2015 ;
+yearList = 2011:2020 ;
 
 norm2extra = 0.177 ;
 
@@ -79,7 +79,7 @@ mask_YX = isnan(S.maps_YXv(:,:,1)) ...
 landArea_YX(mask_YX) = 0 ;
 clear S
 
-% Get repmat 0.5º land area
+% Get repmat 0.5ï¿½ land area
 LUnames = luh2.varNames ;
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
@@ -253,18 +253,21 @@ PLUMharm_irrig_YXvyr = nan(360,720,Ncrops,Nyears,Nruns,'single') ;
 
 for r = 1:Nruns
     thisRun = removeslashifneeded(runList{r}) ;
-    
+
     % Original
     fprintf('Importing %s...\n', thisRun) ;
     [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
         [topDir thisRun], base_year, yearList, ...
         landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
         is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, '') ;
-    PLUMorig_YXvyr(:,:,:,:,r) = S_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
-    PLUMorig_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
-    PLUMorig_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
+    PLUMorig_YXvyr(:,:,:,:,r) = S_out.maps_YXvy ;
+    PLUMorig_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy ;
+    PLUMorig_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy ;
+%     PLUMorig_YXvyr(:,:,:,:,r) = S_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
+%     PLUMorig_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
+%     PLUMorig_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
     clear S_*out
-    
+
     % Harmonized
     fprintf('Importing %s.harm...\n', thisRun) ;
     [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
@@ -275,7 +278,7 @@ for r = 1:Nruns
     PLUMharm_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy ;
     PLUMharm_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy ;
     clear S_*out
-    
+
 end
 
 disp('Done reading PLUM.')
@@ -375,7 +378,7 @@ for v = 1:Ncrops
 end
 
 % Save
-% export_fig([out_dir 'timeSeries_nfert.pdf']) ;
+export_fig([out_dir 'timeSeries_nfert.pdf']) ;
 
 
 
@@ -507,13 +510,3 @@ for r = 1:Nruns
         close
     end
 end
-
-
-
-
-
-
-
-
-
-

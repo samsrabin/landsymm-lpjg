@@ -4,7 +4,7 @@
 
 base_year = 2010 ;
 year1 = 2011 ;
-yearN = 2015 ;
+yearN = 2020 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
@@ -433,7 +433,7 @@ for d = 1:length(PLUM_in_toptop)
 
         % Import this year and convert to area
         file_in = [PLUM_in_top num2str(thisYear) '/LandCoverFract.txt'] ;
-        disp(['in_y1 from ' file_in])
+%         disp(['in_y1 from ' file_in])
         [in_y1, ~, ~, in_y1_2deg, in_y1_nfert_2deg, in_y1_irrig_2deg, ...
             latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv] = ...
             PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
