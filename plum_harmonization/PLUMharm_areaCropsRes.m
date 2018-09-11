@@ -19,18 +19,7 @@ save_halfDeg = true ;
 save_2deg = true ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
-% debugIJ_2deg = [] ;
-% debugIJ_2deg = [18 56] ;
-% debugIJ_2deg = [28 63] ;
-% debugIJ_2deg = [24 164] ;
-% debugIJ_2deg = [29 105] ;
-% debugIJ_2deg = [22 174] ;
-% debugIJ_2deg = [31 106] ;
-% debugIJ_2deg = [33 62] ;
-% debugIJ_2deg = [37 66] ;
-% debugIJ_2deg = [65 147] ;
-% debugIJ_2deg = [27 178] ; % i=4
-debugIJ_2deg = [66 43] ; % i=1
+debugIJ_2deg = [] ;
 % debugIJ_2deg = [29 104] ; % i=6
 
 % Method for inpaint_nans()
@@ -814,6 +803,7 @@ for d = 1:length(PLUM_in_toptop)
                 warning(['Global ' LUnames{i} ' area changes are not conserved to within ' num2str(conserv_tol_pct) '%! (' num2str((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) '%) (step 5)'])
             end
         end
+        disp(['  Done processing (' toc_hms(toc) '). Now writing.'])
 
         % Get land use areas
         out_y1_bare_YX = in_y1.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
