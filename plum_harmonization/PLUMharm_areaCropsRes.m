@@ -22,6 +22,7 @@ save_2deg = false ;
 debugIJ_2deg = [] ;
 % debugIJ_2deg = [29 105] ; % i=6
 % debugIJ_2deg = [6 1] ;
+% debugIJ_2deg = [73 98] ;
 
 % Method for inpaint_nans()
 inpaint_method = 0 ;
@@ -369,7 +370,7 @@ for d = 1:length(PLUM_in_toptop)
     resArea_YX = resFrac_YX .* luh2_vegd_YX ;
     resArea_2deg_YX = PLUMharm_aggregate(resArea_YX,0.5,2) ;
 
-
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Process PLUM outputs %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -612,27 +613,20 @@ for d = 1:length(PLUM_in_toptop)
         % until all unmet has been displaced to new 2 degree cells. Track the
         % displaced crop and pasture and the # of "rings" needed for each
         % 2-degree gridcell.
-% % %         % New for management inputs: Inputs from mid1_mgmt travel with the
-% % %         % area. Note that this will never result in a decrease of a cell's
-% % %         % mean input to <0 or an increase to >max, because the mid1_mgmt
-% % %         % values are already thus limited. NOTE, however: You have to do a
-% % %         % separate ring redistribution to take care of unmet_mgmt anyway,
-% % %         % so maybe can just tilde out the outputs here.
-        out_y1_2deg_agri_YXv = ...
+        [out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX] = ...
             PLUMharm_ringRedist_areaCropsRes(...
             mid_y1_2deg_agri_YXv, ...
-            luh2_vegd_2deg_YX, ...
             total_unmet_agri_YXv, ...
             landArea_2deg_YX, ...
             [], in_y0orig_2deg, in_y1orig_2deg, out_y0_2deg_agri_YXv, ...
-            nonResNtrl_YX, LUnames_agri) ;
+            out_y0_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri) ;
+        out_y1_2deg_vegd_YX = sum(cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX),3) ;
         
         % Debugging output
-        out_y1_2deg_ntrl_YX = landArea_2deg_YX - (sum(out_y1_2deg_agri_YXv,3) + luh2_bare_2deg_YX) ;
         if do_debug
             PLUMharm_debugOut_deltas('outy0_to_outy1', 'areas', ...
                 out_y0_2deg.maps_YXv, ...
-                cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX,luh2_bare_2deg_YX), ...
+                cat(3,out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX, luh2_bare_2deg_YX), ...
                 debugIJ_2deg,LUnames) ;
         end
         
@@ -819,8 +813,6 @@ for d = 1:length(PLUM_in_toptop)
         out_y1_past_YX = out_y1_agri_YXv(:,:,isAgri_isPast) ;
         out_y1_crop_YX = sum(out_y1_agri_YXv(:,:,~isAgri_isPast),3) ;
         out_y1_2deg_bare_YX = in_y1_2deg.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
-        out_y1_2deg_ntrl_YX = landArea_2deg_YX ...
-            - (sum(out_y1_2deg_agri_YXv,3) + out_y1_2deg_bare_YX) ;
         out_y1_2deg_past_YX = out_y1_2deg_agri_YXv(:,:,isAgri_isPast) ;
         out_y1_2deg_crop_YX = sum(out_y1_2deg_agri_YXv(:,:,~isAgri_isPast),3) ;
         

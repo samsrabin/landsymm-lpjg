@@ -1,11 +1,10 @@
-function out_y1_2deg_agri_YXv = ...
+function [out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX] = ...
     PLUMharm_ringRedist_areaCropsRes(...
     mid_y1_2deg_agri_YXv, ...
-    vegd_2deg_y1_YX, ...
     total_unmet_agri_YXv, ...
     landArea_2deg_YX, ...
     debugIJ, in_y0orig_2deg, in_y1orig_2deg, out_y0_2deg_agri_YXv, ...
-    nonResNtrl_YX, LUnames_agri)
+    out_y0_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri)
 % Loop through every 2-degree gridcell. If a gridcell has unmet crop
 % or pasture, look for place to put this unmet amount in neighboring
 % rings, starting with gridcells that are 1 unit away, then 2, etc.
@@ -14,6 +13,7 @@ function out_y1_2deg_agri_YXv = ...
 % 2-degree gridcell.
 
 Nagri = size(mid_y1_2deg_agri_YXv,3) ;
+out_y1_2deg_ntrl_YX = out_y0_2deg_ntrl_YX ;
 
 % Create grids for tracking displaced agriculture
 % debugIJ = [999 999] ;
@@ -50,6 +50,7 @@ for k = ks
         
         % Do it for each
         for i = 1:Nagri
+            
             j = 0 ;   % Note that this differs from how it was done in LUH1 code (pasture started with j from this cell's crop redistribution)
             total_unmet_this_YX = total_unmet_agri_YXv(:,:,i) ;
             if do_debug
@@ -80,10 +81,12 @@ for k = ks
                 [I_K,I_M] = meshgrid(i_k,i_m);
                 tmp = reshape(cat(2,I_K',I_M'),[],2) ;
                 thisRing = sub2ind(size(total_unmet_this_YX),tmp(:,1),tmp(:,2)) ;
-                [out_y1_2deg_this_YX, total_unmet_this_YX, displaced_this_YX, this_meanDist_YX] = ...
+                [out_y1_2deg_this_YX, out_y1_2deg_ntrl_YX, total_unmet_this_YX, ...
+                    displaced_this_YX, this_meanDist_YX] = ...
                     PLUMharm_doRings_areaCropsRes(...
                     out_y1_2deg_this_YX, out_y1_2deg_agri_YX, total_unmet_this_YX, displaced_this_YX, ...
-                    thisCell, thisRing, nonResNtrl_YX, this_meanDist_YX) ;
+                    thisCell, thisRing, out_y1_2deg_ntrl_YX, resArea_2deg_YX, ...
+                    this_meanDist_YX) ;
                 out_y1_2deg_agri_YXv(:,:,i) = out_y1_2deg_this_YX ;
                 meanDist_YXv(:,:,i) = this_meanDist_YX ;
                 
@@ -134,10 +137,12 @@ end
 end
 
 
-function [out_YX, total_unmet_YX, displaced_YX, this_meanDist_YX] = ...
+function [out_YX, out_ntrl_YX, total_unmet_YX, ...
+    displaced_YX, this_meanDist_YX] = ...
     PLUMharm_doRings_areaCropsRes( ...
-    out_YX, out_agri_YX, total_unmet_YX, displaced_YX, ...
-    thisCell, thisRing, nonResNtrl_YX, this_meanDist_YX)
+    in_YX, out_agri_YX, total_unmet_YX, displaced_YX, ...
+    thisCell, thisRing, in_ntrl_YX, resArea_YX, ...
+    this_meanDist_YX)
 
 %%% Internals
 % avail_space = "other" area in thisRing
@@ -145,6 +150,13 @@ function [out_YX, total_unmet_YX, displaced_YX, this_meanDist_YX] = ...
 %%% Outputs
 % displaced_YX = net area of this land type moved from or to this gridcell.
 %                Negative value indicates ???
+
+% Get land available for conversion to agriculture,
+% as max(NATURAL-RESERVED,0)
+nonResNtrl_YX = max(in_ntrl_YX - resArea_YX, 0) ;
+
+% Set this up
+out_YX = in_YX ;
 
 % if thisCell needs to give THISLU to the rest of the ring
 % (i.e., thisCell had more vegetated area than allowed, or more non-NATURAL
@@ -202,7 +214,6 @@ elseif total_unmet_YX(thisCell)<0
     end
 end
 
-
-
+out_ntrl_YX = in_ntrl_YX - (out_YX - in_YX) ;
 
 end
