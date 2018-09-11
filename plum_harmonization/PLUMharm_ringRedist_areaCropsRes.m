@@ -16,6 +16,7 @@ function [out_y1_2deg_agri_YXv, out_y1_2deg_nfert_YXv, out_y1_2deg_irrig_YXv] = 
 
 Nagri = size(mid_y1_2deg_agri_YXv,3) ;
 hasMgmtInput = ~contains(LUnames_agri,{'PASTURE','ExtraCrop'}) ;
+doMgmt = ~isempty(mid_y1_2deg_nfert_YXv) & ~isempty(mid_y1_2deg_irrig_YXv) ;
 
 % Create grids for tracking displaced agriculture
 % debugIJ = [999 999] ;
@@ -37,8 +38,13 @@ if do_debug
 end
 
 out_y1_2deg_agri_YXv = mid_y1_2deg_agri_YXv ;
-out_y1_2deg_nfert_YXv = mid_y1_2deg_nfert_YXv ;
-out_y1_2deg_irrig_YXv = mid_y1_2deg_irrig_YXv ;
+if doMgmt
+    out_y1_2deg_nfert_YXv = mid_y1_2deg_nfert_YXv ;
+    out_y1_2deg_irrig_YXv = mid_y1_2deg_irrig_YXv ;
+else
+    out_y1_2deg_nfert_YXv = [] ;
+    out_y1_2deg_irrig_YXv = [] ;
+end
 
 ny = size(landArea_2deg_YX,1) ;
 nx = size(landArea_2deg_YX,2) ;
@@ -81,7 +87,7 @@ for k = ks
                 % Calculate the total agricultural (crop+past) area
                 out_y1_2deg_agri_YX = sum(out_y1_2deg_agri_YXv,3) ;
                 % Get current management inputs
-                if hasMgmtInput(i)
+                if doMgmt && hasMgmtInput(i)
                     out_y1_2deg_this_nfert_YX = out_y1_2deg_nfert_YXv(:,:,i) ;
                     out_y1_2deg_this_irrig_YX = out_y1_2deg_irrig_YXv(:,:,i) ;
                 else
@@ -109,7 +115,7 @@ for k = ks
                     displaced_this_YX, ...
                     thisCell, thisRing, innerCells, nonResNtrl_YX, this_meanDist_YX) ;
                 out_y1_2deg_agri_YXv(:,:,i) = out_y1_2deg_this_YX ;
-                if hasMgmtInput(i)
+                if doMgmt && hasMgmtInput(i)
                     out_y1_2deg_nfert_YXv(:,:,i) = out_y1_2deg_this_nfert_YX ;
                     out_y1_2deg_irrig_YXv(:,:,i) = out_y1_2deg_this_irrig_YX ;
                 end
@@ -131,7 +137,7 @@ for k = ks
 end % for k
 
 if do_debug
-    keyboard
+%     keyboard
 end
 
 % figure('Color','w','Position',figurePos) ;
