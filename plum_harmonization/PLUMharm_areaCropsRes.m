@@ -618,15 +618,14 @@ for d = 1:length(PLUM_in_toptop)
 % % %         % values are already thus limited. NOTE, however: You have to do a
 % % %         % separate ring redistribution to take care of unmet_mgmt anyway,
 % % %         % so maybe can just tilde out the outputs here.
-        [out_y1_2deg_agri_YXv, ~, ~] = ...
+        out_y1_2deg_agri_YXv = ...
             PLUMharm_ringRedist_areaCropsRes(...
             mid_y1_2deg_agri_YXv, ...
             luh2_vegd_2deg_YX, ...
             total_unmet_agri_YXv, ...
             landArea_2deg_YX, ...
             [], in_y0orig_2deg, in_y1orig_2deg, out_y0_2deg_agri_YXv, ...
-            nonResNtrl_YX, LUnames_agri, ...
-            [], []) ;
+            nonResNtrl_YX, LUnames_agri) ;
         
         % Debugging output
         out_y1_2deg_ntrl_YX = landArea_2deg_YX - (sum(out_y1_2deg_agri_YXv,3) + luh2_bare_2deg_YX) ;
@@ -637,6 +636,13 @@ for d = 1:length(PLUM_in_toptop)
                 debugIJ_2deg,LUnames) ;
         end
         
+        % Check 3: Check that agricultural area does not exceed vegetated
+        % area
+        out_y1_2deg_agri_YX = sum(out_y1_2deg_agri_YXv,3) ;
+        if any(out_y1_2deg_agri_YX(:) - luh2_vegd_2deg_YX(:) > 1)
+            error('More agricultural than vegetated area! (Check 3)')
+        end
+
         % Check 3: Check that global area changes are (mostly) conserved
         diffH_YXv = out_y1_2deg_agri_YXv - out_y0_2deg_agri_YXv ;
         for i = 1:Nagri
