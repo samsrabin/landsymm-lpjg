@@ -15,12 +15,13 @@ PLUM_in_toptop = {...
                   } ;
               
 % Save?
-save_halfDeg = true ;
-save_2deg = true ;
+save_halfDeg = false ;
+save_2deg = false ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
 debugIJ_2deg = [] ;
-% debugIJ_2deg = [29 104] ; % i=6
+% debugIJ_2deg = [29 105] ; % i=6
+% debugIJ_2deg = [6 1] ;
 
 % Method for inpaint_nans()
 inpaint_method = 0 ;

@@ -46,7 +46,7 @@ if do_debug
     dbk = debugIJ(1) - 1 ;
     dbm = debugIJ(2) - 1 ;
 end
-i_ofInterest = 1 ;
+i_ofInterest = 6 ;
 
 out_y1_2deg_mgmt_YXv = mid_y1_2deg_mgmt_YXv ;
 out_y1_2deg_mgmtTot_YXv = mid_y1_2deg_mgmtTot_YXv ;
@@ -112,7 +112,7 @@ while any(~is_done_YXv)
                 
                 
                 if do_debug && k==dbk && m==dbm && i==i_ofInterest
-                    %                 keyboard
+%                     keyboard
                 end
                 
                 % If this cell has no unmet, skip.
@@ -140,7 +140,7 @@ while any(~is_done_YXv)
                     error('If total_unmet_mgmt_YXv(k+1,m+1,i)==0, you should have skipped!')
                 end
                 if do_debug && i==i_ofInterest
-                    fprintf('                total_avail_world =\t\t%0.8f\n', total_avail_world) ;
+%                     fprintf('                total_avail_world =\t\t%0.8f\n', total_avail_world) ;
                 end
                 
                 % It's possible that this cell WAS at its max mgmt in
@@ -152,7 +152,7 @@ while any(~is_done_YXv)
                 % ringRedist for area): Originally, a ring was started even if
                 % a cell had enough room to provide for all of its "unmet."
                 max_mgmtTot_thisCell = max_mgmt(i) * out_y1_2deg_cropArea_YXv(k+1,m+1,i) ;
-                out_total_thisCell = out_y1_2deg_mgmt_YXv(k+1,m+1,i) ;
+                out_total_thisCell = out_y1_2deg_mgmt_YXv(k+1,m+1,i) * out_y1_2deg_cropArea_YXv(k+1,m+1,i) ;
                 if total_unmet_mgmt_YXv(k+1,m+1,i)>0 && out_total_thisCell < max_mgmtTot_thisCell
                     unmetReduction = min(max_mgmtTot_thisCell-out_total_thisCell,total_unmet_mgmt_YXv(k+1,m+1,i)) ;
                     out_y1_2deg_mgmt_YXv(k+1,m+1,i) = (out_total_thisCell + unmetReduction) / out_y1_2deg_cropArea_YXv(k+1,m+1,i) ;
