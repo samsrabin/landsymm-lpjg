@@ -2,7 +2,7 @@ function out_y1_agri_YXv = ...
     PLUMharm_distDeltas_areaCrops_recursive( ...
     landArea_YX, landArea_2deg_YX, ...
     out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, out_y0_agri_YXv, ...
-    in_y1_vegd_YX, luh2_vegd_YX, conserv_tol_pct)
+    in_y1_vegd_YX, luh2_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames)
 % Loop through all 2-degree gridcells and distribute the new LU changes to
 % the half-degree gridcells within.
 %
@@ -23,12 +23,6 @@ update_avail_land = true ;
 % Properly correct for zero-denominators? FALSE is default LUH1 behavior,
 % which just adds 1e-12 to denominator.
 proper_zero_denoms = true ;
-
-% What tolerance should we use when making sure vegetated area is not
-% exceeded? (km2)
-% vegd_area_tol = 0.001 ;
-% vegd_area_tol = 0.005 ;
-vegd_area_tol = 1 ;
 
 debug_ijk = [Inf Inf Inf] ;
 % debug_ijk = [37   154     2] ;
@@ -67,13 +61,13 @@ for i = 1:size(landArea_2deg_YX,1)
         already_done = false(1,Nagri) ;
         [out_y1_agri_YXv, ~] = ...
             loop_thru_agri(already_done, 1, debug_ijk, ...
-            update_avail_land, proper_zero_denoms, vegd_area_tol, ...
+            update_avail_land, proper_zero_denoms, conserv_tol_area, ...
             i, j, iy, ix, theseCells, luh2_vegd_theseCells, agri_d, ...
             in_y1_vegd_YX, out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv) ;
         
         % Check for invalid cell areas
         agri_YX = sum(out_y1_agri_YXv(iy,ix,:),3) ;
-        if any(agri_YX(:) > vegd_area_tol+luh2_vegd_YX(theseCells))
+        if any(agri_YX(:) > conserv_tol_area+luh2_vegd_YX(theseCells))
 %         if any(agri_YX(:) > 1+luh2_vegd_YX(theseCells))
             error('Members >vegd_area in half-deg out_y1_(crop+past)_YX!')
 %             warning('Members >vegd_area in half-deg out_y1_(crop+past)_YX!')
@@ -84,7 +78,7 @@ for i = 1:size(landArea_2deg_YX,1)
         for k = 1:Nagri
             this_d_theseCells_halfDeg_4 = sum(sum(out_y1_agri_YXv(iy,ix,k) - out_y0_agri_YXv(iy,ix,k))) ;
             if abs((this_d_theseCells_halfDeg_4-agri_d(k))/agri_d(k)*100) > conserv_tol_pct ...
-                    && agri_d(k) > 1 % km2
+                    && agri_d(k) > 1e6 % m2
                 error(['Global ' LUnames{i} ' area changes are not conserved to within ' num2str(conserv_tol_pct) '%! (step 4)'])
             end
         end; clear k
@@ -99,7 +93,7 @@ end
 
 function [out_y1_agri_YXv, already_done] = ...
     loop_thru_agri(already_done, k1, debug_ijk, ...
-    update_avail_land, proper_zero_denoms, vegd_area_tol, ...
+    update_avail_land, proper_zero_denoms, conserv_tol_area, ...
     i, j, iy, ix, theseCells, luh2_vegd_theseCells, agri_d, ...
     in_y1_vegd_YX, out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv)
 
@@ -175,7 +169,7 @@ for k = k1:Nagri
                 % available land. RECURSION
                 [out_y1_agri_YXv, already_done] = ...
                     loop_thru_agri(already_done, k+1, debug_ijk, ...
-                    update_avail_land, proper_zero_denoms, vegd_area_tol, ...
+                    update_avail_land, proper_zero_denoms, conserv_tol_area, ...
                     i, j, iy, ix, theseCells, luh2_vegd_theseCells, agri_d, ...
                     in_y1_vegd_YX, out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv) ;
                 
@@ -226,9 +220,9 @@ for k = k1:Nagri
     tmp = out_y1_this_theseCells(:) ;
     
     % Check for invalid cell areas
-    if any(tmp < -vegd_area_tol)
+    if any(tmp < -conserv_tol_area)
         error('Negative members of half-deg out_y1_this_YXv!')
-    elseif any(tmp > vegd_area_tol+luh2_vegd_theseCells)
+    elseif any(tmp > conserv_tol_area+luh2_vegd_theseCells)
         error('Members >vegd_area in half-deg out_y1_this_YX!')
     end
     
@@ -237,10 +231,10 @@ for k = k1:Nagri
     % needs to happen AFTER loop_thru_agri in top function. At the moment,
     % though, it doesn't get called, so I'm leaving it where it is.
     this_minus_vegd = tmp - luh2_vegd_theseCells ;
-    while any(this_minus_vegd > vegd_area_tol)
+    while any(this_minus_vegd > conserv_tol_area)
         error('You have not generalized this bit of code yet.')
         % Indices of where, in theseCells, there is too much cropland
-        is_too_much_crop = find(this_minus_vegd > vegd_area_tol) ;
+        is_too_much_crop = find(this_minus_vegd > conserv_tol_area) ;
         % What is the total amount of excess cropland?
         sum_too_much_crop = sum(this_minus_vegd(is_too_much_crop)) ;
         % Cap cropland at vegetated area
@@ -266,7 +260,7 @@ for k = k1:Nagri
             disp(['k = ' num2str(k)])
             [agri_YX(:) luh2_vegd_theseCells agri_YX(:)-luh2_vegd_theseCells]
         end
-        if any(agri_YX(:) > vegd_area_tol+luh2_vegd_theseCells)
+        if any(agri_YX(:) > conserv_tol_area+luh2_vegd_theseCells)
             error('Members >vegd_area in half-deg out_y1_(crop+past)_YX!')
         end
     end

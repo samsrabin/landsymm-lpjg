@@ -362,11 +362,11 @@ if total_unmet_thisCell>0
     total_avail_mgmt = sum(avail_mgmt) ;
     
     % Sanity checks
-    if max(in_total_thisRing-max_mgmt_thisRing) > 1e-3
+    if max(in_total_thisRing-max_mgmt_thisRing) > 1e3
         error('How do you have out_total > max_mgmt_thisRing (%0.4f) in this ring? (thisCell = %d, j = %d)', ...
                     max(in_total_thisRing-max_mgmt_thisRing), thisCell, j)
     end
-    if do_debug && max(avail_mgmt(thisRing_isInnerCell)) > 1e-3
+    if do_debug && max(avail_mgmt(thisRing_isInnerCell)) > 1e3
         error('How do you have available mgmt (%0.4f) in cell(s) not on ring perimeter? (thisCell = %d, j = %d)', ...
                     max(avail_mgmt(thisRing_isInnerCell)), thisCell, j)
     end
