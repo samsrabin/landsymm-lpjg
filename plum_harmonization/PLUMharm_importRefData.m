@@ -41,11 +41,11 @@ end
 if doHarm
     base.maps_YXv = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),base.yearList==base_year) ;
 else
-    [~,IA,IB] = intersect(base.yearList,yearList_luh2) ;
+    [~,IA,~] = intersect(base.yearList,yearList_luh2) ;
     if ~isequal(IA-min(IA)+1,(1:length(yearList_luh2))')
         error('Incompatible yearList_luh2?')
     end
-    base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IB) ;
+    base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IA) ;
     base.yearList = yearList_luh2 ;
     clear IA IB
 end
@@ -66,7 +66,7 @@ LUnames = base.varNames ;
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 if ~doHarm
-    Nyears_luh2 = length(base.yearList) ;
+    Nyears_luh2 = length(yearList_luh2) ;
 end
 
 % Convert from "fraction of land" to "land area (m2)"
@@ -227,7 +227,7 @@ end
 base_vegdFrac_YX = base_vegd_YX ./ landArea_YX ;
 base_bareFrac_YX = base_bare_YX ./ landArea_YX ;
 
-%% Aggregate from 0.5º to 2º
+% Aggregate from 0.5º to 2º
 if doHarm
     base_2deg.maps_YXv = PLUMharm_aggregate(base.maps_YXv,0.5,2) ;
     base_nfert_2deg.maps_YXv = PLUMharm_aggregate_mgmt(base_nfert.maps_YXv,base.maps_YXv(:,:,isCrop),0.5,2) ;

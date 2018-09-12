@@ -28,6 +28,15 @@ out_dir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harmoni
 
 yearList_luh2 = 1971:2010 ;
 
+if length(runList) == 1
+    legend_ts = {'LUH2','Orig','Harm'} ;
+else
+    legend_ts = {'LUH2'} ;
+    for s = 1:length(runList)
+        legend_ts = [legend_ts {runList{s}(1:4)}] ;
+    end
+end
+
 topDir = addslashifneeded('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') ;
 PLUM_in_toptop = strcat(topDir,runList) ;
 PLUM_base_in = [addslashifneeded(PLUM_in_toptop{1}) '2010/'] ;
@@ -45,7 +54,6 @@ addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/M
 
 % Conversion factors
 cf_kg2Mt = 1e-3*1e-6 ;
-cf_m2_to_km2 = (1e-3)^2 ;
 
 
 %% Import reference data
@@ -121,25 +129,24 @@ spacing = [0.05 0.1] ;
 
 figure('Color','w','Position',figurePos)
 
-incl_base_years = yearList_luh2>=1950 & yearList_luh2<=2010 ;
-
 for v = 1:length(combinedLUs)
     subplot_tight(2,2,v,spacing) ;
-    plot(yearList_luh2(incl_base_years),ts_base_cy(v,incl_base_years)*1e-6,'-k','LineWidth',2) ;
+    plot(yearList_luh2,ts_base_cy(v,:)*1e-6*1e-6,'-k','LineWidth',2) ;
     set(gca,'ColorOrderIndex',1) ;
     hold on
-    plot(yearList,squeeze(ts_harm_cyr(v,:,:))*1e-6,'-','LineWidth',1)
+    plot(yearList,squeeze(ts_orig_cyr(v,:,:))*1e-6*1e-6,'--','LineWidth',1)
     set(gca,'ColorOrderIndex',1) ;
-    plot(yearList,squeeze(ts_orig_cyr(v,:,:))*1e-6,'--','LineWidth',1)
+    plot(yearList,squeeze(ts_harm_cyr(v,:,:))*1e-6*1e-6,'-','LineWidth',1)
     hold off
     title(combinedLUs{v})
     set(gca,'FontSize',14)
     ylabel('Million km2')
-    legend({'LUH2','SSP1','SSP3','SSP4','SSP5'},'Location','NorthWest')
+    legend(legend_ts,'Location','NorthWest')
 end
 
 % Save
-% export_fig([out_dir 'timeSeries_landUse.pdf']) ;
+export_fig([out_dir 'timeSeries_landUse.pdf']) ;
+close
 
 
 %% Time series of crops
@@ -152,25 +159,24 @@ spacing = [0.05 0.1] ;
 
 figure('Color','w','Position',figurePos)
 
-incl_base_years = yearList_luh2>=1950 & yearList_luh2<=2010 ;
-
 for v = 1:Ncrops_lpjg
     subplot_tight(4,2,v,spacing) ;
-    plot(yearList_luh2(incl_base_years),ts_base_cy(v,incl_base_years)*1e-6,'-k','LineWidth',2) ;
+    plot(yearList_luh2,ts_base_cy(v,:)*1e-6*1e-6,'-k','LineWidth',2) ;
     set(gca,'ColorOrderIndex',1) ;
     hold on
-    plot(yearList,squeeze(ts_harm_cyr(v,:,:))*1e-6,'-','LineWidth',1)
+    plot(yearList,squeeze(ts_orig_cyr(v,:,:))*1e-6*1e-6,'--','LineWidth',1)
     set(gca,'ColorOrderIndex',1) ;
-    plot(yearList,squeeze(ts_orig_cyr(v,:,:))*1e-6,'--','LineWidth',1)
+    plot(yearList,squeeze(ts_harm_cyr(v,:,:))*1e-6*1e-6,'-','LineWidth',1)
     hold off
     title(LPJGcrops{v})
     set(gca,'FontSize',14)
     ylabel('Million km2')
-    legend({'LUH2','SSP1','SSP3','SSP4','SSP5'},'Location','NorthWest')
+    legend(legend_ts,'Location','NorthWest')
 end
 
 % Save
 export_fig([out_dir 'timeSeries_crops.pdf']) ;
+close
 
 
 %% Time series of Nfert
@@ -187,26 +193,24 @@ spacing = [0.05 0.1] ;
 
 figure('Color','w','Position',figurePos)
 
-incl_base_years = yearList_luh2>=1950 & yearList_luh2<=2010 ;
-
 for v = 1:Ncrops_lpjg
     subplot_tight(4,2,v,spacing) ;
-    plot(yearList_luh2(incl_base_years),ts_base_cy(v,incl_base_years),'-k','LineWidth',2) ;
+    plot(yearList_luh2,ts_base_cy(v,:),'-k','LineWidth',2) ;
     set(gca,'ColorOrderIndex',1) ;
     hold on
-    plot(yearList,squeeze(ts_harm_cyr(v,:,:)),'-','LineWidth',1)
-    set(gca,'ColorOrderIndex',1) ;
     plot(yearList,squeeze(ts_orig_cyr(v,:,:)),'--','LineWidth',1)
+    set(gca,'ColorOrderIndex',1) ;
+    plot(yearList,squeeze(ts_harm_cyr(v,:,:)),'-','LineWidth',1)
     hold off
     title(LPJGcrops{v})
     set(gca,'FontSize',14)
     ylabel('Mt')
-    legend({'LUH2','SSP1','SSP3','SSP4','SSP5'},'Location','NorthWest')
+    legend(legend_ts,'Location','NorthWest')
 end
 
 % Save
 export_fig([out_dir 'timeSeries_nfert.pdf']) ;
-
+close
 
 
 %% Maps: At three years

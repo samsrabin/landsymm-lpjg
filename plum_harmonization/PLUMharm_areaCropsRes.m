@@ -15,8 +15,8 @@ PLUM_in_toptop = {...
                   } ;
               
 % Save?
-save_halfDeg = true ;
-save_2deg = true ;
+save_halfDeg = false ;
+save_2deg = false ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
 debugIJ_2deg = [] ;
@@ -205,12 +205,26 @@ for d = 1:length(PLUM_in_toptop)
 %         % Debugging
 %         disp(' ')
 %         disp('Initial import')
+%         tmp0 = 1e-6*1e-6*sum(sum(sum(in_y0_2deg.maps_YXv(:,:,isAgri)))) ;
+%         tmp1 = 1e-6*1e-6*sum(sum(sum(in_y1_2deg.maps_YXv(:,:,isAgri)))) ;
+%         fprintf('in_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
+%         fprintf('in_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
+%         fprintf('                  diff (million km2): %0.1f\n\n', tmp1-tmp0)
+%         tmp0 = 1e-6*1e-6*sum(in_y0_2deg.maps_YXv(:)) ;
+%         tmp1 = 1e-6*1e-6*sum(in_y1_2deg.maps_YXv(:)) ;
+%         fprintf('in_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
+%         fprintf('in_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
+%         fprintf('                  diff (million km2): %0.1f\n\n', tmp1-tmp0)
+        
+%         % Debugging
+%         disp(' ')
+%         disp('Initial import')
 %         tmp0 = 1e-6*1e-3*sum(sum(in_y0_nfert_2deg.maps_YXv(:,:,2) .* in_y0_2deg.maps_YXv(:,:,2))) ;
 %         tmp1 = 1e-6*1e-3*sum(sum(in_y1_nfert_2deg.maps_YXv(:,:,2) .* in_y1_2deg.maps_YXv(:,:,2))) ;
 %         fprintf('in_%d glob Nfert (Mt): %0.3f\n', thisYear-1, tmp0)
 %         fprintf('in_%d glob Nfert (Mt): %0.3f\n', thisYear,   tmp1)
 %         fprintf('              diff (Mt): %0.3f\n\n', tmp1-tmp0)
-                
+                        
         % Import for debugging redistribution
         if do_debug
             in_y1orig_2deg = in_y1_2deg ;
@@ -339,7 +353,7 @@ for d = 1:length(PLUM_in_toptop)
             mid1_y1_2deg_agri_YXv, ...
             base_vegd_2deg_YX, ...
             resArea_2deg_YX, sum(out_y0_2deg_agri_YXv,3), []) ;
-        
+                
         % Check 2: Check that global area changes are (mostly) conserved
         for i = 1:Nagri
             agri_d2_YX = mid_y1_2deg_agri_YXv(:,:,i) - out_y0_2deg_agri_YXv(:,:,i) + total_unmet_agri_YXv(:,:,i) ;
@@ -350,6 +364,24 @@ for d = 1:length(PLUM_in_toptop)
                 error(['Global ' LUnames{i} ' area changes are not conserved to within ' num2str(conserv_tol_pct) '%! (step 2)'])
             end
         end
+        
+%         % Debugging
+%         disp(' ')
+%         disp('After addition of deltas')
+%         tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0_2deg.maps_YXv(:,:,isAgri)))) ;
+%         tmp1 = 1e-6*1e-6*sum(mid_y1_2deg_agri_YXv(:)) ;
+%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
+%         fprintf('mid_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
+%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+% 
+%         tmp0 = 1e-6*1e-6*sum(out_y0_2deg.maps_YXv(:)) ;
+%         tmp1 = 1e-6*1e-6*sum(sum(sum(mid_y1_2deg_agri_YXv,3) ...
+%                                + sum(total_unmet_agri_YXv,3) ...
+%                                + mid_y1_2deg_ntrl_YX ...
+%                                + in_y1_2deg.maps_YXv(:,:,~notBare))) ;
+%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
+%         fprintf('mid_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
+%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
 
         % Debugging output
         if do_debug
@@ -373,6 +405,21 @@ for d = 1:length(PLUM_in_toptop)
             [], in_y0orig_2deg, in_y1orig_2deg, out_y0_2deg_agri_YXv, ...
             out_y0_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri) ;
         out_y1_2deg_vegd_YX = sum(cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX),3) ;
+        
+%         % Debugging
+%         disp(' ')
+%         disp('After ringRedist')
+%         tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0_2deg.maps_YXv(:,:,isAgri)))) ;
+%         tmp1 = 1e-6*1e-6*sum(sum(sum(out_y1_2deg_agri_YXv))) ;
+%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
+%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
+%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+%         tmp0 = 1e-6*1e-6*sum(out_y0_2deg.maps_YXv(:)) ;
+%         tmp1 = 1e-6*1e-6*sum(sum(out_y1_2deg_vegd_YX ...
+%                                + in_y1_2deg.maps_YXv(:,:,~notBare))) ;
+%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
+%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
+%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
         
         % Debugging output
         if do_debug
@@ -528,6 +575,24 @@ for d = 1:length(PLUM_in_toptop)
             out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, out_y0_agri_YXv, ...
             base_vegd_YX, base_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames) ;
         
+%         % Debugging
+%         disp(' ')
+%         disp('Now at half-degree')
+%         tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0.maps_YXv(:,:,isAgri)))) ;
+%         tmp1 = 1e-6*1e-6*sum(out_y1_agri_YXv(:)) ;
+%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
+%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
+%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+%         out_y1_ntrl_YX_tmp = landArea_YX ...
+%             - (sum(out_y1_agri_YXv,3) + in_y1.maps_YXv(:,:,~notBare)) ;
+%         tmp0 = 1e-6*1e-6*sum(out_y0.maps_YXv(:)) ;
+%         tmp1 = 1e-6*1e-6*sum(sum(sum(out_y1_agri_YXv,3) ...
+%                                + out_y1_ntrl_YX_tmp ...
+%                                + in_y1.maps_YXv(:,:,~notBare))) ;
+%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
+%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
+%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+        
         % Distribute management inputs from 2-degree to half-degree cells.
         out_y1_nfert_YXv = PLUMharm_distMgmt(out_y1_2deg_nfert_YXv,2,0.5) ;
         out_y1_irrig_YXv = PLUMharm_distMgmt(out_y1_2deg_irrig_YXv,2,0.5) ;
@@ -538,9 +603,9 @@ for d = 1:length(PLUM_in_toptop)
             error('How did you get a NaN in out_y1_agri_YXv?')
         end
         out_y1_agri_YXv(out_y1_agri_YXv<0) = 0 ;
-        luh2_vegd_YXv = repmat(base_vegd_YX,[1 1 Nagri]) ;
-        out_y1_agri_YXv(out_y1_agri_YXv>luh2_vegd_YXv) = out_y1_agri_YXv(out_y1_agri_YXv>luh2_vegd_YXv) ;
-        clear luh2_vegd_YXv
+        base_vegd_YXv = repmat(base_vegd_YX,[1 1 Nagri]) ;
+        out_y1_agri_YXv(out_y1_agri_YXv>base_vegd_YXv) = out_y1_agri_YXv(out_y1_agri_YXv>base_vegd_YXv) ;
+        clear base_vegd_YXv
 
         % Check 5: Check that global area changes are (mostly) conserved
         for i = 1:Nagri
