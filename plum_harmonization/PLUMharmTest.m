@@ -2,19 +2,21 @@
 %%% Testing harmonized PLUM land use trajectory %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+read_MATs = true ;
+
 thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
 
 runList = {'SSP1.v10.s1' ;
-%             'SSP3.v10.s1' ;
-%             'SSP4.v10.s1' ;
-%             'SSP5.v10.s1';
+           'SSP3.v10.s1' ;
+           'SSP4.v10.s1' ;
+%            'SSP5.v10.s1';
             } ;
 
 base_year = 2010 ;
 
-yearList = 2011:2020 ;
+yearList = 2011:2050 ;
 
 norm2extra = 0.177 ;
 
@@ -90,7 +92,7 @@ for r = 1:Nruns
     [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
         [topDir thisRun], base_year, yearList, ...
         landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-        is2deg, base_bareFrac_YX, norm2extra, inpaint_method, '') ;
+        is2deg, [], norm2extra, inpaint_method, '', false, true) ;
     PLUMorig_YXvyr(:,:,:,:,r) = S_out.maps_YXvy ;
     PLUMorig_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy ;
     PLUMorig_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy ;
@@ -104,7 +106,7 @@ for r = 1:Nruns
     [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
         [topDir thisRun '.harm'],base_year,yearList, ...
         landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-        is2deg, [], 0, [], thisVer) ;
+        is2deg, [], 0, [], thisVer, read_MATs, false) ;
     PLUMharm_YXvyr(:,:,:,:,r) = S_out.maps_YXvy ;
     PLUMharm_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy ;
     PLUMharm_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy ;
