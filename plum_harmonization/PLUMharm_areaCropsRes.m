@@ -8,7 +8,7 @@ yearN = 2050 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
+%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
