@@ -3,8 +3,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_year = 2010 ;
-year1 = 2011 ;
-yearN = 2030 ;
+year1 = 2046 ;
+yearN = 2100 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
@@ -15,14 +15,25 @@ PLUM_in_toptop = {...
                   } ;
               
 % Save?
-save_halfDeg = false ;
-save_2deg = false ;
+save_halfDeg_mat = true ;
+save_2deg_mat = false ;
+save_halfDeg_txt = false ;
+save_2deg_txt = false ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
 debugIJ_2deg = [] ;
 % debugIJ_2deg = [29 105] ; % i=6
 % debugIJ_2deg = [6 1] ;
 % debugIJ_2deg = [73 98] ;
+% debugIJ_2deg = [48 90] ;
+
+% Print verbose messages?
+verbose = false ;
+
+
+%% Setup
+
+addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
 
 % Method for inpaint_nans()
 inpaint_method = 0 ;
@@ -32,10 +43,10 @@ inpaint_method = 0 ;
 % thisYear's thisMgmt.
 useLatestPLUMmgmt = false ;
 
-
-%% Setup
-
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+% Save details
+save_halfDeg_any = save_halfDeg_mat || save_halfDeg_txt ;
+save_2deg_any = save_2deg_mat || save_2deg_txt ;
+save_any = save_halfDeg_any || save_2deg_any ;
 
 % Output file details
 outPrec = 6 ;
@@ -202,29 +213,36 @@ for d = 1:length(PLUM_in_toptop)
         in_y1_bareFrac_YX = in_y1_bare_YX ./ landArea_YX ;
         in_y1_2deg_vegd_YX = sum(in_y1_2deg.maps_YXv(:,:,notBare),3) ;
         
-%         % Debugging
-%         disp(' ')
-%         disp('Initial import')
-%         tmp0 = 1e-6*1e-6*sum(sum(sum(in_y0_2deg.maps_YXv(:,:,isAgri)))) ;
-%         tmp1 = 1e-6*1e-6*sum(sum(sum(in_y1_2deg.maps_YXv(:,:,isAgri)))) ;
-%         fprintf('in_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
-%         fprintf('in_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
-%         fprintf('                  diff (million km2): %0.1f\n\n', tmp1-tmp0)
-%         tmp0 = 1e-6*1e-6*sum(in_y0_2deg.maps_YXv(:)) ;
-%         tmp1 = 1e-6*1e-6*sum(in_y1_2deg.maps_YXv(:)) ;
-%         fprintf('in_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
-%         fprintf('in_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
-%         fprintf('                  diff (million km2): %0.1f\n\n', tmp1-tmp0)
+        % Debugging
+        if verbose
+            disp(' ')
+            disp('Initial import')
+            tmp0 = 1e-6*1e-6*sum(sum(sum(in_y0_2deg.maps_YXv(:,:,isAgri)))) ;
+            tmp1 = 1e-6*1e-6*sum(sum(sum(in_y1_2deg.maps_YXv(:,:,isAgri)))) ;
+            fprintf('in_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
+            fprintf('in_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
+            fprintf('                  diff (million km2): %0.1f\n\n', tmp1-tmp0)
+            tmp0 = 1e-6*1e-6*sum(in_y0_2deg.maps_YXv(:)) ;
+            tmp1 = 1e-6*1e-6*sum(in_y1_2deg.maps_YXv(:)) ;
+            fprintf('in_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
+            fprintf('in_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
+            fprintf('                  diff (million km2): %0.1f\n\n', tmp1-tmp0)
+            tmp = 1e-6*1e-6*sum(base_vegd_2deg_YX(:)) ;
+            fprintf('base_2deg glob vegd area (million km2): %0.1f\n', tmp)
+            clear tmp*
+        end
         
 %         % Debugging
-%         disp(' ')
-%         disp('Initial import')
-%         tmp0 = 1e-6*1e-3*sum(sum(in_y0_nfert_2deg.maps_YXv(:,:,2) .* in_y0_2deg.maps_YXv(:,:,2))) ;
-%         tmp1 = 1e-6*1e-3*sum(sum(in_y1_nfert_2deg.maps_YXv(:,:,2) .* in_y1_2deg.maps_YXv(:,:,2))) ;
-%         fprintf('in_%d glob Nfert (Mt): %0.3f\n', thisYear-1, tmp0)
-%         fprintf('in_%d glob Nfert (Mt): %0.3f\n', thisYear,   tmp1)
-%         fprintf('              diff (Mt): %0.3f\n\n', tmp1-tmp0)
-                        
+%         if verbose
+%             disp(' ')
+%             disp('Initial import')
+%             tmp0 = 1e-6*1e-3*sum(sum(in_y0_nfert_2deg.maps_YXv(:,:,2) .* in_y0_2deg.maps_YXv(:,:,2))) ;
+%             tmp1 = 1e-6*1e-3*sum(sum(in_y1_nfert_2deg.maps_YXv(:,:,2) .* in_y1_2deg.maps_YXv(:,:,2))) ;
+%             fprintf('in_%d glob Nfert (Mt): %0.3f\n', thisYear-1, tmp0)
+%             fprintf('in_%d glob Nfert (Mt): %0.3f\n', thisYear,   tmp1)
+%             fprintf('              diff (Mt): %0.3f\n\n', tmp1-tmp0)
+%         end
+        
         % Import for debugging redistribution
         if do_debug
             in_y1orig_2deg = in_y1_2deg ;
@@ -350,9 +368,8 @@ for d = 1:length(PLUM_in_toptop)
         [total_unmet_agri_YXv, ...
             mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX] = ...
             PLUMharm_getUnmet_cropAreaRes(...
-            mid1_y1_2deg_agri_YXv, ...
-            base_vegd_2deg_YX, ...
-            resArea_2deg_YX, sum(out_y0_2deg_agri_YXv,3), []) ;
+            mid1_y1_2deg_agri_YXv, base_vegd_2deg_YX, ...
+            resArea_2deg_YX, sum(out_y0_2deg_agri_YXv,3), debugIJ_2deg) ;
                 
         % Check 2: Check that global area changes are (mostly) conserved
         for i = 1:Nagri
@@ -365,23 +382,36 @@ for d = 1:length(PLUM_in_toptop)
             end
         end
         
-%         % Debugging
-%         disp(' ')
-%         disp('After addition of deltas')
-%         tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0_2deg.maps_YXv(:,:,isAgri)))) ;
-%         tmp1 = 1e-6*1e-6*sum(mid_y1_2deg_agri_YXv(:)) ;
-%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
-%         fprintf('mid_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
-%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
-% 
-%         tmp0 = 1e-6*1e-6*sum(out_y0_2deg.maps_YXv(:)) ;
-%         tmp1 = 1e-6*1e-6*sum(sum(sum(mid_y1_2deg_agri_YXv,3) ...
-%                                + sum(total_unmet_agri_YXv,3) ...
-%                                + mid_y1_2deg_ntrl_YX ...
-%                                + in_y1_2deg.maps_YXv(:,:,~notBare))) ;
-%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
-%         fprintf('mid_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
-%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+        % Check 2: Check that cells' vegetated area does not change much
+        mid_y1_2deg_vegd_YX = sum(mid_y1_2deg_agri_YXv,3) + out_y0_2deg_ntrl_YX - sum(agri_d_YXv,3) + sum(total_unmet_agri_YXv,3) ;
+        nonCons_pct_YX = 100*(mid_y1_2deg_vegd_YX - base_vegd_2deg_YX) ./ base_vegd_2deg_YX ;
+        if max(abs(nonCons_pct_YX(:))) > conserv_tol_pct
+            error('By-cell vegetated area not conserved! Worst errors %0.1e and %0.1e.\n', ...
+                min(nonCons_pct_YX(:)), max(nonCons_pct_YX(:))) ;
+        end
+        
+        % Debugging
+        if verbose
+            disp(' ')
+            disp('After addition of deltas')
+            tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0_2deg.maps_YXv(:,:,isAgri)))) ;
+            tmp1 = 1e-6*1e-6*sum(mid_y1_2deg_agri_YXv(:)) ;
+            fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
+            fprintf('mid_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
+            fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+
+            tmp0 = 1e-6*1e-6*sum(out_y0_2deg.maps_YXv(:)) ;
+            tmp1 = 1e-6*1e-6*sum(sum(sum(mid_y1_2deg_agri_YXv,3) ...
+                                   + sum(total_unmet_agri_YXv,3) ...
+                                   + mid_y1_2deg_ntrl_YX ...
+                                   + in_y1_2deg.maps_YXv(:,:,~notBare))) ;
+            fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
+            fprintf('mid_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
+            fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+            tmp = 1e-6*1e-6*sum(base_vegd_2deg_YX(:)) ;
+            fprintf('base_2deg glob vegd area (million km2): %0.1f\n', tmp)
+            clear tmp*
+        end
 
         % Debugging output
         if do_debug
@@ -403,23 +433,31 @@ for d = 1:length(PLUM_in_toptop)
             total_unmet_agri_YXv, ...
             landArea_2deg_YX, ...
             [], in_y0orig_2deg, in_y1orig_2deg, out_y0_2deg_agri_YXv, ...
-            out_y0_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri) ;
+            mid_y1_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri) ;
         out_y1_2deg_vegd_YX = sum(cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX),3) ;
         
-%         % Debugging
-%         disp(' ')
-%         disp('After ringRedist')
-%         tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0_2deg.maps_YXv(:,:,isAgri)))) ;
-%         tmp1 = 1e-6*1e-6*sum(sum(sum(out_y1_2deg_agri_YXv))) ;
-%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
-%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
-%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
-%         tmp0 = 1e-6*1e-6*sum(out_y0_2deg.maps_YXv(:)) ;
-%         tmp1 = 1e-6*1e-6*sum(sum(out_y1_2deg_vegd_YX ...
-%                                + in_y1_2deg.maps_YXv(:,:,~notBare))) ;
-%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
-%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
-%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+        % Debugging
+        if verbose
+            disp(' ')
+            disp('After ringRedist')
+            tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0_2deg.maps_YXv(:,:,isAgri)))) ;
+            tmp1 = 1e-6*1e-6*sum(sum(sum(out_y1_2deg_agri_YXv))) ;
+            fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
+            fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
+            fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+            tmp0 = 1e-6*1e-6*sum(out_y0_2deg.maps_YXv(:)) ;
+            tmp1 = 1e-6*1e-6*sum(sum(out_y1_2deg_vegd_YX ...
+                                   + in_y1_2deg.maps_YXv(:,:,~notBare))) ;
+            fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
+            fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
+            fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+            tmp = 1e-6*1e-6*sum(base_vegd_2deg_YX(:)) ;
+            fprintf('base_2deg glob vegd area (million km2): %0.1f\n', tmp)
+            out_y1_2deg_agri_YX = sum(out_y1_2deg_agri_YXv,3) ;
+            tmp = max(out_y1_2deg_agri_YX(:) - base_vegd_2deg_YX(:)) ;
+            fprintf('Max agri-vegd area (km2): %0.1f\n', tmp)
+            clear tmp*
+        end
         
         % Debugging output
         if do_debug
@@ -500,18 +538,18 @@ for d = 1:length(PLUM_in_toptop)
             total_unmet_irrig_YXv, LPJGcrops, conserv_tol_pct, ...
             '2b irrig') ;
         
-        if do_debug
-            PLUMharm_debugOut_deltas('outy0_to_midy1', 'Nfert', ...
-                out_y0_2deg_nfert_YXv.*out_y0_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
-                mid1_y1_2deg_nfert_YXv.*out_y1_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
-                debugIJ_2deg,LPJGcrops) ;
-        end
+% % %         if do_debug
+% % %             PLUMharm_debugOut_deltas('outy0_to_midy1', 'Nfert', ...
+% % %                 out_y0_2deg_nfert_YXv.*out_y0_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
+% % %                 mid1_y1_2deg_nfert_YXv.*out_y1_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
+% % %                 debugIJ_2deg,LPJGcrops) ;
+% % %         end
                 
         % Do ring redistribution for management inputs
         [out_y1_2deg_nfert_YXv, total_unmet2_nfert_YXv] = PLUMharm_ringRedist_mgmt(...
             mid1_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
             total_unmet_nfert_YXv, max_nfert_y1, ...
-            LPJGcrops, debugIJ_2deg, ...
+            LPJGcrops, [], ...
             out_y0_nfert_2deg, out_y0_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
             in_y0_nfert_2deg, in_y0_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
             in_y1_nfert_2deg, in_y1_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
@@ -526,7 +564,7 @@ for d = 1:length(PLUM_in_toptop)
         [out_y1_2deg_irrig_YXv, total_unmet2_irrig_YXv] = PLUMharm_ringRedist_mgmt(...
             mid1_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
             total_unmet_irrig_YXv, ones(size(max_nfert_y1)), ...
-            LPJGcrops, debugIJ_2deg, ...
+            LPJGcrops, [], ...
             out_y0_irrig_2deg, out_y0_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
             in_y0_irrig_2deg, in_y0_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
             in_y1_irrig_2deg, in_y1_2deg_agri_YXv(:,:,~strcmp(LUnames_agri,'PASTURE')), ...
@@ -575,23 +613,28 @@ for d = 1:length(PLUM_in_toptop)
             out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, out_y0_agri_YXv, ...
             base_vegd_YX, base_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames) ;
         
-%         % Debugging
-%         disp(' ')
-%         disp('Now at half-degree')
-%         tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0.maps_YXv(:,:,isAgri)))) ;
-%         tmp1 = 1e-6*1e-6*sum(out_y1_agri_YXv(:)) ;
-%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
-%         fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
-%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
-%         out_y1_ntrl_YX_tmp = landArea_YX ...
-%             - (sum(out_y1_agri_YXv,3) + in_y1.maps_YXv(:,:,~notBare)) ;
-%         tmp0 = 1e-6*1e-6*sum(out_y0.maps_YXv(:)) ;
-%         tmp1 = 1e-6*1e-6*sum(sum(sum(out_y1_agri_YXv,3) ...
-%                                + out_y1_ntrl_YX_tmp ...
-%                                + in_y1.maps_YXv(:,:,~notBare))) ;
-%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
-%         fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
-%         fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+        % Debugging
+        if verbose
+            disp(' ')
+            disp('Now at half-degree')
+            tmp0 = 1e-6*1e-6*sum(sum(sum(out_y0.maps_YXv(:,:,isAgri)))) ;
+            tmp1 = 1e-6*1e-6*sum(out_y1_agri_YXv(:)) ;
+            fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear-1, tmp0)
+            fprintf('out_%d glob agri area (million km2): %0.1f\n', thisYear,   tmp1)
+            fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+            out_y1_ntrl_YX_tmp = landArea_YX ...
+                - (sum(out_y1_agri_YXv,3) + in_y1.maps_YXv(:,:,~notBare)) ;
+            tmp0 = 1e-6*1e-6*sum(out_y0.maps_YXv(:)) ;
+            tmp1 = 1e-6*1e-6*sum(sum(sum(out_y1_agri_YXv,3) ...
+                                   + out_y1_ntrl_YX_tmp ...
+                                   + in_y1.maps_YXv(:,:,~notBare))) ;
+            fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
+            fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
+            fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
+            tmp = 1e-6*1e-6*sum(base_vegd_2deg_YX(:)) ;
+            fprintf('base_2deg glob vegd area (million km2): %0.1f\n', tmp)
+            clear tmp*
+        end
         
         % Distribute management inputs from 2-degree to half-degree cells.
         out_y1_nfert_YXv = PLUMharm_distMgmt(out_y1_2deg_nfert_YXv,2,0.5) ;
@@ -614,7 +657,7 @@ for d = 1:length(PLUM_in_toptop)
             this_d_glob_halfDeg_1 = sum(this_d1_halfDeg_YX(:)) ;
             this_d_glob_halfDeg_5 = sum(this_d5_halfDeg_YX(:)) ;
             if abs((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) > conserv_tol_pct
-                warning(['Global ' LUnames{i} ' area changes are not conserved to within ' num2str(conserv_tol_pct) '%! (' num2str((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) '%) (step 5)'])
+                error(['Global ' LUnames{i} ' area changes are not conserved to within ' num2str(conserv_tol_pct) '%! (' num2str((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) '%) (step 5)'])
             end
         end
         
@@ -623,22 +666,22 @@ for d = 1:length(PLUM_in_toptop)
             this_d1_halfDeg_YX = in_y1_nfert_2deg.maps_YXv(:,:,i) .* in_y1_2deg.maps_YXv(:,:,i) ...
                                - in_y0_nfert_2deg.maps_YXv(:,:,i) .* in_y0_2deg.maps_YXv(:,:,i) ;
             this_d5_halfDeg_YX = out_y1_nfert_YXv(:,:,i).*out_y1_agri_YXv(:,:,i) ...
-                               - out_y0_nfert_YXv(:,:,i).*out_y1_agri_YXv(:,:,i) ;
+                               - out_y0_nfert_YXv(:,:,i).*out_y0_agri_YXv(:,:,i) ;
             this_d_glob_halfDeg_1 = sum(this_d1_halfDeg_YX(:)) ;
             this_d_glob_halfDeg_5 = sum(this_d5_halfDeg_YX(:)) ;
             if abs((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) > conserv_tol_pct
-                warning(['Global ' LUnames{i} ' area changes are not conserved to within ' num2str(conserv_tol_pct) '%! (' num2str((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) '%) (step 5)'])
+                error(['Global ' LUnames{i} ' nfert changes are not conserved to within ' num2str(conserv_tol_pct) '%! (' num2str((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) '%) (step 5)'])
             end
         end
         for i = 1:Ncrops_lpjg
             this_d1_halfDeg_YX = in_y1_irrig_2deg.maps_YXv(:,:,i) .* in_y1_2deg.maps_YXv(:,:,i) ...
                                - in_y0_irrig_2deg.maps_YXv(:,:,i) .* in_y0_2deg.maps_YXv(:,:,i) ;
             this_d5_halfDeg_YX = out_y1_irrig_YXv(:,:,i).*out_y1_agri_YXv(:,:,i) ...
-                               - out_y0_irrig_YXv(:,:,i).*out_y1_agri_YXv(:,:,i) ;
+                               - out_y0_irrig_YXv(:,:,i).*out_y0_agri_YXv(:,:,i) ;
             this_d_glob_halfDeg_1 = sum(this_d1_halfDeg_YX(:)) ;
             this_d_glob_halfDeg_5 = sum(this_d5_halfDeg_YX(:)) ;
             if abs((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) > conserv_tol_pct
-                warning(['Global ' LUnames{i} ' area changes are not conserved to within ' num2str(conserv_tol_pct) '%! (' num2str((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) '%) (step 5)'])
+                error(['Global ' LUnames{i} ' irrig changes are not conserved to within ' num2str(conserv_tol_pct) '%! (' num2str((this_d_glob_halfDeg_5-this_d_glob_halfDeg_1)/this_d_glob_halfDeg_1*100) '%) (step 5)'])
             end
         end
 
@@ -668,11 +711,11 @@ for d = 1:length(PLUM_in_toptop)
         %%% Write output files %%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        if save_halfDeg || save_2deg
+        if save_any
             disp(['  Done processing (' toc_hms(toc) '). Now writing.'])
         end
         
-        if save_halfDeg
+        if save_halfDeg_any
             % Save new LandCoverFract.txt (0.5-degree)
             unix(['mkdir -p ' PLUM_out_top num2str(thisYear)]) ;
             out_y1.varNames = {'PASTURE','CROPLAND','NATURAL','BARREN'} ;
@@ -681,32 +724,44 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'NATURAL')) = out_y1_ntrl_YX ;
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'BARREN')) = out_y1_bare_YX ;
             out_y1.maps_YXv = out_y1.maps_YXv ./ repmat(landArea_YX,[1 1 length(out_y1.varNames)]) ;
-            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-            file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.txt'] ;
-            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                'outPrec', outPrec, ...
-                'outWidth', outWidth, ...
-                'delimiter', delimiter, ...
-                'overwrite', overwrite, ...
-                'fancy', fancy, ...
-                'progress_step_pct', 20, ...
-                'verbose', false) ;
+            if save_halfDeg_mat
+                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.mat'] ;
+                save(file_out,'out_y1') ;
+            end
+            if save_halfDeg_txt
+                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.txt'] ;
+                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                    'outPrec', outPrec, ...
+                    'outWidth', outWidth, ...
+                    'delimiter', delimiter, ...
+                    'overwrite', overwrite, ...
+                    'fancy', fancy, ...
+                    'progress_step_pct', 20, ...
+                    'verbose', false) ;
+            end
             clear out_y1
             
             % Save new CropFract.txt (0.5-degree)
             out_y1.maps_YXv = out_y1_agri_YXv(:,:,~isAgri_isPast) ./ repmat(out_y1_crop_YX,[1 1 length(LPJGcrops)]) ;
             out_y1.maps_YXv(repmat(out_y1_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
             out_y1.varNames = LPJGcrops ;
-            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-            file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.txt'] ;
-            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                'outPrec', outPrec, ...
-                'outWidth', outWidth, ...
-                'delimiter', delimiter, ...
-                'overwrite', overwrite, ...
-                'fancy', fancy, ...
-                'progress_step_pct', 20, ...
-                'verbose', false) ;
+            if save_halfDeg_mat
+                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.mat'] ;
+                save(file_out,'out_y1') ;
+            end
+            if save_halfDeg_txt
+                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.txt'] ;
+                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                    'outPrec', outPrec, ...
+                    'outWidth', outWidth, ...
+                    'delimiter', delimiter, ...
+                    'overwrite', overwrite, ...
+                    'fancy', fancy, ...
+                    'progress_step_pct', 20, ...
+                    'verbose', false) ;
+            end
             clear out_y1
             
             % Save new Fert.txt (0.5-degree)
@@ -714,36 +769,48 @@ for d = 1:length(PLUM_in_toptop)
             % PLUM style.
             out_y1.maps_YXv = 1e4*out_y1_nfert_YXv ;
             out_y1.varNames = LPJGcrops ;
-            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-            file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.txt'] ;
-            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                'outPrec', outPrec, ...
-                'outWidth', outWidth, ...
-                'delimiter', delimiter, ...
-                'overwrite', overwrite, ...
-                'fancy', fancy, ...
-                'progress_step_pct', 20, ...
-                'verbose', false) ;
+            if save_halfDeg_mat
+                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.mat'] ;
+                save(file_out,'out_y1') ;
+            end
+            if save_halfDeg_txt
+                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.txt'] ;
+                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                    'outPrec', outPrec, ...
+                    'outWidth', outWidth, ...
+                    'delimiter', delimiter, ...
+                    'overwrite', overwrite, ...
+                    'fancy', fancy, ...
+                    'progress_step_pct', 20, ...
+                    'verbose', false) ;
+            end
             clear out_y1
             
             % Save new Irrig.txt (0.5-degree)
             out_y1.maps_YXv = out_y1_irrig_YXv ;
             out_y1.varNames = LPJGcrops ;
-            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-            file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.txt'] ;
-            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                'outPrec', outPrec, ...
-                'outWidth', outWidth, ...
-                'delimiter', delimiter, ...
-                'overwrite', overwrite, ...
-                'fancy', fancy, ...
-                'progress_step_pct', 20, ...
-                'verbose', false) ;
+            if save_halfDeg_mat
+                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.mat'] ;
+                save(file_out,'out_y1') ;
+            end
+            if save_halfDeg_txt
+                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.txt'] ;
+                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                    'outPrec', outPrec, ...
+                    'outWidth', outWidth, ...
+                    'delimiter', delimiter, ...
+                    'overwrite', overwrite, ...
+                    'fancy', fancy, ...
+                    'progress_step_pct', 20, ...
+                    'verbose', false) ;
+            end
             clear out_y1
             
         end
 
-        if save_2deg
+        if save_2deg_any
             % Save new LandCoverFract.txt (2-degree)
             unix(['mkdir -p ' PLUM_out_top num2str(thisYear)]) ;
             out_y1.varNames = {'PASTURE','CROPLAND','NATURAL','BARREN'} ;
@@ -752,32 +819,44 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'NATURAL')) = out_y1_2deg_ntrl_YX ;
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'BARREN')) = out_y1_2deg_bare_YX ;
             out_y1.maps_YXv = out_y1.maps_YXv ./ repmat(landArea_2deg_YX,[1 1 length(out_y1.varNames)]) ;
-            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-            file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.2deg.txt'] ;
-            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                'outPrec', outPrec, ...
-                'outWidth', outWidth, ...
-                'delimiter', delimiter, ...
-                'overwrite', overwrite, ...
-                'fancy', fancy, ...
-                'progress_step_pct', 20, ...
-                'verbose', false) ;
+            if save_2deg_mat
+                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.2deg.txt'] ;
+                save(file_out,'out_y1') ;
+            end
+            if save_2deg_txt
+                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.2deg.txt'] ;
+                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                    'outPrec', outPrec, ...
+                    'outWidth', outWidth, ...
+                    'delimiter', delimiter, ...
+                    'overwrite', overwrite, ...
+                    'fancy', fancy, ...
+                    'progress_step_pct', 20, ...
+                    'verbose', false) ;
+            end
             clear out_y1
 
             % Save new CropFract.txt (2-degree)
             out_y1.maps_YXv = out_y1_2deg_agri_YXv(:,:,~isAgri_isPast) ./ repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)]) ;
             out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
             out_y1.varNames = LPJGcrops ;
-            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-            file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.2deg.txt'] ;
-            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                'outPrec', outPrec, ...
-                'outWidth', outWidth, ...
-                'delimiter', delimiter, ...
-                'overwrite', overwrite, ...
-                'fancy', fancy, ...
-                'progress_step_pct', 20, ...
-                'verbose', false) ;
+            if save_2deg_mat
+                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.2deg.txt'] ;
+                save(file_out,'out_y1') ;
+            end
+            if save_2deg_txt
+                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.2deg.txt'] ;
+                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                    'outPrec', outPrec, ...
+                    'outWidth', outWidth, ...
+                    'delimiter', delimiter, ...
+                    'overwrite', overwrite, ...
+                    'fancy', fancy, ...
+                    'progress_step_pct', 20, ...
+                    'verbose', false) ;
+            end
             clear out_y1
             
             % Save new Fert.txt (2-degree)
@@ -785,32 +864,44 @@ for d = 1:length(PLUM_in_toptop)
             % PLUM style.
             out_y1.maps_YXv = 1e4*out_y1_2deg_nfert_YXv ;
             out_y1.varNames = LPJGcrops ;
-            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-            file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.txt'] ;
-            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                'outPrec', outPrec, ...
-                'outWidth', outWidth, ...
-                'delimiter', delimiter, ...
-                'overwrite', overwrite, ...
-                'fancy', fancy, ...
-                'progress_step_pct', 20, ...
-                'verbose', false) ;
+            if save_2deg_mat
+                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.txt'] ;
+                save(file_out,'out_y1') ;
+            end
+            if save_2deg_txt
+                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.txt'] ;
+                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                    'outPrec', outPrec, ...
+                    'outWidth', outWidth, ...
+                    'delimiter', delimiter, ...
+                    'overwrite', overwrite, ...
+                    'fancy', fancy, ...
+                    'progress_step_pct', 20, ...
+                    'verbose', false) ;
+            end
             clear out_y1
             
             % Save new Irrig.txt (2-degree)
             out_y1.maps_YXv = out_y1_2deg_irrig_YXv ;
             out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
             out_y1.varNames = LPJGcrops ;
-            [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-            file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.2deg.txt'] ;
-            lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                'outPrec', outPrec, ...
-                'outWidth', outWidth, ...
-                'delimiter', delimiter, ...
-                'overwrite', overwrite, ...
-                'fancy', fancy, ...
-                'progress_step_pct', 20, ...
-                'verbose', false) ;
+            if save_2deg_mat
+                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.2deg.txt'] ;
+                save(file_out,'out_y1') ;
+            end
+            if save_2deg_txt
+                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.2deg.txt'] ;
+                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                    'outPrec', outPrec, ...
+                    'outWidth', outWidth, ...
+                    'delimiter', delimiter, ...
+                    'overwrite', overwrite, ...
+                    'fancy', fancy, ...
+                    'progress_step_pct', 20, ...
+                    'verbose', false) ;
+            end
             clear out_y1
         end
 
@@ -850,10 +941,8 @@ for d = 1:length(PLUM_in_toptop)
         end
         
         % Save full-precision outputs for use in restarting
-        if save_2deg || save_halfDeg
-            save([PLUM_out_top num2str(thisYear) 'post.base' num2str(base_year) '.mat'], ...
-                '*y0*','latestPLUMin_*','-v7.3') ;
-        end
+        save([PLUM_out_top num2str(thisYear) 'post.base' num2str(base_year) '.mat'], ...
+            '*y0*','latestPLUMin_*','-v7.3') ;
 
         disp(['  Done (' toc_hms(toc) ').'])
 
