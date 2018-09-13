@@ -230,60 +230,60 @@ base_bareFrac_YX = base_bare_YX ./ landArea_YX ;
 % Aggregate from 0.5º to 2º
 if doHarm
     base_2deg.maps_YXv = PLUMharm_aggregate(base.maps_YXv,0.5,2) ;
-    base_nfert_2deg.maps_YXv = PLUMharm_aggregate_mgmt(base_nfert.maps_YXv,base.maps_YXv(:,:,isCrop),0.5,2) ;
-    base_irrig_2deg.maps_YXv = PLUMharm_aggregate_mgmt(base_irrig.maps_YXv,base.maps_YXv(:,:,isCrop),0.5,2) ;
-    base_irrig_2deg.varNames = LPJGcrops ;
+    base_2deg_nfert.maps_YXv = PLUMharm_aggregate_mgmt(base_nfert.maps_YXv,base.maps_YXv(:,:,isCrop),0.5,2) ;
+    base_2deg_irrig.maps_YXv = PLUMharm_aggregate_mgmt(base_irrig.maps_YXv,base.maps_YXv(:,:,isCrop),0.5,2) ;
+    base_2deg_irrig.varNames = LPJGcrops ;
 else
     base_2deg.maps_YXvy = PLUMharm_aggregate(base.maps_YXvy,0.5,2) ;
-    base_nfert_2deg.maps_YXvy = PLUMharm_aggregate_mgmt(base_nfert.maps_YXvy,base.maps_YXvy(:,:,isCrop,:),0.5,2) ;
+    base_2deg_nfert.maps_YXvy = PLUMharm_aggregate_mgmt(base_nfert.maps_YXvy,base.maps_YXvy(:,:,isCrop,:),0.5,2) ;
 end
 base_2deg.varNames = base.varNames ;
-base_nfert_2deg.varNames = LPJGcrops ;
+base_2deg_nfert.varNames = LPJGcrops ;
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
 
 % Do not allow invalid management inputs.
 if doHarm
-    if any(base_nfert_2deg.maps_YXv(:)<0)
-        error('Negative value(s) in base_nfert_2deg.maps_YXv!')
-    elseif doHarm && any(base_irrig_2deg.maps_YXv(:)<0)
-        error('Negative value(s) in base_irrig_2deg.maps_YXv!')
-    elseif doHarm && any(base_irrig_2deg.maps_YXv(:)>1+1e-6)
-        error('Value(s) >1 in base_irrig_2deg.maps_YXv!')
+    if any(base_2deg_nfert.maps_YXv(:)<0)
+        error('Negative value(s) in base_2deg_nfert.maps_YXv!')
+    elseif doHarm && any(base_2deg_irrig.maps_YXv(:)<0)
+        error('Negative value(s) in base_2deg_irrig.maps_YXv!')
+    elseif doHarm && any(base_2deg_irrig.maps_YXv(:)>1+1e-6)
+        error('Value(s) >1 in base_2deg_irrig.maps_YXv!')
     end
 else
-    if any(base_nfert_2deg.maps_YXvy(:)<0)
-        error('Negative value(s) in base_nfert_2deg.maps_YXvy!')
+    if any(base_2deg_nfert.maps_YXvy(:)<0)
+        error('Negative value(s) in base_2deg_nfert.maps_YXvy!')
     end
 end
 
 % Interpolate management inputs
 if doHarm
-    base_nfert_2deg.maps_YXv = PLUMharm_interpolateMgmt(...
-        base_nfert_2deg.maps_YXv, base.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
+    base_2deg_nfert.maps_YXv = PLUMharm_interpolateMgmt(...
+        base_2deg_nfert.maps_YXv, base.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
         LPJGcrops, inpaint_method) ;
-    base_irrig_2deg.maps_YXv = PLUMharm_interpolateMgmt(...
-        base_irrig_2deg.maps_YXv, base.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
+    base_2deg_irrig.maps_YXv = PLUMharm_interpolateMgmt(...
+        base_2deg_irrig.maps_YXv, base.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
         LPJGcrops, inpaint_method) ;
 end
 
 % Get LUH2 2-deg fraction that is vegetated, barren
 if doHarm
-    base_vegd_2deg_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
-    base_bare_2deg_YX = base_2deg.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
+    base_2deg_vegd_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
+    base_2deg_bare_YX = base_2deg.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
 else
-    base_vegd_2deg_YX = sum(base_2deg.maps_YXvy(:,:,notBare,1),3) ;
-    base_bare_2deg_YX = base_2deg.maps_YXvy(:,:,strcmp(LUnames,'BARREN'),1) ;
+    base_2deg_vegd_YX = sum(base_2deg.maps_YXvy(:,:,notBare,1),3) ;
+    base_2deg_bare_YX = base_2deg.maps_YXvy(:,:,strcmp(LUnames,'BARREN'),1) ;
 end
-base_vegdFrac_2deg_YX = base_vegd_2deg_YX ./ landArea_2deg_YX ;
-base_bareFrac_2deg_YX = base_bare_2deg_YX ./ landArea_2deg_YX ;
+base_2deg_vegdFrac_YX = base_2deg_vegd_YX ./ landArea_2deg_YX ;
+base_2deg_bareFrac_YX = base_2deg_bare_YX ./ landArea_2deg_YX ;
 
 % Get other info
 if doHarm
-    base_nfertTot_2deg.maps_YXv = base_nfert_2deg.maps_YXv .* base_2deg.maps_YXv(:,:,isCrop) ;
-    base_irrigTot_2deg.maps_YXv = base_irrig_2deg.maps_YXv .* base_2deg.maps_YXv(:,:,isCrop) ;
+    base_nfertTot_2deg.maps_YXv = base_2deg_nfert.maps_YXv .* base_2deg.maps_YXv(:,:,isCrop) ;
+    base_irrigTot_2deg.maps_YXv = base_2deg_irrig.maps_YXv .* base_2deg.maps_YXv(:,:,isCrop) ;
 else
     base_nfertTot.maps_YXvy = base_nfert.maps_YXvy .* base.maps_YXvy(:,:,isCrop,:) ;
-    base_nfertTot_2deg.maps_YXvy = base_nfert_2deg.maps_YXvy .* base_2deg.maps_YXvy(:,:,isCrop,:) ;
+    base_nfertTot_2deg.maps_YXvy = base_2deg_nfert.maps_YXvy .* base_2deg.maps_YXvy(:,:,isCrop,:) ;
 end
 
 % Get lats/lons
