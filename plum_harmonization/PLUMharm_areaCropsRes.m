@@ -3,15 +3,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_year = 2010 ;
-year1 = 2046 ;
-yearN = 2100 ;
+year1 = 2011 ;
+yearN = 2050 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
               
 % Save?
@@ -150,6 +150,8 @@ for d = 1:length(PLUM_in_toptop)
             out_y0 = base ;
 %             disp('out_y0 from luh2')
             out_y0_2deg = base_2deg ;
+            out_y0_vegd_YX = sum(base.maps_YXv(:,:,notBare),3) ;
+            out_y0_2deg_vegd_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
             out_y0_agri_YXv = base.maps_YXv(:,:,isAgri) ;
             out_y0_2deg_agri_YXv = base_2deg.maps_YXv(:,:,isAgri) ;
             out_y0_nfert_YXv = base_nfert.maps_YXv ;
@@ -227,8 +229,8 @@ for d = 1:length(PLUM_in_toptop)
             fprintf('in_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
             fprintf('in_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
             fprintf('                  diff (million km2): %0.1f\n\n', tmp1-tmp0)
-            tmp = 1e-6*1e-6*sum(base_vegd_2deg_YX(:)) ;
-            fprintf('base_2deg glob vegd area (million km2): %0.1f\n', tmp)
+            tmp = 1e-6*1e-6*sum(out_y0_2deg_vegd_YX(:)) ;
+            fprintf('out_2deg_y%d glob vegd area (million km2): %0.1f\n', thisYear-1, tmp)
             clear tmp*
         end
         
@@ -368,8 +370,10 @@ for d = 1:length(PLUM_in_toptop)
         [total_unmet_agri_YXv, ...
             mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX] = ...
             PLUMharm_getUnmet_cropAreaRes(...
-            mid1_y1_2deg_agri_YXv, base_vegd_2deg_YX, ...
+            mid1_y1_2deg_agri_YXv, out_y0_2deg_vegd_YX, ...
             resArea_2deg_YX, sum(out_y0_2deg_agri_YXv,3), debugIJ_2deg) ;
+        mid_y1_2deg_vegd_YX = sum(mid_y1_2deg_agri_YXv,3) + out_y0_2deg_ntrl_YX - sum(agri_d_YXv,3) + sum(total_unmet_agri_YXv,3) ;
+        mid_y1_2deg_bare_YX = landArea_2deg_YX - mid_y1_2deg_vegd_YX ;
                 
         % Check 2: Check that global area changes are (mostly) conserved
         for i = 1:Nagri
@@ -383,8 +387,7 @@ for d = 1:length(PLUM_in_toptop)
         end
         
         % Check 2: Check that cells' vegetated area does not change much
-        mid_y1_2deg_vegd_YX = sum(mid_y1_2deg_agri_YXv,3) + out_y0_2deg_ntrl_YX - sum(agri_d_YXv,3) + sum(total_unmet_agri_YXv,3) ;
-        nonCons_pct_YX = 100*(mid_y1_2deg_vegd_YX - base_vegd_2deg_YX) ./ base_vegd_2deg_YX ;
+        nonCons_pct_YX = 100*(mid_y1_2deg_vegd_YX - out_y0_2deg_vegd_YX) ./ out_y0_2deg_vegd_YX ;
         if max(abs(nonCons_pct_YX(:))) > conserv_tol_pct
             error('By-cell vegetated area not conserved! Worst errors %0.1e and %0.1e.\n', ...
                 min(nonCons_pct_YX(:)), max(nonCons_pct_YX(:))) ;
@@ -408,8 +411,8 @@ for d = 1:length(PLUM_in_toptop)
             fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
             fprintf('mid_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
             fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
-            tmp = 1e-6*1e-6*sum(base_vegd_2deg_YX(:)) ;
-            fprintf('base_2deg glob vegd area (million km2): %0.1f\n', tmp)
+            tmp = 1e-6*1e-6*sum(out_y0_2deg_vegd_YX(:)) ;
+            fprintf('out_%d_2deg glob vegd area (million km2): %0.1f\n', thisYear-1, tmp)
             clear tmp*
         end
 
@@ -435,6 +438,7 @@ for d = 1:length(PLUM_in_toptop)
             [], in_y0orig_2deg, in_y1orig_2deg, out_y0_2deg_agri_YXv, ...
             mid_y1_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri) ;
         out_y1_2deg_vegd_YX = sum(cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX),3) ;
+        out_y1_2deg_bare_YX = landArea_2deg_YX - out_y1_2deg_vegd_YX ;
         
         % Debugging
         if verbose
@@ -451,10 +455,10 @@ for d = 1:length(PLUM_in_toptop)
             fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
             fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
             fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
-            tmp = 1e-6*1e-6*sum(base_vegd_2deg_YX(:)) ;
-            fprintf('base_2deg glob vegd area (million km2): %0.1f\n', tmp)
+            tmp = 1e-6*1e-6*sum(out_y0_2deg_vegd_YX(:)) ;
+            fprintf('out_%d_2deg glob vegd area (million km2): %0.1f\n', thisYear-1, tmp)
             out_y1_2deg_agri_YX = sum(out_y1_2deg_agri_YXv,3) ;
-            tmp = max(out_y1_2deg_agri_YX(:) - base_vegd_2deg_YX(:)) ;
+            tmp = max(out_y1_2deg_agri_YX(:) - out_y0_2deg_vegd_YX(:)) ;
             fprintf('Max agri-vegd area (km2): %0.1f\n', tmp)
             clear tmp*
         end
@@ -465,13 +469,6 @@ for d = 1:length(PLUM_in_toptop)
                 out_y0_2deg.maps_YXv, ...
                 cat(3,out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX, base_bare_2deg_YX), ...
                 debugIJ_2deg,LUnames) ;
-        end
-        
-        % Check 3: Check that agricultural area does not exceed vegetated
-        % area
-        out_y1_2deg_agri_YX = sum(out_y1_2deg_agri_YXv,3) ;
-        if any(out_y1_2deg_agri_YX(:) - base_vegd_2deg_YX(:) > conserv_tol_area)
-            error('More agricultural than vegetated area! (Check 3)')
         end
 
         % Check 3: Check that global area changes are (mostly) conserved
@@ -611,7 +608,8 @@ for d = 1:length(PLUM_in_toptop)
             PLUMharm_distDeltas_areaCrops_recursive( ...
             landArea_YX, landArea_2deg_YX, ...
             out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, out_y0_agri_YXv, ...
-            base_vegd_YX, base_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames) ;
+            out_y0_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames) ;
+        out_y1_ntrl_YX = out_y0_vegd_YX - sum(out_y1_agri_YXv,3) ;
         
         % Debugging
         if verbose
@@ -631,8 +629,8 @@ for d = 1:length(PLUM_in_toptop)
             fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear-1, tmp0)
             fprintf('out_%d glob land area (million km2): %0.1f\n', thisYear,   tmp1)
             fprintf('                    diff (million km2): %0.1f\n\n', tmp1-tmp0)
-            tmp = 1e-6*1e-6*sum(base_vegd_2deg_YX(:)) ;
-            fprintf('base_2deg glob vegd area (million km2): %0.1f\n', tmp)
+            tmp = 1e-6*1e-6*sum(out_y0_vegd_YX(:)) ;
+            fprintf('out_%d glob vegd area (million km2): %0.1f\n', thisYear-1, tmp)
             clear tmp*
         end
         
@@ -649,6 +647,10 @@ for d = 1:length(PLUM_in_toptop)
         base_vegd_YXv = repmat(base_vegd_YX,[1 1 Nagri]) ;
         out_y1_agri_YXv(out_y1_agri_YXv>base_vegd_YXv) = out_y1_agri_YXv(out_y1_agri_YXv>base_vegd_YXv) ;
         clear base_vegd_YXv
+        
+        % Calculate barren areas
+        out_y1_vegd_YX = sum(out_y1_agri_YXv,3) + out_y1_ntrl_YX ;
+        out_y1_bare_YX = landArea_YX - out_y1_vegd_YX ;
 
         % Check 5: Check that global area changes are (mostly) conserved
         for i = 1:Nagri
@@ -686,12 +688,8 @@ for d = 1:length(PLUM_in_toptop)
         end
 
         % Get land use areas
-        out_y1_bare_YX = in_y1.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
-        out_y1_ntrl_YX = landArea_YX ...
-            - (sum(out_y1_agri_YXv,3) + out_y1_bare_YX) ;
         out_y1_past_YX = out_y1_agri_YXv(:,:,isAgri_isPast) ;
         out_y1_crop_YX = sum(out_y1_agri_YXv(:,:,~isAgri_isPast),3) ;
-        out_y1_2deg_bare_YX = in_y1_2deg.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
         out_y1_2deg_past_YX = out_y1_2deg_agri_YXv(:,:,isAgri_isPast) ;
         out_y1_2deg_crop_YX = sum(out_y1_2deg_agri_YXv(:,:,~isAgri_isPast),3) ;
         if ~exist('out_y1_2deg','var')
@@ -934,6 +932,8 @@ for d = 1:length(PLUM_in_toptop)
             max_nfert_y0 = max_nfert_y1 ;
             out_y0_nfert_YXv = out_y1_nfert_YXv ;
             out_y0_irrig_YXv = out_y1_irrig_YXv ;
+            out_y0_vegd_YX = out_y1_vegd_YX ;
+            out_y0_2deg_vegd_YX = out_y1_2deg_vegd_YX ;
             if do_debug
                 in_y0orig_2deg = in_y1orig_2deg ;
             end
