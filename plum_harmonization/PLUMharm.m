@@ -813,6 +813,10 @@ for d = 1:length(PLUM_in_toptop)
             zeros(size(out_y0_agri_YXv)), LUnames(isAgri), conserv_tol_pct, ...
             '5') ;
         
+        % If no thisCrop, no mgmt additions to thisCrop
+        out_y1_nfert_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
+        out_y1_irrig_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
+        
         % Check 5: Check that global mgmt changes are (mostly) conserved
         PLUMharm_checkCons_mgmt(...
             out_y0_nfert_YXv, out_y0_agri_YXv(:,:,~isAgri_isPast), ...
