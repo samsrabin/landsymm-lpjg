@@ -3,13 +3,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_year = 2010 ;
-year1 = 2035 ;
+year1 = 2011 ;
 yearN = 2100 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
+%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
@@ -46,7 +46,7 @@ inpaint_method = 0 ;
 % Use "latest PLUM management" in cells that don't have thisCrop thisYear
 % but did in a previous year? FALSE = rely solely on interpolation of
 % thisYear's thisMgmt.
-useLatestPLUMmgmt = false ;
+useLatestPLUMmgmt = true ;
 
 % Save details
 save_halfDeg_any = save_halfDeg_mat || save_halfDeg_txt ;
@@ -1095,8 +1095,12 @@ for d = 1:length(PLUM_in_toptop)
         end
         
         % Save full-precision outputs for use in restarting
-        save([PLUM_out_top num2str(thisYear) 'post.base' num2str(base_year) '.mat'], ...
+        thisMATfile = [PLUM_out_top num2str(thisYear) 'post.base' num2str(base_year) '.mat'] ;
+        save(thisMATfile, ...
             '*y0*','latestPLUMin_*','-v7.3') ;
+        save(thisMATfile, ...
+            'latestPLUMin_2deg_nfert_YXv','latestPLUMin_2deg_irrig_YXv',...
+            '-append') ;
 
         disp(['  Done (' toc_hms(toc) ').'])
 
