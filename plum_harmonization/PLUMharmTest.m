@@ -8,10 +8,11 @@ thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
 
-runList = {'SSP1.v10.s1' ;
+runList = {...
+           'SSP1.v10.s1' ;
            'SSP3.v10.s1' ;
            'SSP4.v10.s1' ;
-%            'SSP5.v10.s1';
+           'SSP5.v10.s1';
             } ;
 
 base_year = 2010 ;
@@ -96,9 +97,6 @@ for r = 1:Nruns
     PLUMorig_YXvyr(:,:,:,:,r) = S_out.maps_YXvy ;
     PLUMorig_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy ;
     PLUMorig_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy ;
-%     PLUMorig_YXvyr(:,:,:,:,r) = S_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
-%     PLUMorig_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
-%     PLUMorig_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy(:,:,:,2011:2100<=max(yearList)) ;
     clear S_*out
 
     % Harmonized
@@ -146,9 +144,9 @@ for v = 1:length(combinedLUs)
     legend(legend_ts,'Location','NorthWest')
 end
 
-% Save
-export_fig([out_dir 'timeSeries_landUse.pdf']) ;
-close
+% % Save
+% export_fig([out_dir 'timeSeries_landUse.pdf']) ;
+% close
 
 
 %% Time series of crops
@@ -176,17 +174,17 @@ for v = 1:Ncrops_lpjg
     legend(legend_ts,'Location','NorthWest')
 end
 
-% Save
-export_fig([out_dir 'timeSeries_crops.pdf']) ;
-close
+% % Save
+% export_fig([out_dir 'timeSeries_crops.pdf']) ;
+% close
 
 
 %% Time series of Nfert
 
 if is2deg
-    ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot_2deg.maps_YXvy(:,:,isCrop,:)))) ;
+    ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot_2deg.maps_YXvy))) ;
 else
-    ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot.maps_YXvy(:,:,isCrop,:)))) ;
+    ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot.maps_YXvy))) ;
 end
 ts_orig_cyr = cf_kg2Mt .* squeeze(nansum(nansum(PLUMorig_YXvyr(:,:,isCrop,:,:) .* PLUMorig_nfert_YXvyr,1),2)) ;
 ts_harm_cyr = cf_kg2Mt .* squeeze(nansum(nansum(PLUMharm_YXvyr(:,:,isCrop,:,:) .* PLUMharm_nfert_YXvyr,1),2)) ;
@@ -210,9 +208,43 @@ for v = 1:Ncrops_lpjg
     legend(legend_ts,'Location','NorthWest')
 end
 
-% Save
-export_fig([out_dir 'timeSeries_nfert.pdf']) ;
-close
+% % Save
+% export_fig([out_dir 'timeSeries_nfert.pdf']) ;
+% close
+
+
+%% Time series of irrig
+
+if is2deg
+    ts_base_cy = squeeze(nansum(nansum(base_irrigTot_2deg.maps_YXvy))) ;
+else
+    ts_base_cy = squeeze(nansum(nansum(base_irrigTot.maps_YXvy))) ;
+end
+ts_orig_cyr = squeeze(nansum(nansum(PLUMorig_YXvyr(:,:,isCrop,:,:) .* PLUMorig_irrig_YXvyr,1),2)) ;
+ts_harm_cyr = squeeze(nansum(nansum(PLUMharm_YXvyr(:,:,isCrop,:,:) .* PLUMharm_irrig_YXvyr,1),2)) ;
+
+spacing = [0.05 0.1] ;
+
+figure('Color','w','Position',figurePos)
+
+for v = 1:Ncrops_lpjg
+    subplot_tight(4,2,v,spacing) ;
+    plot(yearList_luh2,ts_base_cy(v,:),'-k','LineWidth',2) ;
+    set(gca,'ColorOrderIndex',1) ;
+    hold on
+    plot(yearList,squeeze(ts_orig_cyr(v,:,:)),'--','LineWidth',1)
+    set(gca,'ColorOrderIndex',1) ;
+    plot(yearList,squeeze(ts_harm_cyr(v,:,:)),'-','LineWidth',1)
+    hold off
+    title(LPJGcrops{v})
+    set(gca,'FontSize',14)
+    ylabel('Arbitrary units')
+    legend(legend_ts,'Location','NorthWest')
+end
+
+% % Save
+% export_fig([out_dir 'timeSeries_irrig.pdf']) ;
+% close
 
 
 %% Maps: At three years
