@@ -8,10 +8,10 @@ yearN = 2100 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
+%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
               
 % Save?
@@ -46,7 +46,7 @@ inpaint_method = 0 ;
 % Use "latest PLUM management" in cells that don't have thisCrop thisYear
 % but did in a previous year? FALSE = rely solely on interpolation of
 % thisYear's thisMgmt.
-useLatestPLUMmgmt = false ;
+useLatestPLUMmgmt = true ;
 
 % Save details
 save_halfDeg_any = save_halfDeg_mat || save_halfDeg_txt ;
@@ -836,6 +836,13 @@ for d = 1:length(PLUM_in_toptop)
 ...            in_y1_irrig.maps_YXv, in_y1_agri_YXv(:,:,~isAgri_isPast), ...
             zeros(size(out_y0_irrig_YXv)), LPJGcrops, conserv_tol_pct, notEnough_irrig, ...
             '5 irrig', false) ;
+        
+        % Make sure that ExtraCrop receives no management
+        if max(max(out_y1_nfert_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop'))))>0
+            error('Some ExtraCrop Nfert >0! (%0.3e)',max(max(out_y1_nfert_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop')))))
+        elseif max(max(out_y1_irrig_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop'))))>0
+            error('Some ExtraCrop irrig >0! (%0.3e)',max(max(out_y1_irrig_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop')))))
+        end
 
         % Get land use areas
         out_y1_past_YX = out_y1_agri_YXv(:,:,isAgri_isPast) ;
@@ -1088,8 +1095,12 @@ for d = 1:length(PLUM_in_toptop)
         end
         
         % Save full-precision outputs for use in restarting
-        save([PLUM_out_top num2str(thisYear) 'post.base' num2str(base_year) '.mat'], ...
+        thisMATfile = [PLUM_out_top num2str(thisYear) 'post.base' num2str(base_year) '.mat'] ;
+        save(thisMATfile, ...
             '*y0*','latestPLUMin_*','-v7.3') ;
+        save(thisMATfile, ...
+            'latestPLUMin_2deg_nfert_YXv','latestPLUMin_2deg_irrig_YXv',...
+            '-append') ;
 
         disp(['  Done (' toc_hms(toc) ').'])
 
