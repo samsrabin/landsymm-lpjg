@@ -107,7 +107,7 @@ end
 for d = 1:length(PLUM_in_toptop)
 
     %%%%%%%%%%%%%
-    %%% Setup %%%
+    %%% Setup %%% 
     %%%%%%%%%%%%%
 
     % Get directories
