@@ -193,5 +193,14 @@ if doInterp || useLatestPLUMmgmt
     S_irrig_2deg.maps_YXv = S_irrig_2deg2.maps_YXv ;
 end
 
+% Make sure you have no NaNs in half-degree mgmt arrays
+S_nfert.maps_YXv(S.maps_YXv(:,:,isCrop)==0) = 0 ;
+S_irrig.maps_YXv(S.maps_YXv(:,:,isCrop)==0) = 0 ;
+if any(isnan(S_nfert.maps_YXv(:)))
+    error('NaN in S_nfert.maps_YXv!')
+elseif any(isnan(S_irrig.maps_YXv(:)))
+    error('NaN in S_irrig.maps_YXv!')
+end
+
 
 end
