@@ -18,7 +18,7 @@ notBare = ~strcmp(LUnames,'BARREN') ;
 isCrop = ~strcmp(LUnames,'NATURAL') & ~strcmp(LUnames,'PASTURE') & notBare ;
 
 % Import LandCoverFract.txt
-S_lcf = lpjgu_matlab_readTable_then2map(file_in_lcf,'verboseIfNoMat',false,'force_mat_nosave',true) ;
+S_lcf = lpjgu_matlab_readTable_then2map(file_in_lcf,'verboseIfNoMat',false,'force_mat_save',true) ;
 
 % Move URBAN into PUTURBANHERE; remove URBAN
 if any(strcmp(S_lcf.varNames,'URBAN'))
@@ -31,7 +31,7 @@ end
 % Import detailed LandUse.txt
 file_in_dtl = strrep(file_in_lcf,'LandCoverFract','LandUse') ;
 if exist(file_in_dtl,'file')
-    S_dtl = lpjgu_matlab_readTable_then2map(file_in_dtl,'verboseIfNoMat',false,'force_mat_nosave',true) ;
+    S_dtl = lpjgu_matlab_readTable_then2map(file_in_dtl,'verboseIfNoMat',false,'force_mat_save',true) ;
     PLUMcrops = S_dtl.varNames ;
     is_actual_PLUMcrops = contains(S_dtl.varNames,'_A') ...
         & ~contains(S_dtl.varNames,'ruminants') ...
@@ -54,13 +54,13 @@ if exist(file_in_dtl,'file')
     S_irrig.maps_YXv = S_dtl.maps_YXv(:,:,inds_PLUMcrops_irrig) ;
 else
     file_in_cropfrac = strrep(file_in_lcf,'LandCoverFract','CropFract') ;
-    S_cropf = lpjgu_matlab_readTable_then2map(file_in_cropfrac,'verboseIfNoMat',false,'force_mat_nosave',true) ;
+    S_cropf = lpjgu_matlab_readTable_then2map(file_in_cropfrac,'verboseIfNoMat',false,'force_mat_save',true) ;
     PLUMcrops = S_cropf.varNames ;
     S_cropa.maps_YXv = S_cropf.maps_YXv .* S_lcf.maps_YXv(:,:,strcmp(S_lcf.varNames,'CROPLAND')) ;
     file_in_nfert = strrep(file_in_lcf,'LandCoverFract','Fert') ;
-    S_nfert = lpjgu_matlab_readTable_then2map(file_in_nfert,'verboseIfNoMat',false,'force_mat_nosave',true) ;
+    S_nfert = lpjgu_matlab_readTable_then2map(file_in_nfert,'verboseIfNoMat',false,'force_mat_save',true) ;
     file_in_irrig = strrep(file_in_lcf,'LandCoverFract','Irrig') ;
-    S_irrig = lpjgu_matlab_readTable_then2map(file_in_irrig,'verboseIfNoMat',false,'force_mat_nosave',true) ;
+    S_irrig = lpjgu_matlab_readTable_then2map(file_in_irrig,'verboseIfNoMat',false,'force_mat_save',true) ;
 end
 % Translate PLUM crop names to LPJ-GUESS crop names, if necessary
 [~,IA] = intersect(LPJGcrops,PLUMcrops,'stable') ;

@@ -9,15 +9,15 @@ thisVer = '' ;
 % thisVer = '2deg.' ;
 
 runList = {...
-           'SSP1.v10.s1' ;
-           'SSP3.v10.s1' ;
-           'SSP4.v10.s1' ;
+%            'SSP1.v10.s1' ;
+%            'SSP3.v10.s1' ;
+%            'SSP4.v10.s1' ;
            'SSP5.v10.s1';
             } ;
 
 base_year = 2010 ;
 
-yearList = 2011:2050 ;
+yearList = 2011:2015 ;
 
 norm2extra = 0.177 ;
 
@@ -144,9 +144,9 @@ for v = 1:length(combinedLUs)
     legend(legend_ts,'Location','NorthWest')
 end
 
-% % Save
-% export_fig([out_dir 'timeSeries_landUse.pdf']) ;
-% close
+% Save
+export_fig([out_dir 'timeSeries_landUse.pdf']) ;
+close
 
 
 %% Time series of crops
@@ -174,9 +174,9 @@ for v = 1:Ncrops_lpjg
     legend(legend_ts,'Location','NorthWest')
 end
 
-% % Save
-% export_fig([out_dir 'timeSeries_crops.pdf']) ;
-% close
+% Save
+export_fig([out_dir 'timeSeries_crops.pdf']) ;
+close
 
 
 %% Time series of Nfert
@@ -208,9 +208,9 @@ for v = 1:Ncrops_lpjg
     legend(legend_ts,'Location','NorthWest')
 end
 
-% % Save
-% export_fig([out_dir 'timeSeries_nfert.pdf']) ;
-% close
+% Save
+export_fig([out_dir 'timeSeries_nfert.pdf']) ;
+close
 
 
 %% Time series of irrig
@@ -242,9 +242,9 @@ for v = 1:Ncrops_lpjg
     legend(legend_ts,'Location','NorthWest')
 end
 
-% % Save
-% export_fig([out_dir 'timeSeries_irrig.pdf']) ;
-% close
+% Save
+export_fig([out_dir 'timeSeries_irrig.pdf']) ;
+close
 
 
 %% Maps: At three years
