@@ -318,6 +318,7 @@ while any(~is_done_YXv(:))
                         thisCell, thisRing, innerCells, this_meanDist_YX, ...
                         i, do_debug, dbCrop, thisCell_ofInt) ;
                     
+                    % Debugging: Update mean distance
                     if do_debug
                         meanDist_YXv(:,:,i) = this_meanDist_YX ;
                     end

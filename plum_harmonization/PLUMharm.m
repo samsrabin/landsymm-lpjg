@@ -3,14 +3,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_year = 2010 ;
-year1 = 2011 ;
-yearN = 2012 ;
+year1 = 2072 ;
+yearN = 2100 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
+%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
 %                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
               
@@ -21,13 +21,13 @@ save_halfDeg_txt = false ;
 save_2deg_txt = false ;
 
 % Debugging outputs?
-debug_areas = true ;
-debug_nfert = true ;
-debug_irrig = true ;
+debug_areas = false ;
+debug_nfert = false ;
+debug_irrig = false ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
 debugIJ_2deg = [] ;
-% debugIJ_2deg = [58 36] ; % i = 3
+% debugIJ_2deg = [56 52] ; % i = 3 --> Global Rice mgmt changes are not conserved to within 0.20 percent!
 
 % Land use of interest
 dbCrop = 'Rice' ;
@@ -447,7 +447,7 @@ for d = 1:length(PLUM_in_toptop)
             end
         end
         
-        % Loop through every 2-degree gridcell. If a gridcell has unmet crop
+        %% Loop through every 2-degree gridcell. If a gridcell has unmet crop
         % or pasture, look for place to put this unmet amount in neighboring
         % rings, starting with gridcells that are 1 unit away, then 2, etc.
         % until all unmet has been displaced to new 2 degree cells. Track the
@@ -458,12 +458,14 @@ for d = 1:length(PLUM_in_toptop)
             mid_y1_2deg_agri_YXv, ...
             total_unmet_agri_YXv, ...
             landArea_2deg_YX, ...
-            [], out_y0_2deg_agri_YXv, ...
+            debugIJ_2deg, LUnames, conserv_tol_pct, '2b areas', ...
+            in_y0_2deg_agri_YXv, in_y1_2deg_agri_YXv, ...
+            out_y0_2deg_agri_YXv, ...
             mid_y1_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri) ;
         out_y1_2deg_vegd_YX = sum(cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX),3) ;
         out_y1_2deg_bare_YX = landArea_2deg_YX - out_y1_2deg_vegd_YX ;
         
-        % Debugging
+        %% Debugging
         if debug_areas
             debug_global_areas(out_y0_2deg.maps_YXv, ...
                 cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX,out_y1_2deg_bare_YX), ...
