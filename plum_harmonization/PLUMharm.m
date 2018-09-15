@@ -61,6 +61,7 @@ overwrite = true ;
 fancy = false ;
 
 % How much divergence from PLUM-original transition is acceptable? (%)
+% Also used for checking whether out_total > max_mgmt_thisRing.
 conserv_tol_pct = 0.2 ;
 % How much divergence from PLUM-original transition is acceptable? (m2)
 % Also used for checking whether agricultural area exceeds vegetated area
@@ -447,7 +448,7 @@ for d = 1:length(PLUM_in_toptop)
             end
         end
         
-        %% Loop through every 2-degree gridcell. If a gridcell has unmet crop
+        % Loop through every 2-degree gridcell. If a gridcell has unmet crop
         % or pasture, look for place to put this unmet amount in neighboring
         % rings, starting with gridcells that are 1 unit away, then 2, etc.
         % until all unmet has been displaced to new 2 degree cells. Track the
@@ -465,7 +466,7 @@ for d = 1:length(PLUM_in_toptop)
         out_y1_2deg_vegd_YX = sum(cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX),3) ;
         out_y1_2deg_bare_YX = landArea_2deg_YX - out_y1_2deg_vegd_YX ;
         
-        %% Debugging
+        % Debugging
         if debug_areas
             debug_global_areas(out_y0_2deg.maps_YXv, ...
                 cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX,out_y1_2deg_bare_YX), ...
@@ -580,6 +581,7 @@ for d = 1:length(PLUM_in_toptop)
         if debug_irrig ; thisDBij = debugIJ_2deg ;
         else ; thisDBij = [] ;
         end
+        
         [out_y1_2deg_irrig_YXv, total_unmet2_irrig_YXv, notEnough_irrig] = ...
             PLUMharm_ringRedist_mgmt(...
                 mid1_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
