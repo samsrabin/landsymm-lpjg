@@ -3,8 +3,10 @@ function [out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX] = ...
     mid_y1_2deg_agri_YXv, ...
     total_unmet_agri_YXv, ...
     landArea_2deg_YX, ...
-    debugIJ, in_y0orig_2deg, in_y1orig_2deg, out_y0_2deg_agri_YXv, ...
-    out_y0_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri)
+    debugIJ, LUnames, conserv_tol_pct, check_name, ...
+    in_y0_area_YXv, in_y1_area_YXv, ...
+    out_y0_2deg_agri_YXv, out_y0_2deg_ntrl_YX, ...
+    resArea_2deg_YX, LUnames_agri)
 % Loop through every 2-degree gridcell. If a gridcell has unmet crop
 % or pasture, look for place to put this unmet amount in neighboring
 % rings, starting with gridcells that are 1 unit away, then 2, etc.
@@ -31,8 +33,8 @@ if do_debug
     % had too much loss: only area given to a cell because a different cell
     % had too much gain!
     meanDist_YXv = zeros(size(mid_y1_2deg_agri_YXv)) ;
-    % Keep track of what cells have been processed so far
-    thisCell_list = [] ;
+%     % Keep track of what cells have been processed so far
+%     thisCell_list = [] ;
     % thisCell by any other name
     thisCell_ofInt = sub2ind(size(landArea_2deg_YX),debugIJ(1),debugIJ(2)) ;
 end
@@ -47,9 +49,9 @@ ms = 0:(nx-1) ;
 for k = ks
     for m = ms
         thisCell = sub2ind(size(landArea_2deg_YX),k+1,m+1) ;
-        if do_debug
-            thisCell_list = [thisCell_list thisCell] ;
-        end
+%         if do_debug
+%             thisCell_list = [thisCell_list thisCell] ;
+%         end
         
         % Do it for each
         for i = 1:Nagri
@@ -67,6 +69,7 @@ for k = ks
             
             out_y1_2deg_this_YX = out_y1_2deg_agri_YXv(:,:,i) ;
             while abs(total_unmet_this_YX(thisCell))>1e-8
+                
                 j = j+1 ;
                 if j>100
                     error('Possible infinite loop in crop ring adjustments.')
@@ -75,8 +78,10 @@ for k = ks
                     fprintf('%s, j = %d, total_unmet_this_YX(thisCell) = %0.4g\n',...
                         LUnames_agri{i},j,total_unmet_this_YX(thisCell)) ;
                 end
+                
                 % Calculate the total agricultural (crop+past) area
                 out_y1_2deg_agri_YX = sum(out_y1_2deg_agri_YXv,3) ;
+                
                 % Set up rings and indices
                 this_rings_YX(thisCell) = j;
                 i_k = mod(k + (-j:j),ny) + 1 ;
@@ -84,6 +89,8 @@ for k = ks
                 [I_K,I_M] = meshgrid(i_k,i_m);
                 tmp = reshape(cat(2,I_K',I_M'),[],2) ;
                 thisRing = sub2ind(size(total_unmet_this_YX),tmp(:,1),tmp(:,2)) ;
+                
+                % Try to distribute to / take from ring
                 [out_y1_2deg_this_YX, out_y1_2deg_ntrl_YX, total_unmet_this_YX, ...
                     displaced_this_YX, this_meanDist_YX] = ...
                     PLUMharm_doRings_areaCropsRes(...
@@ -93,13 +100,25 @@ for k = ks
                 out_y1_2deg_agri_YXv(:,:,i) = out_y1_2deg_this_YX ;
                 meanDist_YXv(:,:,i) = this_meanDist_YX ;
                 
+                % Debugging: Check that area changes are (mostly) conserved
+                if do_debug
+                    out_y1_2deg_agri_YXv(:,:,i) = out_y1_2deg_this_YX ;
+                    total_unmet_agri_YXv(:,:,i) = total_unmet_this_YX ;
+                    bad = PLUMharm_checkCons_area(...
+                        out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, ...
+                        in_y0_area_YXv, in_y1_area_YXv, ...
+                        total_unmet_agri_YXv, LUnames_agri, conserv_tol_pct, ...
+                        check_name) ;
+                    if bad==1
+                        keyboard
+                    end
+                end
+                
             end % while loop
             total_unmet_agri_YXv(:,:,i) = total_unmet_this_YX ;
             if do_debug
                 displaced_agri_YXv(:,:,i) = displaced_this_YX ;
                 agri_rings_YXv(:,:,i) = this_rings_YX ;
-                diffH_YXv = out_y1_2deg_agri_YXv - out_y0_2deg_agri_YXv ;
-                diffO_YXv = diffH_YXv ;
             end
         end % for loop
         

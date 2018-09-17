@@ -316,8 +316,9 @@ while any(~is_done_YXv(:))
                         out_this_YX, total_unmet_thisCell, ...
                         out_thisArea_YX, max_mgmt(i), displaced_this_YX, ...
                         thisCell, thisRing, innerCells, this_meanDist_YX, ...
-                        i, do_debug, dbCrop, thisCell_ofInt) ;
+                        conserv_tol_pct, i, do_debug, dbCrop, thisCell_ofInt) ;
                     
+                    % Debugging: Update mean distance
                     if do_debug
                         meanDist_YXv(:,:,i) = this_meanDist_YX ;
                     end
