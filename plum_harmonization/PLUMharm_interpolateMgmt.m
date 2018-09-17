@@ -16,7 +16,7 @@ for c = 1:Ncrops_lpjg
         out_YXv(:,:,c) = zeros(size(landArea_YX)) ;
         continue
     end
-    out_YXv(:,:,c) = inpaint_nans(double(in_YXv(:,:,c)), inpaint_method) ;
+    out_YXv(:,:,c) = inpaint_nans(in_YXv(:,:,c), inpaint_method) ;
 end
 
 % Set management to zero where there is no land (probably unnecessary)
