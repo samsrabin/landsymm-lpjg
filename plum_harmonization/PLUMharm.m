@@ -4,14 +4,14 @@
 
 base_year = 2010 ;
 year1 = 2011 ;
-yearN = 2100 ;
+yearN = 2015 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
+%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
+%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
+%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
               
 % Save?
@@ -695,26 +695,15 @@ for d = 1:length(PLUM_in_toptop)
         out_y1_bare_YX = landArea_YX - out_y1_vegd_YX ;
                 
         % Rounding errors can result in small negative values. Fix.
+        % Check for bad values.
         tmp_YXv = cat(3, out_y1_agri_YXv, out_y1_ntrl_YX, out_y1_bare_YX) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_YX,[1 1 Nlu])) ;
-        out_y1_agri_YXv = tmp_YXv(:,:,1:end-2) ;
-        out_y1_ntrl_YXv = tmp_YXv(:,:,end-1) ;
-        out_y1_bare_YXv = tmp_YXv(:,:,end) ;
-        
-        % Check for bad values
         PLUMharm_checkBadVals(tmp_YXv, [] ,[], landArea_YX, 'out_y1_2deg') ;
+        out_y1_agri_YXv = tmp_YXv(:,:,1:end-2) ;
+        out_y1_ntrl_YX = tmp_YXv(:,:,end-1) ;
+        out_y1_bare_YX = tmp_YXv(:,:,end) ;
         clear tmp_YXv
         
-        % Ensure cells in range [0,in_y1_vegd_YX] (extreme deviations were checked
-        % in loop)
-        if any(isnan(out_y1_agri_YXv(:)))
-            error('How did you get a NaN in out_y1_agri_YXv?')
-        end
-        out_y1_agri_YXv(out_y1_agri_YXv<0) = 0 ;
-        base_vegd_YXv = repmat(base_vegd_YX,[1 1 Nagri]) ;
-        out_y1_agri_YXv(out_y1_agri_YXv>base_vegd_YXv) = out_y1_agri_YXv(out_y1_agri_YXv>base_vegd_YXv) ;
-        clear base_vegd_YXv
-
         % Debugging
         if debug_areas
             debug_global_areas(out_y0_2deg.maps_YXv, ...
@@ -816,6 +805,7 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'NATURAL')) = out_y1_ntrl_YX ;
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'BARREN')) = out_y1_bare_YX ;
             out_y1.maps_YXv = out_y1.maps_YXv ./ repmat(landArea_YX,[1 1 length(out_y1.varNames)]) ;
+            
             if save_halfDeg_mat
                 file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.mat'] ;
                 save(file_out,'out_y1') ;
