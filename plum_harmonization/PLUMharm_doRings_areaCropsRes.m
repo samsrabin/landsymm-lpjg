@@ -1,8 +1,8 @@
-function [out_YX, out_ntrl_YX, total_unmet_YX, ...
+function [out_YX, out_ntrl_YX, total_unmet_thisCell_out, ...
     displaced_YX, this_meanDist_YX] = ...
     PLUMharm_doRings_areaCropsRes( ...
-    in_YX, out_agri_YX, total_unmet_YX, displaced_YX, ...
-    thisCell, thisRing, in_ntrl_YX, resArea_YX, ...
+    in_YX, out_agri_YX, total_unmet_thisCell_in, displaced_YX, ...
+    thisRing, in_ntrl_YX, resArea_YX, ...
     this_meanDist_YX, thisCell_ofInt)
 
 %%% Internals
@@ -29,27 +29,27 @@ end
 % area than allowed)
 % WARNING: This makes it so that order of land uses matters. Is there a way
 % to avoid this?
-if total_unmet_YX(thisCell)>0
+if total_unmet_thisCell_in>0
     avail_space = nonResNtrl_YX(thisRing) - out_agri_YX(thisRing) ;
     avail_space(avail_space<0) = 0 ;
     total_avail_space = sum(sum(avail_space)) ;
     if total_avail_space>0
       % if there is not enough NATURAL_UNRESERVED in thisRing to absorb the excess THISLU in thisCell
-        if total_unmet_YX(thisCell) >= total_avail_space
+        if total_unmet_thisCell_in >= total_avail_space
             % Debugging
             if any(thisRing==thisCell_ofInt)
                 keyboard
             end
             to_ring = avail_space ;
-            total_unmet_YX(thisCell) = total_unmet_YX(thisCell) - total_avail_space ;
+            total_unmet_thisCell_out = total_unmet_thisCell_in - total_avail_space ;
       % else the NATURAL_UNRESERVED in thisRing is sufficient to absorb the excess THISLU in thisCell
         else
             % Debugging
             if any(thisRing==thisCell_ofInt)
                 keyboard
             end
-            to_ring = total_unmet_YX(thisCell) * avail_space ./ total_avail_space ;
-            total_unmet_YX(thisCell) = 0;
+            to_ring = total_unmet_thisCell_in * avail_space ./ total_avail_space ;
+            total_unmet_thisCell_out = 0;
         end
         % Debugging
         if any(thisRing==thisCell_ofInt)
@@ -69,14 +69,16 @@ if total_unmet_YX(thisCell)>0
             this_meanDist_YX(thisRing) = now_weighted + new_weighted ;
         end
         out_YX(thisRing) = out_thisRing_new ;
+    else
+        keyboard
     end
 % elseif thisCell needs THISLU donated from rest of thisRing
 % (i.e., thisCell didn't have enough thisLU to satisfy PLUM-specified loss)
-elseif total_unmet_YX(thisCell)<0
+elseif total_unmet_thisCell_in<0
     avail_space = out_YX(thisRing);
     total_avail_space = sum(sum(avail_space .* (avail_space>0))) ;
   % if the THISLU available in thisRing is not sufficient to satisfy the demand of thisCell
-    if total_unmet_YX(thisCell) <= -total_avail_space
+    if total_unmet_thisCell_in <= -total_avail_space
         % Debugging
         if any(thisRing==thisCell_ofInt)
             keyboard
@@ -85,18 +87,18 @@ elseif total_unmet_YX(thisCell)<0
         if ~isempty(displaced_YX)
             displaced_YX(thisRing) = displaced_YX(thisRing) - avail_space .* (avail_space>0);
         end
-        total_unmet_YX(thisCell) = total_unmet_YX(thisCell) + total_avail_space ;
+        total_unmet_thisCell_out = total_unmet_thisCell_in + total_avail_space ;
   % elseif the THISLU available in the rest of thisRing is sufficient to satisfy the demand of thisCell
-    elseif total_unmet_YX(thisCell) > -total_avail_space
+    elseif total_unmet_thisCell_in > -total_avail_space
         % Debugging
         if any(thisRing==thisCell_ofInt)
             keyboard
         end
-        out_YX(thisRing) = out_YX(thisRing) + total_unmet_YX(thisCell) * avail_space ./ total_avail_space .* (avail_space>0);
+        out_YX(thisRing) = out_YX(thisRing) + total_unmet_thisCell_in * avail_space ./ total_avail_space .* (avail_space>0);
         if ~isempty(displaced_YX)
-            displaced_YX(thisRing) = displaced_YX(thisRing) + total_unmet_YX(thisCell) * avail_space ./ total_avail_space .* (avail_space>0);
+            displaced_YX(thisRing) = displaced_YX(thisRing) + total_unmet_thisCell_in * avail_space ./ total_avail_space .* (avail_space>0);
         end
-        total_unmet_YX(thisCell) = 0;
+        total_unmet_thisCell_out = 0;
     end
 end
 
@@ -108,6 +110,11 @@ if any(thisRing==thisCell_ofInt)
     resArea_YX(thisCell_ofInt), avail_space(thisRing==thisCell_ofInt), ...
     in_ntrl_YX(thisCell_ofInt), out_ntrl_YX(thisCell_ofInt), ...
     in_YX(thisCell_ofInt), out_YX(thisCell_ofInt)) ;
+    keyboard
+end
+
+if ~exist('total_unmet_thisCell_out','var')
+    total_unmet_thisCell_out = total_unmet_thisCell_in ;
     keyboard
 end
 
