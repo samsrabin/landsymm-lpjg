@@ -95,7 +95,7 @@ if ~isempty(dbCrop) && ischar(dbCrop)
 end
 
 
-%% Do it
+ %% Do it
 
 warning('on','all')
 
