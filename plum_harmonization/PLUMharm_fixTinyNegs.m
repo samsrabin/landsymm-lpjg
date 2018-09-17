@@ -5,7 +5,7 @@ Nlu = size(in_YXv, 3) ;
 
 tolerance = 1 ;   % m2
 if min(in_YXv(:)) < -tolerance
-    error('"Large" negative values of area!')
+    error('"Large" negative values of area! Min %0.1e', min(in_YXv(:)))
 end
 
 out_YXv = in_YXv ;
