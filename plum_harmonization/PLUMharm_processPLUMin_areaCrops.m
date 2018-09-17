@@ -139,6 +139,14 @@ end
 S.maps_YXv(isnan(S.maps_YXv)) = 0 ;
 S.maps_YXv = S.maps_YXv .* landArea_YXv ;
 
+% Check for bad values
+tmp_nfert_YXv = S_nfert.maps_YXv ;
+tmp_nfert_YXv(isnan(tmp_nfert_YXv)) = 0 ;
+tmp_irrig_YXv = S_irrig.maps_YXv ;
+tmp_irrig_YXv(isnan(tmp_irrig_YXv)) = 0 ;
+PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, 'import_mgmt') ;
+clear tmp_*
+
 % Get maps at 2deg
 if isequal(size(S.maps_YXv),[90 180 Nlu])
     % Already at 2-degree
@@ -164,6 +172,14 @@ if useLatestPLUMmgmt
     latestPLUMin_irrig_2deg_YXv = nanmax(latestPLUMin_irrig_2deg_YXv,S_irrig_2deg.maps_YXv) ;
 end
 
+% Check for bad values
+tmp_nfert_YXv = S_nfert_2deg.maps_YXv ;
+tmp_nfert_YXv(isnan(tmp_nfert_YXv)) = 0 ;
+tmp_irrig_YXv = S_irrig_2deg.maps_YXv ;
+tmp_irrig_YXv(isnan(tmp_irrig_YXv)) = 0 ;
+PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, [], 'import_mgmt') ;
+clear tmp_*
+
 % Interpolate management inputs
 max_orig_nfert = squeeze(max(max(S_nfert_2deg.maps_YXv,[],1),[],2)) ;
 if doInterp
@@ -173,6 +189,10 @@ if doInterp
     S_irrig_2deg2.maps_YXv = PLUMharm_interpolateMgmt(...
         S_irrig_2deg.maps_YXv, S_2deg.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
         LPJGcrops, inpaint_method) ;
+    % Irrigation needs to be maximum 1.
+    S_irrig_2deg2.maps_YXv(S_irrig_2deg2.maps_YXv>1) = 1 ;
+    % Check for bad values
+    PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, [], 'import_mgmt_2deg2') ;
 elseif useLatestPLUMmgmt
     S_nfert_2deg2 = S_nfert_2deg ;
     S_irrig_2deg2 = S_irrig_2deg ;
@@ -185,21 +205,14 @@ if useLatestPLUMmgmt
     S_nfert_2deg2.maps_YXv(repl_YXv) = latestPLUMin_nfert_2deg_YXv(repl_YXv) ;
     repl_YXv = S_2deg.maps_YXv(:,:,isCrop)==0 & latestPLUMin_irrig_2deg_YXv>=0 ;
     S_irrig_2deg2.maps_YXv(repl_YXv) = latestPLUMin_irrig_2deg_YXv(repl_YXv) ;
+    % Check for bad values
+    PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, [], 'import_mgmt_2deg2.2') ;
 end
 
-% Save managmeent
+% Save management
 if doInterp || useLatestPLUMmgmt
     S_nfert_2deg.maps_YXv = S_nfert_2deg2.maps_YXv ;
     S_irrig_2deg.maps_YXv = S_irrig_2deg2.maps_YXv ;
-end
-
-% Make sure you have no NaNs in half-degree mgmt arrays
-S_nfert.maps_YXv(S.maps_YXv(:,:,isCrop)==0) = 0 ;
-S_irrig.maps_YXv(S.maps_YXv(:,:,isCrop)==0) = 0 ;
-if any(isnan(S_nfert.maps_YXv(:)))
-    error('NaN in S_nfert.maps_YXv!')
-elseif any(isnan(S_irrig.maps_YXv(:)))
-    error('NaN in S_irrig.maps_YXv!')
 end
 
 

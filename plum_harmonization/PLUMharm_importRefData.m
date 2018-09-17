@@ -34,7 +34,7 @@ clear *_YXqd
 
 % Import LUH2 base_year
 luh2_file = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
-base = lpjgu_matlab_readTable_then2map(luh2_file) ;
+base = lpjgu_matlab_readTable_then2map(luh2_file, 'force_mat_save', true);%, 'verbose', true, 'verboseIfNoMat', true) ;
 if ~isempty(find(base.maps_YXvy(:,:,contains(base.varNames,{'URBAN','PEATLAND'}),:)>0,1))
     error('This code is not designed to handle LUH2 inputs with any URBAN or PEATLAND area!')
 end
@@ -69,6 +69,33 @@ if ~doHarm
     Nyears_luh2 = length(yearList_luh2) ;
 end
 
+% Avoid, to high precision, sum(LU) > 1
+if doHarm
+    tmp_YX = sum(base.maps_YXv,3) ;
+    j = 0 ;
+    while any(tmp_YX(:)-1 > 3*eps)
+        j = j + 1 ;
+        if j > 50
+            error('Possible infinite loop in "Avoid, to high precision, sum(LU) > 1"')
+        end
+        base.maps_YXv = base.maps_YXv ./ repmat(tmp_YX,[1 1 Nlu]) ;
+        tmp_YX = sum(base.maps_YXv,3) ;
+    end
+    clear tmp_YX j
+else
+    tmp_YX1y = sum(base.maps_YXvy,3) ;
+    j = 0 ;
+    while any(tmp_YX1y(:)-1 > 3*eps)
+        j = j + 1 ;
+        if j > 50
+            error('Possible infinite loop in "Avoid, to high precision, sum(LU) > 1"')
+        end
+        base.maps_YXvy = base.maps_YXvy ./ repmat(tmp_YX1y,[1 1 Nlu 1]) ;
+        tmp_YX1y = sum(base.maps_YXvy,3) ;
+    end
+    clear tmp_YX j
+end
+
 % Convert from "fraction of land" to "land area (m2)"
 % (This also masks where needed due to harmonization of LUH2+PLUM masks)
 if doHarm
@@ -100,6 +127,22 @@ if any(strcmp(base_cropf.varNames,'CC3G')) && any(strcmp(base_cropf.varNames,'CC
     base_cropf.varNames(strcmp(base_cropf.varNames,'CC4G')) = [] ;
     base_cropf.varNames{strcmp(base_cropf.varNames,'CC3G')} = 'ExtraCrop' ;
 end
+
+% Avoid, to high precision, sum(base_cropf) > 1
+if doHarm
+    tmp_YX = sum(base_cropf.maps_YXv,3) ;
+    j = 0 ;
+    while any(tmp_YX(:)-1 > 3*eps)
+        j = j + 1 ;
+        if j > 50
+            error('Possible infinite loop in "Avoid, to high precision, sum(base_cropf) > 1"')
+        end
+        base_cropf.maps_YXv = base_cropf.maps_YXv ./ repmat(tmp_YX,[1 1 size(base_cropf.maps_YXv,3)]) ;
+        tmp_YX = sum(base_cropf.maps_YXv,3) ;
+    end
+    clear tmp_YX j
+end
+
 % Get previous crop types
 tmp = base_cropf.varNames ;
 for c = 1:length(base_cropf.varNames)
@@ -112,7 +155,7 @@ Ncrops_lpjg = length(LPJGcrops) ;
 Nagri = Ncrops_lpjg + 1 ;
 clear tmp
 
-% If necessary, get YXVy version
+
 if ~doHarm 
     if ~isfield(base_cropf,'yearList')
         base_cropf.yearList = base.yearList ;
@@ -125,7 +168,7 @@ end
 % (later, will interpolate to cells without any of thisCrop)
 base_irrig.varNames = LPJGcrops ;
 if doHarm
-    base_irrig.maps_YXv = nan([size(landArea_YX) Ncrops_lpjg],'single') ;
+    base_irrig.maps_YXv = nan([size(landArea_YX) Ncrops_lpjg],'double') ;
     for c = 1:Ncrops_lpjg
         thisCrop = LPJGcrops{c} ;
         if strcmp(thisCrop,'ExtraCrop')
@@ -141,7 +184,7 @@ if doHarm
         base_irrig.maps_YXv(:,:,c) = tmp_YX ;
     end
 else
-    base_irrig.maps_YXvy = nan([size(landArea_YX) Ncrops_lpjg Nyears_luh2],'single') ;
+    base_irrig.maps_YXvy = nan([size(landArea_YX) Ncrops_lpjg Nyears_luh2],'double') ;
     for c = 1:Ncrops_lpjg
         thisCrop = LPJGcrops{c} ;
         if strcmp(thisCrop,'ExtraCrop')
