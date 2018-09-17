@@ -18,8 +18,8 @@ if ~isequal(size(mid_y1_2deg_mgmt_YXv), size(out_y1_2deg_cropArea_YXv))
     error('mid_y1_2deg_mgmt_YXv and out_y1_2deg_cropArea_YXv must be same size!')
 end
 
-YX_dims = [size(mid_y1_2deg_mgmt_YXv,1) size(mid_y1_2deg_mgmt_YXv,2)] ;
 YXv_dims = size(mid_y1_2deg_mgmt_YXv) ;
+YX_dims = YXv_dims(1:2) ;
 Ncrops = YXv_dims(3) ;
 
 % Get TOTAL management inputs
@@ -85,11 +85,7 @@ while any(~is_done_YXv(:))
                 if is_done_YXv(k+1,m+1,i)
                     continue
                 end
-                
-                if do_debug && k==dbk && m==dbm && i==dbCrop
-                    x = 1 ;
-                end
-                
+                                
                 % If there's too much desired mgmt loss for the entire
                 % world to handle, set all mgmt to zero, and skip from now
                 % on. Only need to do this once, for first non-skipped
@@ -157,8 +153,7 @@ while any(~is_done_YXv(:))
                 % different cell), but it previously donated existing mgmt to a
                 % different cell, and so now (some of) its own donation demand
                 % can be considered satisfied. NOTE that this is different from
-                % how it was done in original (and how it's currently done in
-                % ringRedist for area): Originally, a ring was started even if
+                % how it was done in original: Originally, a ring was started even if
                 % a cell had enough room to provide for all of its "unmet."
                 max_mgmtTot_thisCell = max_mgmt(i) * out_y1_2deg_cropArea_YXv(k+1,m+1,i) ;
                 out_total_thisCell = out_y1_2deg_mgmt_YXv(k+1,m+1,i) * out_y1_2deg_cropArea_YXv(k+1,m+1,i) ;
@@ -222,34 +217,12 @@ while any(~is_done_YXv(:))
                 if do_debug && k==dbk && m==dbm && i==dbCrop
                     fprintf('                total_avail_world =\t\t%0.4e\n', total_avail_world) ;
                 end
-                
-%                 % It's possible that this cell WAS at its max mgmt in
-%                 % mid_y1_2deg_mgmt_YXthis (and thus needed to send mgmt to a
-%                 % different cell), but it previously donated existing mgmt to a
-%                 % different cell, and so now (some of) its own donation demand
-%                 % can be considered satisfied. NOTE that this is different from
-%                 % how it was done in original (and how it's currently done in
-%                 % ringRedist for area): Originally, a ring was started even if
-%                 % a cell had enough room to provide for all of its "unmet."
-%                 max_mgmtTot_thisCell = max_mgmt(i) * out_y1_2deg_cropArea_YXv(k+1,m+1,i) ;
-%                 out_total_thisCell = out_y1_2deg_mgmt_YXv(k+1,m+1,i) * out_y1_2deg_cropArea_YXv(k+1,m+1,i) ;
-%                 if total_unmet_mgmt_YXv(k+1,m+1,i)>0 && out_total_thisCell < max_mgmtTot_thisCell
-%                     unmetReduction = min(max_mgmtTot_thisCell-out_total_thisCell,total_unmet_mgmt_YXv(k+1,m+1,i)) ;
-%                     out_y1_2deg_mgmt_YXv(k+1,m+1,i) = (out_total_thisCell + unmetReduction) / out_y1_2deg_cropArea_YXv(k+1,m+1,i) ;
-%                     total_unmet_mgmt_YXv(k+1,m+1,i) = total_unmet_mgmt_YXv(k+1,m+1,i) - unmetReduction ;
-% %                     if do_debug && i==dbCrop
-% %                         total_avail_world = sum(sum(out_y1_2deg_mgmt_YXv(:,:,i))) ;
-% %                         fprintf('            now total_avail_world =\t\t%0.4e\n', total_avail_world) ;
-% %                     end
-%                 end
-                
+                                
                 total_unmet_thisCell = total_unmet_mgmt_YXv(k+1,m+1,i) ;
-                did_ring = false ;
                 j = 0 ;   % Note that this differs from how it was done in LUH1 code (pasture started with j from this cell's crop redistribution)
                 while abs(total_unmet_thisCell)>1e-8
                     j = j+1 ;
                     if j==1
-                        did_ring = true ;
                         out_this_YX = out_y1_2deg_mgmt_YXv(:,:,i) ;
                         out_thisArea_YX = out_y1_2deg_cropArea_YXv(:,:,i) ;
                     elseif j>100
@@ -347,7 +320,7 @@ while any(~is_done_YXv(:))
                 
                 % Record this cell as done
                 is_done_YXv(k+1,m+1,i) = true ;
-                if did_ring
+                if j>0
                     out_y1_2deg_mgmt_YXv(:,:,i) = out_this_YX ;
                     total_unmet_mgmt_YXv(k+1,m+1,i) = total_unmet_thisCell ;
                 end
