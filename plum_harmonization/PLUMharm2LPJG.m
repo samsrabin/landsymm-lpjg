@@ -12,12 +12,18 @@ dirList = {...
           
 base_year = 2010 ;
 y1 = 2011 ;
-yN = 2015 ;
+yN = 2100 ;
 yStep = 1 ;
                         
 % Trying to avoid new crop spinup time
 y1_pre = 2006 ;    % Will repeat first PLUMout year for y1_pre:(y1-1)
-someofall = true ; % Make it so that each gridcell always has at least some tiny amount of every crop
+
+% Make it so that each gridcell always has at least some tiny amount of
+% every crop?
+outPrec = 6 ;
+mincropfrac = 10^-outPrec ;
+someofall = true ; 
+donation_order = {'PASTURE','NATURAL','BARREN'} ;
               
 
 %% Setup
@@ -26,11 +32,13 @@ disp('Setting up...')
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
-outPrec = 6 ;
 outWidth = 1 ;
 delimiter = ' ' ;
-overwrite = false ;
+overwrite = true ;
 fancy = false ;
+save_every_pct = 100 ;
+verbose_write = false ;
+do_gzip = true ;
 
 addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
@@ -127,7 +135,7 @@ for d = 1:length(dirList)
     [cf_out, cf_header_cell] = lpjgu_matlab_maps2table(cf_in,list2map) ;
     [nf_out, nf_header_cell] = lpjgu_matlab_maps2table(nf_in,list2map) ;
     [ir_out, ir_header_cell] = lpjgu_matlab_maps2table(ir_in,list2map) ;
-    
+        
     % Check for NaNs
     disp('Checking arrays...')
     if any(isnan(lu_out(:)))
@@ -142,16 +150,107 @@ for d = 1:length(dirList)
     
     % Check for nonsensical values
     [~,IA,~] = intersect(nf_header_cell,cropList_ir,'stable') ;
-    if min(sum(cf_out(:,IA),2))<0
-        warning('min(sum_cf)<0')
+    if min(min(lu_out(:,4:end)))<0
+        error('min(lu_out)<0')
+    elseif max(max(lu_out(:,4:end)))>=1+10^(-outPrec)
+        error('max(lu_out)>1')
+    elseif max(sum(lu_out(:,4:end),2))>=1+10^(-outPrec)
+        error('max(sum_lu)>1')
+    elseif min(min(cf_out(:,4:end)))<0
+        error('min(cf_out)<0')
+    elseif max(max(cf_out(:,4:end)))>=1+10^(-outPrec)
+        error('max(cf_out)>1')
     elseif max(sum(cf_out(:,IA),2))>=1+10^(-outPrec)
-        warning('min(sum_cf)>1')
+        error('max(sum_cf)>1')
     elseif min(min(nf_out(:,IA)))<0
-        warning('min(nf_out)<0')
+        error('min(nf_out)<0')
     elseif min(min(ir_out(:,IA)))<0
-        warning('min(ir_out)<0')
+        error('min(ir_out)<0')
     elseif max(max(ir_out(:,IA)))>=1+10^(-outPrec)
-        warning('max(ir_out)>1')
+        error('max(ir_out)>1')
+    end
+    
+    % If doing so, make sure that every grid cell has at least some of each
+    % type of cropland
+    if mincropfrac>0
+        
+        % Some cropland
+        iCrop = find(strcmp(lu_in.varNames,'CROPLAND')) ;
+        lu_tmp = lu_out(:,4:end) ;
+        lu_tmp = round(lu_tmp,outPrec) ;
+        no_cropland = lu_tmp(:,iCrop)<mincropfrac ;
+        i = 0 ;
+        while(any(no_cropland))
+            i = i+1 ;
+            if i > length(donation_order)
+                error('GET CROPLAND FROM SOMEWHERE')
+            end
+            this_donor = donation_order{i} ;
+            iThis = find(strcmp(lu_in.varNames,this_donor)) ;
+            involved = lu_tmp(:,iThis)>=mincropfrac & no_cropland ;
+            if any(involved)
+                warning('Giving some from %s to CROPLAND (%d cells).', this_donor, length(find(involved)))
+                transfer_amt = mincropfrac-lu_tmp(involved,iCrop) ;
+                lu_tmp(involved,iThis) = lu_tmp(involved,iThis) - transfer_amt ;
+                lu_tmp(involved,iCrop) = lu_tmp(involved,iCrop) + transfer_amt ;
+                no_cropland = lu_tmp(:,iCrop)==0 ;
+            end
+        end
+        lu_out(:,4:end) = lu_tmp ;
+        
+        % Some of each type: Where there was no cropland
+        cf_tmp = cf_out(:,IA) ;
+        Ncrops = length(IA) ;
+        cf_tmp(repmat(sum(cf_tmp,2),[1 Ncrops])==0) = 1/Ncrops ;
+        if max(sum(cf_tmp,2))>=1+2*10^(-outPrec)
+            error('max(round(sum_cf))>1')
+        end
+        
+        % Some of each type: Everywhere else
+        for c = 1:Ncrops
+            % Find rows with 0 for this crop
+            thiscrop = cf_tmp(:,c) ;
+            iszerothiscrop = thiscrop<mincropfrac ;
+            % Find the crop that currently has the greatest area
+            maxcropfrac_Xv = repmat(max(cf_tmp,[],2),[1 Ncrops]) ;
+            ismaxcropfrac_Xv = cf_tmp==maxcropfrac_Xv ;
+            % Make sure there's only one ismaxcropfrac in each row
+            for i = fliplr(2:Ncrops)
+                tmp = ismaxcropfrac_Xv(:,i) ;
+                sumtoleft = sum(ismaxcropfrac_Xv(:,1:(i-1)),2) ;
+                tmp(sumtoleft>0) = false ;
+                ismaxcropfrac_Xv(:,i) = tmp ;
+            end
+            cf_tmp(ismaxcropfrac_Xv & iszerothiscrop) = cf_tmp(ismaxcropfrac_Xv & iszerothiscrop) - mincropfrac ;
+            cf_tmp(iszerothiscrop,c) = cf_tmp(iszerothiscrop,c) + mincropfrac ;
+        end
+        
+        % Save
+        cf_out(:,IA) = cf_tmp ;
+%         clear cf_tmp Ncrops
+        
+    end
+    
+    % Check for nonsensical values
+    [~,IA,~] = intersect(nf_header_cell,cropList_ir,'stable') ;
+    if min(min(lu_out(:,4:end)))<0
+        error('min(lu_out)<0')
+    elseif max(max(lu_out(:,4:end)))>=1+10^(-outPrec)
+        error('max(lu_out)>1')
+    elseif max(sum(lu_out(:,4:end),2))>=1+2*10^(-outPrec)
+        error('max(sum_lu)>1')
+    elseif min(min(cf_out(:,4:end)))<mincropfrac
+        error('min(cf_out)<mincropfrac')
+    elseif max(max(cf_out(:,4:end)))>=1+10^(-outPrec)
+        error('max(cf_out)>1')
+    elseif max(sum(cf_out(:,4:end),2))>=1+1*10^(-outPrec)
+        error('max(sum_cf)>1')
+    elseif min(min(nf_out(:,IA)))<0
+        error('min(nf_out)<0')
+    elseif min(min(ir_out(:,IA)))<0
+        error('min(ir_out)<0')
+    elseif max(max(ir_out(:,IA)))>=1+10^(-outPrec)
+        error('max(ir_out)>1')
     end
     
     % Convert ktN/ha to kgN/m2
@@ -166,7 +265,10 @@ for d = 1:length(dirList)
     nf_header_cell = [nf_header_cell cropList_rf] ;
     ir_header_cell = [ir_header_cell cropList_rf] ;
     
-    % Remove ExtraCropi, because it receives no management inputs.
+    % Remove ExtraCropi, because it receives no management inputs, and
+    % did not exist in historical remap_v4.
+    % It did have some area. Put that in ExtraCrop.
+    cf_out(:,strcmp(cf_header_cell,'ExtraCrop')) = cf_out(:,strcmp(cf_header_cell,'ExtraCropi')) ;
     cf_out(:,strcmp(cf_header_cell,'ExtraCropi')) = [] ;
     nf_out(:,strcmp(nf_header_cell,'ExtraCropi')) = [] ;
     ir_out(:,strcmp(ir_header_cell,'ExtraCropi')) = [] ;
@@ -186,19 +288,23 @@ for d = 1:length(dirList)
         nf_out = cat(1, nf_out, xtra_out) ;
         ir_out = cat(1, ir_out, xtra_out) ;
     end
-            
+    
     % Save land cover
     disp('Saving land cover...')
-    file_out = [outDir 'landcover.txt'] ;
+    file_out = [outDir 'landcover.txt'] ;    
     lpjgu_matlab_saveTable(lu_header_cell, lu_out, file_out,...
         'outPrec', outPrec, ...
         'outWidth', outWidth, ...
         'delimiter', delimiter, ...
         'overwrite', overwrite, ...
         'fancy', fancy, ...
-        'progress_step_pct', 20, ...
-        'verbose', false) ;
-    
+        'save_every_pct', save_every_pct, ...
+        'verbose', verbose_write) ;
+    if do_gzip
+        disp('gzipping...')
+        unix(['gzip ' file_out]) ;
+    end
+   
     % Save crop fractions
     disp('Saving crop fractions...')
     file_out = [outDir 'cropfractions.txt'] ;
@@ -208,8 +314,12 @@ for d = 1:length(dirList)
         'delimiter', delimiter, ...
         'overwrite', overwrite, ...
         'fancy', fancy, ...
-        'progress_step_pct', 20, ...
-        'verbose', false) ;
+        'save_every_pct', save_every_pct, ...
+        'verbose', verbose_write) ;
+    if do_gzip
+        disp('gzipping...')
+        unix(['gzip ' file_out]) ;
+    end
     
     % Save fertilization
     disp('Saving fertilization...')
@@ -220,8 +330,12 @@ for d = 1:length(dirList)
         'delimiter', delimiter, ...
         'overwrite', overwrite, ...
         'fancy', fancy, ...
-        'progress_step_pct', 20, ...
-        'verbose', false) ;
+        'save_every_pct', save_every_pct, ...
+        'verbose', verbose_write) ;
+    if do_gzip
+        disp('gzipping...')
+        unix(['gzip ' file_out]) ;
+    end
     
     % Save irrigation
     disp('Saving irrigation...')
@@ -232,9 +346,13 @@ for d = 1:length(dirList)
         'delimiter', delimiter, ...
         'overwrite', overwrite, ...
         'fancy', fancy, ...
-        'progress_step_pct', 20, ...
-        'verbose', false) ;
-        
+        'save_every_pct', save_every_pct, ...
+        'verbose', verbose_write) ;
+    if do_gzip
+        disp('gzipping...')
+        unix(['gzip ' file_out]) ;
+    end
+    
 end
 
 disp('All done!')

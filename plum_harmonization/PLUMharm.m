@@ -4,14 +4,14 @@
 
 base_year = 2010 ;
 year1 = 2011 ;
-yearN = 2015 ;
+yearN = 2100 ;
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
+                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
                   } ;
               
 % Save?
@@ -95,7 +95,7 @@ if ~isempty(dbCrop) && ischar(dbCrop)
 end
 
 
-%% Do it
+ %% Do it
 
 warning('on','all')
 
