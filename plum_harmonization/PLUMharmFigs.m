@@ -10,9 +10,9 @@ thisVer = '' ;
 
 runList = {...
            'SSP1.v10.s1' ;
-%            'SSP3.v10.s1' ;
-%            'SSP4.v10.s1' ;
-%            'SSP5.v10.s1';
+           'SSP3.v10.s1' ;
+           'SSP4.v10.s1' ;
+           'SSP5.v10.s1';
             } ;
 
 base_year = 2010 ;

@@ -5,14 +5,14 @@
 % Directories for harmonized PLUM outputs
 dirList = {...
               'SSP1.v10.s1.harm' ;
-%               'SSP3.v10.s1.harm' ;
-%               'SSP4.v10.s1.harm' ;
-%               'SSP5.v10.s1.harm' ;
+              'SSP3.v10.s1.harm' ;
+              'SSP4.v10.s1.harm' ;
+              'SSP5.v10.s1.harm' ;
               } ;
           
 base_year = 2010 ;
 y1 = 2011 ;
-yN = 2015 ;
+yN = 2100 ;
 yStep = 1 ;
                         
 % Trying to avoid new crop spinup time
@@ -20,6 +20,8 @@ y1_pre = 2006 ;    % Will repeat first PLUMout year for y1_pre:(y1-1)
 
 % Make it so that each gridcell always has at least some tiny amount of
 % every crop?
+outPrec = 6 ;
+mincropfrac = 10^-outPrec ;
 someofall = true ; 
 donation_order = {'PASTURE','NATURAL','BARREN'} ;
               
@@ -30,12 +32,13 @@ disp('Setting up...')
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
-outPrec = 6 ;
 outWidth = 1 ;
 delimiter = ' ' ;
-overwrite = false ;
+overwrite = true ;
 fancy = false ;
-progress_step_pct = 1 ;
+save_every_pct = 100 ;
+verbose_write = false ;
+do_gzip = true ;
 
 addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
@@ -169,15 +172,13 @@ for d = 1:length(dirList)
     
     % If doing so, make sure that every grid cell has at least some of each
     % type of cropland
-    if someofall
+    if mincropfrac>0
         
         % Some cropland
-        mincropfrac = 10^(-outPrec) ;
-        warning('Should no_cropland be calculated as landcover_in_tmp.CROPLAND<mincropfrac instead??')
         iCrop = find(strcmp(lu_in.varNames,'CROPLAND')) ;
         lu_tmp = lu_out(:,4:end) ;
         lu_tmp = round(lu_tmp,outPrec) ;
-        no_cropland = lu_tmp(:,iCrop)==0 ;
+        no_cropland = lu_tmp(:,iCrop)<mincropfrac ;
         i = 0 ;
         while(any(no_cropland))
             i = i+1 ;
@@ -189,8 +190,9 @@ for d = 1:length(dirList)
             involved = lu_tmp(:,iThis)>=mincropfrac & no_cropland ;
             if any(involved)
                 warning('Giving some from %s to CROPLAND (%d cells).', this_donor, length(find(involved)))
-                lu_tmp(involved,iThis) = lu_tmp(involved,iThis) - mincropfrac ;
-                lu_tmp(involved,iCrop) = lu_tmp(involved,iCrop) + mincropfrac ;
+                transfer_amt = mincropfrac-lu_tmp(involved,iCrop) ;
+                lu_tmp(involved,iThis) = lu_tmp(involved,iThis) - transfer_amt ;
+                lu_tmp(involved,iCrop) = lu_tmp(involved,iCrop) + transfer_amt ;
                 no_cropland = lu_tmp(:,iCrop)==0 ;
             end
         end
@@ -237,8 +239,8 @@ for d = 1:length(dirList)
         error('max(lu_out)>1')
     elseif max(sum(lu_out(:,4:end),2))>=1+2*10^(-outPrec)
         error('max(sum_lu)>1')
-    elseif min(min(cf_out(:,4:end)))<0
-        error('min(cf_out)<0')
+    elseif min(min(cf_out(:,4:end)))<mincropfrac
+        error('min(cf_out)<mincropfrac')
     elseif max(max(cf_out(:,4:end)))>=1+10^(-outPrec)
         error('max(cf_out)>1')
     elseif max(sum(cf_out(:,4:end),2))>=1+1*10^(-outPrec)
@@ -286,19 +288,23 @@ for d = 1:length(dirList)
         nf_out = cat(1, nf_out, xtra_out) ;
         ir_out = cat(1, ir_out, xtra_out) ;
     end
-            
+    
     % Save land cover
     disp('Saving land cover...')
-    file_out = [outDir 'landcover.txt'] ;
+    file_out = [outDir 'landcover.txt'] ;    
     lpjgu_matlab_saveTable(lu_header_cell, lu_out, file_out,...
         'outPrec', outPrec, ...
         'outWidth', outWidth, ...
         'delimiter', delimiter, ...
         'overwrite', overwrite, ...
         'fancy', fancy, ...
-        'progress_step_pct', 20, ...
-        'verbose', false) ;
-    
+        'save_every_pct', save_every_pct, ...
+        'verbose', verbose_write) ;
+    if do_gzip
+        disp('gzipping...')
+        unix(['gzip ' file_out]) ;
+    end
+   
     % Save crop fractions
     disp('Saving crop fractions...')
     file_out = [outDir 'cropfractions.txt'] ;
@@ -308,8 +314,12 @@ for d = 1:length(dirList)
         'delimiter', delimiter, ...
         'overwrite', overwrite, ...
         'fancy', fancy, ...
-        'progress_step_pct', progress_step_pct, ...
-        'verbose', false) ;
+        'save_every_pct', save_every_pct, ...
+        'verbose', verbose_write) ;
+    if do_gzip
+        disp('gzipping...')
+        unix(['gzip ' file_out]) ;
+    end
     
     % Save fertilization
     disp('Saving fertilization...')
@@ -320,8 +330,12 @@ for d = 1:length(dirList)
         'delimiter', delimiter, ...
         'overwrite', overwrite, ...
         'fancy', fancy, ...
-        'progress_step_pct', progress_step_pct, ...
-        'verbose', false) ;
+        'save_every_pct', save_every_pct, ...
+        'verbose', verbose_write) ;
+    if do_gzip
+        disp('gzipping...')
+        unix(['gzip ' file_out]) ;
+    end
     
     % Save irrigation
     disp('Saving irrigation...')
@@ -332,9 +346,13 @@ for d = 1:length(dirList)
         'delimiter', delimiter, ...
         'overwrite', overwrite, ...
         'fancy', fancy, ...
-        'progress_step_pct', progress_step_pct, ...
-        'verbose', false) ;
-        
+        'save_every_pct', save_every_pct, ...
+        'verbose', verbose_write) ;
+    if do_gzip
+        disp('gzipping...')
+        unix(['gzip ' file_out]) ;
+    end
+    
 end
 
 disp('All done!')
