@@ -9,7 +9,7 @@ area_d_YXv = in_y1_area_YXv - in_y0_area_YXv ;
 bad = 0 ;
 for i = 1:length(LUnames)
 
-    area_d2_YX = out_y1_area_YXv(:,:,i) - out_y0_area_YXv(:,:,i) + total_unmet_area_YXv(:,:,i) ;
+    area_d2_YX = (out_y1_area_YXv(:,:,i) + total_unmet_area_YXv(:,:,i)) - out_y0_area_YXv(:,:,i)  ;
 
     area_d_YX = area_d_YXv(:,:,i) ;
     area_d_glob_1 = sum(area_d_YX(:)) ;

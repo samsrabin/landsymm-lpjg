@@ -17,12 +17,10 @@ if do_debug
         mgmtName, dbi, dbj, dbCrop) ;
 end
 
-% Get totals (have to convert to double so floating-point arithmetic allows
-% resolution of "Do not allow delta that would drop mgmt application to
-% <0")
-out_y0_2deg_mgmtTot_YXv = double(out_y0_2deg_mgmt_YXv .* out_y0_2deg_crop_YXv) ;
-in_y0_2deg_mgmtTot_YXv = double(in_y0_2deg_mgmt_YXv .* in_y0_2deg_crop_YXv) ;
-in_y1_2deg_mgmtTot_YXv = double(in_y1_2deg_mgmt_YXv .* in_y1_2deg_crop_YXv) ;
+% Get totals
+out_y0_2deg_mgmtTot_YXv = out_y0_2deg_mgmt_YXv .* out_y0_2deg_crop_YXv ;
+in_y0_2deg_mgmtTot_YXv = in_y0_2deg_mgmt_YXv .* in_y0_2deg_crop_YXv ;
+in_y1_2deg_mgmtTot_YXv = in_y1_2deg_mgmt_YXv .* in_y1_2deg_crop_YXv ;
 
 % Get delta
 mgmtTot_d_YXv = in_y1_2deg_mgmtTot_YXv - in_y0_2deg_mgmtTot_YXv ;

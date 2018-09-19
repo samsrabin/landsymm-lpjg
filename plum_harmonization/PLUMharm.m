@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_year = 2010 ;
-year1 = 2072 ;
+year1 = 2011 ;
 yearN = 2100 ;
 
 % Directory for PLUM outputs
@@ -38,6 +38,7 @@ verbose = false ;
 
 %% Setup
 
+warning('on','all')
 addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
 
 % Method for inpaint_nans()
@@ -94,7 +95,9 @@ if ~isempty(dbCrop) && ischar(dbCrop)
 end
 
 
-%% Do it
+ %% Do it
+
+warning('on','all')
 
 % The years we want to produce PLUM outputs for (will begin with
 % transitions from years(1)-1 to years(1)
@@ -228,6 +231,8 @@ for d = 1:length(PLUM_in_toptop)
             in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
             in_y0_2deg_agri_YXv = in_y0_2deg.maps_YXv(:,:,isAgri) ;
             in_y0_2deg_vegd_YX = sum(in_y0_2deg.maps_YXv(:,:,notBare),3) ;
+            % Check for bad values
+            PLUMharm_checkBadVals(in_y0.maps_YXv, [], [], landArea_YX, 'in_y0') ;
         end
 
         % Import this year and convert to area
@@ -249,6 +254,9 @@ for d = 1:length(PLUM_in_toptop)
         in_y1_vegdFrac_YX = in_y1_vegd_YX ./ landArea_YX ;
         in_y1_bareFrac_YX = in_y1_bare_YX ./ landArea_YX ;
         in_y1_2deg_vegd_YX = sum(in_y1_2deg.maps_YXv(:,:,notBare),3) ;
+        
+        % Check for bad values
+        PLUMharm_checkBadVals(in_y1.maps_YXv, [], [], landArea_YX, 'in_y1') ;
         
         % Debugging
         if debug_areas
@@ -320,6 +328,10 @@ for d = 1:length(PLUM_in_toptop)
             end
         end; clear *_thisLU*
         
+        % Check for bad values
+        PLUMharm_checkBadVals(in_y0.maps_YXv, [], [], landArea_YX, 'in_y0.2') ;
+        PLUMharm_checkBadVals(in_y1.maps_YXv, [], [], landArea_YX, 'in_y1.2') ;
+        
         % Debugging output
         if debug_areas && ~isempty(debugIJ_2deg)
             PLUMharm_debugOut_deltas('iny0_to_iny1','areas',in_y0_2deg.maps_YXv,in_y1_2deg.maps_YXv,debugIJ_2deg,LUnames)
@@ -338,7 +350,7 @@ for d = 1:length(PLUM_in_toptop)
         max_nfert_y1_YXv = repmat(permute(max_nfert_y1,[2 3 1]),[size(landArea_2deg_YX) 1]) ;
         tooMuchNfert_YXv = in_y0_2deg_nfert.maps_YXv > max_nfert_y1_YXv ;
                 
-        % Do not allow invalid management inputs. This will only affect
+        % Do not allow invalid management inputs. This should only affect
         % cells that did not have any of this crop in the original PLUM
         % outputs.
         in_y0_2deg_nfert.maps_YXv(in_y0_2deg_nfert.maps_YXv<0) = 0 ;
@@ -349,6 +361,10 @@ for d = 1:length(PLUM_in_toptop)
         in_y1_2deg_irrig.maps_YXv(in_y1_2deg_irrig.maps_YXv<0) = 0 ;
         in_y0_2deg_irrig.maps_YXv(in_y0_2deg_irrig.maps_YXv>1) = 1 ;
         in_y1_2deg_irrig.maps_YXv(in_y1_2deg_irrig.maps_YXv>1) = 1 ;
+        
+        % Check for bad values
+        PLUMharm_checkBadVals([], in_y0_2deg_nfert.maps_YXv, in_y0_2deg_irrig.maps_YXv, [], 'in_y0_2deg') ;
+        PLUMharm_checkBadVals([], in_y1_2deg_nfert.maps_YXv, in_y1_2deg_irrig.maps_YXv, [], 'in_y1_2deg') ;
         
         % Debugging
         if debug_nfert
@@ -413,19 +429,42 @@ for d = 1:length(PLUM_in_toptop)
         else
             thisDBij = [] ;
         end
-        [total_unmet_agri_YXv, ...
+        [unm_y1_2deg_agri_YXv, ...
             mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX] = ...
             PLUMharm_getUnmet_cropAreaRes(...
             mid1_y1_2deg_agri_YXv, out_y0_2deg_vegd_YX, ...
             resArea_2deg_YX, sum(out_y0_2deg_agri_YXv,3), thisDBij, dbCrop) ;
-        mid_y1_2deg_vegd_YX = sum(mid_y1_2deg_agri_YXv,3) + out_y0_2deg_ntrl_YX - sum(agri_d_YXv,3) + sum(total_unmet_agri_YXv,3) ;
+        mid_y1_2deg_vegd_YX = sum(mid_y1_2deg_agri_YXv,3) + mid_y1_2deg_ntrl_YX ;
         mid_y1_2deg_bare_YX = landArea_2deg_YX - mid_y1_2deg_vegd_YX ;
-                
+        
+%         % Rounding errors can result in bare<0. Fix.
+%         if any(mid_y1_2deg_bare_YX(:)<0)
+%             if abs(min(min(mid_y1_2deg_bare_YX./landArea_2deg_YX))) < 3*eps
+%                 mid_y1_2deg_ntrl_YX(mid_y1_2deg_bare_YX<0) = ...
+%                     mid_y1_2deg_ntrl_YX(mid_y1_2deg_bare_YX<0) ...
+%                     + mid_y1_2deg_bare_YX(mid_y1_2deg_bare_YX<0) ;
+%                 mid_y1_2deg_bare_YX(mid_y1_2deg_bare_YX<0) = 0 ;
+%             else
+%                 error('"Large" negative values of bare area!')
+%             end
+%         end
+        % Rounding errors can result in small negative values. Fix.
+        tmp_YXv = cat(3, mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX) ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu])) ;
+        mid_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
+        mid_y1_2deg_ntrl_YX = tmp_YXv(:,:,end-1) ;
+        mid_y1_2deg_bare_YX = tmp_YXv(:,:,end) ;
+        
+        % Check for bad values
+        tmp_lu_YXv = cat(3, mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX) ;
+        PLUMharm_checkBadVals(tmp_lu_YXv, [], [], landArea_2deg_YX, 'mid_y1_2deg') ;
+        clear tmp_lu_YXv
+        
         % Check 2: Check that global area changes are (mostly) conserved
         PLUMharm_checkCons_area(...
             out_y0_2deg_agri_YXv, mid_y1_2deg_agri_YXv, ...
             in_y0_2deg_agri_YXv, in_y1_2deg_agri_YXv, ...
-            total_unmet_agri_YXv, LUnames(isAgri), conserv_tol_pct, '2') ;
+            unm_y1_2deg_agri_YXv, LUnames(isAgri), conserv_tol_pct, '2') ;
         
         % Check 2: Check that cells' vegetated area does not change much
         nonCons_pct_YX = 100*(mid_y1_2deg_vegd_YX - out_y0_2deg_vegd_YX) ./ out_y0_2deg_vegd_YX ;
@@ -437,7 +476,7 @@ for d = 1:length(PLUM_in_toptop)
         % Debugging
         if debug_areas
             debug_global_areas(out_y0_2deg.maps_YXv, ...
-                cat(3,mid_y1_2deg_agri_YXv+total_unmet_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX), ...
+                cat(3,mid_y1_2deg_agri_YXv+unm_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX), ...
                 'After addition of deltas', 'out_2deg', 'mid_2deg', ...
                 LPJGcrops, isAgri, dbCrop, thisYear)
             if ~isempty(debugIJ_2deg)
@@ -457,14 +496,25 @@ for d = 1:length(PLUM_in_toptop)
         [out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX] = ...
             PLUMharm_ringRedist_areaCropsRes(...
             mid_y1_2deg_agri_YXv, ...
-            total_unmet_agri_YXv, ...
-            landArea_2deg_YX, ...
+            unm_y1_2deg_agri_YXv, ...
             debugIJ_2deg, LUnames, conserv_tol_pct, '2b areas', ...
             in_y0_2deg_agri_YXv, in_y1_2deg_agri_YXv, ...
             out_y0_2deg_agri_YXv, ...
             mid_y1_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri) ;
         out_y1_2deg_vegd_YX = sum(cat(3,out_y1_2deg_agri_YXv,out_y1_2deg_ntrl_YX),3) ;
         out_y1_2deg_bare_YX = landArea_2deg_YX - out_y1_2deg_vegd_YX ;
+        
+        % Rounding errors can result in small negative values. Fix.
+        tmp_YXv = cat(3, out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX, out_y1_2deg_bare_YX) ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu])) ;
+        out_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
+        out_y1_2deg_ntrl_YX = tmp_YXv(:,:,end-1) ;
+        out_y1_2deg_bare_YX = tmp_YXv(:,:,end) ;
+        
+        % Check for bad values
+        tmp_YXv = cat(3, out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX, out_y1_2deg_bare_YX) ;
+        PLUMharm_checkBadVals(tmp_YXv, [] ,[], landArea_2deg_YX, 'out_y1_2deg') ;
+        clear tmp_YXv
         
         % Debugging
         if debug_areas
@@ -487,14 +537,14 @@ for d = 1:length(PLUM_in_toptop)
             zeros(size(out_y0_2deg_agri_YXv)), LUnames(isAgri), conserv_tol_pct, ...
             '3') ;
         
-        % Apply deltas.
+        % Apply management deltas.
         % Make sure that managements are within acceptable bounds,
         % considering (a) how much each cell had available to lose and (b)
         % how much room each cell has to gain before exceeding max rate.
         if debug_nfert ; thisDBij = debugIJ_2deg ;
         else ; thisDBij = [] ;
         end
-        [total_unmet_nfert_YXv, mid1_y1_2deg_nfert_YXv] = ...
+        [unm_y1_2deg_nfert_YXv, mid_y1_2deg_nfert_YXv] = ...
             PLUMharm_getUnmet_mgmt(...
                 out_y0_2deg_nfert.maps_YXv, out_y0_2deg.maps_YXv(:,:,isCrop), ...
                 in_y0_2deg_nfert.maps_YXv, in_y1_2deg_nfert.maps_YXv, ...
@@ -503,7 +553,7 @@ for d = 1:length(PLUM_in_toptop)
         if debug_irrig ; thisDBij = debugIJ_2deg ;
         else ; thisDBij = [] ;
         end
-        [total_unmet_irrig_YXv, mid1_y1_2deg_irrig_YXv] = ...
+        [unm_y1_2deg_irrig_YXv, mid_y1_2deg_irrig_YXv] = ...
             PLUMharm_getUnmet_mgmt(...
                 out_y0_2deg_irrig.maps_YXv, out_y0_2deg.maps_YXv(:,:,isCrop), ...
                 in_y0_2deg_irrig.maps_YXv, in_y1_2deg_irrig.maps_YXv, ...
@@ -511,18 +561,12 @@ for d = 1:length(PLUM_in_toptop)
                 out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ones(size(max_nfert_y1)), thisDBij, 'irrig', dbCrop) ;
         
         % Do not allow invalid management inputs.
-        if any(mid1_y1_2deg_nfert_YXv(:)<-1e-6)
-            error('Negative value(s) in mid1_y1_2deg_nfert_YXv!')
-        elseif any(mid1_y1_2deg_irrig_YXv(:)<0)
-            error('Negative value(s) in mid1_y1_2deg_irrig_YXv!')
-        elseif any(mid1_y1_2deg_irrig_YXv(:)>1)
-            error('Value(s) >1 in mid1_y1_2deg_irrig_YXv!')
-        end
+        PLUMharm_checkBadVals([], mid_y1_2deg_nfert_YXv, mid_y1_2deg_irrig_YXv, [], 'mid_y1_2deg') ;
         
         % Debugging
         if debug_nfert
             debug_global_mgmts(...
-                out_y0_2deg_nfert.maps_YXv, mid1_y1_2deg_nfert_YXv+total_unmet_nfert_YXv, ...
+                out_y0_2deg_nfert.maps_YXv, mid_y1_2deg_nfert_YXv+unm_y1_2deg_nfert_YXv, ...
                 out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
                 'Mt', 1e-6*1e-3, ...
                 'After applying deltas', 'out_2deg', 'mid_2deg', 'nfert', ...
@@ -530,13 +574,13 @@ for d = 1:length(PLUM_in_toptop)
             if ~isempty(debugIJ_2deg)
                 PLUMharm_debugOut_deltas('outy0_to_midy1', 'Nfert', ...
                     out_y0_2deg_nfert_YXv.*out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-                    mid1_y1_2deg_nfert_YXv.*out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                    mid_y1_2deg_nfert_YXv.*out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                     debugIJ_2deg,LPJGcrops) ;
             end
         end
         if debug_irrig
             debug_global_mgmts(...
-                out_y0_2deg_irrig.maps_YXv, mid1_y1_2deg_irrig_YXv+total_unmet_irrig_YXv, ...
+                out_y0_2deg_irrig.maps_YXv, mid_y1_2deg_irrig_YXv+unm_y1_2deg_irrig_YXv, ...
                 out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
                 'arb', 1, ...
                 'After applying deltas', 'out_2deg', 'mid_2deg', 'irrig', ...
@@ -544,7 +588,7 @@ for d = 1:length(PLUM_in_toptop)
             if ~isempty(debugIJ_2deg)
                 PLUMharm_debugOut_deltas('outy0_to_midy1', 'irrig', ...
                     out_y0_2deg_irrig_YXv.*out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-                    mid1_y1_2deg_irrig_YXv.*out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                    mid_y1_2deg_irrig_YXv.*out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                     debugIJ_2deg,LPJGcrops) ;
             end
         end
@@ -552,27 +596,27 @@ for d = 1:length(PLUM_in_toptop)
         % Check 2b: Check that management changes are (mostly) conserved
         PLUMharm_checkCons_mgmt(...
             out_y0_2deg_nfert.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            mid1_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+            mid_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
             in_y0_2deg_nfert.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
             in_y1_2deg_nfert.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            total_unmet_nfert_YXv, LPJGcrops, conserv_tol_pct, false(Ncrops_lpjg,1), ...
+            unm_y1_2deg_nfert_YXv, LPJGcrops, conserv_tol_pct, false(Ncrops_lpjg,1), ...
             '2b nfert', true) ;
         PLUMharm_checkCons_mgmt(...
             out_y0_2deg_irrig.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            mid1_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+            mid_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
             in_y0_2deg_irrig.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
             in_y1_2deg_irrig.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            total_unmet_irrig_YXv, LPJGcrops, conserv_tol_pct, false(Ncrops_lpjg,1), ...
+            unm_y1_2deg_irrig_YXv, LPJGcrops, conserv_tol_pct, false(Ncrops_lpjg,1), ...
             '2b irrig', true) ;
         
         % Do ring redistribution for management inputs
         if debug_nfert ; thisDBij = debugIJ_2deg ;
         else ; thisDBij = [] ;
         end
-        [out_y1_2deg_nfert_YXv, total_unmet2_nfert_YXv, notEnough_nfert] = ...
+        [out_y1_2deg_nfert_YXv, unm2_y1_2deg_nfert_YXv, notEnough_nfert] = ...
             PLUMharm_ringRedist_mgmt(...
-                mid1_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-                total_unmet_nfert_YXv, max_nfert_y1, ...
+                mid_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                unm_y1_2deg_nfert_YXv, max_nfert_y1, ...
                 LPJGcrops, thisDBij, ...
                 out_y0_2deg_nfert, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 in_y0_2deg_nfert, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
@@ -582,15 +626,18 @@ for d = 1:length(PLUM_in_toptop)
         else ; thisDBij = [] ;
         end
         
-        [out_y1_2deg_irrig_YXv, total_unmet2_irrig_YXv, notEnough_irrig] = ...
+        [out_y1_2deg_irrig_YXv, unm2_y1_2deg_irrig_YXv, notEnough_irrig] = ...
             PLUMharm_ringRedist_mgmt(...
-                mid1_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-                total_unmet_irrig_YXv, ones(size(max_nfert_y1)), ...
+                mid_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                unm_y1_2deg_irrig_YXv, ones(size(max_nfert_y1)), ...
                 LPJGcrops, thisDBij, ...
                 out_y0_2deg_irrig, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 in_y0_2deg_irrig, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 in_y1_2deg_irrig, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 conserv_tol_pct, 'ringRedist irrig', dbCrop) ;
+            
+        % Do not allow invalid management inputs.
+        PLUMharm_checkBadVals([], out_y1_2deg_nfert_YXv, out_y1_2deg_irrig_YXv, [], 'out_y1_2deg') ;
         
         % Debugging
         if debug_nfert
@@ -616,7 +663,7 @@ for d = 1:length(PLUM_in_toptop)
             out_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
             in_y0_2deg_nfert.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
             in_y1_2deg_nfert.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            total_unmet2_nfert_YXv, LPJGcrops, conserv_tol_pct, notEnough_nfert, ...
+            unm2_y1_2deg_nfert_YXv, LPJGcrops, conserv_tol_pct, notEnough_nfert, ...
             '3b nfert', true) ;
         
         PLUMharm_checkCons_mgmt(...
@@ -624,17 +671,8 @@ for d = 1:length(PLUM_in_toptop)
             out_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
             in_y0_2deg_irrig.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
             in_y1_2deg_irrig.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            total_unmet2_irrig_YXv, LPJGcrops, conserv_tol_pct, notEnough_irrig, ...
+            unm2_y1_2deg_irrig_YXv, LPJGcrops, conserv_tol_pct, notEnough_irrig, ...
             '3b irrig', true) ;
-        
-        % Do not allow invalid management inputs.
-        if any(out_y1_2deg_nfert_YXv(:)<0)
-            error('Negative value(s) in out_y1_2deg_nfert_YXv!')
-        elseif any(out_y1_2deg_irrig_YXv(:)<0)
-            error('Negative value(s) in out_y1_2deg_irrig_YXv!')
-        elseif any(out_y1_2deg_irrig_YXv(:)>1+1e-6)
-            error('Value(s) >1 in out_y1_2deg_irrig_YXv!')
-        end
 
         % Loop through all 2-degree gridcells and distribute the new crop and
         % pasture area changes to the half-degree gridcells within.
@@ -655,17 +693,17 @@ for d = 1:length(PLUM_in_toptop)
         out_y1_ntrl_YX = out_y0_vegd_YX - sum(out_y1_agri_YXv,3) ;
         out_y1_vegd_YX = sum(out_y1_agri_YXv,3) + out_y1_ntrl_YX ;
         out_y1_bare_YX = landArea_YX - out_y1_vegd_YX ;
+                
+        % Rounding errors can result in small negative values. Fix.
+        % Check for bad values.
+        tmp_YXv = cat(3, out_y1_agri_YXv, out_y1_ntrl_YX, out_y1_bare_YX) ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_YX,[1 1 Nlu])) ;
+        PLUMharm_checkBadVals(tmp_YXv, [] ,[], landArea_YX, 'out_y1_2deg') ;
+        out_y1_agri_YXv = tmp_YXv(:,:,1:end-2) ;
+        out_y1_ntrl_YX = tmp_YXv(:,:,end-1) ;
+        out_y1_bare_YX = tmp_YXv(:,:,end) ;
+        clear tmp_YXv
         
-        % Ensure cells in range [0,in_y1_vegd_YX] (extreme deviations were checked
-        % in loop)
-        if any(isnan(out_y1_agri_YXv(:)))
-            error('How did you get a NaN in out_y1_agri_YXv?')
-        end
-        out_y1_agri_YXv(out_y1_agri_YXv<0) = 0 ;
-        base_vegd_YXv = repmat(base_vegd_YX,[1 1 Nagri]) ;
-        out_y1_agri_YXv(out_y1_agri_YXv>base_vegd_YXv) = out_y1_agri_YXv(out_y1_agri_YXv>base_vegd_YXv) ;
-        clear base_vegd_YXv
-
         % Debugging
         if debug_areas
             debug_global_areas(out_y0_2deg.maps_YXv, ...
@@ -690,6 +728,9 @@ for d = 1:length(PLUM_in_toptop)
         % If no thisCrop, no mgmt additions to thisCrop
         out_y1_nfert_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
         out_y1_irrig_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
+        
+        % Do not allow invalid management inputs.
+        PLUMharm_checkBadVals([], out_y1_nfert_YXv, out_y1_irrig_YXv, [], 'out_y1') ;
         
         % Debugging
         if debug_nfert
@@ -764,6 +805,7 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'NATURAL')) = out_y1_ntrl_YX ;
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'BARREN')) = out_y1_bare_YX ;
             out_y1.maps_YXv = out_y1.maps_YXv ./ repmat(landArea_YX,[1 1 length(out_y1.varNames)]) ;
+            
             if save_halfDeg_mat
                 file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.mat'] ;
                 save(file_out,'out_y1') ;
