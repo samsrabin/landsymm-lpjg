@@ -52,6 +52,24 @@ if exist(file_in_dtl,'file')
     S_cropa.maps_YXv = S_dtl.maps_YXv(:,:,is_actual_PLUMcrops) .* S_lcf.maps_YXv(:,:,strcmp(S_lcf.varNames,'CROPLAND')) ;
     S_nfert.maps_YXv = S_dtl.maps_YXv(:,:,inds_PLUMcrops_nfert) ;
     S_irrig.maps_YXv = S_dtl.maps_YXv(:,:,inds_PLUMcrops_irrig) ;
+    % If there is irrigation or fertilization present on SetAside, remove
+    % it!
+    tmpN = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
+    tmpI = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
+    if any(any(tmpN>0)) || any(any(tmpI>0))
+        if any(any(tmpN>0)) && any(any(tmpI>0))
+            warning('Removing fertilization and irrigation from SetAside!')
+        elseif any(any(tmpN>0))
+            warning('Removing fertilization from SetAside!')
+        elseif any(any(tmpI>0))
+            warning('Removing irrigation from SetAside!')
+        end
+        tmpN(tmpN>0) = 0 ;
+        tmpI(tmpI>0) = 0 ;
+        S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) = tmpN ;
+        S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) = tmpI ;
+    end
+    clear tmpN tmpI
 else
     file_in_cropfrac = strrep(file_in_lcf,'LandCoverFract','CropFract') ;
     S_cropf = lpjgu_matlab_readTable_then2map(file_in_cropfrac,'verboseIfNoMat',false,'force_mat_save',true) ;
@@ -62,6 +80,16 @@ else
     file_in_irrig = strrep(file_in_lcf,'LandCoverFract','Irrig') ;
     S_irrig = lpjgu_matlab_readTable_then2map(file_in_irrig,'verboseIfNoMat',false,'force_mat_save',true) ;
 end
+
+% If there is irrigation or fertilization present on SetAside, throw an
+% error!
+tmpN = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
+tmpI = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
+if any(any(tmpN>0)) || any(any(tmpI>0))
+    error('Fertilization and/or irrigation on SetAside!')
+end
+clear tmpN tmpI
+
 % Translate PLUM crop names to LPJ-GUESS crop names, if necessary
 [~,IA] = intersect(LPJGcrops,PLUMcrops,'stable') ;
 if ~isequal(IA,shiftdim(1:length(LPJGcrops)))
