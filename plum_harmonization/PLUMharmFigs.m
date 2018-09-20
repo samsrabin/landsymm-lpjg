@@ -302,7 +302,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_irrig.pdf']) ;
-% close 
+% close
 
 
 %% Maps: At three years
