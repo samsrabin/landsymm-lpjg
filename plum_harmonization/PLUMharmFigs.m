@@ -17,7 +17,7 @@ runList = {...
 
 base_year = 2010 ;
 
-yearList_harm = 2011:2100 ;
+yearList_harm = 2011:2015 ;
 
 norm2extra = 0.177 ;
 
@@ -137,20 +137,20 @@ for r = 1:Nruns
         
         % Fertilization
         S = lpjgu_matlab_readTable_then2map([thisDir 'nfert.txt'],'force_mat_save',true) ;
-        [~,IA] = intersect(S.varNames,crops_tmp,'stable') ;
+        [~,~,IB] = intersect(crops_tmp,S.varNames,'stable') ;
         if length(IA) ~= Ncrops_lpjg
             error('length(IA)~=Ncrops_lpjg')
         end
-        PLUMharm_nfert_YXvyr(:,:,:,:,r) = S.maps_YXvy(:,:,IA,year_indices) ;
+        PLUMharm_nfert_YXvyr(:,:,:,:,r) = S.maps_YXvy(:,:,IB,year_indices) ;
         clear S
         
         % Irrigation
         S = lpjgu_matlab_readTable_then2map([thisDir 'irrig.txt'],'force_mat_save',true) ;
-        [~,IA] = intersect(S.varNames,crops_tmp,'stable') ;
+        [~,~,IB] = intersect(crops_tmp,S.varNames,'stable') ;
         if length(IA) ~= Ncrops_lpjg
             error('length(IA)~=Ncrops_lpjg')
         end
-        PLUMharm_irrig_YXvyr(:,:,:,:,r) = S.maps_YXvy(:,:,IA,year_indices) ;
+        PLUMharm_irrig_YXvyr(:,:,:,:,r) = S.maps_YXvy(:,:,IB,year_indices) ;
         clear S
     else
         [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
@@ -201,7 +201,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_landUse.pdf']) ;
-close
+% close
 
 
 %% Time series of crops
@@ -232,7 +232,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_crops.pdf']) ;
-close
+% close
 
 
 %% Time series of Nfert
@@ -267,7 +267,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_nfert.pdf']) ;
-close
+% close
 
 
 %% Time series of irrig
@@ -302,7 +302,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_irrig.pdf']) ;
-close
+% close
 
 
 %% Maps: At three years

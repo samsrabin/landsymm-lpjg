@@ -6,7 +6,7 @@ function [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
 
 % Does MAT-file already exist?
 MATfile = [inDir '.processed.' thisVer 'mat'] ;
-if exist(MATfile,'file')
+if false%exist(MATfile,'file')
     MATfile_info = dir(MATfile) ;
     [~, TXTfile] = unix(['ls -t ' inDir '/*/*.' thisVer 'txt | head -n 1  | tr -d ''\n''']) ;
     TXTfile_info = dir(TXTfile) ;
