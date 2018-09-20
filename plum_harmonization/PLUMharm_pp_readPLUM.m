@@ -6,7 +6,7 @@ function [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
 
 % Does MAT-file already exist?
 MATfile = [inDir '.processed.' thisVer 'mat'] ;
-if false%exist(MATfile,'file')
+if exist(MATfile,'file')
     MATfile_info = dir(MATfile) ;
     [~, TXTfile] = unix(['ls -t ' inDir '/*/*.' thisVer 'txt | head -n 1  | tr -d ''\n''']) ;
     TXTfile_info = dir(TXTfile) ;
@@ -63,6 +63,10 @@ function [S, S_nfert, S_irrig] = generate_struct(...
 S.varNames = LUnames ;
 S_nfert.varNames = LPJGcrops ;
 S_irrig.varNames = LPJGcrops ;
+
+S.yearList = yearList ;
+S_nfert.yearList = yearList ;
+S_irrig.yearList = yearList ;
 Nyears = length(yearList) ;
 
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
