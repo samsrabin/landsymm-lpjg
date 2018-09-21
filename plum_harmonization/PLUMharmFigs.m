@@ -17,7 +17,7 @@ runList = {...
 
 base_year = 2010 ;
 
-yearList_harm = 2011:2015 ;
+yearList_harm = 2011:2100 ;
 
 norm2extra = 0.177 ;
 
@@ -30,6 +30,7 @@ out_dir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harmoni
 %% Setup
 
 yearList_luh2 = 1971:2010 ;
+% yearList_luh2 = 2001:2010 ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
 
 if length(runList) == 1
@@ -201,7 +202,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_landUse.pdf']) ;
-% close
+close
 
 
 %% Time series of crops
@@ -232,7 +233,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_crops.pdf']) ;
-% close
+close
 
 
 %% Time series of Nfert
@@ -267,7 +268,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_nfert.pdf']) ;
-% close
+close
 
 
 %% Time series of irrig
@@ -302,7 +303,7 @@ end
 
 % Save
 export_fig([out_dir 'timeSeries_irrig.pdf']) ;
-% close
+close
 
 
 %% Maps: At three years
