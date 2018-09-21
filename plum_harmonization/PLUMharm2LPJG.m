@@ -2,6 +2,8 @@
 %%% Read MAT-files from harmonization; write as LPJG inputs %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+do_gzip = false ;
+
 % Directories for harmonized PLUM outputs
 dirList = {...
               'SSP1.v10.s1.harm' ;
@@ -36,9 +38,8 @@ outWidth = 1 ;
 delimiter = ' ' ;
 overwrite = true ;
 fancy = false ;
-save_every_pct = 100 ;
-verbose_write = false ;
-do_gzip = true ;
+save_every_pct = 1 ;
+verbose_write = true ;
 
 addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
@@ -138,13 +139,13 @@ for d = 1:length(dirList)
         
     % Check for NaNs
     disp('Checking arrays...')
-    if any(isnan(lu_out(:)))
+    if any(any(isnan(lu_out)))
         error('Some value of lu_out is NaN.')
-    elseif any(isnan(cf_out(:)))
+    elseif any(any(isnan(cf_out)))
         error('Some value of cf_out is NaN.')
-    elseif any(isnan(nf_out(:)))
+    elseif any(any(isnan(nf_out)))
         error('Some value of nf_out is NaN.')
-    elseif any(isnan(ir_out(:)))
+    elseif any(any(isnan(ir_out)))
         error('Some value of ir_out is NaN.')
     end
     
@@ -169,6 +170,8 @@ for d = 1:length(dirList)
     elseif max(max(ir_out(:,IA)))>=1+10^(-outPrec)
         error('max(ir_out)>1')
     end
+    
+    disp('Additional processing...')
     
     % If doing so, make sure that every grid cell has at least some of each
     % type of cropland
@@ -231,6 +234,7 @@ for d = 1:length(dirList)
         
     end
     
+    
     % Check for nonsensical values
     [~,IA,~] = intersect(nf_header_cell,cropList_ir,'stable') ;
     if min(min(lu_out(:,4:end)))<0
@@ -279,16 +283,38 @@ for d = 1:length(dirList)
     
     % Add extra years, if doing so
     if Nyears_xtra>0
-        Ncrops = length([cropList_rf cropList_ir]) ;
-        tmp = repmat(yearList_xtra,[Ncells 1]) ;
-        xtra_out = [repmat(cf_out(1:Ncells,1:2),[Nyears_xtra 1]) ...
-                    tmp(:) ...
-                    zeros(Nyears_xtra*Ncells,Ncrops)] ;
-        cf_out = cat(1, cf_out, xtra_out) ;
-        nf_out = cat(1, nf_out, xtra_out) ;
-        ir_out = cat(1, ir_out, xtra_out) ;
+        
+        lons = lu_out(1:Nyears:end,1) ;
+        lons_tmp = repmat(lons,[1 Nyears+Nyears_xtra])' ;
+        lons_out = lons_tmp(:) ;
+        lats = lu_out(1:Nyears:end,2) ;
+        lats_tmp = repmat(lats,[1 Nyears+Nyears_xtra])' ;
+        lats_out = lats_tmp(:) ;
+        
+        years_out = repmat([yearList_xtra';yearList],[Ncells 1]) ;
+        
+        Nvar_lu = length(lu_in.varNames) ;
+        tmp1_yxv = reshape(lu_out(:,4:end),[Nyears Ncells Nvar_lu]) ;
+        tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
+        tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_lu]) ;
+        lu_out = [lons_out lats_out years_out tmp1_out] ;
+        
+        Nvar_cf = size(cf_out,2) - 3 ;
+        tmp1_yxv = reshape(cf_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
+        tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
+        tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        cf_out = [lons_out lats_out years_out tmp1_out] ;
+        tmp1_yxv = reshape(nf_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
+        tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
+        tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        nf_out = [lons_out lats_out years_out tmp1_out] ;
+        tmp1_yxv = reshape(ir_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
+        tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
+        tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        ir_out = [lons_out lats_out years_out tmp1_out] ;
+        
     end
-    
+            
     % Save land cover
     disp('Saving land cover...')
     file_out = [outDir 'landcover.txt'] ;    
@@ -320,6 +346,7 @@ for d = 1:length(dirList)
         disp('gzipping...')
         unix(['gzip ' file_out]) ;
     end
+    
     
     % Save fertilization
     disp('Saving fertilization...')

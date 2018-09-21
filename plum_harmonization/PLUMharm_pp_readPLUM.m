@@ -38,13 +38,13 @@ else
             landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
             read_MATs, is_orig) ;
-    % Save, catching exceptions to avoid having to re-read everything
-    disp('   Saving MAT file...')
-    try
-        save(MATfile,'S_out', 'S_nfert_out', 'S_irrig_out') ;
-    catch ME
-        keyboard
-    end
+%     % Save, catching exceptions to avoid having to re-read everything
+%     disp('   Saving MAT file...')
+%     try
+%         save(MATfile,'S_out', 'S_nfert_out', 'S_irrig_out') ;
+%     catch ME
+%         keyboard
+%     end
 end
 
 disp('Done.')
@@ -63,6 +63,10 @@ function [S, S_nfert, S_irrig] = generate_struct(...
 S.varNames = LUnames ;
 S_nfert.varNames = LPJGcrops ;
 S_irrig.varNames = LPJGcrops ;
+
+S.yearList = yearList ;
+S_nfert.yearList = yearList ;
+S_irrig.yearList = yearList ;
 Nyears = length(yearList) ;
 
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
