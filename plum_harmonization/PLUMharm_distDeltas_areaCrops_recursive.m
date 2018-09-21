@@ -15,7 +15,6 @@ function out_y1_agri_YXv = ...
 % according to available land area. Make sure that total area within a
 % half-degree gridcell does not exceed 1 or 0.
 
-
 % Update avail_land after every land use? FALSE is default LUH1 behavior,
 % where avail_land is only calculated at the beginning.
 update_avail_land = true ;
@@ -25,9 +24,6 @@ update_avail_land = true ;
 proper_zero_denoms = true ;
 
 debug_ijk = [Inf Inf Inf] ;
-% debug_ijk = [37   154     2] ;
-% debug_ijk = [65 42 1] ;
-% debug_ijk = [40 152 7] ;
 
 Nagri = size(out_y0_agri_YXv,3) ;
 max_diff = 0 ;
@@ -35,7 +31,6 @@ max_diff = 0 ;
 out_y1_agri_YXv = out_y0_agri_YXv ;
 for i = 1:size(landArea_2deg_YX,1)
     for j = 1:size(landArea_2deg_YX,2)
-        %             disp(['i = ' num2str(i) ', j = ' num2str(j)])
         iy = 4*i-(0:3) ;
         ix = 4*j-3:4*j ;
         [IY,IX] = meshgrid(iy,ix);
@@ -52,8 +47,9 @@ for i = 1:size(landArea_2deg_YX,1)
         
         if ~update_avail_land
             now_agri_YX = sum(out_y0_agri_YXv(iy,ix,:),3) ;
-%             avail_land = in_y1_vegd_YX(theseCells) - now_agri_YX(:) ;
             avail_land = out_y0_vegd_theseCells - now_agri_YX(:) ;
+        else
+            avail_land = [] ;
         end
         
         % Loop through all land uses (may be recursive)
@@ -62,14 +58,12 @@ for i = 1:size(landArea_2deg_YX,1)
             loop_thru_agri(already_done, 1, debug_ijk, ...
             update_avail_land, proper_zero_denoms, conserv_tol_area, ...
             i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
-            out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv) ;
+            out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land) ;
         
         % Check for invalid cell areas
         agri_YX = sum(out_y1_agri_YXv(iy,ix,:),3) ;
         if any(agri_YX(:) > conserv_tol_area+out_y0_vegd_YX(theseCells))
-%         if any(agri_YX(:) > 1+out_y0_vegd_YX(theseCells))
             error('Members >vegd_area in half-deg out_y1_(crop+past)_YX!')
-%             warning('Members >vegd_area in half-deg out_y1_(crop+past)_YX!')
         end
         max_diff = max(max_diff,max(agri_YX(:)-out_y0_vegd_YX(theseCells))) ;
         

@@ -126,10 +126,6 @@ elseif total_unmet_thisCell_in<0
     out_thisRing = out_total_thisRing ./ thisArea_thisRing ;
     out_thisRing(thisArea_thisRing==0) = 0 ;
     out_YX(thisRing) = out_thisRing ;
-%     if i==6 && any(thisRing==thisCell_ofInt) && thisCell~=thisCell_ofInt && avail_mgmt(thisRing==thisCell_ofInt)>0
-%         out_total_thisRing = out_total_YX(thisRing) ;
-%         fprintf('out_total after: %0.4e\n', out_total_thisRing(thisRing==thisCell_ofInt)) ;
-%     end
 end
 
 if any(thisRing==thisCell_ofInt)

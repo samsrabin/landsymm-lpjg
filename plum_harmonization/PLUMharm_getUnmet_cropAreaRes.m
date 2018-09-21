@@ -77,7 +77,6 @@ end
 % (unmet is POSITIVE)
 sum_agri_y1_YX = sum(mid_y1_2deg_agri_YXv,3) ;
 isOK_YX = sum_agri_y1_YX <= max_agri_y1_YX ;
-% isOK_YX = sum_agri_y1_YX<=sum_agri_y0_YX | sum_agri_y1_YX<=unresArea_2deg_YX ;
 j = 0 ;
 unmetD_YXv = zeros(size(mid_y1_2deg_agri_YXv)) ;
 while any(any(~isOK_YX))
@@ -85,8 +84,6 @@ while any(any(~isOK_YX))
     if j>50
         error('Possible infinite loop in "Check that sum(agri_y1) does not exceed non-reserved area."')
     end
-%     exceedLandR_YX = zeros(size(max_agri_y1_YX)) ;
-%     exceedLandR_YX(~isOK_YX) = sum_agri_y1_YX(~isOK_YX) - max_agri_y1_YX(~isOK_YX) ;
     exceedLandR_YX = (sum_agri_y1_YX - max_agri_y1_YX) .* (sum_agri_y1_YX > max_agri_y1_YX) ;
     exceedLandR_YXv = repmat(exceedLandR_YX,[1 1 Nagri]) ;
     if proper_zero_denoms
@@ -98,27 +95,15 @@ while any(any(~isOK_YX))
             .* exceedLandR_YXv ;
     end
     unmetD_YXv = unmetD_YXv + unmetDtmp_YXv ;
-    % if do_debug
-    %     disp('During:')
-    %     fprintf('   %s\t%0.4e\n',pad('exceedLandR:',20),exceedLandR_YX(i,j)) ;
-    %     fprintf('   %s\t%0.4e\n',pad('unmetD:',20),sum(unmetD_YXv(i,j,:),3)) ;
-    % end
     mid_y1_2deg_agri_YXv = mid_y1_2deg_agri_YXv - unmetDtmp_YXv ;
     sum_agri_y1_YX = sum(mid_y1_2deg_agri_YXv,3) ;
     isOK_YX = sum_agri_y1_YX <= max_agri_y1_YX ;
-%     isOK_YX = sum_agri_y1_YX<=sum_agri_y0_YX | sum_agri_y1_YX<=unresArea_2deg_YX ;
 end
 mid_y1_2deg_ntrl_YXv = base_2deg_vegd_YX - sum(mid_y1_2deg_agri_YXv,3) ;
 
 % Compute the total amount of crop or pasture increase / decrease that is not able to be met within the 2 degree gridcells
 unmet_YXv = unmetA_YXv + unmetB_YXv + unmetD_YXv;
 
-% if do_debug
-%     disp('After fix:')
-%     fprintf('   %s\t%0.4e\n',pad('agri_y1:',20),sum(mid_y1_2deg_agri_YXv(i,j,:),3)) ;
-%     fprintf('   %s\t%0.4e\n',pad('ntrl_y1:',20),mid_y1_2deg_ntrl_YXv(i,j)) ;
-%     fprintf('   %s\t%0.4e\n',pad('unmet:',20),sum(unmet_YXv(i,j,:),3)) ;
-% end
 if do_debug
     disp('After check that sum(agri_y1) is compatible with reserved area:')
     fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(i,j,:),3)) ;
