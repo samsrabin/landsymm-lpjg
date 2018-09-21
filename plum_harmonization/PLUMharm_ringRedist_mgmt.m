@@ -22,16 +22,11 @@ YXv_dims = size(mid_y1_2deg_mgmt_YXv) ;
 YX_dims = YXv_dims(1:2) ;
 Ncrops = YXv_dims(3) ;
 
-% Get TOTAL management inputs
-mid_y1_2deg_mgmtTot_YXv = mid_y1_2deg_mgmt_YXv .* out_y1_2deg_cropArea_YXv ;
-
 % Create grids for tracking displaced agriculture
 % debugIJ = [999 999] ;
 do_debug = ~isempty(debugIJ) ;
 thisCell_ofInt = Inf ;
 if do_debug
-    % Just to keep track of original unmet inputs
-% % %     total_unmet_mgmt_YXv_orig = total_unmet_mgmt_YXv ;
     % From original code, but not sure how to interpret
     displaced_mgmt_YXv = zeros(YXv_dims) ;
     % How many rings did this cell have to draw from or give to?
@@ -49,7 +44,6 @@ if do_debug
 end
 
 out_y1_2deg_mgmt_YXv = mid_y1_2deg_mgmt_YXv ;
-out_y1_2deg_mgmtTot_YXv = mid_y1_2deg_mgmtTot_YXv ;
 
 ny = YX_dims(1) ;
 nx = YX_dims(2) ;
@@ -72,11 +66,11 @@ while any(~is_done_YXv(:))
         for m = ms
             
             thisCell = sub2ind(YX_dims,k+1,m+1) ;
-            if do_debug
-                if k==dbk && m==dbm
+%             if do_debug
+%                 if k==dbk && m==dbm
 %                     keyboard
-                end
-            end
+%                 end
+%             end
             
             % Do it for each
             for i = 1:Ncrops
@@ -273,9 +267,6 @@ while any(~is_done_YXv(:))
                             fprintf('%s, j = %d, total_unmet_mgmt_YXv(k+1,m+1,i) =\t%0.4e\n',...
                                 LPJGcrops{i},j,total_unmet_thisCell) ;
                             fprintf('                total_avail_ring =\t\t%0.4e\n', total_avail_ring) ;
-                            if total_avail_ring~=0
-                                x=1;
-                            end
                         end
                     end
                     if total_avail_ring==0
@@ -325,12 +316,6 @@ while any(~is_done_YXv(:))
                     total_unmet_mgmt_YXv(k+1,m+1,i) = total_unmet_thisCell ;
                 end
                 
-                % If doing this, need to add the following arguments to
-                % function call:
-% % %                             out_y0_mgmt, out_y0_area_YXv, ...
-% % %                             in_y0_mgmt, in_y0_area_YXv, ...
-% % %                             in_y1_mgmt, in_y1_area_YXv, ...
-% % %                             conserv_tol_pct, check_name
                 if do_debug
                     bad = PLUMharm_checkCons_mgmt(...
                         out_y0_mgmt.maps_YXv, out_y0_area_YXv, ...
@@ -373,9 +358,6 @@ while any(~is_done_YXv(:))
     
 end % while
 
-if do_debug
-%     keyboard
-end
 
 % figure('Color','w','Position',figurePos) ;
 % h = cell(Ncrops,1) ;

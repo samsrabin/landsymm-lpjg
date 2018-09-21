@@ -2,7 +2,7 @@ function [out_y1_2deg_agri_YXv, out_ntrl_YX] = ...
     PLUMharm_ringRedist_areaCropsRes(...
     mid_y1_2deg_agri_YXv, ...
     total_unmet_agri_YXv, ...
-    debugIJ, LUnames, conserv_tol_pct, check_name, ...
+    debugIJ, conserv_tol_pct, check_name, ...
     in_y0_area_YXv, in_y1_area_YXv, ...
     out_y0_2deg_agri_YXv, out_y0_2deg_ntrl_YX, ...
     resArea_2deg_YX, LUnames_agri)
@@ -13,24 +13,16 @@ function [out_y1_2deg_agri_YXv, out_ntrl_YX] = ...
 % displaced crop and pasture and the # of "rings" needed for each
 % 2-degree gridcell.
 
-out_y0_2deg_agri_YX = sum(out_y0_2deg_agri_YXv,3) ;
 out_ntrl_YX = out_y0_2deg_ntrl_YX ;
-
-out_y0_2deg_vegd_YX = out_y0_2deg_agri_YXv + out_y0_2deg_ntrl_YX ;
-max_agri_YX = max(out_y0_2deg_vegd_YX-resArea_2deg_YX, out_y0_2deg_agri_YXv) ;
-
 
 YXv_dims = size(mid_y1_2deg_agri_YXv) ;
 YX_dims = YXv_dims(1:2) ;
 Nagri = YXv_dims(3) ;
 
 % Create grids for tracking displaced agriculture
-% debugIJ = [999 999] ;
 do_debug = ~isempty(debugIJ) ;
 thisCell_ofInt = Inf ;
 if do_debug
-    % Just to keep track of original unmet area
-    total_unmet_agri_YXv_orig = total_unmet_agri_YXv ;
     % From original code, but not sure how to interpret
     displaced_agri_YXv = zeros(YXv_dims) ;
     % How many rings did this cell have to draw from or give to?
@@ -40,8 +32,6 @@ if do_debug
     % had too much loss: only area given to a cell because a different cell
     % had too much gain!
     meanDist_YXv = zeros(YXv_dims) ;
-    %     % Keep track of what cells have been processed so far
-    %     thisCell_list = [] ;
     % thisCell by any other name
     thisCell_ofInt = sub2ind(YX_dims,debugIJ(1),debugIJ(2)) ;
 end
@@ -54,7 +44,6 @@ ks = 0:(ny-1) ;
 ms = 0:(nx-1) ;
 
 is_done_YXv = false(YXv_dims) ;
-notEnough = false(Nagri,1) ;
 
 Nloops = 0 ;
 while any(~is_done_YXv(:))
@@ -64,14 +53,10 @@ while any(~is_done_YXv(:))
     end
     is_done_YXv_begin = is_done_YXv ;
     any_skipped_v = false(Nagri,1) ;
-    check_tooMuch = true(Nagri,1) ;
     
     for k = ks
         for m = ms
             thisCell = sub2ind(YX_dims,k+1,m+1) ;
-%             if do_debug
-%                 thisCell_list = [thisCell_list thisCell] ;
-%             end
             
             % It's possible that this cell DIDN'T have any area
             % available for agri expansion (and thus needed to send
@@ -221,7 +206,7 @@ while any(~is_done_YXv(:))
                 thisSkipped = skipped_cells(1) ;
                 [thisSkipped_I, thisSkipped_J] = ind2sub([ny nx],thisSkipped) ;
                 fprintf('      %s %s: Skipped cell %d (%d,%d) and %d others.\n', ...
-                    LPJGcrops{c}, check_name, thisSkipped, thisSkipped_I, thisSkipped_J, length(skipped_cells)-1) ;
+                    LUnames_agri{c}, check_name, thisSkipped, thisSkipped_I, thisSkipped_J, length(skipped_cells)-1) ;
             end
         end
         disp('      Trying again.')
@@ -230,9 +215,6 @@ while any(~is_done_YXv(:))
     
 end % while
 
-if do_debug
-    keyboard
-end
 
 % figure('Color','w','Position',figurePos) ;
 % h = cell(Nagri,1) ;

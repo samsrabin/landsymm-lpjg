@@ -434,32 +434,3 @@ for r = 1:Nruns
         close
     end
 end
-
-
-
-%%
-
-v = 3 ;
-y1 = 1 ;
-yN = 3 ;
-
-orig1_YX = PLUMorig_YXvyr(:,:,v,y1,1) .* PLUMorig_nfert_YXvyr(:,:,v,y1,1) ;
-origN_YX = PLUMorig_YXvyr(:,:,v,yN,1) .* PLUMorig_nfert_YXvyr(:,:,v,yN,1) ;
-orig_YX = origN_YX - orig1_YX ;
-harm1_YX = PLUMharm_YXvyr(:,:,v,y1,1) .* PLUMharm_nfert_YXvyr(:,:,v,y1,1) ;
-harmN_YX = PLUMharm_YXvyr(:,:,v,yN,1) .* PLUMharm_nfert_YXvyr(:,:,v,yN,1) ;
-harm_YX = harmN_YX - harm1_YX ;
-
-figure ;
-spacing = 0.025 ;
-h1 = subplot_tight(2,1,1,spacing) ;
-pcolor(orig_YX); shading flat; axis equal tight
-title('orig')
-colorbar
-h2 = subplot_tight(2,1,2,spacing) ;
-pcolor(harm_YX); shading flat; axis equal tight
-title('harm')
-colorbar
-new_caxis = [-1 1] * max([abs(caxis(h1)) abs(caxis(h2))]) ;
-caxis(h1,new_caxis) ;
-caxis(h2,new_caxis) ;

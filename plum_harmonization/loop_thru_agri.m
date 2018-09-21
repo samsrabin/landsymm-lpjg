@@ -2,7 +2,7 @@ function [out_y1_agri_YXv, already_done] = ...
     loop_thru_agri(already_done, k1, debug_ijk, ...
     update_avail_land, proper_zero_denoms, conserv_tol_area, ...
     i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
-    out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv)
+    out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land)
 
 Nagri = size(out_y0_agri_YXv,3) ;
 if k1 > Nagri
@@ -11,10 +11,9 @@ end
 
 for k = k1:Nagri
     
-    if debug_ijk(1)==i && debug_ijk(2)==j && debug_ijk(3)==k
-%         [out_y0_vegd_theseCells out_y0_vegd_YX(theseCells)]
-        keyboard
-    end
+%     if debug_ijk(1)==i && debug_ijk(2)==j && debug_ijk(3)==k
+%         keyboard
+%     end
     
     if update_avail_land
         now_agri_YX = sum(out_y1_agri_YXv(iy,ix,:),3) ;
@@ -59,28 +58,25 @@ for k = k1:Nagri
 %             end
         elseif this_d > 0
             if sum(avail_land) < this_d ...
-                    ...&& k < Nagri && sum(agri_d((k+1):end)) < 0
                     && k < Nagri
                 
-%                 if sum(agri_d((k+1):end)) >= 0
-%                     error('How is sum(agri_d((k+1):end)) >= 0 ??')
-%                 end
-
+                % Go ahead and do next land uses until there is enough
+                % available land. RECURSION
                 if debug_ijk(1)==i && debug_ijk(2)==j
                     disp('GOING D E  E   P    E     R')
                     keyboard
                 end
-                
-                
-                % Go ahead and do next land uses until there is enough
-                % available land. RECURSION
+                if ~update_avail_land
+                    now_agri_YX = sum(out_y0_agri_YXv(iy,ix,:),3) ;
+                    avail_land_tmp = out_y0_vegd_theseCells - now_agri_YX(:) ;
+                else
+                    avail_land_tmp = [] ;
+                end
                 [out_y1_agri_YXv, already_done] = ...
                     loop_thru_agri(already_done, k+1, debug_ijk, ...
                     update_avail_land, proper_zero_denoms, conserv_tol_area, ...
                     i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
-                    out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv) ;
-                
-                
+                    out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land_tmp) ;
                 
                 % How much NATURAL land is available now we have
                 % sufficently decreased enough of the next LUs?
