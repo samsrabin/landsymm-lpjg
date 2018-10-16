@@ -6,6 +6,10 @@ base_year = 2010 ;
 year1 = 2011 ;
 yearN = 2100 ;
 
+% Baseline version
+% baseline_ver = 1 ;
+baseline_ver = 2 ;   % Based on remap_v6
+
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;

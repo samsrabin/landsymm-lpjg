@@ -4,15 +4,19 @@
 
 read_MATs = true ;
 
+% Baseline version
+% baseline_ver = 1 ;
+baseline_ver = 2 ;   % Based on remap_v6
+
 thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
 
 runList = {...
            'SSP1.v10.s1' ;
-           'SSP3.v10.s1' ;
-           'SSP4.v10.s1' ;
-           'SSP5.v10.s1';
+%            'SSP3.v10.s1' ;
+%            'SSP4.v10.s1' ;
+%            'SSP5.v10.s1';
             } ;
 
 base_year = 2010 ;
@@ -200,9 +204,9 @@ for v = 1:length(combinedLUs)
     legend(legend_ts,'Location','NorthWest')
 end
 
-% Save
-export_fig([out_dir 'timeSeries_landUse.pdf']) ;
-close
+% % Save
+% export_fig([out_dir 'timeSeries_landUse.pdf']) ;
+% close
 
 
 %% Time series of crops
