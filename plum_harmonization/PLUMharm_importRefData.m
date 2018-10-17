@@ -61,7 +61,17 @@ else
     base.yearList = yearList_luh2 ;
     clear IA IB
 end
-base.varNames = base.varNames(~contains(base.varNames,{'URBAN','PEATLAND'})) ;
+
+% Rearrange LU names
+LUnames = {'CROPLAND','PASTURE','NATURAL','BARREN'} ;
+if ~isequal(LUnames,base.varNames)
+    if ~isequal(sort(LUnames),sort(base.varNames))
+        error('LUnames and base.varNames are incompatible?')
+    end
+    [~,~,IB] = intersect(LUnames,base.varNames,'stable') ;
+    base.maps_YXvy = base.maps_YXvy(:,:,IB,:) ;
+    base.varNames = LUnames ;
+end
 
 % Harmonize masks
 PLUM_base_in = addslashifneeded([addslashifneeded(PLUM_in_toptop{1}) num2str(base_year)]) ;
@@ -74,7 +84,6 @@ landArea_YX(mask_YX) = 0 ;
 clear S
 
 % Get repmat 0.5º land area
-LUnames = base.varNames ;
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 if ~doHarm
