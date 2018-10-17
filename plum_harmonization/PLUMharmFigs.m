@@ -204,9 +204,9 @@ for v = 1:length(combinedLUs)
     legend(legend_ts,'Location','NorthWest')
 end
 
-% % Save
-% export_fig([out_dir 'timeSeries_landUse.pdf']) ;
-% close
+% Save
+export_fig([out_dir 'timeSeries_landUse.pdf']) ;
+close
 
 
 %% Time series of crops
