@@ -113,7 +113,7 @@ base_cropf = lpjgu_matlab_readTable_then2map('/Users/Shared/PLUM/input/remaps_v4
     'verboseIfNoMat',false,'force_mat_save',true) ;
 % Get just base year, if needed
 if doHarm && isfield(base_cropf,'yearList')
-    tmp = base_cropf.maps_YXvy(:,:,base_cropf.yearList==base_year) ;
+    tmp = base_cropf.maps_YXvy(:,:,:,base_cropf.yearList==base_year) ;
     base_cropf = rmfield(base_cropf,{'maps_YXvy','yearList'}) ;
     base_cropf.maps_YXv = tmp ;
     clear tmp
@@ -210,7 +210,7 @@ base_nfert = lpjgu_matlab_readTable_then2map('/Users/Shared/PLUM/input/remaps_v4
     'verboseIfNoMat',false,'force_mat_save',true) ;
 % Get just base year, if needed
 if doHarm && isfield(base_nfert,'yearList')
-    tmp = base_nfert.maps_YXvy(:,:,base_nfert.yearList==base_year) ;
+    tmp = base_nfert.maps_YXvy(:,:,:,base_nfert.yearList==base_year) ;
     base_nfert = rmfield(base_nfert,{'maps_YXvy','yearList'}) ;
     base_nfert.maps_YXv = tmp ;
     clear tmp
