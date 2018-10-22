@@ -6,7 +6,7 @@ function [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
 
 % Does MAT-file already exist?
 MATfile = [inDir '.processed.' thisVer 'mat'] ;
-if false%exist(MATfile,'file')
+if exist(MATfile,'file')
     MATfile_info = dir(MATfile) ;
     [~, TXTfile] = unix(['ls -t ' inDir '/*/*.' thisVer 'txt | head -n 1  | tr -d ''\n''']) ;
     TXTfile_info = dir(TXTfile) ;
@@ -38,13 +38,13 @@ else
             landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
             read_MATs, is_orig) ;
-%     % Save, catching exceptions to avoid having to re-read everything
-%     disp('   Saving MAT file...')
-%     try
-%         save(MATfile,'S_out', 'S_nfert_out', 'S_irrig_out') ;
-%     catch ME
-%         keyboard
-%     end
+    % Save, catching exceptions to avoid having to re-read everything
+    disp('   Saving MAT file...')
+    try
+        save(MATfile,'S_out', 'S_nfert_out', 'S_irrig_out') ;
+    catch ME
+        keyboard
+    end
 end
 
 disp('Done.')

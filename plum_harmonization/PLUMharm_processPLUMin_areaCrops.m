@@ -113,7 +113,6 @@ S.maps_YXv = cat(3, S_cropa.maps_YXv, S_lcf.maps_YXv(:,:,~strcmp(S_lcf.varNames,
 % Ensure same ordering of variables in LUH and PLUM
 if ~isequal(LUnames,S.varNames)
     [~,~,IB] = intersect(LUnames,S.varNames,'stable') ;
-%     [C,IA,IB] = intersect(LUnames,S.varNames,'stable')
     if length(IB)~=length(LUnames)
         error('length(IB)~=length(LUnames)')
     end

@@ -4,15 +4,19 @@
 
 read_MATs = true ;
 
+% Baseline version
+% baseline_ver = 1 ;
+baseline_ver = 2 ;   % Based on remap_v6
+
 thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
 
 runList = {...
            'SSP1.v10.s1' ;
-           'SSP3.v10.s1' ;
-           'SSP4.v10.s1' ;
-           'SSP5.v10.s1';
+%            'SSP3.v10.s1' ;
+%            'SSP4.v10.s1' ;
+%            'SSP5.v10.s1';
             } ;
 
 base_year = 2010 ;
@@ -194,7 +198,7 @@ for v = 1:length(combinedLUs)
     set(gca,'ColorOrderIndex',1) ;
     plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:))*1e-6*1e-6,'-','LineWidth',1)
     hold off
-    title(combinedLUs{v})
+    title(['Area: ' combinedLUs{v}])
     set(gca,'FontSize',14)
     ylabel('Million km2')
     legend(legend_ts,'Location','NorthWest')
@@ -225,7 +229,7 @@ for v = 1:Ncrops_lpjg
     set(gca,'ColorOrderIndex',1) ;
     plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:))*1e-6*1e-6,'-','LineWidth',1)
     hold off
-    title(LPJGcrops{v})
+    title(['Area: ' LPJGcrops{v}])
     set(gca,'FontSize',14)
     ylabel('Million km2')
     legend(legend_ts,'Location','NorthWest')
@@ -260,9 +264,9 @@ for v = 1:Ncrops_lpjg
     set(gca,'ColorOrderIndex',1) ;
     plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:)),'-','LineWidth',1)
     hold off
-    title(LPJGcrops{v})
+    title(['Fert.: ' LPJGcrops{v}])
     set(gca,'FontSize',14)
-    ylabel('Mt')
+    ylabel('Mt N')
     legend(legend_ts,'Location','NorthWest')
 end
 
@@ -295,9 +299,9 @@ for v = 1:Ncrops_lpjg
     set(gca,'ColorOrderIndex',1) ;
     plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:)),'-','LineWidth',1)
     hold off
-    title(LPJGcrops{v})
+    title(['Irrigation: ' LPJGcrops{v}])
     set(gca,'FontSize',14)
-    ylabel('Arbitrary units')
+    ylabel('intensity \times area')
     legend(legend_ts,'Location','NorthWest')
 end
 
@@ -323,7 +327,7 @@ for r = 1:Nruns
         for y = 1:3
             thisYear = theseYears(y) ;
             h1 = subplot_tight(2,3,y,spacing) ;
-            tmp = PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
+            tmp = 1e-6*PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
             shading flat ; axis equal tight off
@@ -331,7 +335,7 @@ for r = 1:Nruns
             title(sprintf('%s orig: %s, %d',thisRun,thisLU,thisYear)) ;
             set(gca,'FontSize',fontSize)
             h2 = subplot_tight(2,3,y+3,spacing) ;
-            tmp = PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
+            tmp = 1e-6*PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
             shading flat ; axis equal tight off
@@ -366,8 +370,8 @@ for r = 1:Nruns
         for y = 1:3
             thisYear = theseYears(y) ;
             h1 = subplot_tight(1,3,y,spacing) ;
-            tmp1 = PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
-            tmp2 = PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
+            tmp1 = 1e-6*PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
+            tmp2 = 1e-6*PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
             tmp = tmp2 - tmp1 ;
 %             tmp = tmp2/sum(tmp2(:)) - tmp1/sum(tmp1(:)) ;
             tmp(landArea_YX==0) = NaN ;
@@ -405,8 +409,8 @@ for r = 1:Nruns
             thisYear1 = theseYears(y) ;
             thisYear2 = theseYears(y+1) ;
             h1 = subplot_tight(2,2,y,spacing) ;
-            tmp1 = PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear1,r) ;
-            tmp2 = PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear2,r) ;
+            tmp1 = 1e-6*PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear1,r) ;
+            tmp2 = 1e-6*PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear2,r) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
@@ -416,8 +420,8 @@ for r = 1:Nruns
             title(sprintf('%s orig: %s, %d-%d',thisRun,thisLU,thisYear1,thisYear2)) ;
             set(gca,'FontSize',fontSize)
             h2 = subplot_tight(2,2,y+2,spacing) ;
-            tmp1 = PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear1,r) ;
-            tmp2 = PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear2,r) ;
+            tmp1 = 1e-6*PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear1,r) ;
+            tmp2 = 1e-6*PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear2,r) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
@@ -434,32 +438,3 @@ for r = 1:Nruns
         close
     end
 end
-
-
-
-%%
-
-v = 3 ;
-y1 = 1 ;
-yN = 3 ;
-
-orig1_YX = PLUMorig_YXvyr(:,:,v,y1,1) .* PLUMorig_nfert_YXvyr(:,:,v,y1,1) ;
-origN_YX = PLUMorig_YXvyr(:,:,v,yN,1) .* PLUMorig_nfert_YXvyr(:,:,v,yN,1) ;
-orig_YX = origN_YX - orig1_YX ;
-harm1_YX = PLUMharm_YXvyr(:,:,v,y1,1) .* PLUMharm_nfert_YXvyr(:,:,v,y1,1) ;
-harmN_YX = PLUMharm_YXvyr(:,:,v,yN,1) .* PLUMharm_nfert_YXvyr(:,:,v,yN,1) ;
-harm_YX = harmN_YX - harm1_YX ;
-
-figure ;
-spacing = 0.025 ;
-h1 = subplot_tight(2,1,1,spacing) ;
-pcolor(orig_YX); shading flat; axis equal tight
-title('orig')
-colorbar
-h2 = subplot_tight(2,1,2,spacing) ;
-pcolor(harm_YX); shading flat; axis equal tight
-title('harm')
-colorbar
-new_caxis = [-1 1] * max([abs(caxis(h1)) abs(caxis(h2))]) ;
-caxis(h1,new_caxis) ;
-caxis(h2,new_caxis) ;

@@ -15,15 +15,7 @@ else
             Ncrops_lpjg) ;
         for c = 1:Ncrops_lpjg
             thisCrop = LPJGcrops{c} ;
-            thisCropI = [thisCrop 'i'] ;
-            is_thisCrop  = strcmp(cropf_in.varNames,thisCrop) ;
-            is_thisCropI = strcmp(cropf_in.varNames,thisCropI) ;
-            if any(is_thisCropI)
-                cropf_out.maps_YXv(:,:,c) = cropf_in.maps_YXv(:,:,is_thisCrop) ...
-                    + cropf_in.maps_YXv(:,:,is_thisCropI) ;
-            else
-                cropf_out.maps_YXv(:,:,c) = cropf_in.maps_YXv(:,:,is_thisCrop) ;
-            end
+            cropf_out.maps_YXv(:,:,c) = sum(cropf_in.maps_YXv(:,:,contains(cropf_in.varNames,thisCrop)),3) ;
         end
     else
         cropf_out.yearList = cropf_in.yearList ;
@@ -32,18 +24,9 @@ else
             Ncrops_lpjg, size(cropf_in.maps_YXvy,4)) ;
         for c = 1:Ncrops_lpjg
             thisCrop = LPJGcrops{c} ;
-            thisCropI = [thisCrop 'i'] ;
-            is_thisCrop  = strcmp(cropf_in.varNames,thisCrop) ;
-            is_thisCropI = strcmp(cropf_in.varNames,thisCropI) ;
-            if any(is_thisCropI)
-                cropf_out.maps_YXvy(:,:,c,:) = cropf_in.maps_YXvy(:,:,is_thisCrop,:) ...
-                    + cropf_in.maps_YXvy(:,:,is_thisCropI) ;
-            else
-                cropf_out.maps_YXvy(:,:,c,:) = cropf_in.maps_YXvy(:,:,is_thisCrop,:) ;
-            end
+            cropf_out.maps_YXvy(:,:,c,:) = sum(cropf_in.maps_YXvy(:,:,contains(cropf_in.varNames,thisCrop),:),3) ;
         end
     end
 end
-
 
 end

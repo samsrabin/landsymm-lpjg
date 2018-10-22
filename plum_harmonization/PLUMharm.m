@@ -3,8 +3,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 base_year = 2010 ;
-year1 = 2024 ;
-yearN = 2024 ;
+year1 = 2011 ;
+yearN = 2100 ;
+
+% Baseline version
+% baseline_ver = 1 ;
+baseline_ver = 2 ;   % Based on remap_v6
 
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
@@ -19,15 +23,15 @@ PLUM_in_toptop = {...
                   } ;
               
 % Save?
-save_halfDeg_mat = true ;
+save_halfDeg_mat = false ;
 save_2deg_mat = false ;
 save_halfDeg_txt = false ;
 save_2deg_txt = false ;
 
 % Debugging outputs?
-debug_areas = true ;
+debug_areas = false ;
 debug_nfert = false ;
-debug_irrig = true ;
+debug_irrig = false ;
 
 % Coordinates of 2-degree cell to debug (leave empty for no debug)
 debugIJ_2deg = [] ;
@@ -441,17 +445,6 @@ for d = 1:length(PLUM_in_toptop)
         mid_y1_2deg_vegd_YX = sum(mid_y1_2deg_agri_YXv,3) + mid_y1_2deg_ntrl_YX ;
         mid_y1_2deg_bare_YX = landArea_2deg_YX - mid_y1_2deg_vegd_YX ;
         
-%         % Rounding errors can result in bare<0. Fix.
-%         if any(mid_y1_2deg_bare_YX(:)<0)
-%             if abs(min(min(mid_y1_2deg_bare_YX./landArea_2deg_YX))) < 3*eps
-%                 mid_y1_2deg_ntrl_YX(mid_y1_2deg_bare_YX<0) = ...
-%                     mid_y1_2deg_ntrl_YX(mid_y1_2deg_bare_YX<0) ...
-%                     + mid_y1_2deg_bare_YX(mid_y1_2deg_bare_YX<0) ;
-%                 mid_y1_2deg_bare_YX(mid_y1_2deg_bare_YX<0) = 0 ;
-%             else
-%                 error('"Large" negative values of bare area!')
-%             end
-%         end
         % Rounding errors can result in small negative values. Fix.
         tmp_YXv = cat(3, mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu])) ;
@@ -501,7 +494,7 @@ for d = 1:length(PLUM_in_toptop)
             PLUMharm_ringRedist_areaCropsRes(...
             mid_y1_2deg_agri_YXv, ...
             unm_y1_2deg_agri_YXv, ...
-            debugIJ_2deg, LUnames, conserv_tol_pct, '2b areas', ...
+            debugIJ_2deg, conserv_tol_pct, '2b areas', ...
             in_y0_2deg_agri_YXv, in_y1_2deg_agri_YXv, ...
             out_y0_2deg_agri_YXv, ...
             mid_y1_2deg_ntrl_YX, resArea_2deg_YX, LUnames_agri) ;
