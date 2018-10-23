@@ -52,12 +52,14 @@ if ~isempty(find(base.maps_YXvy(:,:,contains(base.varNames,{'URBAN','PEATLAND'})
 end
 if doHarm
     base.maps_YXv = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),base.yearList==base_year) ;
+    base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
 else
     [~,IA,~] = intersect(base.yearList,yearList_luh2) ;
     if ~isequal(IA-min(IA)+1,(1:length(yearList_luh2))')
         error('Incompatible yearList_luh2?')
     end
     base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IA) ;
+    base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
     base.yearList = yearList_luh2 ;
     clear IA IB
 end
