@@ -111,7 +111,7 @@ while any(~is_done_YXv(:))
                     
                     j = j+1 ;
                     if j>100
-                        error('Possible infinite loop in crop ring adjustments.')
+                        error('Possible infinite loop in crop ring adjustments: [%d %d %d]',k+1,m+1,i)
                     end
                     if do_debug && k+1==debugIJ(1) && m+1==debugIJ(2)
                         fprintf('%s, j = %d, total_unmet_this_YX(thisCell) = %0.4g\n',...
