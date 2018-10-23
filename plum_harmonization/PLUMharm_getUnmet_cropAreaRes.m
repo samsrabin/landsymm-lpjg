@@ -1,5 +1,5 @@
 function [unmet_YXv, ...
-    mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YXv] = ...
+    mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX] = ...
     PLUMharm_getUnmet_cropAreaRes(...
     mid1_y1_2deg_agri_YXv, base_2deg_vegd_YX, ...
     resArea_2deg_YX, sum_agri_y0_YX, debugIJ_2deg, dbCrop)
@@ -24,16 +24,17 @@ mid_y1_2deg_agri_YXv = mid1_y1_2deg_agri_YXv ;
 
 do_debug = ~isempty(debugIJ_2deg) ;
 if do_debug
-    i = debugIJ_2deg(1) ;
-    j = debugIJ_2deg(2) ;
+    dbI = debugIJ_2deg(1) ;
+    dbJ = debugIJ_2deg(2) ;
     disp('Initial values:')
-    fprintf('   %s\t%0.4e\n',pad('agri_y0:',20),sum_agri_y0_YX(i,j)) ;
-    fprintf('   %s\t%0.4e\n',pad('agri_y1_mid:',20),sum(mid_y1_2deg_agri_YXv(i,j,:),3)) ;
+    fprintf('   %s\t%0.4e\n',pad('agri_y0:',20),sum_agri_y0_YX(dbI,dbJ)) ;
+    fprintf('   %s\t%0.4e\n',pad('agri_y1_mid:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('   %s\t%0.4e\n',pad('this_y1_mid:',20),mid_y1_2deg_agri_YXv(i,j,dbCrop)) ;
+        fprintf('   %s\t%0.4e\n',pad('this_y1_mid:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
     end
-    fprintf('   %s\t%0.4e\n',pad('ntrl_y1_mid:',20),mid_y1_2deg_ntrl_YX(i,j)) ;
-    fprintf('   %s\t%0.4e\n',pad('vegd_base:',20),base_2deg_vegd_YX(i,j)) ;
+    mid1_y1_2deg_ntrl_YX = base_2deg_vegd_YX - sum(mid1_y1_2deg_agri_YXv,3) ;
+    fprintf('   %s\t%0.4e\n',pad('ntrl_y1_mid:',20),mid1_y1_2deg_ntrl_YX(dbI,dbJ)) ;
+    fprintf('   %s\t%0.4e\n',pad('vegd_base:',20),base_2deg_vegd_YX(dbI,dbJ)) ;
 end
 
 % Check that no agri LU exceeds nonBare area. Unmet will need to go into
@@ -44,11 +45,11 @@ unmetA_YXv = (mid_y1_2deg_agri_YXv - unresArea_2deg_YXv) .* (mid_y1_2deg_agri_YX
 mid_y1_2deg_agri_YXv = mid_y1_2deg_agri_YXv - unmetA_YXv ;
 if do_debug
     disp('After check that no LU exceeds nonBare area:')
-    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(i,j,:),3)) ;
-    fprintf('   %s\t%0.4e\n',pad('unmetA:',20),sum(unmetA_YXv(i,j,:),3)) ;
+    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
+    fprintf('   %s\t%0.4e\n',pad('unmetA:',20),sum(unmetA_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(i,j,dbCrop)) ;
-        fprintf('   %s\t%0.4e\n',pad('unmetA_this:',20),unmetA_YXv(i,j,dbCrop)) ;
+        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('   %s\t%0.4e\n',pad('unmetA_this:',20),unmetA_YXv(dbI,dbJ,dbCrop)) ;
     end
 end
 
@@ -59,11 +60,11 @@ unmetB_YXv = mid_y1_2deg_agri_YXv .* (mid_y1_2deg_agri_YXv < 0) ;
 mid_y1_2deg_agri_YXv = mid_y1_2deg_agri_YXv - unmetB_YXv ;
 if do_debug
     disp('After check that no LU is negative:')
-    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(i,j,:),3)) ;
-    fprintf('   %s\t%0.4e\n',pad('unmetB:',20),sum(unmetB_YXv(i,j,:),3)) ;
+    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
+    fprintf('   %s\t%0.4e\n',pad('unmetB:',20),sum(unmetB_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(i,j,dbCrop)) ;
-        fprintf('   %s\t%0.4e\n',pad('unmetB_this:',20),unmetB_YXv(i,j,dbCrop)) ;
+        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('   %s\t%0.4e\n',pad('unmetB_this:',20),unmetB_YXv(dbI,dbJ,dbCrop)) ;
     end
 end
 
@@ -99,22 +100,22 @@ while any(any(~isOK_YX))
     sum_agri_y1_YX = sum(mid_y1_2deg_agri_YXv,3) ;
     isOK_YX = sum_agri_y1_YX <= max_agri_y1_YX ;
 end
-mid_y1_2deg_ntrl_YXv = base_2deg_vegd_YX - sum(mid_y1_2deg_agri_YXv,3) ;
+mid_y1_2deg_ntrl_YX = base_2deg_vegd_YX - sum(mid_y1_2deg_agri_YXv,3) ;
 
 % Compute the total amount of crop or pasture increase / decrease that is not able to be met within the 2 degree gridcells
 unmet_YXv = unmetA_YXv + unmetB_YXv + unmetD_YXv;
 
 if do_debug
     disp('After check that sum(agri_y1) is compatible with reserved area:')
-    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(i,j,:),3)) ;
-    fprintf('   %s\t%0.4e\n',pad('unmetD:',20),sum(unmetDtmp_YXv(i,j,:),3)) ;
-    fprintf('   %s\t%0.4e\n',pad('total_unmet:',20),sum(unmet_YXv(i,j,:),3)) ;
+    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
+    fprintf('   %s\t%0.4e\n',pad('unmetD:',20),sum(unmetDtmp_YXv(dbI,dbJ,:),3)) ;
+    fprintf('   %s\t%0.4e\n',pad('total_unmet:',20),sum(unmet_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(i,j,dbCrop)) ;
-        fprintf('   %s\t%0.4e\n',pad('unmetD_this:',20),unmetDtmp_YXv(i,j,dbCrop)) ;
-        fprintf('   %s\t%0.4e\n',pad('total_unmet_this:',20),unmet_YXv(i,j,dbCrop)) ;
+        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('   %s\t%0.4e\n',pad('unmetD_this:',20),unmetDtmp_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('   %s\t%0.4e\n',pad('total_unmet_this:',20),unmet_YXv(dbI,dbJ,dbCrop)) ;
     end
-    fprintf('   %s\t%0.4e\n',pad('ntrl_y1_out:',20),mid_y1_2deg_ntrl_YXv(i,j)) ;
+    fprintf('   %s\t%0.4e\n',pad('ntrl_y1_out:',20),mid_y1_2deg_ntrl_YX(dbI,dbJ)) ;
 end
 
 
