@@ -122,6 +122,16 @@ end
 % Convert from "fraction of land" to "land area (m2)"
 % (This also masks where needed due to harmonization of LUH2+PLUM masks)
 if doHarm
+    % First, avoid negative bare
+    base_vegd_YX = sum(base.maps_YXv(:,:,~strcmp(base.varNames,'BARREN')),3) ;
+    base_bare_YX = base.maps_YXv(:,:,strcmp(base.varNames,'BARREN')) ;
+    if any(any(base_vegd_YX>1+1e-15))
+        error('Floating-point error results in unacceptable base_vegd_YX!')
+    end
+    base_bare_YX(base_vegd_YX>1) = 0 ;
+    base.maps_YXv(:,:,strcmp(base.varNames,'BARREN')) = base_bare_YX ;
+    clear base_vegd_YX base_bare_YX
+    
     base.maps_YXv = base.maps_YXv .* landArea_YXv ;
 else
     base.maps_YXvy = base.maps_YXvy .* repmat(landArea_YXv,[1 1 1 Nyears_luh2]) ;
@@ -329,6 +339,9 @@ base_vegdFrac_YX = base_vegd_YX ./ landArea_YX ;
 base_bareFrac_YX = base_bare_YX ./ landArea_YX ;
 
 % Aggregate from 0.5º to 2º
+base_2deg.varNames = base.varNames ;
+base_2deg_nfert.varNames = LPJGcrops ;
+base_2deg_irrig.varNames = LPJGcrops ;
 if doHarm
     base_2deg.maps_YXv = PLUMharm_aggregate(base.maps_YXv,0.5,2) ;
     base_2deg_nfert.maps_YXv = PLUMharm_aggregate_mgmt(base_nfert.maps_YXv,base.maps_YXv(:,:,isCrop),0.5,2) ;
@@ -338,9 +351,6 @@ else
     base_2deg_nfert.maps_YXvy = PLUMharm_aggregate_mgmt(base_nfert.maps_YXvy,base.maps_YXvy(:,:,isCrop,:),0.5,2) ;
     base_2deg_irrig.maps_YXvy = PLUMharm_aggregate_mgmt(base_irrig.maps_YXvy,base.maps_YXvy(:,:,isCrop,:),0.5,2) ;
 end
-base_2deg.varNames = base.varNames ;
-base_2deg_nfert.varNames = LPJGcrops ;
-base_2deg_irrig.varNames = LPJGcrops ;
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
 
 % Do not allow invalid management inputs.

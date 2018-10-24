@@ -26,30 +26,31 @@ do_debug = ~isempty(debugIJ_2deg) ;
 if do_debug
     dbI = debugIJ_2deg(1) ;
     dbJ = debugIJ_2deg(2) ;
-    disp('Initial values:')
-    fprintf('   %s\t%0.4e\n',pad('agri_y0:',20),sum_agri_y0_YX(dbI,dbJ)) ;
-    fprintf('   %s\t%0.4e\n',pad('agri_y1_mid:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
+    fprintf('PLUMharm_getUnmet_cropAreaRes for cell (%d,%d):\n',dbI,dbJ) ;
+    disp('   Initial values:')
+    fprintf('      %s\t%0.4e\n',pad('agri_y0:',20),sum_agri_y0_YX(dbI,dbJ)) ;
+    fprintf('      %s\t%0.4e\n',pad('agri_y1_mid:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('   %s\t%0.4e\n',pad('this_y1_mid:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('      %s\t%0.4e\n',pad('this_y1_mid:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
     end
     mid1_y1_2deg_ntrl_YX = base_2deg_vegd_YX - sum(mid1_y1_2deg_agri_YXv,3) ;
-    fprintf('   %s\t%0.4e\n',pad('ntrl_y1_mid:',20),mid1_y1_2deg_ntrl_YX(dbI,dbJ)) ;
-    fprintf('   %s\t%0.4e\n',pad('vegd_base:',20),base_2deg_vegd_YX(dbI,dbJ)) ;
+    fprintf('      %s\t%0.4e\n',pad('ntrl_y1_mid:',20),mid1_y1_2deg_ntrl_YX(dbI,dbJ)) ;
+    fprintf('      %s\t%0.4e\n',pad('vegd_base:',20),base_2deg_vegd_YX(dbI,dbJ)) ;
 end
 
-% Check that no agri LU exceeds nonBare area. Unmet will need to go into
+% Check that no agri LU exceeds non-reserved area. Unmet will need to go into
 % agri LUs of neighboring cells.
 % USING FIX TO MAKE UNMET POSITIVE
 % unmetA_YXv = (mid_y1_2deg_agri_YXv - base_2deg_vegd_YXv) .* (mid_y1_2deg_agri_YXv > base_2deg_vegd_YXv) ;
 unmetA_YXv = (mid_y1_2deg_agri_YXv - unresArea_2deg_YXv) .* (mid_y1_2deg_agri_YXv > unresArea_2deg_YXv) ;
 mid_y1_2deg_agri_YXv = mid_y1_2deg_agri_YXv - unmetA_YXv ;
 if do_debug
-    disp('After check that no LU exceeds nonBare area:')
-    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
-    fprintf('   %s\t%0.4e\n',pad('unmetA:',20),sum(unmetA_YXv(dbI,dbJ,:),3)) ;
+    disp('   After check that no LU exceeds non-reserved area:')
+    fprintf('      %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
+    fprintf('      %s\t%0.4e\n',pad('unmetA:',20),sum(unmetA_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
-        fprintf('   %s\t%0.4e\n',pad('unmetA_this:',20),unmetA_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('      %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('      %s\t%0.4e\n',pad('unmetA_this:',20),unmetA_YXv(dbI,dbJ,dbCrop)) ;
     end
 end
 
@@ -59,12 +60,12 @@ end
 unmetB_YXv = mid_y1_2deg_agri_YXv .* (mid_y1_2deg_agri_YXv < 0) ;
 mid_y1_2deg_agri_YXv = mid_y1_2deg_agri_YXv - unmetB_YXv ;
 if do_debug
-    disp('After check that no LU is negative:')
-    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
-    fprintf('   %s\t%0.4e\n',pad('unmetB:',20),sum(unmetB_YXv(dbI,dbJ,:),3)) ;
+    disp('   After check that no LU is negative:')
+    fprintf('      %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
+    fprintf('      %s\t%0.4e\n',pad('unmetB:',20),sum(unmetB_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
-        fprintf('   %s\t%0.4e\n',pad('unmetB_this:',20),unmetB_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('      %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('      %s\t%0.4e\n',pad('unmetB_this:',20),unmetB_YXv(dbI,dbJ,dbCrop)) ;
     end
 end
 
@@ -106,16 +107,16 @@ mid_y1_2deg_ntrl_YX = base_2deg_vegd_YX - sum(mid_y1_2deg_agri_YXv,3) ;
 unmet_YXv = unmetA_YXv + unmetB_YXv + unmetD_YXv;
 
 if do_debug
-    disp('After check that sum(agri_y1) is compatible with reserved area:')
-    fprintf('   %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
-    fprintf('   %s\t%0.4e\n',pad('unmetD:',20),sum(unmetDtmp_YXv(dbI,dbJ,:),3)) ;
-    fprintf('   %s\t%0.4e\n',pad('total_unmet:',20),sum(unmet_YXv(dbI,dbJ,:),3)) ;
+    disp('   After check that sum(agri_y1) is compatible with reserved area:')
+    fprintf('      %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
+    fprintf('      %s\t%0.4e\n',pad('unmetD:',20),sum(unmetDtmp_YXv(dbI,dbJ,:),3)) ;
+    fprintf('      %s\t%0.4e\n',pad('total_unmet:',20),sum(unmet_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('   %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
-        fprintf('   %s\t%0.4e\n',pad('unmetD_this:',20),unmetDtmp_YXv(dbI,dbJ,dbCrop)) ;
-        fprintf('   %s\t%0.4e\n',pad('total_unmet_this:',20),unmet_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('      %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('      %s\t%0.4e\n',pad('unmetD_this:',20),unmetDtmp_YXv(dbI,dbJ,dbCrop)) ;
+        fprintf('      %s\t%0.4e\n',pad('total_unmet_this:',20),unmet_YXv(dbI,dbJ,dbCrop)) ;
     end
-    fprintf('   %s\t%0.4e\n',pad('ntrl_y1_out:',20),mid_y1_2deg_ntrl_YX(dbI,dbJ)) ;
+    fprintf('      %s\t%0.4e\n',pad('ntrl_y1_out:',20),mid_y1_2deg_ntrl_YX(dbI,dbJ)) ;
 end
 
 

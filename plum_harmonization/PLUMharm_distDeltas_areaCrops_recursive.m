@@ -2,7 +2,8 @@ function out_y1_agri_YXv = ...
     PLUMharm_distDeltas_areaCrops_recursive( ...
     landArea_YX, landArea_2deg_YX, ...
     out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, out_y0_agri_YXv, ...
-    out_y0_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames)
+    out_y0_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames, ...
+    debug_ijk)
 % Loop through all 2-degree gridcells and distribute the new LU changes to
 % the half-degree gridcells within.
 %
@@ -23,7 +24,17 @@ update_avail_land = true ;
 % which just adds 1e-12 to denominator.
 proper_zero_denoms = true ;
 
-debug_ijk = [Inf Inf Inf] ;
+
+do_debug = ~isempty(debug_ijk) ;
+if do_debug
+    last_IJd = Inf ;
+    this_IJd = -Inf ;
+    dbI = debug_ijk(1) ;
+    dbJ = debug_ijk(2) ;
+    disp('PLUMharm_distDeltas_areaCrops_recursive:')
+else
+    debug_ijk = [Inf Inf Inf] ;
+end
 
 Nagri = size(out_y0_agri_YXv,3) ;
 max_diff = 0 ;
@@ -37,6 +48,21 @@ for i = 1:size(landArea_2deg_YX,1)
         tmp = reshape(cat(2,IY',IX'),[],2) ;
         theseCells = sub2ind(size(landArea_YX),tmp(:,1),tmp(:,2)) ;
         clear tmp
+        
+        
+        % debugging
+        if do_debug
+            if ~isequal(last_IJd,this_IJd)
+                this_IJd = shiftdim(out_y1_2deg_agri_YXv(dbI,dbJ,:) - out_y0_2deg_agri_YXv(dbI,dbJ,:)) ;
+                if isinf(last_IJd)
+                    last_IJd = this_IJd ;
+                end
+                fprintf(['   agri_d(%d,%d): ' repmat('%0.3e ',[1 Nagri]) '\n'],dbI,dbJ,this_IJd) ;
+            end
+            if i==debug_ijk(1) && j==debug_ijk(2)
+                keyboard
+            end
+        end
         
         agri_d = shiftdim(out_y1_2deg_agri_YXv(i,j,:) - out_y0_2deg_agri_YXv(i,j,:)) ;
         if isequal(agri_d,zeros(Nagri,1))
