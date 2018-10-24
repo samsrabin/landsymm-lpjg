@@ -51,8 +51,11 @@ if ~isempty(find(base.maps_YXvy(:,:,contains(base.varNames,{'URBAN','PEATLAND'})
     error('This code is not designed to handle LUH2 inputs with any URBAN or PEATLAND area!')
 end
 if doHarm
-    base.maps_YXv = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),base.yearList==base_year) ;
+    tmp = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),base.yearList==base_year) ;
+    base = rmfield(base,'maps_YXvy') ;
     base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
+    base.maps_YXv = tmp ;
+    clear tmp
 else
     [~,IA,~] = intersect(base.yearList,yearList_luh2) ;
     if ~isequal(IA-min(IA)+1,(1:length(yearList_luh2))')
@@ -71,8 +74,15 @@ if ~isequal(LUnames,base.varNames)
         error('LUnames and base.varNames are incompatible?')
     end
     [~,~,IB] = intersect(LUnames,base.varNames,'stable') ;
-    base.maps_YXvy = base.maps_YXvy(:,:,IB,:) ;
-    base.varNames = LUnames ;
+    if doHarm
+        base.maps_YXv = base.maps_YXv(:,:,IB) ;
+    else
+        base.maps_YXvy = base.maps_YXvy(:,:,IB,:) ;
+    end
+    base.varNames = base.varNames(IB) ;
+    if ~isequal(base.varNames,LUnames)
+        error('Error in rearranging LU names on baseline import!')
+    end
 end
 
 % Harmonize masks
