@@ -3,15 +3,18 @@ disp('Importing reference data...')
 % Get files based on baseline version
 PLUM_file_res_terr = '/Users/Shared/PLUM/input/protected_areas/maxcropfrac2.txt' ;
 PLUM_file_res_prot = '/Users/Shared/PLUM/input/protected_areas/protected_areas_with_points.txt' ;
-landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
 if baseline_ver == 1
     luh2_file = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
     cropf_file = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
     nfert_file = '/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
+    landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
+    inpaint_method = 0 ;
 elseif baseline_ver == 2
     luh2_file = '/Users/Shared/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
     cropf_file = '/Users/Shared/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
     nfert_file = '/Users/Shared/PLUM/input/remaps_v6/nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+    landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+    inpaint_method = 4 ;
 else
     error('baseline_ver (%d) not recognized!',baseline_ver) ;
 end
@@ -37,13 +40,13 @@ clear resFrac_prot
 resFrac_prot_YX(resFrac_prot_YX==-9999) = 0 ;
 
 % Get LUH2 land area (m2)
-gcel_area_YXqd = 1e6*transpose(ncread(landarea_file,'carea')) ;
-land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
+gcel_area_YXqd = 1e6*double(transpose(ncread(landarea_file,'carea'))) ;
+land_frac_YXqd = 1 - double(flipud(transpose(ncread(landarea_file,'icwtr')))) ;
 landArea_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
 %%%%% Convert to half-degree
 tmp = landArea_YXqd(:,1:2:1440) + landArea_YXqd(:,2:2:1440) ;
 landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-clear *_YXqd
+clear *_YXqd tmp
 
 % Import LUH2 base_year
 base = lpjgu_matlab_readTable_then2map(luh2_file, 'force_mat_save', true);%, 'verbose', true, 'verboseIfNoMat', true) ;
@@ -56,6 +59,7 @@ if doHarm
     base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
     base.maps_YXv = tmp ;
     clear tmp
+    bad_base_YX = sum(base.maps_YXv,3)==0 | isnan(sum(base.maps_YXv,3)) ;
 else
     [~,IA,~] = intersect(base.yearList,yearList_luh2) ;
     if ~isequal(IA-min(IA)+1,(1:length(yearList_luh2))')
@@ -64,6 +68,7 @@ else
     base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IA) ;
     base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
     base.yearList = yearList_luh2 ;
+    bad_base_YX = sum(sum(base.maps_YXvy,3),4)==0 | isnan(sum(sum(base.maps_YXvy,3),4)) ;
     clear IA IB
 end
 
@@ -91,8 +96,10 @@ file_in = [PLUM_base_in 'LandCoverFract.txt'] ;
 S = lpjgu_matlab_readTable_then2map(file_in,'verboseIfNoMat',false,'force_mat_nosave',true) ;
 mask_YX = isnan(S.maps_YXv(:,:,1)) ...
     | sum(S.maps_YXv(:,:,contains(S.varNames,{'CROPLAND','PASTURE','NATURAL'})),3)==0 ...
-    | landArea_YX==0 ;
+    | landArea_YX==0 ...
+    | bad_base_YX ;
 landArea_YX(mask_YX) = 0 ;
+base.maps_YXv(repmat(mask_YX,[1 1 length(LUnames)])) = NaN ;
 clear S
 
 % Get repmat 0.5º land area
@@ -154,12 +161,16 @@ end
 % setAside but also unhandledCrops.)
 base_cropf = lpjgu_matlab_readTable_then2map(cropf_file,...
     'verboseIfNoMat',false,'force_mat_save',true) ;
+
 % Get just base year, if needed
 if doHarm && isfield(base_cropf,'yearList')
     tmp = base_cropf.maps_YXvy(:,:,:,base_cropf.yearList==base_year) ;
     base_cropf = rmfield(base_cropf,{'maps_YXvy','yearList'}) ;
     base_cropf.maps_YXv = tmp ;
+    base_cropf.maps_YXv(repmat(mask_YX,[1 1 length(base_cropf.varNames)])) = NaN ;
     clear tmp
+else
+    base_cropf.maps_YXvy(repmat(mask_YX,[1 1 length(base_cropf.varNames) Nyears_luh2])) = NaN ;
 end
 % Combine CC3G and CC4G into ExtraCrop
 if any(strcmp(base_cropf.varNames,'CC3G')) && any(strcmp(base_cropf.varNames,'CC4G'))
@@ -449,5 +460,15 @@ PLUMtoLPJG{strcmp(LPJGcrops,'ExtraCrop')} = 'setaside' ;
 
 % Check that every PLUM crop is mapped
 checkPLUMmap(PLUMtoLPJG,PLUMcrops) ;
+
+% Check that there are no non-vegetated gridcells where landArea>0
+if (doHarm && any(any(sum(base.maps_YXv(:,:,~strcmp(base.varNames,'BARREN')),3)==0 & landArea_YX>0))) ...
+|| (~doHarm && any(any(any(sum(base.maps_YXvy(:,:,~strcmp(base.varNames,'BARREN'),:),3)==0 & landArea_YX>0))))
+    error('Half-deg baseline has non-vegetated gridcells where landArea>0!')
+end
+if (doHarm && any(any(sum(base_2deg.maps_YXv(:,:,~strcmp(base_2deg.varNames,'BARREN')),3)==0 & landArea_2deg_YX>0))) ...
+|| (~doHarm && any(any(any(sum(base_2deg.maps_YXvy(:,:,~strcmp(base_2deg.varNames,'BARREN'),:),3)==0 & landArea_2deg_YX>0))))
+    error('2-deg baseline has non-vegetated gridcells where landArea>0!')
+end
 
 disp('Done importing reference data.')
