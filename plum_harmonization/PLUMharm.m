@@ -907,7 +907,7 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'BARREN')) = out_y1_2deg_bare_YX ;
             out_y1.maps_YXv = out_y1.maps_YXv ./ repmat(landArea_2deg_YX,[1 1 length(out_y1.varNames)]) ;
             if save_2deg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.2deg.txt'] ;
+                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.2deg.mat'] ;
                 save(file_out,'out_y1') ;
             end
             if save_2deg_txt
@@ -929,7 +929,7 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
             out_y1.varNames = LPJGcrops ;
             if save_2deg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.2deg.txt'] ;
+                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.2deg.mat'] ;
                 save(file_out,'out_y1') ;
             end
             if save_2deg_txt
@@ -952,7 +952,7 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv = 1e4*out_y1_2deg_nfert_YXv ;
             out_y1.varNames = LPJGcrops ;
             if save_2deg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.txt'] ;
+                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.mat'] ;
                 save(file_out,'out_y1') ;
             end
             if save_2deg_txt
@@ -974,7 +974,7 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
             out_y1.varNames = LPJGcrops ;
             if save_2deg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.2deg.txt'] ;
+                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.2deg.mat'] ;
                 save(file_out,'out_y1') ;
             end
             if save_2deg_txt
