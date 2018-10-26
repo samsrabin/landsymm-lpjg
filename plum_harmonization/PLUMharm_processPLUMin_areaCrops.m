@@ -57,13 +57,13 @@ if exist(file_in_dtl,'file')
     tmpN = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
     tmpI = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
     if any(any(tmpN>0)) || any(any(tmpI>0))
-        if any(any(tmpN>0)) && any(any(tmpI>0))
-            warning('Removing fertilization and irrigation from SetAside!')
-        elseif any(any(tmpN>0))
-            warning('Removing fertilization from SetAside!')
-        elseif any(any(tmpI>0))
-            warning('Removing irrigation from SetAside!')
-        end
+%         if any(any(tmpN>0)) && any(any(tmpI>0))
+%             warning('Removing fertilization and irrigation from SetAside!')
+%         elseif any(any(tmpN>0))
+%             warning('Removing fertilization from SetAside!')
+%         elseif any(any(tmpI>0))
+%             warning('Removing irrigation from SetAside!')
+%         end
         tmpN(tmpN>0) = 0 ;
         tmpI(tmpI>0) = 0 ;
         S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) = tmpN ;
