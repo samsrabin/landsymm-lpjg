@@ -10,7 +10,8 @@ if exist(MATfile,'file')
     MATfile_info = dir(MATfile) ;
     [~, TXTfile] = unix(['ls -t ' inDir '/*/*.' thisVer 'txt | head -n 1  | tr -d ''\n''']) ;
     TXTfile_info = dir(TXTfile) ;
-    if MATfile_info.datenum > TXTfile_info.datenum
+    
+    if isempty(TXTfile_info) || MATfile_info.datenum > TXTfile_info.datenum
         S_out = [] ;
         S_nfert_out = [] ;
         S_irrig_out = [] ;
