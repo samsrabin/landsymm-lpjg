@@ -8,7 +8,7 @@ if calib_ver==17 % Put calib_ver==XX here if you want to use a mask
         gl = lpjgu_matlab_readTable_then2map(filename_guess_gridlist) ;
     end
     countries_YX(~gl.mask_YX) = NaN ;
-elseif calib_ver<=16
+elseif calib_ver<=16 || calib_ver==18
     if exist('filename_guess_gridlist','var')
         warning(['filename_guess_gridlist ignored for calib_ver ' num2str(calib_ver) '.'])
     end
@@ -17,7 +17,7 @@ else
     error(['calib_ver ' num2str(calib_ver) ' not recognized in "Mask countries map to LPJ-GUESS gridlist"'])
 end
 
-% Where does LPJ-GUESS have gridcells but countries_YX does not?
+%% Where does LPJ-GUESS have gridcells but countries_YX does not?
 inGlNotCtries_YX = gl.mask_YX & isnan(countries_YX) ;
 if false % Put calib_ver==XX here if you want to try and fix this
     % First, try to fill with values from "all touched" gdal_rasterize. We do
@@ -49,7 +49,7 @@ if false % Put calib_ver==XX here if you want to try and fix this
             error('How did that masking not work???')
         end
     end
-elseif calib_ver<=17
+elseif calib_ver<=18
     if any(inGlNotCtries_YX(:))
         warning([num2str(length(find(inGlNotCtries_YX))) ' cells in LPJ-GUESS output but not countries map! These will be ignored in calibration. To view: figure;pcolor(inGlNotCtries_YX);shading flat'])
     end

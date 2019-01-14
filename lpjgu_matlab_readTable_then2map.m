@@ -7,11 +7,12 @@ addOptional(p,'xres',NaN,@isnumeric) ;
 addOptional(p,'yres',NaN,@isnumeric) ;
 addOptional(p,'lat_orient','',@isstr) ;
 addOptional(p,'lon_orient','',@isstr) ;
-addOptional(p,'verbose',true,@islogical) ;
-addOptional(p,'verboseIfNoMat',false,@islogical) ;
+addOptional(p,'verbose',false,@islogical) ;
+addOptional(p,'verboseIfNoMat',true,@islogical) ;
 addOptional(p,'force_mat_save',false,@islogical) ;
 addOptional(p,'force_mat_nosave',false,@islogical) ;
 addOptional(p,'list_to_map_in',[]) ;
+addOptional(p,'dataType','double',@isstr) ;
 parse(p,in_file,varargin{:});
 
 xres = p.Results.xres ;
@@ -23,6 +24,7 @@ force_mat_nosave = p.Results.force_mat_nosave ;
 list_to_map_in = p.Results.list_to_map_in ;
 lat_orient = p.Results.lat_orient ;
 lon_orient = p.Results.lon_orient ;
+dataType = p.Results.dataType ;
 
 if ~isempty(lat_orient) && ~(strcmp(lat_orient,'lower') || strcmp(lat_orient,'center')  || strcmp(lat_orient,'upper'))
     error(['If providing lat_orient, it must be either lower, center, or upper. (' lat_orient ')'])
@@ -117,12 +119,12 @@ else
     end
     [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,lat_orient,lon_orient,verboseIfNoMat,verbose) ;
     if is_gridlist
-        mask_YX = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,verboseIfNoMat,verbose) ;
+        mask_YX = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,dataType,verboseIfNoMat,verbose) ;
     else
         if multi_yrs
-            maps_YXvy = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,verboseIfNoMat,verbose) ;
+            maps_YXvy = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,dataType,verboseIfNoMat,verbose) ;
         else
-            maps_YXv = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,verboseIfNoMat,verbose) ;
+            maps_YXv = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,dataType,verboseIfNoMat,verbose) ;
         end
     end
     
@@ -176,17 +178,19 @@ end
 [xres,yres] = process_resolution(xres,yres,in_lons,in_lats,verboseIfNoMat,verbose) ;
 
 % Get ready for mapping
-[lons_map,lats_map] = set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient) ;
+[lons_map,lats_map] = set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient,verboseIfNoMat,verbose) ;
 
 % Get indices for mapping
 if isempty(list_to_map_in)
     [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose) ;
 else
     if length(in_lons) ~= length(list_to_map_in)
-        error('length(in_lons) ~= length(list_to_map_in)')
+        warning('length(in_lons) ~= length(list_to_map_in)! Ignoring list_to_map_in.')
+        [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose) ;
+    else
+        list_to_map = list_to_map_in ;
+        found = true(size(list_to_map)) ;
     end
-    list_to_map = list_to_map_in ;
-    found = true(size(list_to_map)) ;
 end
 
 end
@@ -253,7 +257,7 @@ end
 end
 
 
-function [out_lons_map,out_lats_map] = set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient)
+function [out_lons_map,out_lats_map] = set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient,verboseIfNoMat,verbose)
 
 % Determine orientation, if needed
 if isempty(lat_orient)
@@ -270,7 +274,9 @@ if isempty(lat_orient)
             lat_orient = 'center' ;
         end
     end
-    disp(['      Assuming lat_orient = ' lat_orient '.'])
+    if verboseIfNoMat || verbose
+        disp(['      Assuming lat_orient = ' lat_orient '.'])
+    end
 end
 if isempty(lon_orient)
     if any(in_lons==-180)
@@ -286,7 +292,9 @@ if isempty(lon_orient)
             lon_orient = 'center' ;
         end
     end
-    disp(['      Assuming lon_orient = ' lon_orient '.'])
+    if verboseIfNoMat || verbose
+        disp(['      Assuming lon_orient = ' lon_orient '.'])
+    end
 end
 
 % Set up maps
@@ -346,7 +354,7 @@ end
 
 
 function out_maps = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,...
-    verboseIfNoMat,verbose)
+    dataType, verboseIfNoMat, verbose)
 
 Nlon = 360 / xres ;
 Nlat = 180 / yres ;
@@ -364,9 +372,9 @@ else
     Nvars = length(varNames) ;
     if multi_yrs
         Nyears = length(yearList) ;
-        out_maps = nan(Nlat,Nlon,Nvars,Nyears,'single') ;
+        out_maps = nan(Nlat,Nlon,Nvars,Nyears,dataType) ;
     else
-        out_maps = nan(Nlat,Nlon,Nvars,'single') ;
+        out_maps = nan(Nlat,Nlon,Nvars,dataType) ;
     end
     for v = 1:Nvars
         thisVar = varNames{v} ;
@@ -376,7 +384,7 @@ else
         if multi_yrs
             for y = 1:Nyears
                 thisYear = yearList(y) ;
-                tmp = nan(Nlat,Nlon,'single') ;
+                tmp = nan(Nlat,Nlon,dataType) ;
                 try
                     tmp(list_to_map) = table2array(in_table(in_table.Year==thisYear,thisVar)) ;
                 catch ME
@@ -385,7 +393,7 @@ else
                 out_maps(:,:,v,y) = tmp ;
             end
         else
-            tmp = nan(Nlat,Nlon,'single') ;
+            tmp = nan(Nlat,Nlon,dataType) ;
             tmp(list_to_map) = table2array(in_table(found,thisVar)) ;
             out_maps(:,:,v) = tmp ;
         end
