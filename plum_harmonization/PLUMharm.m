@@ -4,7 +4,7 @@
 
 base_year = 2010 ;
 year1 = 2011 ;
-yearN = 2100 ;
+yearN = 2013 ;
 
 % Baseline version
 % baseline_ver = 1 ;
@@ -69,6 +69,9 @@ else
     addpath(genpath( '/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work')) ;
     PLUMharm_top = '/pfs/data1/home/kit/imk-ifu/lr8247/plum_harmonization/' ;
     inDir_protectedAreas = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/protected_areas/' ;
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general/'))
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general-fromshared/'))
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/lpj-guess-crop-calibration/'))
 end
 
 % Method for inpaint_nans()
