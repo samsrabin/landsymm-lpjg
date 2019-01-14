@@ -264,7 +264,7 @@ elseif calib_ver==15
     FAO_to_FAO_key2{getFi('Oilcrops')}       = {'Oilcrops'} ;
     FAO_to_FAO_key2{getFi('Pulses')}         = {'Pulses'} ;
     FAO_to_FAO_key2{getFi('Starchy roots')}  = {'Starchy Roots'} ;
-elseif calib_ver==16
+elseif calib_ver==16 || calib_ver==18
 %     error('Do this')
     listCrops_fa2o = {'Wheat','Maize','Rice','Oilcrops','Pulses','Starchy roots'} ;
     getFi = @(x)find(strcmp(listCrops_fa2o,x)) ;

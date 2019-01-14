@@ -25,7 +25,7 @@ elseif xres_in~=xres_out || yres_in~=yres_out
     
     % Check
     globalland_area_in = sum(sum(land_area_YX_in)) ;
-    if abs(sum(sum(land_area_YX_tmp)) - globalland_area_in)>1e-6
+    if abs(sum(sum(land_area_YX_tmp)) - globalland_area_in)>1e-4
         error('Error in X aggregation.')
     end
     
@@ -36,7 +36,7 @@ elseif xres_in~=xres_out || yres_in~=yres_out
     end
     
     % Check
-    if abs(sum(sum(land_area_YX_out)) - globalland_area_in)>1e-6
+    if abs(sum(sum(land_area_YX_out)) - globalland_area_in)>1e-4
         error('Error in Y aggregation.')
     end
     

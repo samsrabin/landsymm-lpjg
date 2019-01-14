@@ -6,7 +6,7 @@ if ~is_ggcmi
         listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi','TrSo','GlyM','FaBe'} ;
     elseif calib_ver == 11
         error('calib_ver 11 only works with stijn_20180119.')
-    elseif calib_ver == 12 || calib_ver == 15 || calib_ver == 16
+    elseif calib_ver == 12 || calib_ver == 15 || calib_ver == 16 || calib_ver == 18
         listCrops_lpj_comb = {'CerealsC3','CerealsC4','Rice','Oilcrops','StarchyRoots','Pulses'} ;
     elseif calib_ver == 13
         listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Pulses','Soybeans','Rice'} ;
@@ -32,17 +32,19 @@ if ~is_ggcmi
 end
 
 
-% Trim out CC3G, CC4G, and OtHr from yield_lpj
+% Trim out CC3G, CC4G, ExtraCrop, and OtHr from yield_lpj
 % toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic')) ;
 if ~is_ggcmi
-    toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic') ...
-        | strcmp(yield_lpj.varNames,'OtHr') | strcmp(yield_lpj.varNames,'OtHri')) ;
+%     toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic') ...
+%         | strcmp(yield_lpj.varNames,'OtHr') | strcmp(yield_lpj.varNames,'OtHri')) ;
+    toRemove = find(contains(yield_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
     if ~isempty(toRemove)
         yield_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
         yield_lpj.varNames(toRemove) = [] ;
     end
-    toRemove = find(strcmp(cropfrac_lpj.varNames,'CC3G_ic') | strcmp(cropfrac_lpj.varNames,'CC4G_ic') ...
-        | strcmp(cropfrac_lpj.varNames,'OtHr') | strcmp(cropfrac_lpj.varNames,'OtHri')) ;
+%     toRemove = find(strcmp(cropfrac_lpj.varNames,'CC3G_ic') | strcmp(cropfrac_lpj.varNames,'CC4G_ic') ...
+%         | strcmp(cropfrac_lpj.varNames,'OtHr') | strcmp(cropfrac_lpj.varNames,'OtHri')) ;
+    toRemove = find(contains(cropfrac_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
     if ~isempty(toRemove)
         if isfield(cropfrac_lpj,'maps_YXvy')
             cropfrac_lpj.maps_YXvy(:,:,toRemove,:) = [] ;

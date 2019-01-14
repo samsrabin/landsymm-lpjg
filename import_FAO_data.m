@@ -17,7 +17,7 @@ elseif calib_ver==5
     fao_filename_trimmed = 'FAOSTAT_20170410_CommodityBalances_Crops_Production_trimmed_rearr.csv' ;
 elseif calib_ver==8
     fao_filename_trimmed = 'FAOSTAT_20170412_Production_Crops_E_All_Data_neg999s_rearr.csv' ;
-elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && calib_ver<=16)
+elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && (calib_ver<=16 || calib_ver==18))
     fao_filename_trimmed = 'CommodityBalances_Crops_E_All_Data_Norm.csv' ;
 elseif calib_ver==17
     fao_filename_trimmed = 'Production_Crops_E_All_Data_(Normalized).csv' ;
@@ -63,7 +63,7 @@ else
         disp('Reading FAO data from TXT file 2...')
         fao2 = readtable('FAOSTAT_20170410_CommodityBalances_Crops_Production_trimmed_rearr.csv') ;
         twofiles = true ;
-    elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && calib_ver<=16)
+    elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && (calib_ver<=16 || calib_ver==18))
         disp('Reading FAO data from TXT file 1...')
         fao1 = readtable('Production_Crops_E_All_Data_Norm.csv') ;
         fao1.CountryCode = [] ;

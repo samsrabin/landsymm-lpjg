@@ -4,8 +4,8 @@ p = inputParser ;
 addRequired(p,'in_file',@ischar) ;
 addOptional(p,'dont_save_MAT',false,@islogical) ;
 addOptional(p,'do_save_MAT',false,@islogical) ;
-addOptional(p,'verbose',true,@islogical) ;
-addOptional(p,'verboseIfNoMat',false,@islogical) ;
+addOptional(p,'verbose',false,@islogical) ;
+addOptional(p,'verboseIfNoMat',true,@islogical) ;
 addOptional(p,'dispPrefix','',@ischar) ;
 parse(p,in_file,varargin{:});
 dont_save_MAT = p.Results.dont_save_MAT ;
@@ -133,7 +133,7 @@ standardize_colnames()
         end
         
         % Make table
-        out_table = array2table(A,'VariableNames',colNames) ;
+        out_table = array2table(A,'VariableNames',strrep(colNames,'"','')) ;
         
         % Deal with doubled data in 2005 for N_fert_rcp85_6f.out
         [~,in_name,in_ext] = fileparts(in_file) ;

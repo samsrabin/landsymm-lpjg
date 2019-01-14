@@ -36,7 +36,7 @@ script_setup_cropCalibration
 
 if calib_ver<=4
     script_import_lpj_yields
-elseif calib_ver>=5 && calib_ver<=17
+elseif calib_ver>=5 && calib_ver<=18
     script_import_lpj_yields_noCCy
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
@@ -61,6 +61,15 @@ script_adjust_countries
 
 faoCommBalElement = 'Production' ;
 % faoCommBalElement = 'Feed' ;
+% faoCommBalElement = 'Food' ;
+% faoCommBalElement = 'Waste' ;
+% faoCommBalElement = 'Processing' ;
+% faoCommBalElement = 'Other uses' ;
+
+if ~strcmp(faoCommBalElement,'Production')
+    error(['faoCommBalElement is set to something other than Production. '...
+           'If this is intentional, continue manually.'])
+end
 
 [total_fa2_Ccy, croparea_fa2_Ccy, yield_fa2_Ccy, ...
     fao_itemNames, ...
@@ -84,9 +93,10 @@ getPi = @(x) find(strcmp(listCrops_lpj_comb,x)) ;
 %     listCountries_map_present_all, ~, ~, ~, ~, ...
 %     yieldWasInf_fa2_Ccy] ...
 %     = get_fao_data(tmp_fao_yearList(1),tmp_fao_yearList(end),calib_ver,...
-%     Ncountries, listCountries_map_present, countries_YX, countries_key) ;
-% %%
-% tmp_outFile = ['/Users/Shared/PLUM/crop_calib_data/fao/FAOdata_' num2str(tmp_fao_yearList(1)) '-' num2str(tmp_fao_yearList(end)) '_calibVer' num2str(calib_ver) '.mat'] ;
+%     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
+%     faoCommBalElement) ;
+% %
+% tmp_outFile = ['/Users/Shared/PLUM/crop_calib_data/fao/FAOdata_' num2str(tmp_fao_yearList(1)) '-' num2str(tmp_fao_yearList(end)) '_calibVer' num2str(calib_ver) '_' faoCommBalElement '.mat'] ;
 % if ~exist(tmp_outFile,'file')
 %     save(tmp_outFile,'tmp_total_fa2_Ccy','tmp_croparea_fa2_Ccy',...
 %         'tmp_yield_fa2_Ccy','listCrops_fa2o','tmp_fao_yearList',...
@@ -96,6 +106,7 @@ getPi = @(x) find(strcmp(listCrops_lpj_comb,x)) ;
 % end
 % 
 % clear tmp*
+% disp('Done saving.')
 
 
 %% Make Ccy arrays from LPJ data
@@ -147,7 +158,7 @@ fig_font_size = 16 ;
 % Miscanthus file
 if calib_ver==11 || calib_ver==17 || is_ggcmi
     miscanthus_file = '' ;
-elseif calib_ver<=16
+elseif calib_ver<=16 || calib_ver==18
     warning('Using horrible Miscanthus kludge from miscanthus_calibration_kludge.m!')
     miscanthus_file = 'Miscanthus_yields_for_plot.mat' ;
 else
@@ -210,7 +221,7 @@ if calib_ver==11
         eval(['yield_lpj_4cal_Cyc(:,:,c) = yield_lpj_4cal_tmp.' thisCrop '_Cy ;']) ;
     end
     clear yield_lpj_4cal_tmp
-elseif calib_ver>=12 && calib_ver<=16
+elseif calib_ver>=12 && (calib_ver<=16 || calib_ver==18)
     listCrops_4cal = listCrops_lpj_comb ;
     Ncrops_4cal = length(listCrops_4cal) ;
     for c = 1:Ncrops_4cal
@@ -272,7 +283,7 @@ elseif calib_ver==11
     FA2_to_PLUM_key{getPi2('TrSo')}  = {'Sorghum'} ;
     FA2_to_PLUM_key{getPi2('GlyM')}  = {'Soybean'} ;
     FA2_to_PLUM_key{getPi2('FaBe')}  = {'Faba bean'} ;
-elseif calib_ver==12 || calib_ver==15 || calib_ver==16
+elseif calib_ver==12 || calib_ver==15 || calib_ver==16 || calib_ver==18
 %     FA2_to_PLUM_key{getPi2('CerealsC3')}  = {'Wheat'} ;
 %     FA2_to_PLUM_key{getPi2('CerealsC4')}  = {'Maize'} ;
 %     FA2_to_PLUM_key{getPi2('Rice')}  = {'Rice'} ;
@@ -323,7 +334,7 @@ end
 if calib_ver==11 || calib_ver==17
     ignore_lpj_Cc = countries2ignore(croparea_lpj_4cal_Ccy) ;
     ignore_fa2_Cc = countries2ignore(croparea_fa2_4cal_Ccy) ;
-elseif calib_ver>=1 && calib_ver<=16
+elseif calib_ver>=1 && (calib_ver<=16 || calib_ver==18)
     ignore_lpj_Cc = false(size(croparea_lpj_4cal_Ccy,1),size(croparea_lpj_4cal_Ccy,2)) ;
     ignore_fa2_Cc = false(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,2)) ;
 else
@@ -346,7 +357,7 @@ if isempty(regWeight_basedOn)
 else
     if calib_ver==11
         error('Add code to do weights when ignoring countries.')
-    elseif ~(calib_ver>=1 || calib_ver<=17)
+    elseif ~(calib_ver>=1 || calib_ver<=18)
         error(['calib_ver (' num2str(calib_ver) ') not recognized! In "Get weights for regression"'])
     end
     weights_fa2_4cal_Cyc = nan(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,3),size(croparea_fa2_4cal_Ccy,2)) ;
