@@ -4,15 +4,23 @@
 
 read_MATs = true ;
 
+% Baseline version
+% baseline_ver = 1 ;
+baseline_ver = 2 ;   % Based on remap_v6
+
 thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
 
 runList = {...
-           'SSP1.v10.s1' ;
-           'SSP3.v10.s1' ;
-           'SSP4.v10.s1' ;
-           'SSP5.v10.s1';
+%            'SSP1.v10.s1' ;
+%            'SSP3.v10.s1' ;
+%            'SSP4.v10.s1' ;
+%            'SSP5.v10.s1' ;
+           'SSP1.v11.s1' ;
+           'SSP3.v11.s1' ;
+           'SSP4.v11.s1' ;
+           'SSP5.v11.s1';
             } ;
 
 base_year = 2010 ;
@@ -22,12 +30,12 @@ yearList_harm = 2011:2100 ;
 norm2extra = 0.177 ;
 
 % Method for inpaint_nans()
-inpaint_method = 0 ;
-
-out_dir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harmonization_figs_20180831/' ;
+% (moved to PLUMharm_importRefData)
 
 
 %% Setup
+
+out_dir = sprintf('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harmonization_figs_v%d/',baseline_ver) ;
 
 yearList_luh2 = 1971:2010 ;
 % yearList_luh2 = 2001:2010 ;

@@ -86,7 +86,7 @@ for k = k1:Nagri
                 % based on how much NATURAL land each has
                 if proper_zero_denoms
                     if sum(avail_land_this)==0
-                        error('How is there no available land here??')
+                        error('How is there no available land here?? Cell (%d,%d,%d)',i,j,k)
                     end
                     tmp = out_y0_this_YX(:) + avail_land_this / sum(avail_land_this) * this_d ;
                 else
@@ -101,7 +101,7 @@ for k = k1:Nagri
                 end
                 if proper_zero_denoms
                     if sum(avail_land)==0
-                        error('How is there no available land here??')
+                        error('How is there no available land here?? Cell (%d,%d,%d)',i,j,k)
                     end
                     tmp = out_y0_this_YX(:) + avail_land / sum(avail_land) * this_d ;
                 else

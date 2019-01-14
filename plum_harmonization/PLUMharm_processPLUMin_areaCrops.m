@@ -57,13 +57,13 @@ if exist(file_in_dtl,'file')
     tmpN = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
     tmpI = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
     if any(any(tmpN>0)) || any(any(tmpI>0))
-        if any(any(tmpN>0)) && any(any(tmpI>0))
-            warning('Removing fertilization and irrigation from SetAside!')
-        elseif any(any(tmpN>0))
-            warning('Removing fertilization from SetAside!')
-        elseif any(any(tmpI>0))
-            warning('Removing irrigation from SetAside!')
-        end
+%         if any(any(tmpN>0)) && any(any(tmpI>0))
+%             warning('Removing fertilization and irrigation from SetAside!')
+%         elseif any(any(tmpN>0))
+%             warning('Removing fertilization from SetAside!')
+%         elseif any(any(tmpI>0))
+%             warning('Removing irrigation from SetAside!')
+%         end
         tmpN(tmpN>0) = 0 ;
         tmpI(tmpI>0) = 0 ;
         S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) = tmpN ;
@@ -171,7 +171,7 @@ tmp_nfert_YXv = S_nfert.maps_YXv ;
 tmp_nfert_YXv(isnan(tmp_nfert_YXv)) = 0 ;
 tmp_irrig_YXv = S_irrig.maps_YXv ;
 tmp_irrig_YXv(isnan(tmp_irrig_YXv)) = 0 ;
-PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, 'import_mgmt') ;
+PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, LUnames, 'import_mgmt') ;
 clear tmp_*
 
 % Get maps at 2deg
@@ -204,7 +204,7 @@ tmp_nfert_YXv = S_nfert_2deg.maps_YXv ;
 tmp_nfert_YXv(isnan(tmp_nfert_YXv)) = 0 ;
 tmp_irrig_YXv = S_irrig_2deg.maps_YXv ;
 tmp_irrig_YXv(isnan(tmp_irrig_YXv)) = 0 ;
-PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, [], 'import_mgmt') ;
+PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, [], LUnames, 'import_mgmt') ;
 clear tmp_*
 
 % Interpolate management inputs
@@ -219,7 +219,7 @@ if doInterp
     % Irrigation needs to be maximum 1.
     S_irrig_2deg2.maps_YXv(S_irrig_2deg2.maps_YXv>1) = 1 ;
     % Check for bad values
-    PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, [], 'import_mgmt_2deg2') ;
+    PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, [], LUnames, 'import_mgmt_2deg2') ;
 elseif useLatestPLUMmgmt
     S_nfert_2deg2 = S_nfert_2deg ;
     S_irrig_2deg2 = S_irrig_2deg ;
@@ -233,7 +233,7 @@ if useLatestPLUMmgmt
     repl_YXv = S_2deg.maps_YXv(:,:,isCrop)==0 & latestPLUMin_irrig_2deg_YXv>=0 ;
     S_irrig_2deg2.maps_YXv(repl_YXv) = latestPLUMin_irrig_2deg_YXv(repl_YXv) ;
     % Check for bad values
-    PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, [], 'import_mgmt_2deg2.2') ;
+    PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, [], LUnames, 'import_mgmt_2deg2.2') ;
 end
 
 % Save management
