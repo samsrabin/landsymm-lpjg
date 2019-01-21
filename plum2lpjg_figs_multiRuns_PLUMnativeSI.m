@@ -21,14 +21,14 @@
 % thisVer = 'harm2.1_S4R6.0_attr' ;
 % thisVer = 'harm2.1_S5R8.5_attr' ;
 % thisVer = 'harm2.2' ;
-% thisVer = 'harm2.3' ;
+thisVer = 'harm2.3' ;
 % thisVer = 'harm2.3_constClimCO2' ;
 % thisVer = 'harm2.3_constLU' ;
 % thisVer = 'harm2.3_S1R4.5_attr' ;
 % thisVer = 'harm2.3_S3R6.0_attr' ;
 % thisVer = 'harm2.3_S4R6.0_attr' ;
 % thisVer = 'harm2.3_S5R8.5_attr' ;
-thisVer = 'harm2.3_constClim' ;
+% thisVer = 'harm2.3_constClim' ;
 
 unhCropFrac = 0 ; % Set to zero for previous behavior. v10 = 0.177
 
@@ -56,7 +56,7 @@ addpath(genpath('~/Documents/Dropbox/Dissertation/MATLAB work'))
 
 trimFirstFuture = 0 ;
 if strcmp(thisVer,'20180424agmip7')
-    runList = {'SSP1/RCP4.5','SSP3/RCP6.0','SSP4/RCP6.0','SSP5/RCP8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
         'PLUM2LPJG_SSP1_RCP45_v3s1/output-2018-04-23-145614' ;
         'PLUM2LPJG_SSP3_RCP60_v3s1/output-2018-04-23-145614' ;
@@ -69,8 +69,8 @@ if strcmp(thisVer,'20180424agmip7')
     skip3rdColor = false ;
 elseif strcmp(thisVer,'20180424agmip7_asPLUMout2011-2015')
     warning('SOMETHING WENT WRONG WITH SSP3; IGNORING')
-%     runList = {'SSP1/RCP4.5','SSP3/RCP6.0','SSP4/RCP6.0','SSP5/RCP8.5'} ;
-    runList = {'SSP1/RCP4.5','SSP4/RCP6.0','SSP5/RCP8.5'} ;
+%     runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
+    runList = {'SSP1-45','SSP4-60','SSP5-85'} ;
     runDirs = {
         'PLUM2LPJG_SSP1_RCP45_v3s1_constLUmgmt_asPLUMout2011-2015/output-2018-04-24-134335' ;
 %         'PLUM2LPJG_SSP3_RCP60_v3s1_constLUmgmt_asPLUMout2011-2015/output-2018-04-24-131116' ;
@@ -82,7 +82,7 @@ elseif strcmp(thisVer,'20180424agmip7_asPLUMout2011-2015')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'v3s1_v20180426')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
         'PLUM2LPJG_SSP1_RCP45_v3s1_v20180426/output-2018-05-01-164708' ;
         'PLUM2LPJG_SSP3_RCP60_v3s1_v20180426/output-2018-04-30-125214' ;
@@ -94,8 +94,8 @@ elseif strcmp(thisVer,'v3s1_v20180426')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'v3s1_v20180426_asPLUM2011')
-%     runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
-    runList = {'S1/R4.5','S4/R6.0','S5/R8.5'} ;
+%     runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
+    runList = {'SSP1-45','SSP4-60','SSP5-85'} ;
     runDirs = {
     'PLUM2LPJG_SSP1_RCP45_v3s1_constLUmgmt_asPLUMout2011/output-2018-05-03-060629' ;
 %     'PLUM2LPJG_SSP3_RCP60_v3s1_constLUmgmt_asPLUMout2011/output-2018-05-03-053433' ;
@@ -107,7 +107,7 @@ elseif strcmp(thisVer,'v3s1_v20180426_asPLUM2011')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'v4s1_v20180426')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
     'PLUM2LPJG_SSP1_RCP45_v4s1_v20180426/output-2018-05-17-205051' ;
     'PLUM2LPJG_SSP3_RCP60_v4s1_v20180426/output-2018-05-17-213445' ;
@@ -120,7 +120,7 @@ elseif strcmp(thisVer,'v4s1_v20180426')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'v4s1_v20180426_asPLUMout2011')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
     'PLUM2LPJG_SSP1_RCP45_v4s1_v20180426_asPLUMout2011/output-2018-05-22-003904' ;
     'PLUM2LPJG_SSP3_RCP60_v4s1_v20180426_asPLUMout2011/output-2018-06-02-140439' ;
@@ -133,7 +133,7 @@ elseif strcmp(thisVer,'v4s1_v20180426_asPLUMout2011')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'v4s1_v20180426_asLUH2_2010')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     % Intentionally repeated SSP3, because only thing that matters in asLUH2
     % is RCP
     runDirs = {
@@ -147,7 +147,7 @@ elseif strcmp(thisVer,'v4s1_v20180426_asLUH2_2010')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'v6s1_v20180703')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
     'PLUM2LPJG_SSP1_RCP45_v6s1_v20180426/output-2018-07-02-151649' ;
     'PLUM2LPJG_SSP3_RCP60_v6s1_v20180426/output-2018-07-02-170609' ;
@@ -159,7 +159,7 @@ elseif strcmp(thisVer,'v6s1_v20180703')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'v10s1_v20180801')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
         'PLUM2LPJG_SSP1_RCP45_v10s1_v20180730/output-2018-08-01-050407' ;
         'PLUM2LPJG_SSP3_RCP60_v10s1_v20180730/output-2018-08-01-135841' ;
@@ -171,7 +171,7 @@ elseif strcmp(thisVer,'v10s1_v20180801')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-10-27-195714' ;
         'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-10-29-133454' ;
@@ -194,7 +194,7 @@ elseif strcmp(thisVer,'harm2_constLU')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = true ;
 elseif strcmp(thisVer,'harm2.1')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-11-05-085615' ;
         'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-11-05-071233' ;
@@ -230,7 +230,7 @@ elseif strcmp(thisVer,'harm2.1_constLU')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = true ;
 elseif strcmp(thisVer,'harm2.1_S1R4.5_attr')
-    runList = {'S1/R4.5','constLU','constClimCO2'} ;
+    runList = {'SSP1-45','constLU','constClimCO2'} ;
     runColNames = {'Full','constLU','constClimCO2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-11-05-085615' ;
@@ -242,7 +242,7 @@ elseif strcmp(thisVer,'harm2.1_S1R4.5_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.1_S3R6.0_attr')
-    runList = {'S3/R6.0','constLU','constClimCO2'} ;
+    runList = {'SSP3-60','constLU','constClimCO2'} ;
     runColNames = {'Full','constLU','constClimCO2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-11-05-071233' ;
@@ -254,7 +254,7 @@ elseif strcmp(thisVer,'harm2.1_S3R6.0_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.1_S4R6.0_attr')
-    runList = {'S4/R6.0','constLU','constClimCO2'} ;
+    runList = {'SSP4-60','constLU','constClimCO2'} ;
     runColNames = {'Full','constLU','constClimCO2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-11-05-071814' ;
@@ -266,7 +266,7 @@ elseif strcmp(thisVer,'harm2.1_S4R6.0_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.1_S5R8.5_attr')
-    runList = {'S5/R8.5','constLU','constClimCO2'} ;
+    runList = {'SSP5-85','constLU','constClimCO2'} ;
     runColNames = {'Full','constLU','constClimCO2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-11-05-110842' ;
@@ -278,7 +278,7 @@ elseif strcmp(thisVer,'harm2.1_S5R8.5_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.2')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-11-000445' ;
         'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-10-221610' ;
@@ -290,7 +290,7 @@ elseif strcmp(thisVer,'harm2.2')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.3')
-    runList = {'S1/R4.5','S3/R6.0','S4/R6.0','S5/R8.5'} ;
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-11-000445' ;
         'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-10-221610' ;
@@ -326,7 +326,7 @@ elseif strcmp(thisVer,'harm2.3_constLU')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = true ;
 elseif strcmp(thisVer,'harm2.3_S1R4.5_attr')
-    runList = {'S1/R4.5','constLU','constClimCO2'} ;
+    runList = {'SSP1-45','constLU','constClimCO2'} ;
     runColNames = {'Full','constLU','constClimCO2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-11-000445' ;
@@ -338,7 +338,7 @@ elseif strcmp(thisVer,'harm2.3_S1R4.5_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.3_S3R6.0_attr')
-    runList = {'S3/R6.0','constLU','constClimCO2'} ;
+    runList = {'SSP3-60','constLU','constClimCO2'} ;
     runColNames = {'Full','constLU','constClimCO2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-10-221610' ;
@@ -350,7 +350,7 @@ elseif strcmp(thisVer,'harm2.3_S3R6.0_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.3_S4R6.0_attr')
-    runList = {'S4/R6.0','constLU','constClimCO2'} ;
+    runList = {'SSP4-60','constLU','constClimCO2'} ;
     runColNames = {'Full','constLU','constClimCO2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-10-221802' ;
@@ -362,7 +362,7 @@ elseif strcmp(thisVer,'harm2.3_S4R6.0_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.3_S5R8.5_attr')
-    runList = {'S5/R8.5','constLU','constClimCO2'} ;
+    runList = {'SSP5-85','constLU','constClimCO2'} ;
     runColNames = {'Full','constLU','constClimCO2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-12-10-235151' ;
@@ -374,7 +374,7 @@ elseif strcmp(thisVer,'harm2.3_S5R8.5_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm2.3_constClim')
-    runList = {'S1/R4.5co2','S3/R6.0co2','S4/R6.0co2','S5/R8.5co2'} ;
+    runList = {'SSP1-45co2','SSP3-60co2','SSP4-60co2','SSP5-85co2'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm2_SSP1_constClim/output-2018-12-30-225152' ;
         'LPJGPLUM_2011-2100_harm2_SSP3_constClim/output-2018-12-31-045830' ;
@@ -1262,7 +1262,7 @@ sumvars = 'January' ;
 pct_clim = 100 ;
 equalize_cbars = true ;
 conv_fact_map = 1 ;   % unitless
-units_map = '' ;
+units_map = 'unitless' ;
 conv_fact_total = [] ;   % unitless
 units_total = '' ;
 this_land_area_map = land_area_YX ; % Set to [] if not needed to calculate total

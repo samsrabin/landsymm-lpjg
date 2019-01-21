@@ -3,38 +3,38 @@
 %%% PLUM-style native %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% do_save.LU              = false ;
-% do_save.crops           = false ;
-% do_save.yield           = false ;
-% do_save.yield_exp       = false ;
-% do_save.yield_map       = true ;
-% do_save.yield_exp_map   = false ;
-% do_save.irrig           = true ;
-% do_save.water           = true ;
-% do_save.carbon          = false ;
-% do_save.mrunoff         = true ;
-% do_save.albedo          = true ;
-% do_save.bvocs           = true ;
-% do_save.Nflux           = true ;
-% do_save.Nfert           = true ;
-% do_save.fpc             = false ;
-
-%%% All TRUE except really unnecessary ones
-do_save.LU              = true ;
-do_save.crops           = true ;
-do_save.yield           = true ;
+do_save.LU              = false ;
+do_save.crops           = false ;
+do_save.yield           = false ;
 do_save.yield_exp       = false ;
 do_save.yield_map       = true ;
 do_save.yield_exp_map   = false ;
 do_save.irrig           = true ;
 do_save.water           = true ;
-do_save.carbon          = true ;
+do_save.carbon          = false ;
 do_save.mrunoff         = true ;
 do_save.albedo          = true ;
 do_save.bvocs           = true ;
 do_save.Nflux           = true ;
 do_save.Nfert           = true ;
 do_save.fpc             = false ;
+
+% %%% All TRUE except really unnecessary ones
+% do_save.LU              = true ;
+% do_save.crops           = true ;
+% do_save.yield           = true ;
+% do_save.yield_exp       = false ;
+% do_save.yield_map       = true ;
+% do_save.yield_exp_map   = false ;
+% do_save.irrig           = true ;
+% do_save.water           = true ;
+% do_save.carbon          = true ;
+% do_save.mrunoff         = true ;
+% do_save.albedo          = true ;
+% do_save.bvocs           = true ;
+% do_save.Nflux           = true ;
+% do_save.Nfert           = true ;
+% do_save.fpc             = false ;
 
 if false
 %     inDir_list = {...
@@ -93,7 +93,7 @@ inDir_list = {...
 %     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-01-174937' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-01-175540' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-12-01-192401' ;
-%     'LPJGPLUM_1850-2010_remap6p3/output-2018-12-09-071305' ;
+    'LPJGPLUM_1850-2010_remap6p3/output-2018-12-09-071305' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-11-000445' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-10-221610' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-10-221802' ;
@@ -105,9 +105,9 @@ inDir_list = {...
 %     'LPJGPLUM_2011-2100_harm2_SSP3_constClimCO2/output-2018-12-10-220740' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP4_constClimCO2/output-2018-12-10-220855' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP5_constClimCO2/output-2018-12-10-233802' ;
-    'LPJGPLUM_2011-2100_harm2_SSP1_constClim/output-2018-12-30-225152' ;
-    'LPJGPLUM_2011-2100_harm2_SSP3_constClim/output-2018-12-31-045830' ;
-    'LPJGPLUM_2011-2100_harm2_SSP4_constClim/output-2018-12-31-045506' ;
+%     'LPJGPLUM_2011-2100_harm2_SSP1_constClim/output-2018-12-30-225152' ;
+%     'LPJGPLUM_2011-2100_harm2_SSP3_constClim/output-2018-12-31-045830' ;
+%     'LPJGPLUM_2011-2100_harm2_SSP4_constClim/output-2018-12-31-045506' ;
 %bad%     'LPJGPLUM_2011-2100_harm2_SSP5_constClim/output-2018-12-31-072243' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP5_constClim/output-2019-01-07-080321' ;
     } ;
@@ -510,7 +510,7 @@ for d = 1:length(inDir_list)
         end
     
     end
-    
+    stop
     
 %     %%%%%%%%%%%%%%%%%%
 %     %%% Import FPC %%%
