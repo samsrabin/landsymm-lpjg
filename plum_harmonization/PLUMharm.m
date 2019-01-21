@@ -4,7 +4,7 @@
 
 base_year = 2010 ;
 year1 = 2011 ;
-yearN = 2070 ;
+yearN = 2100 ;
 
 % Baseline version
 % baseline_ver = 1 ;
@@ -21,19 +21,222 @@ else
 end
 clear tmp
 
-% Directory for PLUM outputs
+% % Directory for PLUM outputs
+% PLUM_in_toptop = {...
+% %                   'SSP1.v10.s1' ;
+% %                   'SSP3.v10.s1' ;
+% %                   'SSP4.v10.s1' ;
+% %                   'SSP5.v10.s1' ;
+% %                   'SSP1.v11.s1' ;
+% %                   'SSP3.v11.s1' ;
+% %                   'SSP4.v11.s1' ;
+% %                   'SSP5.v11.s1' ;
+% %                   'SSP1.v11.s1test' ;
+%                   'ssp11/SSP5/s3' ;
+%                   } ;
 PLUM_in_toptop = {...
-%                   'SSP1.v10.s1' ;
-%                   'SSP3.v10.s1' ;
-%                   'SSP4.v10.s1' ;
-%                   'SSP5.v10.s1' ;
-%                   'SSP1.v11.s1' ;
-%                   'SSP3.v11.s1' ;
-%                   'SSP4.v11.s1' ;
-%                   'SSP5.v11.s1' ;
-%                   'SSP1.v11.s1test' ;
-                  'ssp11/SSP5/s3' ;
-                  } ;
+%    'ssp11/SSP1/s1' ;
+%    'ssp11/SSP1/s2' ;
+%    'ssp11/SSP1/s3' ;
+%    'ssp11/SSP1/s4' ;
+%    'ssp11/SSP1/s5' ;
+%    'ssp11/SSP1/s6' ;
+%    'ssp11/SSP1/s7' ;
+%    'ssp11/SSP1/s8' ;
+%    'ssp11/SSP1/s9' ;
+%    'ssp11/SSP1/s10' ;
+%    'ssp11/SSP1/s11' ;
+%    'ssp11/SSP1/s12' ;
+%    'ssp11/SSP1/s13' ;
+%    'ssp11/SSP1/s14' ;
+%    'ssp11/SSP1/s15' ;
+%    'ssp11/SSP1/s16' ;
+%    'ssp11/SSP1/s17' ;
+%    'ssp11/SSP1/s18' ;
+%    'ssp11/SSP1/s19' ;
+%    'ssp11/SSP1/s20' ;
+%    'ssp11/SSP1/s21' ;
+%    'ssp11/SSP1/s22' ;
+%    'ssp11/SSP1/s23' ;
+%    'ssp11/SSP1/s24' ;
+%    'ssp11/SSP1/s25' ;
+%    'ssp11/SSP1/s26' ;
+%    'ssp11/SSP1/s27' ;
+%    'ssp11/SSP1/s27' ;
+%    'ssp11/SSP1/s28' ;
+%    'ssp11/SSP1/s29' ;
+%    'ssp11/SSP1/s30' ;
+%    'ssp11/SSP1/s31' ;
+%    'ssp11/SSP1/s32' ;
+%    'ssp11/SSP1/s33' ;
+%    'ssp11/SSP1/s34' ;
+%    'ssp11/SSP1/s35' ;
+%    'ssp11/SSP1/s36' ;
+%    'ssp11/SSP1/s37' ;
+%    'ssp11/SSP1/s38' ;
+%    'ssp11/SSP1/s39' ;
+%    'ssp11/SSP1/s40' ;
+%    'ssp11/SSP1/s41' ;
+%    'ssp11/SSP1/s42' ;
+%    'ssp11/SSP1/s43' ;
+%    'ssp11/SSP1/s44' ;
+%    'ssp11/SSP1/s45' ;
+%    'ssp11/SSP1/s46' ;
+%    'ssp11/SSP1/s47' ;
+%    'ssp11/SSP1/s48' ;
+%    'ssp11/SSP1/s49' ;
+%    'ssp11/SSP1/s50' ;
+    'ssp11/SSP3/s1' ;
+    'ssp11/SSP3/s2' ;
+    'ssp11/SSP3/s3' ;
+    'ssp11/SSP3/s4' ;
+    'ssp11/SSP3/s5' ;
+%    'ssp11/SSP3/s6' ;
+%    'ssp11/SSP3/s7' ;
+%    'ssp11/SSP3/s8' ;
+%    'ssp11/SSP3/s9' ;
+%    'ssp11/SSP3/s10' ;
+%    'ssp11/SSP3/s11' ;
+%    'ssp11/SSP3/s12' ;
+%    'ssp11/SSP3/s13' ;
+%    'ssp11/SSP3/s14' ;
+%    'ssp11/SSP3/s15' ;
+%    'ssp11/SSP3/s16' ;
+%    'ssp11/SSP3/s17' ;
+%    'ssp11/SSP3/s18' ;
+%    'ssp11/SSP3/s19' ;
+%    'ssp11/SSP3/s20' ;
+%    'ssp11/SSP3/s21' ;
+%    'ssp11/SSP3/s22' ;
+%    'ssp11/SSP3/s23' ;
+%    'ssp11/SSP3/s24' ;
+%    'ssp11/SSP3/s25' ;
+%    'ssp11/SSP3/s26' ;
+%    'ssp11/SSP3/s27' ;
+%    'ssp11/SSP3/s28' ;
+%    'ssp11/SSP3/s29' ;
+%    'ssp11/SSP3/s30' ;
+%    'ssp11/SSP3/s31' ;
+%    'ssp11/SSP3/s32' ;
+%    'ssp11/SSP3/s33' ;
+%    'ssp11/SSP3/s34' ;
+%    'ssp11/SSP3/s35' ;
+%    'ssp11/SSP3/s36' ;
+%    'ssp11/SSP3/s37' ;
+%    'ssp11/SSP3/s38' ;
+%    'ssp11/SSP3/s39' ;
+%    'ssp11/SSP3/s40' ;
+%    'ssp11/SSP3/s41' ;
+%    'ssp11/SSP3/s42' ;
+%    'ssp11/SSP3/s43' ;
+%    'ssp11/SSP3/s44' ;
+%    'ssp11/SSP3/s45' ;
+%    'ssp11/SSP3/s46' ;
+%    'ssp11/SSP3/s47' ;
+%    'ssp11/SSP3/s48' ;
+%    'ssp11/SSP3/s49' ;
+%    'ssp11/SSP3/s50' ;
+    'ssp11/SSP4/s1' ;
+    'ssp11/SSP4/s2' ;
+    'ssp11/SSP4/s3' ;
+    'ssp11/SSP4/s4' ;
+    'ssp11/SSP4/s5' ;
+%    'ssp11/SSP4/s6' ;
+%    'ssp11/SSP4/s7' ;
+%    'ssp11/SSP4/s8' ;
+%    'ssp11/SSP4/s9' ;
+%    'ssp11/SSP4/s10' ;
+%    'ssp11/SSP4/s11' ;
+%    'ssp11/SSP4/s12' ;
+%    'ssp11/SSP4/s13' ;
+%    'ssp11/SSP4/s14' ;
+%    'ssp11/SSP4/s15' ;
+%    'ssp11/SSP4/s16' ;
+%    'ssp11/SSP4/s17' ;
+%    'ssp11/SSP4/s18' ;
+%    'ssp11/SSP4/s19' ;
+%    'ssp11/SSP4/s20' ;
+%    'ssp11/SSP4/s21' ;
+%    'ssp11/SSP4/s22' ;
+%    'ssp11/SSP4/s23' ;
+%    'ssp11/SSP4/s24' ;
+%    'ssp11/SSP4/s25' ;
+%    'ssp11/SSP4/s26' ;
+%    'ssp11/SSP4/s27' ;
+%    'ssp11/SSP4/s28' ;
+%    'ssp11/SSP4/s29' ;
+%    'ssp11/SSP4/s30' ;
+%    'ssp11/SSP4/s31' ;
+%    'ssp11/SSP4/s32' ;
+%    'ssp11/SSP4/s33' ;
+%    'ssp11/SSP4/s34' ;
+%    'ssp11/SSP4/s35' ;
+%    'ssp11/SSP4/s36' ;
+%    'ssp11/SSP4/s37' ;
+%    'ssp11/SSP4/s38' ;
+%    'ssp11/SSP4/s39' ;
+%    'ssp11/SSP4/s40' ;
+%    'ssp11/SSP4/s41' ;
+%    'ssp11/SSP4/s42' ;
+%    'ssp11/SSP4/s43' ;
+%    'ssp11/SSP4/s44' ;
+%    'ssp11/SSP4/s45' ;
+%    'ssp11/SSP4/s46' ;
+%    'ssp11/SSP4/s47' ;
+%    'ssp11/SSP4/s48' ;
+%    'ssp11/SSP4/s49' ;
+%    'ssp11/SSP4/s50' ;
+    'ssp11/SSP5/s1' ;
+    'ssp11/SSP5/s2' ;
+    'ssp11/SSP5/s3' ;
+    'ssp11/SSP5/s4' ;
+    'ssp11/SSP5/s5' ;
+%    'ssp11/SSP5/s6' ;
+%    'ssp11/SSP5/s7' ;
+%    'ssp11/SSP5/s8' ;
+%    'ssp11/SSP5/s9' ;
+%    'ssp11/SSP5/s10' ;
+%    'ssp11/SSP5/s11' ;
+%    'ssp11/SSP5/s12' ;
+%    'ssp11/SSP5/s13' ;
+%    'ssp11/SSP5/s14' ;
+%    'ssp11/SSP5/s15' ;
+%    'ssp11/SSP5/s16' ;
+%    'ssp11/SSP5/s17' ;
+%    'ssp11/SSP5/s18' ;
+%    'ssp11/SSP5/s19' ;
+%    'ssp11/SSP5/s20' ;
+%    'ssp11/SSP5/s21' ;
+%    'ssp11/SSP5/s22' ;
+%    'ssp11/SSP5/s23' ;
+%    'ssp11/SSP5/s24' ;
+%    'ssp11/SSP5/s25' ;
+%    'ssp11/SSP5/s26' ;
+%    'ssp11/SSP5/s27' ;
+%    'ssp11/SSP5/s28' ;
+%    'ssp11/SSP5/s29' ;
+%    'ssp11/SSP5/s30' ;
+%    'ssp11/SSP5/s31' ;
+%    'ssp11/SSP5/s32' ;
+%    'ssp11/SSP5/s33' ;
+%    'ssp11/SSP5/s34' ;
+%    'ssp11/SSP5/s35' ;
+%    'ssp11/SSP5/s36' ;
+%    'ssp11/SSP5/s37' ;
+%    'ssp11/SSP5/s38' ;
+%    'ssp11/SSP5/s39' ;
+%    'ssp11/SSP5/s40' ;
+%    'ssp11/SSP5/s41' ;
+%    'ssp11/SSP5/s42' ;
+%    'ssp11/SSP5/s43' ;
+%    'ssp11/SSP5/s44' ;
+%    'ssp11/SSP5/s45' ;
+%    'ssp11/SSP5/s46' ;
+%    'ssp11/SSP5/s47' ;
+%    'ssp11/SSP5/s48' ;
+%    'ssp11/SSP5/s49' ;
+%    'ssp11/SSP5/s50' ;
+    } ;
               
 % Save?
 save_halfDeg_mat = true ;
@@ -322,6 +525,7 @@ for d = 1:length(PLUM_in_toptop)
         % 2010 maps because I have no Miscanthus. However, it shouldn't be
         % a problem as long as the grid cells PLUM specifies as losing
         % Miscanthus lose ALL of their Miscanthus.
+        setAreaToZero = false(size(LUnames)) ;
         for i = 1:length(LUnames)
             thisLU = LUnames{i} ;
             out0_thisLU_YX = out_y0.maps_YXv(:,:,i) ;
@@ -354,9 +558,15 @@ for d = 1:length(PLUM_in_toptop)
                     in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
                     in_y0_2deg_agri_YXv = in_y0_2deg.maps_YXv(:,:,isAgri) ;
                 elseif 0 <= NETglobChg_thisLU && NETglobChg_thisLU < conserv_tol_area
-                    warning('Total global loss of %s (%0.4e m2) exceeds its y0 area (%0.4e m2). LIKELY WILL cause infinite loop in ringRedist.\n',thisLU,-globLoss_thisLU,globArea_thisLU) ;
+                    warning('Total global loss of %s (%0.4e m2) exceeds its y0 area (%0.4e m2). LIKELY WILL cause infinite loop in ringRedist.\n', ...
+                        thisLU, -globLoss_thisLU, globArea_thisLU) ;
+                elseif globArea_thisLU + sum(inDiff_thisLU_YX(inDiff_thisLU_YX>0)) > -globLoss_thisLU
+                    warning('Total global loss of %s (%0.4e m2) exceeds its y0 area (%0.4e m2), but not y0 area + total global gain (%0.4e m2). (((May))) cause infinite loop in ringRedist.\n', ...
+                        thisLU, -globLoss_thisLU, globArea_thisLU, globArea_thisLU + sum(inDiff_thisLU_YX(inDiff_thisLU_YX>0))) ;
                 else
-                    warning('Total global loss of %s (%0.4e m2) exceeds its y0 area (%0.4e m2). (((May))) cause infinite loop in ringRedist.\n',thisLU,-globLoss_thisLU,globArea_thisLU) ;
+                    warning('Total global loss of %s (%0.4e m2) exceeds its y0 area (%0.4e m2) AND ALSO y0 area + total global gain (%0.4e m2). Setting area to zero.\n', ...
+                        thisLU, -globLoss_thisLU, globArea_thisLU, globArea_thisLU + sum(inDiff_thisLU_YX(inDiff_thisLU_YX>0))) ;
+                    setAreaToZero(i) = true ;
                 end
                 pause(0.1)
             end
@@ -433,7 +643,10 @@ for d = 1:length(PLUM_in_toptop)
         % Calculate changes in PLUM agri area grids at 2 degrees
         %%% Negative indicates LOSS of thisAgri area or mgmt
         agri_d_YXv = in_y1_2deg_agri_YXv - in_y0_2deg_agri_YXv ;
-
+        for i = find(setAreaToZero) % Skips if all false
+            agri_d_YXv(:,:,i) = -out_y0_2deg_agri_YXv(:,:,i) ;
+        end
+        
         % Apply area changes to previous grid (@2deg)
         mid1_y1_2deg_agri_YXv = out_y0_2deg_agri_YXv + agri_d_YXv ;
         mid1_y1_2deg_ntrl_YX = out_y0_2deg.maps_YXv(:,:,strcmp(out_y0_2deg.varNames,'NATURAL')) ...
