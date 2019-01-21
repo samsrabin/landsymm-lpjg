@@ -35,7 +35,30 @@ norm2extra = 0.177 ;
 
 %% Setup
 
-out_dir = sprintf('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harmonization_figs_v%d/',baseline_ver) ;
+% Determine which system you're on
+tmp = pwd ;
+if strcmp(tmp(1:5),'/User')
+    onMac = true ;
+elseif strcmp(tmp(1:5),'/pfs/')
+    onMac = false ;
+else
+    error('What system are you on?')
+end
+clear tmp
+
+if onMac
+    out_dir = sprintf('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harmonization_figs_v%d/',baseline_ver) ;
+    topDir = addslashifneeded('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') ;
+    addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+    PLUMharm_top = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/plum_harmonization/' ;
+    inDir_protectedAreas = '/Users/Shared/PLUM/input/protected_areas/' ;
+else
+    out_dir = sprintf('/home/fh1-project-lpjgpi/lr8247/PLUM_harmonization_figs/harmonization_figs_v%d/',baseline_ver) ;
+    topDir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/PLUM/input/PLUMouts_2011-2100') ;
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work/')) ;
+    PLUMharm_top = '/pfs/data1/home/kit/imk-ifu/lr8247/plum_harmonization/' ;
+    inDir_protectedAreas = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/protected_areas/' ;
+end
 
 yearList_luh2 = 1971:2010 ;
 % yearList_luh2 = 2001:2010 ;
@@ -50,15 +73,12 @@ else
     end
 end
 
-topDir = addslashifneeded('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') ;
 PLUM_in_toptop = strcat(topDir,runList) ;
 PLUM_base_in = [addslashifneeded(PLUM_in_toptop{1}) '2010/'] ;
 
 Nyears_orig = length(yearList_orig) ;
 Nyears_harm = length(yearList_harm) ;
 Nruns = length(runList) ;
-
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
 
 % % Make lower-left lat/lon map (for compat. with PLUM style)
 % lons_map_2deg = repmat(-180:2:178,[90 1]) ;
@@ -73,7 +93,7 @@ cf_kg2Mt = 1e-3*1e-6 ;
 %% Import reference data
 
 doHarm = false ;
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/plum_harmonization/PLUMharm_importRefData.m') ;
+run([PLUMharm_top 'PLUMharm_importRefData.m']) ;
 
 
 %% Import PLUM (original + harmonized)
