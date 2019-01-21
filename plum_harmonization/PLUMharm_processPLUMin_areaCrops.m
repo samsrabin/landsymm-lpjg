@@ -30,7 +30,7 @@ end
 
 % Import detailed LandUse.txt
 file_in_dtl = strrep(file_in_lcf,'LandCoverFract','LandUse') ;
-if exist(file_in_dtl,'file')
+if exist(file_in_dtl,'file') || exist([file_in_dtl '.gz'],'file')
     S_dtl = lpjgu_matlab_readTable_then2map(file_in_dtl,'verboseIfNoMat',false,'force_mat_save',true) ;
     PLUMcrops = S_dtl.varNames ;
     is_actual_PLUMcrops = contains(S_dtl.varNames,'_A') ...

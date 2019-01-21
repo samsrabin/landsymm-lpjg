@@ -32,6 +32,17 @@ donation_order = {'PASTURE','NATURAL','BARREN'} ;
 
 disp('Setting up...')
 
+% Determine which system you're on
+tmp = pwd ;
+if strcmp(tmp(1:5),'/User')
+    onMac = true ;
+elseif strcmp(tmp(1:5),'/pfs/')
+    onMac = false ;
+else
+    error('What system are you on?')
+end
+clear tmp
+
 cf_kgNha_kgNm2 = 1e-4 ;
 
 outWidth = 1 ;
@@ -41,7 +52,11 @@ fancy = false ;
 save_every_pct = 1 ;
 verbose_write = true ;
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+if onMac
+    addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+else
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work/')) ;
+end
 
 % Get year info
 yearList = shiftdim(y1:yStep:yN) ;

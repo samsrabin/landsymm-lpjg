@@ -4,22 +4,34 @@
 
 base_year = 2010 ;
 year1 = 2011 ;
-yearN = 2100 ;
+yearN = 2013 ;
 
 % Baseline version
 % baseline_ver = 1 ;
 baseline_ver = 2 ;   % Based on remap_v6
 
+% Determine which system you're on
+tmp = pwd ;
+if strcmp(tmp(1:5),'/User')
+    onMac = true ;
+elseif strcmp(tmp(1:5),'/pfs/')
+    onMac = false ;
+else
+    error('What system are you on?')
+end
+clear tmp
+
 % Directory for PLUM outputs
 PLUM_in_toptop = {...
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v10.s1' ;
-%                   '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v10.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v11.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v11.s1' ;
-                  '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v11.s1' ;
+%                   'SSP1.v10.s1' ;
+%                   'SSP3.v10.s1' ;
+%                   'SSP4.v10.s1' ;
+%                   'SSP5.v10.s1' ;
+%                   'SSP1.v11.s1' ;
+%                   'SSP3.v11.s1' ;
+%                   'SSP4.v11.s1' ;
+%                   'SSP5.v11.s1' ;
+                  'SSP1.v11.s1test' ;
                   } ;
               
 % Save?
@@ -46,7 +58,21 @@ verbose = false ;
 %% Setup
 
 warning('on','all')
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+
+if onMac
+    PLUM_in_toptop = strcat('/Users/Shared/PLUM/PLUM_outputs_for_LPJG/',PLUM_in_toptop) ;
+    addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+    PLUMharm_top = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/plum_harmonization/' ;
+    inDir_protectedAreas = '/Users/Shared/PLUM/input/protected_areas/' ;
+else
+    PLUM_in_toptop = strcat('/home/fh1-project-lpjgpi/lr8247/PLUM/input/PLUMouts_2011-2100/',PLUM_in_toptop) ;
+    addpath(genpath( '/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work')) ;
+    PLUMharm_top = '/pfs/data1/home/kit/imk-ifu/lr8247/plum_harmonization/' ;
+    inDir_protectedAreas = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/protected_areas/' ;
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general/'))
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general-fromshared/'))
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/lpj-guess-crop-calibration/'))
+end
 
 % Method for inpaint_nans()
 % (moved to PLUMharm_importRefData)
@@ -94,7 +120,7 @@ debug_header = ':\t\tArea\t\tFrac\n' ;
 %% Import reference data
 
 doHarm = true ;
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/plum_harmonization/PLUMharm_importRefData.m') ;
+run([PLUMharm_top 'PLUMharm_importRefData.m']) ;
 
 % If specified crop name instead of index, find index.
 if ~isempty(dbCrop) && ischar(dbCrop)
