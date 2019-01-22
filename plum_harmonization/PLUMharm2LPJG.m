@@ -259,10 +259,9 @@ if onMac
     addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 else
     addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work/')) ;
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general/')) ;
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general-fromshared/')) ;
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/plum_harmonization/')) ;
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/lpj-guess-crop-calibration/')) ;
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general/'))
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general-fromshared/'))
+    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/lpj-guess-crop-calibration/'))
 end
 
 % Get year info
@@ -276,13 +275,21 @@ end
 Nyears_xtra = length(yearList_xtra) ;
 
 % Get cells present in previous LPJ-GUESS output
-lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
+if onMac
+    lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
+else
+    lpjg_in =  lpjgu_matlab_readTable('/home/fh1-project-lpjgpi/lr8247/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
+end
 lons_lpjg = lpjg_in.Lon ;
 lats_lpjg = lpjg_in.Lat ;
 clear lpjg_in
 
 % Get LUH2 land area (m2)
-landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
+if onMac
+    landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
+else
+    landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+end
 gcel_area_YXqd = 1e6*transpose(ncread(landarea_file,'carea')) ;
 land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
 landArea_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
@@ -298,7 +305,11 @@ clear *_YXqd
 for d = 1:length(dirList)
     
     % Get directories
-    inDir = find_PLUM2LPJG_inputs(dirList{d}) ;
+    if onMac
+        inDir = find_PLUM2LPJG_inputs(dirList{d}) ;
+    else
+        inDir = ['/home/fh1-project-lpjgpi/lr8247/PLUM/input/PLUMouts_2011-2100/' dirList{d}] ;
+    end
     inDir = removeslashifneeded(inDir) ;
     disp(inDir)
     outDir = addslashifneeded([removeslashifneeded(inDir) '.forLPJG']) ;

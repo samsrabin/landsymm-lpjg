@@ -62,7 +62,6 @@ PLUM_in_toptop = {...
 %    'ssp11/SSP1/s25' ;
 %    'ssp11/SSP1/s26' ;
 %    'ssp11/SSP1/s27' ;
-%    'ssp11/SSP1/s27' ;
 %    'ssp11/SSP1/s28' ;
 %    'ssp11/SSP1/s29' ;
 %    'ssp11/SSP1/s30' ;
