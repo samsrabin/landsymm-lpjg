@@ -35,11 +35,11 @@ clear tmp
 %                   'ssp11/SSP5/s3' ;
 %                   } ;
 PLUM_in_toptop = {...
-%    'ssp11/SSP1/s1' ;
-%    'ssp11/SSP1/s2' ;
-%    'ssp11/SSP1/s3' ;
-%    'ssp11/SSP1/s4' ;
-%    'ssp11/SSP1/s5' ;
+    'ssp11/SSP1/s1' ;
+    'ssp11/SSP1/s2' ;
+    'ssp11/SSP1/s3' ;
+    'ssp11/SSP1/s4' ;
+    'ssp11/SSP1/s5' ;
 %    'ssp11/SSP1/s6' ;
 %    'ssp11/SSP1/s7' ;
 %    'ssp11/SSP1/s8' ;
