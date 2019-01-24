@@ -8,9 +8,13 @@
 % inFile_lu = '/Users/Shared/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
 % inFile_cf = '/Users/Shared/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
 
-inFile_lu = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.txt' ;
-inFile_cf = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.txt' ;
+% inFile_lu = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.txt' ;
+% inFile_cf = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.txt' ;
 
+inFile_lu = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.txt' ;
+inFile_cf = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.txt' ;
+outFile_lu = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.someOfEachCrop.txt' ;
+outFile_cf = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.someOfEachCrop.txt' ;
 
 
 %% Setup
@@ -143,9 +147,6 @@ disp('Done')
 
 
 %% Save
-
-outFile_lu = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.someOfEachCrop.txt' ;
-outFile_cf = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.someOfEachCrop.txt' ;
 
 lpjgu_matlab_saveTable(lu_in_header, lu_out, outFile_lu,...
     'outPrec', outPrec, ...
