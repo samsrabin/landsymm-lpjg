@@ -476,7 +476,7 @@ out_cropfrac2.maps_YXvy(:,:,end,:) = repmat(out_cropfrac.maps_YXv(:,:,end),[1 1 
 
 % Add manure N, assuming even distribution to all crops
 disp('Adding manure to Nfert...')
-load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
+load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.BAD.mat') ;
 yearList_manure = 1860:2014 ;
 yearList_manure_missing = setdiff(yearList_out,yearList_manure) ;
 if ~isempty(yearList_manure_missing)

@@ -82,7 +82,7 @@ end
 cropareaCombined_in.varNames = list_cropsCombined_frac_in ;
 
 % Add manure N for year 2000 (new in remap_v5)
-load('/Volumes/WDMPP_Storage/ExternalGeodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
+load('/Volumes/WDMPP_Storage/ExternalGeodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.BAD.mat') ;
 manure2crop_hd_YX = manure2crop_hd_YXy(:,:,1860:2014==2000) ;
 manure2crop_hd_YX(manure2crop_hd_YX<1e-6) = 0 ;
 clear manure2crop_hd_YXy
