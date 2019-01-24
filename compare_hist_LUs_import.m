@@ -109,7 +109,7 @@ for c = 1:Ncrops
         if ~isequaln( ...
                 nf_out.maps_YXvy(:,:,strcmp(nf_out.varNames,thisCrop),:), ...
                 nf_out.maps_YXvy(:,:,strcmp(nf_out.varNames,thisCropI),:))
-            error('This code assumes equal fertilization of rainfed and irrigated versions of a crop.')
+            warning('This code assumes equal fertilization of rainfed and irrigated versions of a crop.')
         end
     end
 end

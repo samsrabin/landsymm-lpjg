@@ -2,11 +2,23 @@
 %%% Make figures of LU data %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-lu_file = '/Users/Shared/PLUM/input/remaps_v7a/LU.remapv7a.txt' ;
-cf_file = '/Users/Shared/PLUM/input/remaps_v7a/cropfracs.remapv7a.txt' ;
-nf_file = '/Users/Shared/PLUM/input/remaps_v7a/nfert.remapv7a.txt' ;
-outDir = '/Users/Shared/PLUM/input/remaps_v7a/' ;
+% lu_file = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.txt' ;
+% cf_file = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.txt' ;
+% nf_file = '/Users/Shared/PLUM/input/remaps_v6p3/nfert.remapv6p3.txt' ;
+% outDir = '/Users/Shared/PLUM/input/remaps_v6p3/' ;
+% yearList = 1850:2010 ;
+
+lu_file = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.txt' ;
+cf_file = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.txt' ;
+nf_file = '/Users/Shared/PLUM/input/remaps_v6p6/nfert.remapv6p6.txt' ;
+outDir = '/Users/Shared/PLUM/input/remaps_v6p6/' ;
 yearList = 1850:2010 ;
+
+% lu_file = '/Users/Shared/PLUM/input/remaps_v7a/LU.remapv7a.txt' ;
+% cf_file = '/Users/Shared/PLUM/input/remaps_v7a/cropfracs.remapv7a.txt' ;
+% nf_file = '/Users/Shared/PLUM/input/remaps_v7a/nfert.remapv7a.txt' ;
+% outDir = '/Users/Shared/PLUM/input/remaps_v7a/' ;
+% yearList = 1850:2010 ;
 
 
 %% Setup
@@ -246,24 +258,19 @@ for c = 1:(Ncrops+1)
     subplot_tight(4,2,c,spacing) ;
     if c==8
         thisCrop = 'Total' ;
-        tmp1 = squeeze(nansum(nansum(nansum(nfTot_YXvy,2),1),3)) ;
-        tmp2 = squeeze(nansum(nansum(nansum(nfTot2_YXvy,2),1),3)) ;
+        tmp1 = squeeze(nansum(nansum(nansum(nf.maps_YXvy,2),1),3)) ;
     else
         thisCrop = cropList{c} ;
-        tmp1 = squeeze(nansum(nansum(nfTot_YXvy(:,:,c,:),2),1)) ;
-        tmp2 = squeeze(nansum(nansum(nfTot2_YXvy(:,:,c,:),2),1)) ;
+        tmp1 = squeeze(nansum(nansum(nf.maps_YXvy(:,:,c,:),2),1)) ;
     end
     plot(yearList,1e-9*tmp1,'LineWidth',3) ;
-    hold on
-    plot(yearList,1e-9*tmp2,'--','LineWidth',3) ;
-    hold off
     title(thisCrop) ;
     xlabel('Year')
     ylabel('TgN')
     set(gca,'FontSize',14)
-    legend({'Orig','New'},'Location','NorthWest')
 end
 sgt = sgtitle('N fertilization') ;
 sgt.FontSize = 20 ; sgt.FontWeight = 'bold' ;
 
 export_fig([outDir 'ts_nfertTot.pdf'],'-r300')
+close

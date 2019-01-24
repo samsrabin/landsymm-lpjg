@@ -2,58 +2,68 @@
 %%% Compare two versions of historical LU data %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% lu_file_1 = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
-% cf_file_1 = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-% nf_file_1 = '/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-
-% lu_file_1 = '/Users/Shared/PLUM/input/remaps_v2/LU_xtraCROPtoPAST.remapv2.20180214.m0.txt' ;
-% cf_file_1 = '/Users/Shared/PLUM/input/remaps_v2/cropfracs.remapv2.20180214.m0.txt' ;
-% nf_file_1 = '/Users/Shared/PLUM/input/remaps_v2/nfert.remapv2.20180214.m0.txt' ;
-
-% lu_file_1 = '/Users/Shared/PLUM/input/remaps_v5/LU.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% cf_file_1 = '/Users/Shared/PLUM/input/remaps_v5/cropfracs.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% nf_file_1 = '/Users/Shared/PLUM/input/remaps_v5/nfert.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-
-lu_file_1 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.forLPJG.MATLAB.20181031/landcover.txt' ;
-cf_file_1 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.forLPJG.MATLAB.20181031/cropfractions.txt' ;
-nf_file_1 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.forLPJG.MATLAB.20181031/nfert.txt' ;
-
-
-% lu_file_2 = '/Users/Shared/PLUM/input/remaps_v3/LU_xtraCROPtoPAST.remapv3.20180214.cgFertIrr0.m0.txt' ;
-% cf_file_2 = '/Users/Shared/PLUM/input/remaps_v3/cropfracs.remapv3.20180214.cgFertIrr0.m0.txt' ;
-% nf_file_2 = '/Users/Shared/PLUM/input/remaps_v3/nfert.remapv3.20180214.cgFertIrr0.m0.txt' ;
-
-% lu_file_2 = '/Users/Shared/PLUM/input/remaps_v4/LU.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-% cf_file_2 = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-% nf_file_2 = '/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-
-% lu_file_2 = '/Users/Shared/PLUM/input/remaps_v5/LU.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% cf_file_2 = '/Users/Shared/PLUM/input/remaps_v5/cropfracs.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% nf_file_2 = '/Users/Shared/PLUM/input/remaps_v5/nfert.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % lu_file_1 = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
+% % cf_file_1 = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
+% % nf_file_1 = '/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
 % 
-% lu_file_2 = '/Users/Shared/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% cf_file_2 = '/Users/Shared/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% nf_file_2 = '/Users/Shared/PLUM/input/remaps_v6/nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % lu_file_1 = '/Users/Shared/PLUM/input/remaps_v2/LU_xtraCROPtoPAST.remapv2.20180214.m0.txt' ;
+% % cf_file_1 = '/Users/Shared/PLUM/input/remaps_v2/cropfracs.remapv2.20180214.m0.txt' ;
+% % nf_file_1 = '/Users/Shared/PLUM/input/remaps_v2/nfert.remapv2.20180214.m0.txt' ;
+% 
+% % lu_file_1 = '/Users/Shared/PLUM/input/remaps_v5/LU.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % cf_file_1 = '/Users/Shared/PLUM/input/remaps_v5/cropfracs.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % nf_file_1 = '/Users/Shared/PLUM/input/remaps_v5/nfert.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% 
+% % lu_file_1 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.forLPJG.MATLAB.20181031/landcover.txt' ;
+% % cf_file_1 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.forLPJG.MATLAB.20181031/cropfractions.txt' ;
+% % nf_file_1 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.forLPJG.MATLAB.20181031/nfert.txt' ;
+% 
+% 
+% % lu_file_2 = '/Users/Shared/PLUM/input/remaps_v3/LU_xtraCROPtoPAST.remapv3.20180214.cgFertIrr0.m0.txt' ;
+% % cf_file_2 = '/Users/Shared/PLUM/input/remaps_v3/cropfracs.remapv3.20180214.cgFertIrr0.m0.txt' ;
+% % nf_file_2 = '/Users/Shared/PLUM/input/remaps_v3/nfert.remapv3.20180214.cgFertIrr0.m0.txt' ;
+% 
+% % lu_file_2 = '/Users/Shared/PLUM/input/remaps_v4/LU.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
+% % cf_file_2 = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
+% % nf_file_2 = '/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
+% 
+% % lu_file_2 = '/Users/Shared/PLUM/input/remaps_v5/LU.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % cf_file_2 = '/Users/Shared/PLUM/input/remaps_v5/cropfracs.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % nf_file_2 = '/Users/Shared/PLUM/input/remaps_v5/nfert.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % 
+% % lu_file_2 = '/Users/Shared/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % cf_file_2 = '/Users/Shared/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% % nf_file_2 = '/Users/Shared/PLUM/input/remaps_v6/nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% 
+% % lu_file_2 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.harm.forLPJG/landcover.txt' ;
+% % cf_file_2 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.harm.forLPJG/cropfractions.txt' ;
+% % nf_file_2 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.harm.forLPJG/nfert.txt' ;
+% 
+% % outDir = '/Users/Shared/PLUM/input/remaps_v2versus3/' ;
+% % outDir = '/Users/Shared/PLUM/input/remaps_v2versus4/' ;
+% % outDir = '/Users/Shared/PLUM/input/remaps_v2versus5/' ;
+% % outDir = '/Users/Shared/PLUM/input/remaps_v2versus6/' ;
+% % outDir = '/Users/Shared/PLUM/input/remaps_v5versus6/' ;
+% % outDir = '/Users/Shared/PLUM/input/remaps_v5/' ;
+% % outDir = '/Users/Shared/PLUM/input/remaps_v6/' ;
+% % outDir = '/Users/Shared/PLUM/input/v11_ssp1_origVersusHarm/' ;
 
-lu_file_2 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.harm.forLPJG/landcover.txt' ;
-cf_file_2 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.harm.forLPJG/cropfractions.txt' ;
-nf_file_2 = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v11.s1.harm.forLPJG/nfert.txt' ;
-
-
-% outDir = '/Users/Shared/PLUM/input/remaps_v2versus3/' ;
-% outDir = '/Users/Shared/PLUM/input/remaps_v2versus4/' ;
-% outDir = '/Users/Shared/PLUM/input/remaps_v2versus5/' ;
-% outDir = '/Users/Shared/PLUM/input/remaps_v2versus6/' ;
-% outDir = '/Users/Shared/PLUM/input/remaps_v5versus6/' ;
-% outDir = '/Users/Shared/PLUM/input/remaps_v5/' ;
-% outDir = '/Users/Shared/PLUM/input/remaps_v6/' ;
-outDir = '/Users/Shared/PLUM/input/v11_ssp1_origVersusHarm/' ;
+lu_file_1 = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.txt' ;
+cf_file_1 = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.txt' ;
+nf_file_1 = '/Users/Shared/PLUM/input/remaps_v6p3/nfert.remapv6p3.txt' ;
+lu_file_2 = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.txt' ;
+cf_file_2 = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.txt' ;
+nf_file_2 = '/Users/Shared/PLUM/input/remaps_v6p6/nfert.remapv6p6.txt' ;
+outDir = '/Users/Shared/PLUM/input/remaps_v6p3_versus_v6p6/' ;
+yearList = 1850:2015 ;
 
 
 %% Setup
 
-% yearList = 1980:2015 ;
-yearList = 2011:2020 ;
+if ~exist(outDir,'dir')
+    mkdir(outDir) ;
+end
+
 Nyears = length(yearList) ;
 LUlist = {'CROPLAND','NATURAL','PASTURE','BARREN'} ;
 Nlu = length(LUlist) ;
@@ -130,6 +140,7 @@ sgt = sgtitle('Land use areas') ;
 sgt.FontSize = 20 ; sgt.FontWeight = 'bold' ;
 
 export_fig([outDir 'ts_lu.pdf'],'-r300')
+close
 
 
 %% Plot change in total crop areas
@@ -163,6 +174,7 @@ sgt = sgtitle('Crop area') ;
 sgt.FontSize = 20 ; sgt.FontWeight = 'bold' ;
 
 export_fig([outDir 'ts_cropareas.pdf'],'-r300')
+close
 
 
 %% Plot change in irrigated crop areas
@@ -263,3 +275,4 @@ sgt = sgtitle('N fertilization') ;
 sgt.FontSize = 20 ; sgt.FontWeight = 'bold' ;
 
 export_fig([outDir 'ts_nfertTot.pdf'],'-r300')
+close
