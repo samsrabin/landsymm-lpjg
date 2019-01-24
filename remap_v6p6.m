@@ -469,7 +469,10 @@ for c = 1:(NcropsCombined_out-1)
 end
 out_cropfrac2.maps_YXvy(:,:,end,:) = repmat(out_cropfrac.maps_YXv(:,:,end),[1 1 1 Nyears_out]) ;
 
-% Add manure N, assuming even distribution to all crops
+% Convert from kg/ha to kg/m2
+out_nfert.maps_YXvy = out_nfert.maps_YXvy * 1e-4 ;
+
+% Add manure N (already in kg/m2), assuming even distribution to all crops
 disp('Adding manure to Nfert...')
 load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
 yearList_manure = 1860:2014 ;
@@ -500,8 +503,6 @@ end
 manure2crop_hd_YXy(isnan(manure2crop_hd_YXy)) = 0 ;
 out_nfert.maps_YXvy(:,:,1:end-1,:) = out_nfert.maps_YXvy(:,:,1:end-1,:) + repmat(permute(manure2crop_hd_YXy,[1 2 4 3]),[1 1 Ncrops_out-1 1]) ;
 
-% Convert from kg/ha to kg/m2
-out_nfert.maps_YXvy = out_nfert.maps_YXvy * 1e-4 ;
 
 % Ensure no fertilization where no area
 out_nfert.maps_YXvy(out_cropfrac2.maps_YXvy==0) = 0 ;
@@ -581,6 +582,7 @@ fclose(fid1_gridlist) ;
 
 disp('Saving LU...')
 check_existing_lu(thisVer, out_file_lu, allVer_names, allVer_ignore_types) ;
+%%
 lpjgu_matlab_saveTable(out_lu_header_cell, out_lu_array, out_file_lu,...
     'outPrec', outPrec, ...
     'outWidth', outWidth, ...

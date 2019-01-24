@@ -2,16 +2,14 @@
 %%% Re-map area/fert data to PLUM crops, and generate extra LU file %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%% Sam Rabin, 2019-01-22
-% See previous notes for remap_v7a, with the following changes:
-% - Added OtherAnnuals and OtherPerennials to DateCitGrape
+%%%%% Sam Rabin, 2019-01-24
+% See previous notes for remap_v6p6, with the following changes:
+% - Added crops Sugar and DateCitGrape
 % - MIRCA Sugarbeet moved from Starchy Roots to Sugar
-% - Fixed assignment of Nfert to correct index for ExtraCrop
 
 PLUMsetAside_frac = 0.103 ;
 inpaint_method = 4 ;
 yearList_out = 1850:2015 ;
-% yearList_out = 1995:2005 ;
 
 % Version for crop mappings
 thisVer = 'WithFruitVegSugar_a' ;
@@ -521,7 +519,10 @@ for c = 1:NcropsCombined_out
     end
 end
 
-% Add manure N, assuming even distribution to all crops
+% Convert from kg/ha to kg/m2
+out_nfert.maps_YXvy = out_nfert.maps_YXvy * 1e-4 ;
+
+% Add manure N (already in kg/m2), assuming even distribution to all crops
 disp('Adding manure to Nfert...')
 load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
 yearList_manure = 1860:2014 ;
@@ -550,8 +551,6 @@ manure2crop_hd_YXy(isnan(manure2crop_hd_YXy)) = 0 ;
 isExtraCrop = strcmp(list_crops_out,'ExtraCrop') ;
 out_nfert.maps_YXvy(:,:,~isExtraCrop,:) = out_nfert.maps_YXvy(:,:,~isExtraCrop,:) + repmat(permute(manure2crop_hd_YXy,[1 2 4 3]),[1 1 length(find(~isExtraCrop)) 1]) ;
 
-% Convert from kg/ha to kg/m2
-out_nfert.maps_YXvy = out_nfert.maps_YXvy * 1e-4 ;
 
 % Ensure no fertilization where no area
 out_nfert.maps_YXvy(out_cropfrac2.maps_YXvy==0) = 0 ;
