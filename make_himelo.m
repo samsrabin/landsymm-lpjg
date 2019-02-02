@@ -1,10 +1,17 @@
 % in_file = '/Users/Shared/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt.gz' ;
 % out_file = '/Users/Shared/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.himelo0.txt' ;
+% in_file = '/Users/Shared/PLUM/input/remaps_v6/nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
+% out_file = '/Users/Shared/PLUM/input/remaps_v6/nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.himelo0.txt' ;
 
-in_file = '/Users/Shared/PLUM/input/remaps_v6/nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-out_file = '/Users/Shared/PLUM/input/remaps_v6/nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.himelo0.txt' ;
+% in_file = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.txt' ;
+% out_file = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.himelo0.txt' ;
+in_file = '/Users/Shared/PLUM/input/remaps_v6p6/nfert.remapv6p6.txt' ;
+out_file = '/Users/Shared/PLUM/input/remaps_v6p6/nfert.remapv6p6.himelo0.txt' ;
+
 
 %% Do it
+
+addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work'))
 
 del_cols = {'Miscanthus','Miscanthusi'} ;
 add_cols = {'CerealsC30','CerealsC30200','CerealsC31000', ...
