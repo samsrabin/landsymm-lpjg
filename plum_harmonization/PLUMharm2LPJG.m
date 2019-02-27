@@ -6,10 +6,14 @@ do_gzip = false ;
 
 % Directories for harmonized PLUM outputs
 dirList = {...
-              'SSP1.v10.s1.harm' ;
-              'SSP3.v10.s1.harm' ;
-              'SSP4.v10.s1.harm' ;
-              'SSP5.v10.s1.harm' ;
+%               'SSP1.v10.s1.harm' ;
+%               'SSP3.v10.s1.harm' ;
+%               'SSP4.v10.s1.harm' ;
+%               'SSP5.v10.s1.harm' ;
+              'SSP1.v12.s1.harm' ;
+              'SSP3.v12.s1.harm' ;
+              'SSP4.v12.s1.harm' ;
+              'SSP5.v12.s1.harm' ;
               } ;
           
 base_year = 2010 ;
@@ -69,7 +73,8 @@ end
 Nyears_xtra = length(yearList_xtra) ;
 
 % Get cells present in previous LPJ-GUESS output
-lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
+% lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
+lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
 lons_lpjg = lpjg_in.Lon ;
 lats_lpjg = lpjg_in.Lat ;
 clear lpjg_in

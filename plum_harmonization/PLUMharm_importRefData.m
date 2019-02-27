@@ -25,6 +25,18 @@ elseif baseline_ver == 2
     cropf_file = [inDir_remap6 'cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt'] ;
     nfert_file = [inDir_remap6 'nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt'] ;
     inpaint_method = 4 ;
+elseif baseline_ver == 3
+    if onMac
+        inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
+        landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+    else
+        inDir_remap6 = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6p7/' ;
+        landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+    end
+    luh2_file = [inDir_remap6 'LU.remapv6p7.txt'] ;
+    cropf_file = [inDir_remap6 'cropfracs.remapv6p7.txt'] ;
+    nfert_file = [inDir_remap6 'nfert.remapv6p7.txt'] ;
+    inpaint_method = 4 ;
 else
     error('baseline_ver (%d) not recognized!',baseline_ver) ;
 end
