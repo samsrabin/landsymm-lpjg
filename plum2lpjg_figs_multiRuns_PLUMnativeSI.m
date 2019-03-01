@@ -21,7 +21,7 @@
 % thisVer = 'harm2.1_S4R6.0_attr' ;
 % thisVer = 'harm2.1_S5R8.5_attr' ;
 % thisVer = 'harm2.2' ;
-thisVer = 'harm2.3' ;
+% thisVer = 'harm2.3' ;
 % thisVer = 'harm2.3_constClimCO2' ;
 % thisVer = 'harm2.3_constLU' ;
 % thisVer = 'harm2.3_S1R4.5_attr' ;
@@ -29,6 +29,7 @@ thisVer = 'harm2.3' ;
 % thisVer = 'harm2.3_S4R6.0_attr' ;
 % thisVer = 'harm2.3_S5R8.5_attr' ;
 % thisVer = 'harm2.3_constClim' ;
+thisVer = 'harm2.4' ;
 
 unhCropFrac = 0 ; % Set to zero for previous behavior. v10 = 0.177
 
@@ -36,7 +37,7 @@ unhCropFrac = 0 ; % Set to zero for previous behavior. v10 = 0.177
 % ignored_crops = {'CC3G','CC4G','Miscanthus'} ;
 ignored_crops = {'CC3G','CC4G','ExtraCrop'} ;
 
-do_save = true ;
+do_save = false ;
 rebase = false ;
 pngres = 150 ;
 
@@ -383,6 +384,18 @@ elseif strcmp(thisVer,'harm2.3_constClim')
         } ;
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p3/output-2018-12-09-071305' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
+elseif strcmp(thisVer,'harm2.4')
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-11-000445' ;
+        'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-10-221610' ;
+        'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-10-221802' ;
+        'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-12-10-235151' ;
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 else

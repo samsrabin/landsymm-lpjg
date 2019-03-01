@@ -3,20 +3,20 @@
 %%% PLUM-style native %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-do_save.LU              = false ;
-do_save.crops           = false ;
-do_save.yield           = false ;
+do_save.LU              = true ;
+do_save.crops           = true ;
+do_save.yield           = true ;
 do_save.yield_exp       = false ;
 do_save.yield_map       = true ;
 do_save.yield_exp_map   = false ;
-do_save.irrig           = true ;
-do_save.water           = true ;
+do_save.irrig           = false ;
+do_save.water           = false ;
 do_save.carbon          = false ;
-do_save.mrunoff         = true ;
-do_save.albedo          = true ;
-do_save.bvocs           = true ;
-do_save.Nflux           = true ;
-do_save.Nfert           = true ;
+do_save.mrunoff         = false ;
+do_save.albedo          = false ;
+do_save.bvocs           = false ;
+do_save.Nflux           = false ;
+do_save.Nfert           = false ;
 do_save.fpc             = false ;
 
 % %%% All TRUE except really unnecessary ones
@@ -93,7 +93,7 @@ inDir_list = {...
 %     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-01-174937' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-01-175540' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-12-01-192401' ;
-    'LPJGPLUM_1850-2010_remap6p3/output-2018-12-09-071305' ;
+%     'LPJGPLUM_1850-2010_remap6p3/output-2018-12-09-071305' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-11-000445' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-10-221610' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-10-221802' ;
@@ -110,6 +110,11 @@ inDir_list = {...
 %     'LPJGPLUM_2011-2100_harm2_SSP4_constClim/output-2018-12-31-045506' ;
 %bad%     'LPJGPLUM_2011-2100_harm2_SSP5_constClim/output-2018-12-31-072243' ;
 %     'LPJGPLUM_2011-2100_harm2_SSP5_constClim/output-2019-01-07-080321' ;
+%     'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851'
+    'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914';
+    'LPJGPLUM_2011-2100_harm3_SSP3_RCP60/output-2019-02-27-093027';
+    'LPJGPLUM_2011-2100_harm3_SSP4_RCP60/output-2019-02-27-093259';
+    'LPJGPLUM_2011-2100_harm3_SSP5_RCP85/output-2019-02-27-104120';
     } ;
 
 
@@ -510,39 +515,7 @@ for d = 1:length(inDir_list)
         end
     
     end
-    stop
-    
-%     %%%%%%%%%%%%%%%%%%
-%     %%% Import FPC %%%
-%     %%%%%%%%%%%%%%%%%%
-%     
-%     if do_save.fpc || do_save.albedo
-%         fpc = lpjgu_matlab_readTable_then2map([inDir 'fpc.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
-%         disp('Processing FPC...')
-%         [fpc, ~, ~] = CrOp_and_CrOpi(fpc, 'fpc', cropTypes, merge_or_replace) ;
-%         % Normalize to 1
-%         fpc_total_YX1y = fpc.maps_YXvy(:,:,strcmp(fpc.varNames,'Total'),:) ;
-%         isbad_YX1y = fpc_total_YX1y > 1 ;
-%         i = 0 ;
-%         while any(isbad_YX1y(:))
-%             i = i + 1 ;
-%             if i > 5
-%                 error('Too many iterations!')
-%             end
-%             isbad_YXvy = repmat(isbad_YX1y,[1 1 size(fpc.maps_YXvy,3) 1]) ;
-%             fpc_total_YXvy = repmat(fpc_total_YX1y,[1 1 size(fpc.maps_YXvy,3) 1]) ;
-%             fpc.maps_YXvy(isbad_YXvy) = fpc.maps_YXvy(isbad_YXvy) ./ fpc_total_YXvy(isbad_YXvy) ;
-%             clear fpc_total_YXvy
-%             fpc_total_YX1y = fpc.maps_YXvy(:,:,strcmp(fpc.varNames,'Total'),:) ;
-%             isbad_YX1y = fpc_total_YX1y > 1 ;
-%         end
-%         clear fpc_total_YX1y isbad* i
-%         if is_baseline
-%             list_to_map = PLUMout_gridlist.list_to_map ;
-%             fpc.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(fpc.varNames) 1])) = NaN ;
-%         end
-%     end
-        
+            
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Import and save yield (kgDM/m2 --> kgDM) (i.e., actually PRODUCTION) %%%
