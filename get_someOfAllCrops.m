@@ -11,10 +11,25 @@
 % inFile_lu = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.txt' ;
 % inFile_cf = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.txt' ;
 
-inFile_lu = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.txt' ;
-inFile_cf = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.txt' ;
-outFile_lu = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.someOfEachCrop.txt' ;
-outFile_cf = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.someOfEachCrop.txt' ;
+% inFile_lu = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.txt' ;
+% inFile_cf = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.txt' ;
+% outFile_lu = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.someOfEachCrop.txt' ;
+% outFile_cf = '/Users/Shared/PLUM/input/remaps_v6p6/cropfracs.remapv6p6.someOfEachCrop.txt' ;
+
+% inFile_lu = '/Users/Shared/PLUM/input/remaps_v6p7/LU.remapv6p7.txt' ;
+% inFile_cf = '/Users/Shared/PLUM/input/remaps_v6p7/cropfracs.remapv6p7.txt' ;
+% outFile_lu = '/Users/Shared/PLUM/input/remaps_v6p7/LU.remapv6p7.someOfEachCrop.txt' ;
+% outFile_cf = '/Users/Shared/PLUM/input/remaps_v6p7/cropfracs.remapv6p7.someOfEachCrop.txt' ;
+
+% inFile_lu = '/Users/Shared/PLUM/input/remaps_v7a/LU.remapv7a.txt' ;
+% inFile_cf = '/Users/Shared/PLUM/input/remaps_v7a/cropfracs.remapv7a.txt' ;
+% outFile_lu = '/Users/Shared/PLUM/input/remaps_v7a/LU.remapv7a.someOfEachCrop.txt' ;
+% outFile_cf = '/Users/Shared/PLUM/input/remaps_v7a/cropfracs.remapv7a.someOfEachCrop.txt' ;
+
+inFile_lu = '/Users/Shared/PLUM/input/remaps_v7b/LU.remapv7b.txt' ;
+inFile_cf = '/Users/Shared/PLUM/input/remaps_v7b/cropfracs.remapv7b.txt' ;
+outFile_lu = '/Users/Shared/PLUM/input/remaps_v7b/LU.remapv7b.someOfEachCrop.txt' ;
+outFile_cf = '/Users/Shared/PLUM/input/remaps_v7b/cropfracs.remapv7b.someOfEachCrop.txt' ;
 
 
 %% Setup

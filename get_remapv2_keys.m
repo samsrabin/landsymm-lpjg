@@ -3,8 +3,12 @@ function [THISlist_cropsCombined_out, THISin2out_keyCombined_frac, ...
     out_names, out_keys, out_ignores, out_ignore_types] ...
     = get_remapv2_keys(in_version)
 
-out_names = {'20180105b', '20180206', '20180210', '20180212', '20180214', '20180301ani', ...
-    'WithFruitVegSugar_a', 'WithFruitVegSugar_b', 'jianyong01'} ;
+out_names = {'20180105b', '20180206', '20180210', '20180212', ...
+    '20180214', '20190216', ...
+    '20180301ani', ...
+    'WithFruitVegSugar_a', 'WithFruitVegSugar_b', ...
+    'jianyong01', 'jianyong01b', ...
+    'ani01'} ;
 if ~any(strcmp(out_names,in_version))
     error(['thisVer ' in_version ' not recognized!'])
 end
@@ -98,6 +102,25 @@ out_ignores{strcmp(out_names,thisOne)} = ...
     {'Sugarcane';'Citrus';'Datepalm';'GrapesVine';
     'Cotton';'Cocoa';'Coffee';'OtherAnnuals';'OtherPerennials';
     'FodderGrasses'} ;
+
+% 20190216
+%%% As 20180214, but with Sugarbeet ignored instead of in StarchyRoots
+thisOne = '20190216' ;
+list_cropsCombined_out = {'CerealsC3','CerealsC4','Rice','Oilcrops','Pulses','StarchyRoots'} ;
+getOci = @(x) find(strcmp(list_cropsCombined_out,x)) ;
+in2out_keyCombined_frac{getOci('CerealsC3')}   = {'Wheat','Barley','Rye'} ;
+in2out_keyCombined_frac{getOci('CerealsC4')}   = {'Maize','Millet','Sorghum'} ;
+in2out_keyCombined_frac{getOci('Rice')}        = {'Rice'} ;
+in2out_keyCombined_frac{getOci('Oilcrops')}    = {'Sunflower','Soybeans','GroundnutsPeanuts','RapeseedCanola','Oilpalm'} ;
+in2out_keyCombined_frac{getOci('Pulses')}      = {'Pulses'} ;
+in2out_keyCombined_frac{getOci('StarchyRoots')}= {'Potatoes','Cassava'} ;
+out_keys{strcmp(out_names,thisOne)} = in2out_keyCombined_frac ;
+list_cropsCombined_out_ALL{strcmp(out_names,thisOne)} = list_cropsCombined_out ;
+clear in2out_keyCombined_frac
+out_ignores{strcmp(out_names,thisOne)} = ...
+    {'Sugarcane';'Citrus';'Datepalm';'GrapesVine';
+    'Cotton';'Cocoa';'Coffee';'OtherAnnuals';'OtherPerennials';
+    'FodderGrasses';'Sugarbeet'} ;
 
 % 20180301ani
 thisOne = '20180301ani' ;
@@ -209,6 +232,45 @@ out_ignores{strcmp(out_names,thisOne)} = ...
     'FodderGrasses';'Rye';'Barley';'Millet';
     'Sunflower';'GroundnutsPeanuts';'RapeseedCanola';
     'Potatoes';'Sugarbeet';'Cassava'} ;
+
+% Jianyong v01b
+%%% Same mapping, just different MIRCA names
+thisOne = 'jianyong01b' ;
+list_cropsCombined_out = {'Wheat','Maize','Sorghum','Rice','Soybean','FabaBean'} ;
+getOci = @(x) find(strcmp(list_cropsCombined_out,x)) ;
+in2out_keyCombined_frac{getOci('Wheat')}  = {'Wheat'} ;
+in2out_keyCombined_frac{getOci('Maize')}  = {'Maize'} ;
+in2out_keyCombined_frac{getOci('Sorghum')}  = {'Sorghum'} ;
+in2out_keyCombined_frac{getOci('Rice')}  = {'Rice'} ;
+in2out_keyCombined_frac{getOci('Soybean')}  = {'Soybean'} ;
+in2out_keyCombined_frac{getOci('FabaBean')}  = {'Pulses'} ;
+out_keys{strcmp(out_names,thisOne)} = in2out_keyCombined_frac ;
+list_cropsCombined_out_ALL{strcmp(out_names,thisOne)} = list_cropsCombined_out ;
+clear in2out_keyCombined_frac
+out_ignores{strcmp(out_names,thisOne)} = ...
+    {'Sugar cane';'Oil palm';'Citrus';'Date palm';'Grapes / Vine';
+    'Cotton';'Cocoa';'Coffee';'Others annual';'Others perennial';
+    'Fodder grasses';'Rye';'Barley';'Millet';
+    'Sunflower';'Groundnuts / Peanuts';'Rape seed / Canola';
+    'Potatoes';'Sugar beet';'Cassava'} ;
+
+% Ani v01
+thisOne = 'ani01' ;
+list_cropsCombined_out = {'TeWW','TeCo','TrRi','TeSW'} ;
+getOci = @(x) find(strcmp(list_cropsCombined_out,x)) ;
+in2out_keyCombined_frac{getOci('TeWW')}  = {'Wheat', 'Rye', 'Barley'} ;
+in2out_keyCombined_frac{getOci('TeCo')}  = {'Maize', 'Millet', 'Sorghum', 'Sugar cane'} ;
+in2out_keyCombined_frac{getOci('TrRi')}  = {'Rice'} ;
+in2out_keyCombined_frac{getOci('TeSW')}  = {'Soybean','Pulses', ...
+    'Oil palm','Citrus','Date palm','Grapes / Vine', ...
+    'Cotton','Cocoa','Coffee','Others annual','Others perennial', ...
+    'Fodder grasses', ...
+    'Sunflower','Groundnuts / Peanuts','Rape seed / Canola', ...
+    'Potatoes','Sugar beet','Cassava'} ;
+out_keys{strcmp(out_names,thisOne)} = in2out_keyCombined_frac ;
+list_cropsCombined_out_ALL{strcmp(out_names,thisOne)} = list_cropsCombined_out ;
+clear in2out_keyCombined_frac
+out_ignores{strcmp(out_names,thisOne)} = {} ;
 
 % Get ignore types
 out_ignore_types = zeros(size(out_ignores)) ;
