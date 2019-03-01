@@ -9,6 +9,7 @@ function [calib_factors_u,calib_factors_w] = ...
                                listCrops_data,... % listCrops_4cal
                                plot2data_key,... % FA2_to_PLUM_key
                                scatter_style,...
+                               outlier_thresh,...
                                varargin)
 
 % Set up input arguments
@@ -32,11 +33,13 @@ addParameter(p,'miscanthus_file','',@ischar) ;
 addParameter(p,'slope_symbol','',@ischar) ;
 addParameter(p,'marker_size',10,@isscalar) ;
 addParameter(p,'separate_figs',false,@islogical) ;
+isOK_outlierThresh = @(x) numel(x)==1 & x>0 ;
+addParameter(p,'outlier_thresh',Inf,isOK_outlierThresh) ;
 parse(p,yield_in_obs_Cyc,yield_in_sim_Cyc,...
         ignore_obs_Cc, ignore_sim_Cc, ...
         weights_regr_Cyc,weights_plot_Cyc, ...
         listCrops_plot,listCrops_data,...
-        plot2data_key,scatter_style,varargin{:});
+        plot2data_key,scatter_style,outlier_thresh,varargin{:});
 pr = p.Results ;
 do_wtd_reg = ~isempty(pr.weights_regr_Cyc) ;
 do_wtd_plot = strcmp('scatter_style','size_weighted') ;
@@ -57,7 +60,10 @@ if Ncrops_plot==5 || Ncrops_plot==6
 elseif Ncrops_plot==7 || Ncrops_plot==8
     nsubp_x = 4 ;
     nsubp_y = 2 ;
-elseif Ncrops_plot==10
+elseif Ncrops_plot==9
+    nsubp_x = 3 ;
+    nsubp_y = 3 ;
+elseif Ncrops_plot>=10 && Ncrops_plot<=12
     nsubp_x = 4 ;
     nsubp_y = 3 ;
 elseif Ncrops_plot==2
@@ -108,7 +114,18 @@ for c_plot = 1:Ncrops_plot
 % % %         tmpO = yield_in_obs_Cyc(:,:,c_plot) ;
 % % %         tmpS = yield_in_sim_Cyc(:,:,c_data) ;
 % % %         includeThese = true(size(ignore_obs_Cc,1),1) ;
-        includeThese = ~ignore_obs_Cc(:,c_plot) & ~ignore_sim_Cc(:,c_data) ;
+        ok_obs = ~ignore_obs_Cc(:,c_plot) ;
+        if ~any(ok_obs)
+            warning('%s: None included (obs)!', thisCrop_plot)
+        end
+        ok_sim = ~ignore_sim_Cc(:,c_data) ;
+        if ~any(ok_sim)
+            warning('%s: None included (sim)!', thisCrop_plot)
+        end
+        includeThese = ok_obs & ok_sim ;
+        if ~any(includeThese)
+            warning('%s: None included (combination)!', thisCrop_plot)
+        end
         disp(['Including ' num2str(length(find(includeThese))) '/' num2str(length(includeThese)) ' countries.'])
         tmpO = yield_in_obs_Cyc(includeThese,:,c_plot) ;
         if ~isequal(size(yield_in_obs_Cyc),size(yield_in_sim_Cyc))
@@ -138,13 +155,22 @@ for c_plot = 1:Ncrops_plot
         end
 
         if do_wtd_reg
-            bad = isnan(tmpO) | isnan(tmpS) | isnan(tmpW) | tmpO>prctile(tmpO(:),pr.max_prctile) ;
+            bad = isnan(tmpO) | isnan(tmpS) | isnan(tmpW) | tmpO>prctile(tmpO(:),pr.max_prctile) | isoutlier(tmpO(:),'quartiles','ThresholdFactor',pr.outlier_thresh) ;
         else
 %             bad = isnan(tmpO) | isnan(tmpS) | tmpO>prctile(tmpO(:),pr.max_prctile) ;
             cond1 = isnan(tmpO) ;
             cond2 = isnan(tmpS) ;
             cond3 = tmpO>prctile(tmpO(:),pr.max_prctile) ;
-            bad = cond1 | cond2 | cond3 ;
+            tmpOtmp = tmpO(:) ;
+            tmpOtmp(cond1 | cond2 | cond3) = NaN ;
+            [TF,LO,UP] = isoutlier(tmpOtmp,'quartiles','ThresholdFactor',pr.outlier_thresh) ;
+            cond4 = reshape(TF,size(tmpO)) ;
+%             cond4 = TF ; 
+%             cond4(cond1 | cond2 | cond3) = false ;
+%             if any(TF & ~(cond1(:) | cond2(:) | cond3(:)))
+%                 rntnier=1;
+%             end
+            bad = cond1 | cond2 | cond3 | cond4 ;
         end
         if ~any(find(~bad))
 %             error('No cells found!')
@@ -159,11 +185,36 @@ for c_plot = 1:Ncrops_plot
         
         
         % Troubleshooting
-        disp('EXCLUDING:')
-        disp(['   NaN in obs and sim: ' num2str(length(find(cond1 & cond2)))])
-        disp(['   NaN in obs not sim: ' num2str(length(find(cond1 & ~cond2)))])
-        disp(['   NaN in sim not obs: ' num2str(length(find(~cond1 & cond2)))])
-        disp(['   Low percentile:     ' num2str(length(find(cond3)))])
+        if ~do_wtd_reg
+            disp('EXCLUDING:')
+            disp(['   NaN in obs and sim: ' num2str(length(find(cond1 & cond2)))])
+            disp(['   NaN in obs not sim: ' num2str(length(find(cond1 & ~cond2)))])
+            disp(['   NaN in sim not obs: ' num2str(length(find(~cond1 & cond2)))])
+            disp(['   Low percentile (obs). :     ' num2str(length(find(cond3)))])
+            disp(['   Outlier (obs). :     ' num2str(length(find(cond4)))])
+            if any(cond4(:))
+                if any(tmpOtmp<LO)
+                    Nlo = length(find(tmpOtmp<LO)) ;
+                    loMin = min(tmpOtmp(tmpOtmp<LO)) ;
+                    if Nlo > 1
+                        loMax = max(tmpOtmp(tmpOtmp<LO)) ;
+                        fprintf('      Below %0.2f: %d (%0.2f to %0.2f)\n', LO, Nup, loMin, loMax) ;
+                    else
+                        fprintf('      Below %0.2f: %d (%0.2f)\n', LO, Nlo, loMin) ;
+                    end
+                end
+                if any(tmpOtmp>UP)
+                    Nup = length(find(tmpOtmp>UP)) ;
+                    upMin = min(tmpOtmp(tmpOtmp>UP)) ;
+                    if Nup > 1
+                        upMax = max(tmpOtmp(tmpOtmp>UP)) ;
+                        fprintf('      Above %0.2f: %d (%0.2f to %0.2f)\n', UP, Nup, upMin, upMax) ;
+                    else
+                        fprintf('      Above %0.2f: %d (%0.2f)\n', UP, Nup, upMin) ;
+                    end
+                end
+            end
+        end
         
         tmpO = tmpO(~bad) ;
         tmpS = tmpS(~bad) ;
@@ -173,7 +224,14 @@ for c_plot = 1:Ncrops_plot
             tmpWp = tmpWp(~bad) ;
         end
     end
-        
+    
+%     TF = isoutlier(tmpO(:),'quartiles','ThresholdFactor',4) ;
+%     Noutliers = length(find(TF)) ;
+%     fprintf('# outliers: %d\n', Noutliers) ;
+%     if Noutliers>0
+%         ajbrejrbe =1 ;
+%     end
+            
     calib_factors_u(c_plot) = lscov(tmpS(:),tmpO(:)) ;
     disp(['Calibration factor, unweighted = ' num2str(calib_factors_u(c_plot))])
     if do_wtd_reg
@@ -215,7 +273,11 @@ for c_plot = 1:Ncrops_plot
     hold off
     % Labels
     title([pr.plot_title_prefix thisCrop_plot]) ;
-    xlabel('Observed avg. yield (tDM/ha)')
+    if strcmpi(thisCrop_plot,'Starchy Roots')
+        xlabel('Observed avg. yield (t/ha)') % http://www.fao.org/economic/ess/ess-standards/commodity/comm-chapters/en/
+    else
+        xlabel('Observed avg. yield (tDM/ha)')
+    end
     ylabel('Simulated avg. yield (tDM/ha)')
     set(gca,'FontSize',pr.fig_font_size)
     % Legend

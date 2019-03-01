@@ -13,6 +13,7 @@ addOptional(p,'force_mat_save',false,@islogical) ;
 addOptional(p,'force_mat_nosave',false,@islogical) ;
 addOptional(p,'list_to_map_in',[]) ;
 addOptional(p,'dataType','double',@isstr) ;
+addOptional(p,'in_prec',2,@isint) ;
 parse(p,in_file,varargin{:});
 
 xres = p.Results.xres ;
@@ -25,6 +26,7 @@ list_to_map_in = p.Results.list_to_map_in ;
 lat_orient = p.Results.lat_orient ;
 lon_orient = p.Results.lon_orient ;
 dataType = p.Results.dataType ;
+in_prec = p.Results.in_prec ;
 
 if ~isempty(lat_orient) && ~(strcmp(lat_orient,'lower') || strcmp(lat_orient,'center')  || strcmp(lat_orient,'upper'))
     error(['If providing lat_orient, it must be either lower, center, or upper. (' lat_orient ')'])
@@ -117,7 +119,7 @@ else
     if verboseIfNoMat || verbose
         disp('   Making maps...')
     end
-    [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,lat_orient,lon_orient,verboseIfNoMat,verbose) ;
+    [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,lat_orient,lon_orient,verboseIfNoMat,verbose,in_prec) ;
     if is_gridlist
         mask_YX = make_maps(xres,yres,multi_yrs,yearList,varNames,in_table,list_to_map,is_gridlist,found,dataType,verboseIfNoMat,verbose) ;
     else
@@ -158,7 +160,7 @@ end
 
 
 
-function [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,lat_orient,lon_orient,verboseIfNoMat,verbose)
+function [yearList,multi_yrs,varNames,list_to_map,xres,yres,found] = get_indices(in_table,xres,yres,list_to_map_in,lat_orient,lon_orient,verboseIfNoMat,verbose,in_prec)
 
 % Get table info
 in_lons = in_table.Lon ;
@@ -182,11 +184,11 @@ end
 
 % Get indices for mapping
 if isempty(list_to_map_in)
-    [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose) ;
+    [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose,in_prec) ;
 else
     if length(in_lons) ~= length(list_to_map_in)
         warning('length(in_lons) ~= length(list_to_map_in)! Ignoring list_to_map_in.')
-        [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose) ;
+        [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose,in_prec) ;
     else
         list_to_map = list_to_map_in ;
         found = true(size(list_to_map)) ;
@@ -325,7 +327,7 @@ out_lats_map = repmat(lats',[1 length(lons)]) ;
 end
 
 
-function [list_to_map,found] = get_map_indices(in_lons,in_lats,in_lonsMap,in_latsMap,verboseIfNoMat,verbose)
+function [list_to_map,found] = get_map_indices(in_lons,in_lats,in_lonsMap,in_latsMap,verboseIfNoMat,verbose,in_prec)
 
 if verboseIfNoMat || verbose
     disp('      Getting indices to convert list to map...')
@@ -333,6 +335,12 @@ end
 Ncells = length(in_lons) ;
 lons_vec = in_lonsMap(1,:) ;
 lats_vec = in_latsMap(:,1) ;
+
+in_lons = round(in_lons,in_prec) ;
+in_lats = round(in_lats,in_prec) ;
+lons_vec = round(lons_vec,in_prec) ;
+lats_vec = round(lats_vec,in_prec) ;
+
 [~,lons_inds] = ismember(in_lons,lons_vec) ;
 [~,lats_inds] = ismember(in_lats,lats_vec) ;
 found = ~(lons_inds==0 | lats_inds==0) ;

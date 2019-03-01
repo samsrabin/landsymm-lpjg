@@ -1,6 +1,6 @@
 if ~is_ggcmi
     if strcmp(version_name,'stijn_20180119')
-        if calib_ver ~= 11
+        if calib_ver~=11
             error('When doing stijn_20180119, you must use calib_ver=11.')
         end
         listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi','TrSo','GlyM','FaBe'} ;
@@ -8,12 +8,25 @@ if ~is_ggcmi
         error('calib_ver 11 only works with stijn_20180119.')
     elseif calib_ver == 12 || calib_ver == 15 || calib_ver == 16 || calib_ver == 18
         listCrops_lpj_comb = {'CerealsC3','CerealsC4','Rice','Oilcrops','StarchyRoots','Pulses'} ;
+    elseif calib_ver == 19
+        listCrops_lpj_comb = ...
+            {'CerealsC3','CerealsC4','Rice','Oilcrops',...
+            'StarchyRoots','Pulses','Sugar','DateCitGrape'} ;
+    elseif calib_ver == 20
+        listCrops_lpj_comb = ...
+            {'CerealsC3','CerealsC4','Rice','Oilcrops',...
+            'StarchyRoots','Pulses','Sugar','FruitAndVeg'} ;
     elseif calib_ver == 13
         listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Pulses','Soybeans','Rice'} ;
     elseif calib_ver == 14
         listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Rice'} ;
     elseif calib_ver <= 10 || calib_ver == 17
         listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi'} ;
+    elseif contains(version_name,'jianyong_20190128')
+        if calib_ver~=21
+            error('When doing %s, you must use calib_ver= 21.', version_name)
+        end
+        listCrops_lpj_comb = {'FaBe','GlyM','TeCo','TeSW','TeWW','TrRi','TrSo'} ;
     else
         error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb (version_name '  ').']) ;
     end
@@ -131,12 +144,16 @@ if ~is_ggcmi && (any(strcmp(yield_lpj.varNames,'CerealsC3w')) || any(strcmp(yiel
 end
 
 % Stijn didn't include irrigated of these?
-if ~is_ggcmi && strcmp(version_name,'stijn_20180119')
+if ~is_ggcmi && (strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128'))
     tmpRemoveList = {'FaBei','GlyMi','TrSoi'} ;
     for c = 1:length(tmpRemoveList)
         thisCrop = tmpRemoveList{c} ;
         thisIndex = find(strcmp(cropfrac_lpj.varNames,thisCrop)) ;
-        cropfrac_lpj.maps_YXv(:,:,thisIndex) = [] ;
+        if isfield(cropfrac_lpj,'maps_YXv')
+            cropfrac_lpj.maps_YXv(:,:,thisIndex) = [] ;
+        else
+            cropfrac_lpj.maps_YXvy(:,:,thisIndex,:) = [] ;
+        end
         cropfrac_lpj.varNames(thisIndex) = [] ;
     end
 end
@@ -194,7 +211,7 @@ for c = 1:Ncrops_lpj_comb
 %     iI_cropfrac = exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropI) ;
     iR_cropfrac = find(strcmp(cropfrac_lpj.varNames,thisCropR)) ;
     iI_cropfrac = find(strcmp(cropfrac_lpj.varNames,thisCropI)) ;
-    if strcmp(version_name,'stijn_20180119')
+    if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
         frac_comb = cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ;
         if ~isempty(iI_cropfrac)
             frac_comb = frac_comb + cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:) ;
@@ -209,7 +226,7 @@ for c = 1:Ncrops_lpj_comb
 %     iI_yield = exact_string_in_cellarray(yield_lpj.varNames,thisCropI) ;
     iR_yield = find(strcmp(yield_lpj.varNames,thisCropR)) ;
     iI_yield = find(strcmp(yield_lpj.varNames,thisCropI)) ;
-    if strcmp(version_name,'stijn_20180119')
+    if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
         if ~isempty(iI_cropfrac)
             tmp = (yield_lpj.maps_YXvy(:,:,iR_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ...
                  + yield_lpj.maps_YXvy(:,:,iI_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:)) ...

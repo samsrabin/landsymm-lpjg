@@ -36,7 +36,7 @@ script_setup_cropCalibration
 
 if calib_ver<=4
     script_import_lpj_yields
-elseif calib_ver>=5 && calib_ver<=18
+elseif calib_ver>=5 && calib_ver<=21
     script_import_lpj_yields_noCCy
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
@@ -131,6 +131,10 @@ disp('Done.')
 
 % Options %%%%%%%%%
 
+% Threshold multiple of IQR above/below median to consider something an
+% outlier. To find no outliers, set to Inf. (MATLAB default is 1.5.)
+outlier_thresh = Inf ;
+
 %%% Base regression weights on FA2 total harvest or crop area? (Empty for no
 %%% weighting)
 % regWeight_basedOn = 'total' ;
@@ -156,9 +160,9 @@ reg_line_width = 3 ;
 fig_font_size = 16 ;
 
 % Miscanthus file
-if calib_ver==11 || calib_ver==17 || is_ggcmi
+if calib_ver==11 || calib_ver==17 || is_ggcmi || calib_ver==21
     miscanthus_file = '' ;
-elseif calib_ver<=16 || calib_ver==18
+elseif calib_ver<=16 || (calib_ver>=18 && calib_ver<=20)
     warning('Using horrible Miscanthus kludge from miscanthus_calibration_kludge.m!')
     miscanthus_file = 'Miscanthus_yields_for_plot.mat' ;
 else
@@ -208,7 +212,7 @@ else
 end
 
 % Convert to form for regression
-if calib_ver==11
+if calib_ver==11 || calib_ver==21
     listCrops_4cal = {'TrSo','GlyM','FaBe'} ;
     Ncrops_4cal = length(listCrops_4cal) ;
     yield_lpj_4cal_tmp.TrSo_Cy = squeeze(yield_lpj_4cal_Ccy(:,getPi('TrSo'),:)) ;
@@ -221,7 +225,7 @@ if calib_ver==11
         eval(['yield_lpj_4cal_Cyc(:,:,c) = yield_lpj_4cal_tmp.' thisCrop '_Cy ;']) ;
     end
     clear yield_lpj_4cal_tmp
-elseif calib_ver>=12 && (calib_ver<=16 || calib_ver==18)
+elseif (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20)
     listCrops_4cal = listCrops_lpj_comb ;
     Ncrops_4cal = length(listCrops_4cal) ;
     for c = 1:Ncrops_4cal
@@ -279,7 +283,7 @@ elseif calib_ver==2
     FA2_to_PLUM_key{getPi2('TeSW')}  = {'Pulses','Starchy roots'} ;
     FA2_to_PLUM_key{getPi2('TeCo')}  = {'Maize','Millet','Sorghum'} ;
     FA2_to_PLUM_key{getPi2('TrRi')}  = {'Rice'} ;
-elseif calib_ver==11
+elseif calib_ver==11 || calib_ver==21
     FA2_to_PLUM_key{getPi2('TrSo')}  = {'Sorghum'} ;
     FA2_to_PLUM_key{getPi2('GlyM')}  = {'Soybean'} ;
     FA2_to_PLUM_key{getPi2('FaBe')}  = {'Faba bean'} ;
@@ -326,19 +330,38 @@ elseif calib_ver==17
     FA2_to_PLUM_key{getPi2('TeSW')}  = {'OtherC3'} ;
     FA2_to_PLUM_key{getPi2('TeCo')}  = {'CerealsC4'} ;
     FA2_to_PLUM_key{getPi2('TrRi')}  = {'Rice'} ;
+elseif calib_ver==19 || calib_ver==20
+    FA2_to_PLUM_key{getPi2('CerealsC3')}     = {'Wheat'} ;
+    FA2_to_PLUM_key{getPi2('CerealsC4')}     = {'Maize'} ;
+    FA2_to_PLUM_key{getPi2('Rice')}          = {'Rice'} ;
+    FA2_to_PLUM_key{getPi2('Oilcrops')}      = {'Oilcrops'} ;
+    FA2_to_PLUM_key{getPi2('StarchyRoots')}  = {'Starchy roots'} ;
+    FA2_to_PLUM_key{getPi2('Pulses')}        = {'Pulses'} ;
+    FA2_to_PLUM_key{getPi2('Sugar')}         = {'Sugar'} ;
+    if calib_ver==19
+        FA2_to_PLUM_key{getPi2('DateCitGrape')}    = {'DateCitGrape'} ;
+    elseif calib_ver==20
+        FA2_to_PLUM_key{getPi2('FruitAndVeg')}    = {'FruitAndVeg'} ;
+    end
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
 
 % Remove countries where LPJG and/or FAO have 0 area
-if calib_ver==11 || calib_ver==17
+if calib_ver==11 || calib_ver==17 || calib_ver==21
     ignore_lpj_Cc = countries2ignore(croparea_lpj_4cal_Ccy) ;
     ignore_fa2_Cc = countries2ignore(croparea_fa2_4cal_Ccy) ;
-elseif calib_ver>=1 && (calib_ver<=16 || calib_ver==18)
+elseif (calib_ver>=1 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20)
     ignore_lpj_Cc = false(size(croparea_lpj_4cal_Ccy,1),size(croparea_lpj_4cal_Ccy,2)) ;
     ignore_fa2_Cc = false(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,2)) ;
 else
     error(['calib_ver (' num2str(calib_ver) ') not recognized! In "Remove countries where LPJG and/or FAO have 0 area"'])
+end
+if any(sum(ignore_lpj_Cc,1)==0)
+    warning('No included countries (LPJ): %s',strjoin(listCrops_lpj_comb(sum(ignore_lpj_Cc,1)==0), ', '))
+end
+if any(sum(ignore_fa2_Cc,1)==0)
+    warning('No included countries (FAO): %s',strjoin(listCrops_fa2o(sum(ignore_fa2_Cc,1)==0), ', '))
 end
 
 % Get ancillary arrays
@@ -355,9 +378,9 @@ yield_fa2_4cal_Cyc = permute(yield_fa2_4cal_Ccy,[1 3 2]) ;
 if isempty(regWeight_basedOn)
     weights_fa2_4cal_Cyc = [] ;
 else
-    if calib_ver==11
+    if calib_ver==11 || calib_ver==21
         error('Add code to do weights when ignoring countries.')
-    elseif ~(calib_ver>=1 || calib_ver<=18)
+    elseif ~(calib_ver>=1 || calib_ver<=20)
         error(['calib_ver (' num2str(calib_ver) ') not recognized! In "Get weights for regression"'])
     end
     weights_fa2_4cal_Cyc = nan(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,3),size(croparea_fa2_4cal_Ccy,2)) ;
@@ -530,5 +553,6 @@ disp('ALL POINTS')
                                'miscanthus_file',miscanthus_file,...
                                'slope_symbol',slope_symbol,...
                                'marker_size',25,...
-                               'separate_figs',false) ;
+                               'separate_figs',false, ...
+                               'outlier_thresh', outlier_thresh) ;
 

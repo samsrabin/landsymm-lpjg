@@ -133,7 +133,9 @@ standardize_colnames()
         end
         
         % Make table
-        out_table = array2table(A,'VariableNames',strrep(colNames,'"','')) ;
+        varNames = strrep(colNames,'"','') ;
+        varNames = strrep(varNames,'-','_') ;
+        out_table = array2table(A,'VariableNames',varNames) ;
         
         % Deal with doubled data in 2005 for N_fert_rcp85_6f.out
         [~,in_name,in_ext] = fileparts(in_file) ;

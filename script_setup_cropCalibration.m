@@ -34,7 +34,7 @@ if ~is_ggcmi
         land_frac_YXqd = 1 - flipud(transpose(ncread('staticData_quarterdeg.nc','icwtr'))) ;
         land_area_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
         land_area_YX = aggregate_land_area(land_area_YXqd,xres,yres) ;
-    elseif calib_ver == 18
+    elseif calib_ver >= 18 && calib_ver <= 21
         % Use gridcell area instead of land area
         land_area_YXqd = transpose(ncread('staticData_quarterdeg.nc','carea')) ;
         land_area_YX = aggregate_land_area(land_area_YXqd,xres,yres) ;
