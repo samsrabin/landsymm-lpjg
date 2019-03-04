@@ -46,12 +46,12 @@ if onMac
     inDir_protectedAreas = '/Users/Shared/PLUM/input/protected_areas/' ;
 else
     PLUM_in_toptop = strcat('/home/fh1-project-lpjgpi/lr8247/PLUM/input/PLUMouts_2011-2100/',PLUM_in_toptop) ;
-    addpath(genpath( '/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work')) ;
-    PLUMharm_top = '/pfs/data1/home/kit/imk-ifu/lr8247/plum_harmonization/' ;
+    addpath(genpath( '/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work')) ;
+    PLUMharm_top = '/home/fh1-project-lpjgpi/lr8247/plum_harmonization/' ;
     inDir_protectedAreas = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/protected_areas/' ;
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general/'))
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/matlab-general-fromshared/'))
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/lpj-guess-crop-calibration/'))
+    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general/'))
+    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general-fromshared/'))
+    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/lpj-guess-crop-calibration/'))
 end
 
 % Do harmonization
