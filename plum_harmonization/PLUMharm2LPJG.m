@@ -44,14 +44,12 @@ end
 Nyears_xtra = length(yearList_xtra) ;
 
 % Get cells present in previous LPJ-GUESS output
-% lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
-lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
+lpjg_in = lpjgu_matlab_readTable(lpjg_in_file,'dont_save_MAT',true,'verboseIfNoMat',false) ;
 lons_lpjg = lpjg_in.Lon ;
 lats_lpjg = lpjg_in.Lat ;
 clear lpjg_in
 
 % Get LUH2 land area (m2)
-landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
 gcel_area_YXqd = 1e6*transpose(ncread(landarea_file,'carea')) ;
 land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
 landArea_YXqd = gcel_area_YXqd .* land_frac_YXqd ;

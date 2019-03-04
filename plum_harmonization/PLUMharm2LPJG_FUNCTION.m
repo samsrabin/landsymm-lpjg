@@ -35,11 +35,15 @@ end
 clear tmp
 if onMac
     addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+    landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
+    lpjg_in_file = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out.gz' ;
 else
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work')) ;
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general/'))
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general-fromshared/'))
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/lpj-guess-crop-calibration/'))
+    landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+    lpjg_in_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/trunk_runs_out/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out.gz' ;
 end
 
 % Do processing
