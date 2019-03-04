@@ -65,7 +65,11 @@ clear *_YXqd
 for d = 1:length(dirList)
     
     % Get directories
-    inDir = find_PLUM2LPJG_inputs(dirList{d}) ;
+    if onMac
+        inDir = find_PLUM2LPJG_inputs(dirList{d}) ;
+    else
+        inDir = dirList{d} ;
+    end
     inDir = removeslashifneeded(inDir) ;
     disp(inDir)
     outDir = addslashifneeded([removeslashifneeded(inDir) '.forLPJG']) ;

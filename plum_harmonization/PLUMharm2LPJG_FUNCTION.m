@@ -43,6 +43,7 @@ else
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general-fromshared/'))
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/lpj-guess-crop-calibration/'))
     landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+    dirList = strcat('/home/fh1-project-lpjgpi/lr8247/PLUM/input/',dirList) ;
     lpjg_in_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/trunk_runs_out/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out.gz' ;
 end
 
