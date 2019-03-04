@@ -32,7 +32,7 @@ end
 tmp = pwd ;
 if strcmp(tmp(1:5),'/User')
     onMac = true ;
-elseif strcmp(tmp(1:5),'/pfs/')
+elseif strcmp(tmp(1:5),'/pfs/') || strcmp(tmp(1:5),'/home')
     onMac = false ;
 else
     error('What system are you on?')

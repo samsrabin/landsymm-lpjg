@@ -3,18 +3,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 do_gzip = false ;
-
-% Directories for harmonized PLUM outputs
-dirList = {...
-%               'SSP1.v10.s1.harm' ;
-%               'SSP3.v10.s1.harm' ;
-%               'SSP4.v10.s1.harm' ;
-%               'SSP5.v10.s1.harm' ;
-              'SSP1.v12.s1.harm' ;
-              'SSP3.v12.s1.harm' ;
-              'SSP4.v12.s1.harm' ;
-              'SSP5.v12.s1.harm' ;
-              } ;
           
 base_year = 2010 ;
 y1 = 2011 ;
@@ -36,17 +24,6 @@ donation_order = {'PASTURE','NATURAL','BARREN'} ;
 
 disp('Setting up...')
 
-% Determine which system you're on
-tmp = pwd ;
-if strcmp(tmp(1:5),'/User')
-    onMac = true ;
-elseif strcmp(tmp(1:5),'/pfs/')
-    onMac = false ;
-else
-    error('What system are you on?')
-end
-clear tmp
-
 cf_kgNha_kgNm2 = 1e-4 ;
 
 outWidth = 1 ;
@@ -55,12 +32,6 @@ overwrite = true ;
 fancy = false ;
 save_every_pct = 1 ;
 verbose_write = true ;
-
-if onMac
-    addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
-else
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work/')) ;
-end
 
 % Get year info
 yearList = shiftdim(y1:yStep:yN) ;
