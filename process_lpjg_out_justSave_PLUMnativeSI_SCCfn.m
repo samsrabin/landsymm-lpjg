@@ -6,23 +6,38 @@ function process_lpjg_out_justSave_PLUMnativeSI_SCCfn( ...
 %%% PLUM-style native %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%% All TRUE except really unnecessary ones
-do_save.LU              = true ;
-do_save.crops           = true ;
-do_save.yield           = true ;
+%%%% All TRUE except really unnecessary ones
+%do_save.LU              = true ;
+%do_save.crops           = true ;
+%do_save.yield           = true ;
+%do_save.yield_exp       = false ;
+%do_save.yield_map       = true ;
+%do_save.yield_exp_map   = false ;
+%do_save.irrig           = true ;
+%do_save.water           = true ;
+%do_save.carbon          = true ;
+%do_save.mrunoff         = true ;
+%do_save.albedo          = true ;
+%do_save.bvocs           = true ;
+%do_save.Nflux           = true ;
+%do_save.Nfert           = true ;
+%do_save.fpc             = false ;
+
+do_save.LU              = false ;
+do_save.crops           = false ;
+do_save.yield           = false ;
 do_save.yield_exp       = false ;
-do_save.yield_map       = true ;
+do_save.yield_map       = false ;
 do_save.yield_exp_map   = false ;
-do_save.irrig           = true ;
-do_save.water           = true ;
-do_save.carbon          = true ;
-do_save.mrunoff         = true ;
-do_save.albedo          = true ;
-do_save.bvocs           = true ;
+do_save.irrig           = false ;
+do_save.water           = false ;
+do_save.carbon          = false ;
+do_save.mrunoff         = false ;
+do_save.albedo          = false ;
+do_save.bvocs           = false ;
 do_save.Nflux           = true ;
 do_save.Nfert           = true ;
 do_save.fpc             = false ;
-
 
 %%%%%%%%%%%%%
 %%% Setup %%%
@@ -222,7 +237,6 @@ for d = 1:length(inDir_list)
             end
         else
             % Get LU file
-            %cmd = sprintf('grep ''param "file_lu"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lu" (str "@@'' | sed ''s@")@@''', ...
             cmd = sprintf('grep ''param "file_lu"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lu"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
                 inDir) ;
             [x,LUfile_tmp] = unix(cmd) ;
@@ -232,7 +246,6 @@ for d = 1:length(inDir_list)
             LUfile_tmp = regexprep(LUfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
             LUfile = strrep(LUfile_tmp,' ','') ; % Remove extraneous spaces
             % Get crop fractions file
-            %cmd = sprintf('grep ''param "file_lucrop"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lu" (str "@@'' | sed ''s@")@@''', ...
             cmd = sprintf('grep ''param "file_lucrop"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lucrop"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
                 inDir) ;
             [x,cropfile_tmp] = unix(cmd) ;
@@ -1099,9 +1112,17 @@ for d = 1:length(inDir_list)
             end
         elseif strcmp(NfertFile_tmp,'nfert_2010_luh2_aggregate_sum2x2_midpoint_rescaled_v20.txt')
             NfertFile = '/Users/Shared/PLUM/input/Nfert/LUH2/nfert_2010_luh2_aggregate_sum2x2_midpoint_rescaled_v20.txt' ;
-        else
-%             NfertFile = find_PLUM2LPJG_input_file(NfertFile_tmp) ;
+        elseif onMac
             NfertFile = crude_file_find(NfertFile_tmp) ;
+        else
+            cmd = sprintf('grep ''param "file_nfert"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_nfert"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
+                inDir) ;
+            [x,NfertFile_tmp] = unix(cmd) ;
+            if x~=0
+                error(['Failed when trying to find Nfert file, with error ' num2str(x)])
+            end
+            NfertFile_tmp = regexprep(NfertFile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            NfertFile = strrep(NfertFile_tmp,' ','') ; % Remove extraneous spaces
         end
         Nfert = lpjgu_matlab_readTable_then2map(NfertFile,'force_mat_save',true) ;
         Nfert = adjust_cropinput_yearLists(Nfert, yearList) ;
