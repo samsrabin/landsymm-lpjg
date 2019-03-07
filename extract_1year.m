@@ -12,13 +12,22 @@ thisYear = 2010 ;
 % file_cf_in = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.someOfEachCrop.txt' ;
 % % % file_nf_in = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
 
-file_lu_in = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.txt' ;
-file_cf_in = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.txt' ;
-file_nf_in = '/Users/Shared/PLUM/input/remaps_v6p3/nfert.remapv6p3.txt' ;
+% file_lu_in = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.txt' ;
+% file_cf_in = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.txt' ;
+% file_nf_in = '/Users/Shared/PLUM/input/remaps_v6p3/nfert.remapv6p3.txt' ;
 
 % file_lu_in = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.someOfEachCrop.txt' ;
 % file_cf_in = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.someOfEachCrop.txt' ;
 % file_nf_in = '/Users/Shared/PLUM/input/remaps_v6p3/nfert.remapv6p3.txt' ;
+
+% file_lu_in = '/Users/Shared/PLUM/input/remaps_v6p3/LU.remapv6p3.someOfEachCrop.txt' ;
+% file_cf_in = '/Users/Shared/PLUM/input/remaps_v6p3/cropfracs.remapv6p3.someOfEachCrop.txt' ;
+% file_nf_in = '/Users/Shared/PLUM/input/remaps_v6p3/nfert.remapv6p3.txt' ;
+
+file_lu_in = '/Users/Shared/PLUM/input/remaps_v6p7/LU.remapv6p7.someOfEachCrop.txt' ;
+file_cf_in = '/Users/Shared/PLUM/input/remaps_v6p7/cropfracs.remapv6p7.someOfEachCrop.txt' ;
+file_nf_in = '/Users/Shared/PLUM/input/remaps_v6p7/nfert.remapv6p7.txt' ;
+
 
 
 %% Import
@@ -50,9 +59,9 @@ lu_out_array = table2array(lu_out) ;
 cf_out_array = table2array(cf_out) ;
 nf_out_array = table2array(nf_out) ;
 
-file_lu_out = strrep(file_lu_in,'.txt','.2010.txt') ;
-file_cf_out = strrep(file_cf_in,'.txt','.2010.txt') ;
-file_nf_out = strrep(file_nf_in,'.txt','.2010.txt') ;
+file_lu_out = strrep(file_lu_in,'.txt',sprintf('.%d.txt',thisYear)) ;
+file_cf_out = strrep(file_cf_in,'.txt',sprintf('.%d.txt',thisYear)) ;
+file_nf_out = strrep(file_nf_in,'.txt',sprintf('.%d.txt',thisYear)) ;
 
 disp('Saving LU...')
 lpjgu_matlab_saveTable(lu_out.Properties.VariableNames, lu_out_array, file_lu_out,...

@@ -98,20 +98,6 @@ end % for each dir
 save('LU_timeseries.mat', 'LUts_yvd', 'yearList', 'LUnames', 'dirList')
 
 
-% %% Make plot
-% 
-% figure('Position',figurePos,'Color','w') ;
-% 
-% for v = 1:Nlu
-%     subplot_tight(2,2,v,0.04)
-%     thisLU = LUnames{v} ;
-%     theseTS_yd = squeeze(LUts_yvd(:,v,:)) ;
-%     theseTS_yd = theseTS_yd - repmat(theseTS_yd(1,:),[Nyears 1]) ;
-%     plot(yearList, theseTS_yd) ;
-%     title(thisLU)
-% end
-
-
 end
 
 

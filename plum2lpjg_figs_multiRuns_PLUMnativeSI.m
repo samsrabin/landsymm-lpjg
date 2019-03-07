@@ -389,10 +389,10 @@ elseif strcmp(thisVer,'harm2.3_constClim')
 elseif strcmp(thisVer,'harm2.4')
     runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
-        'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-11-000445' ;
-        'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-10-221610' ;
-        'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-10-221802' ;
-        'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-12-10-235151' ;
+        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914';
+        'LPJGPLUM_2011-2100_harm3_SSP3_RCP60/output-2019-02-27-093027';
+        'LPJGPLUM_2011-2100_harm3_SSP4_RCP60/output-2019-02-27-093259';
+        'LPJGPLUM_2011-2100_harm3_SSP5_RCP85/output-2019-02-27-104120';
         } ;
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;

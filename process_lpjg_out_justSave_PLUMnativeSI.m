@@ -415,7 +415,7 @@ for d = 1:length(inDir_list)
         if ~isequal(LU.yearList,yearList)
             if min(LU.yearList) <= min(yearList) && max(LU.yearList) >= max(yearList)
                 LU.maps_YXvy = LU.maps_YXvy(:,:,:,LU.yearList>=min(yearList) & LU.yearList<=max(yearList)) ;
-                LU.yearList = transpose(LU.yearList(1):max(yearList)) ;
+                LU.yearList = yearList ;
             end
             if min(LU.yearList) == min(yearList) + 5 && max(LU.yearList)==max(yearList)
                 warning('Adjusting LU to account for 5 years'' padding at beginning.')
