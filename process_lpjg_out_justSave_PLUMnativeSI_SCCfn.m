@@ -46,10 +46,11 @@ if onMac
 else
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general/')) ;
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general-fromshared/')) ;
+    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/lpj-guess-crop-calibration/')) ;
     thisDir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work') ;
     gridlist_file = '/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work/PLUMout_gridlist.txt' ;
     landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
-    inDir_list = strcat('/home/fh1-project-lpjgpi/lr8247/PLUM/trunk_runs_out',inDir_list) ;
+    inDir_list = strcat('/home/fh1-project-lpjgpi/lr8247/PLUM/trunk_runs_out/',inDir_list) ;
 end
 
 if ~exist(thisDir,'dir')
@@ -143,6 +144,10 @@ for d = 1:length(inDir_list)
         inDir = find_PLUM2LPJG_run(inDir_list{d}) ;
     else
         inDir = inDir_list{d} ;
+        if ~exist(inDir,'dir')
+           error('inDir (%s) not found!', inDir)
+        end
+        inDir = addslashifneeded(inDir) ;
     end
     is_baseline = is_baseline_list(d) ;
     if is_baseline
