@@ -222,21 +222,25 @@ for d = 1:length(inDir_list)
             end
         else
             % Get LU file
-            cmd = sprintf('grep ''param "file_lu"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lu" (str "@@'' | sed ''s@")@@''', ...
+            %cmd = sprintf('grep ''param "file_lu"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lu" (str "@@'' | sed ''s@")@@''', ...
+            cmd = sprintf('grep ''param "file_lu"'' %s/landcover.ins | sed ''s@param "file_lu"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
                 inDir) ;
             [x,LUfile_tmp] = unix(cmd) ;
             if x~=0
                 error(['Failed when trying to find LU file, with error ' num2str(x)])
             end
-            LUfile = regexprep(LUfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            LUfile_tmp = regexprep(LUfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            LUfile = strrep(LUfile_tmp,' ','') ; % Remove extraneous spaces
             % Get crop fractions file
-            cmd = sprintf('grep ''param "file_lucrop"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lu" (str "@@'' | sed ''s@")@@''', ...
+            %cmd = sprintf('grep ''param "file_lucrop"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lu" (str "@@'' | sed ''s@")@@''', ...
+            cmd = sprintf('grep ''param "file_lucrop"'' %s/landcover.ins | sed ''s@param "file_lucrop"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
                 inDir) ;
             [x,cropfile_tmp] = unix(cmd) ;
             if x~=0
                 error(['Failed when trying to find crop fractions file, with error ' num2str(x)])
             end
-            cropfile = regexprep(cropfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            cropfile_tmp = regexprep(cropfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            cropfile = strrep(cropfile_tmp,' ','') ; % Remove extraneous spaces
         end
         
     end
