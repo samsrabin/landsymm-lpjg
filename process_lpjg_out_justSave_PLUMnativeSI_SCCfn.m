@@ -50,7 +50,6 @@ else
     thisDir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work') ;
     gridlist_file = '/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work/PLUMout_gridlist.txt' ;
     landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
-    inDir_list = strcat('/home/fh1-project-lpjgpi/lr8247/PLUM/trunk_runs_out/',inDir_list) ;
 end
 
 if ~exist(thisDir,'dir')
