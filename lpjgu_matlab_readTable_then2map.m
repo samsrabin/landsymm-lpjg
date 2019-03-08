@@ -78,7 +78,13 @@ if exist(in_matfile_maps,'file')
         disp([NAME EXT ':'])
         disp('   Loading maps MAT-file...')
     end
-    load(in_matfile_maps)
+    try
+        load(in_matfile_maps) ;
+    catch ME
+        warning('Problem loading MAT file. Will try again (once) in 10 minutes.\nIntercepted error message follows:\n%s\n', ...
+            ME.message) ;
+        pause(600)
+    end
     
     % Fix gridlist, if somehow screwed up
     if isfield(out_struct,'list_to_map') && (isfield(out_struct,'maps_YXvy') || isfield(out_struct,'maps_YXv'))

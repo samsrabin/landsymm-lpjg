@@ -37,7 +37,14 @@ if exist(in_matfile,'file')
     if verbose
         disp([dispPrefix '   Loading table from MAT-file...'])
     end
-    load(in_matfile) ;
+    try
+        load(in_matfile) ;
+    catch ME
+        warning('Problem loading MAT file. Will try again (once) in 10 minutes.\nIntercepted error message follows:\n%s\n', ...
+            ME.message) ;
+        pause(600)
+    end
+
 else
     did_unzip = gunzip_if_needed(in_file) ;
     if verbose || verboseIfNoMat
