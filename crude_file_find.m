@@ -10,7 +10,7 @@ if ~check_exist(path_out)
     if ~check_exist(path_out)
         path_out = strrep(path_out,'/Users/Shared/PLUM/input/PLUMouts_2011-2100','/Users/Shared/PLUM/PLUM_outputs_for_LPJG') ;
         if ~check_exist(path_out)
-            error('That didn''t work: file not found!')
+            error('That didn''t work: file not found! (%s)', str_in)
         end
     end
 end
