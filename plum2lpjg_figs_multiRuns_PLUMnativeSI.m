@@ -29,7 +29,12 @@
 % thisVer = 'harm2.3_S4R6.0_attr' ;
 % thisVer = 'harm2.3_S5R8.5_attr' ;
 % thisVer = 'harm2.3_constClim' ;
-thisVer = 'harm2.4' ;
+thisVer = 'harm3' ;
+% thisVer = 'harm3_constLU' ;
+% thisVer = 'harm3_constClim' ;
+% thisVer = 'harm3_constCO2' ;
+
+do_adjYieldTech = true ; % Apply annual tech. change increase to yields?
 
 unhCropFrac = 0 ; % Set to zero for previous behavior. v10 = 0.177
 
@@ -37,7 +42,7 @@ unhCropFrac = 0 ; % Set to zero for previous behavior. v10 = 0.177
 % ignored_crops = {'CC3G','CC4G','Miscanthus'} ;
 ignored_crops = {'CC3G','CC4G','ExtraCrop'} ;
 
-do_save = false ;
+do_save = true ;
 rebase = false ;
 pngres = 150 ;
 
@@ -386,7 +391,7 @@ elseif strcmp(thisVer,'harm2.3_constClim')
     baselineDir = 'LPJGPLUM_1850-2010_remap6p3/output-2018-12-09-071305' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
-elseif strcmp(thisVer,'harm2.4')
+elseif strcmp(thisVer,'harm3')
     runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914';
@@ -398,6 +403,41 @@ elseif strcmp(thisVer,'harm2.4')
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
+elseif strcmp(thisVer,'harm3_constClim')
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45co2_constClim/output-2019-03-07-164547' ;
+        'LPJGPLUM_2011-2100_harm3_SSP3_RCP60co2_constClim/output-2019-03-07-164547' ;
+        'LPJGPLUM_2011-2100_harm3_SSP4_RCP60co2_constClim/output-2019-03-07-170847' ;
+        'LPJGPLUM_2011-2100_harm3_SSP5_RCP85co2_constClim/output-2019-03-07-170908' ;
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
+elseif strcmp(thisVer,'harm3_constCO2')
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45_constCO2/output-2019-03-07-164547' ;
+        'LPJGPLUM_2011-2100_harm3_SSP3_RCP60_constCO2/output-2019-03-07-170846' ;
+        'LPJGPLUM_2011-2100_harm3_SSP4_RCP60_constCO2/output-2019-03-07-170858' ;
+        'LPJGPLUM_2011-2100_harm3_SSP5_RCP85_constCO2/output-2019-03-07-170910' ;        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
+elseif strcmp(thisVer,'harm3_constLU')
+    runList = {'RCP4.5','RCP6.0','RCP8.5'} ;
+    runColNames = {'RCP45','RCP60','RCP85'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP45/output-2019-03-07-164549' ;
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP60/output-2019-03-07-164546' ;
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP85/output-2019-03-07-164546' ;
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = true ;
 else
     error(['thisVer (' thisVer ') not recognized!'])
 end
@@ -442,7 +482,7 @@ cf_kgPm2_to_tonsPha = 1e-3*1e4 ;
 cf_kg2Tg = 1e-9 ;
 cf_kg2Pg = 1e-12 ;
 cf_m3_to_km3 = (1e-3)^3 ;
-cf_kcal2Ecal = 1e-15 ;
+cf_kcalEcal = 1e-15 ;
 
 % Compare run list with list of directories
 Nruns = length(runList) ;
@@ -476,7 +516,8 @@ if include_fao
     || strcmp(thisVer,'v4s1_v20180426_asLUH2_2010') ...
     || strcmp(thisVer,'v6s1_v20180703') ...
     || strcmp(thisVer,'v10s1_v20180801') ...
-    || contains(thisVer,'harm2')
+    || contains(thisVer,'harm2') ...
+    || contains(thisVer,'harm3')
         fao = load('/Users/Shared/PLUM/crop_calib_data/fao/FAOdata_1961-2010_calibVer16_Production.mat') ;
     else
         error('thisVer not recognized while loading FAO data')
@@ -921,9 +962,47 @@ maps_cropareasDiffs_YXvrF = maps_cropareas_YXvr - maps_cropareas_YXvBFr ;
 disp('Done importing future.')
 
 
-%% Calculate secondary variables
+%% Perform secondary calculations
 
-disp('Calculating secondary variables...')
+disp('Performing secondary calculations...')
+
+% Adjust for technological improvement, if doing so
+if do_adjYieldTech
+    
+    % Maps
+    maps_yield_d1 = adj_yield_tech(maps_yield_d1, yearList_baseline(end-9:end), yearList_future(1:10)) ;
+    maps_yield_d9 = adj_yield_tech(maps_yield_d9, yearList_baseline(end-9:end), yearList_future(end-9:end)) ;
+    
+    % Time series
+    tmp = whos('ts_croppro*') ;
+    tmp_name = {tmp.name}' ;
+    for i = 1:length(tmp_name)
+        thisName_cropprod = tmp_name{i} ;
+        
+        % Do not apply adjustment to FAO data or PLUM-expected numbers
+        if strcmp(thisName_cropprod(end-2:end),'fao') || contains(thisName_cropprod,'cropproExp') || contains(thisName_cropprod,'cropprodExp')
+            continue
+        end
+        
+        % Get correct yearList depending on baseline vs. future data
+        if strcmp(thisName_cropprod(end-1:end),'bl')
+            yearList_tmp = yearList_baseline ;
+        elseif strcmp(thisName_cropprod(end-1:end),'yr')
+            yearList_tmp = yearList_future ;
+        else
+            error('Problem parsing variable name (%s) for tech. improvement adjustment.', thisName_cropprod)
+        end
+        
+        % Do the adjustment
+        thisCmd = sprintf('%s = adj_yield_tech(%s, yearList_tmp) ;', ...
+            thisName_cropprod, thisName_cropprod) ;
+        eval(thisCmd) ;
+        
+        clear yearList_tmp thisCmd
+    end ; clear i
+    clear tmp tmp_name
+    
+end
 
 % Combine evaporation and transpiration
 if exist('ts_aevap_bl','var') && exist('ts_aaet_bl','var')
@@ -973,23 +1052,16 @@ tmp_name = {tmp.name}' ;
 ts_kcal_bl = zeros(size(Nyears_bl,1)) ;
 ts_kcal_fao = zeros(size(Nyears_bl,1)) ;
 ts_kcal_yr = zeros(size(Nyears_bl,Nruns)) ;
-ts_kcal2_bl = zeros(size(Nyears_bl,1)) ;
-ts_kcal2_fao = zeros(size(Nyears_bl,1)) ;
-ts_kcal2_yr = zeros(size(Nyears_bl,Nruns)) ;
 for i = 1:length(tmp_name)
     thisCrop = strrep(strrep(strrep(strrep(tmp_name{i},'ts_cropprod_',''),'_bl',''),'_yr',''),'_fao','') ;
     if strcmp(thisCrop,'Miscanthus')
         continue
     end
     thisSuffix = strrep(tmp_name{i},['ts_cropprod_' thisCrop '_'],'') ;
-    kcal_per_g = get_kcalDensity(thisCrop) ;
+    kcal_per_g = get_kcalDensity2(thisCrop) ;
     kcal_per_kg = 1e3 * kcal_per_g ;
     eval(['ts_kcal_' thisSuffix ' = ts_kcal_' thisSuffix ' + kcal_per_kg * eval(tmp_name{i}) ;']) ;
-    kcal2_per_g = get_kcalDensity2(thisCrop) ;
-    kcal2_per_kg = 1e3 * kcal2_per_g ;
-    eval(['ts_kcal2_' thisSuffix ' = ts_kcal2_' thisSuffix ' + kcal2_per_kg * eval(tmp_name{i}) ;']) ;
 end ; clear i
-
 
 % Calculate calorie production expected by PLUM
 tmp = whos('ts_yieldExp_*') ;
@@ -1006,12 +1078,9 @@ if ~isempty(tmp)
         if ~strcmp(thisSuffix,'yr')
             error('~strcmp(thisSuffix,''yr'') ???')
         end
-        kcal_per_g = get_kcalDensity(thisCrop) ;
+        kcal_per_g = get_kcalDensity2(thisCrop) ;
         kcal_per_kg = 1e3 * kcal_per_g ;
-        eval(['ts_kcalExp_' thisSuffix ' = ts_kcalExp_' thisSuffix ' + kcal_per_kg * (' tmp_name{i} '.* ts_croparea_' thisCrop '_yr) ;']) ;
-        kcal2_per_g = get_kcalDensity2(thisCrop) ;
-        kcal2_per_kg = 1e3 * kcal2_per_g ;
-        eval(['ts_kcalExp2_' thisSuffix ' = ts_kcalExp2_' thisSuffix ' + kcal2_per_kg * (' tmp_name{i} '.* ts_croparea_' thisCrop '_yr) ;']) ;
+        eval(['ts_kcalExp2_' thisSuffix ' = ts_kcalExp2_' thisSuffix ' + kcal_per_kg * (' tmp_name{i} '.* ts_croparea_' thisCrop '_yr) ;']) ;
     end ; clear i
 end ; clear tmp
 
@@ -1027,7 +1096,7 @@ if exist('maps_mon_runoff_d1','var')
     maps_pk_runoff_d9.varNames = {'Max'} ;
 end
 
-disp('Done calculating secondary variables.')
+disp('Done performing secondary calculations.')
 
 
 %% Save outputs
@@ -1060,7 +1129,7 @@ rowInfo = {'Vegetation C (GtC)', 'cpool_VegC', cf_kg2Pg, '%d', '%d' ;
            'Evapotranspiration (1000 km^3)', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
            'Runoff (1000 km^3)', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
            'Peak monthly runoff (1000 km^3)', 'pkrunoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
-           'Crop production (Ecal)', 'kcal', cf_kcal2Ecal, '%0.1f', '%0.1f' ;
+           'Crop production (Ecal)', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f' ;
            'N loss (TgN)', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f' ;
            'N loss: Gaseous (TgN)', 'nflux_flux', cf_kg2Tg, '%0.1f', '%0.1f' ;
            'N loss: Dissolved (TgN)', 'nflux_leach', cf_kg2Tg, '%0.1f', '%0.1f' ;
@@ -2282,7 +2351,6 @@ end
 %% Plot timeseries: Yield of each crop
 
 % Options %%%%%%%%%
-do_adjYieldTech = true ;
 thisVar = 'yield' ;
 title_prefix = 'Yield' ;
 lineWidth = 2 ;
@@ -2313,8 +2381,6 @@ end
 
 % Adjust for "technology" increase (do not include FAO!)
 if do_adjYieldTech
-    cell_bl = adj_yield_tech(cell_bl, yearList_baseline) ;
-    cell_yr = adj_yield_tech(cell_yr, yearList_future) ;
     title_prefix = [title_prefix ' (techAdj)'] ;
 end
 
@@ -2388,7 +2454,6 @@ end
 %% Plot timeseries: Yield of each crop, ACTUAL/EXPECTED
 
 % % Options %%%%%%%%%
-% do_adjYieldTech = false ;
 % title_prefix = 'Yield diff' ;
 % lineWidth = 2 ;
 % fontSize = 14 ;
@@ -2407,10 +2472,7 @@ end
 % cell_yr_exp = cell_yr ; clear cell_yr
 % 
 % % Adjust for technology change, if doing so
-% file_suffix = '' ;
 % if do_adjYieldTech
-%     cell_yr_act = adj_yield_tech(cell_yr_act, yearList_future) ;
-%     title_prefix = [title_prefix ' (techAdj)'] ;
 %     file_suffix = [file_suffix '_techAdj'] ;
 % end
 % 
@@ -2703,8 +2765,6 @@ end
 %% Plot timeseries: Calories
 
 % Options %%%%%%%%%
-do_adjYieldTech = true ;
-
 plum_area_adjustment = 1 ;
 % plum_area_adjustment = 1-0.28 ;
 
@@ -2724,8 +2784,6 @@ figurePosition = [1 376 1440 429] ;
 % Adjust for technology change, if doing so (do not include FAO!)
 tmp_ts_kcal_bl = ts_kcal_bl ;
 if do_adjYieldTech
-    tmp_ts_kcal_bl = adj_yield_tech(tmp_ts_kcal_bl,yearList_baseline) ;
-    tmp_ts_kcal_yr = adj_yield_tech(tmp_ts_kcal_yr,yearList_future) ;
     file_suffix = [file_suffix '_techAdj'] ;
     title_suffix = [title_suffix ' (techAdj)'] ;
 end
@@ -2750,7 +2808,7 @@ figure('Position',figurePosition,'Color','w') ;
 plot_timeseries(...
     yearList_baseline, fao.tmp_fao_yearList, yearList_future, ...
     tmp_ts_kcal_bl, tmp_ts_kcal_fao, tmp_ts_kcal_yr, ...
-    cf_kcal2Ecal, Nsmth, ...
+    cf_kcalEcal, Nsmth, ...
     'Ecal', stdLegend_plusFAO, 'Caloric production', ...
     title_suffix, lineWidth, fontSize, skip3rdColor) ;
 clear tmp_*
@@ -2761,73 +2819,10 @@ if do_save
 end
 
 
-%% Plot timeseries: Calories2
-
-% Options %%%%%%%%%
-do_adjYieldTech = true ;
-
-plum_area_adjustment = 1 ;
-% plum_area_adjustment = 1-0.28 ;
-
-lpjg_area_adjustment = 1 ;
-% lpjg_area_adjustment = ts_LUarea_crop0_bl ./ ts_LUarea_crop_bl ;
-
-lineWidth = 2 ;
-fontSize = 14 ;
-ignYrs = 0 ;
-Nsmth = 1 ;
-figurePosition = [1 376 1440 429] ;
-%%%%%%%%%%%%%%%%%%%
-
-[tmp_ts_kcal2_yr, title_suffix, file_suffix] = ...
-    rebase_future2baseline(rebase, Nsmth, ts_kcal2_bl, ts_kcal2_yr, ignYrs, yearList_future) ;
-
-% Adjust for technology change, if doing so (do not include FAO!)
-tmp_ts_kcal2_bl = ts_kcal2_bl ;
-if do_adjYieldTech
-    tmp_ts_kcal2_bl = adj_yield_tech(tmp_ts_kcal2_bl,yearList_baseline) ;
-    tmp_ts_kcal2_yr = adj_yield_tech(tmp_ts_kcal2_yr,yearList_future) ;
-    file_suffix = [file_suffix '_techAdj'] ;
-    title_suffix = [title_suffix ' (techAdj)'] ;
-end
-
-% Adjust for unhandled crops, if doing so (DO include FAO)
-tmp_ts_kcal2_fao = ts_kcal2_fao ;
-if ~isequal(lpjg_area_adjustment,1)
-    tmp_ts_kcal2_bl = tmp_ts_kcal2_bl .* lpjg_area_adjustment ;
-    [~,IA] = intersect(yearList_baseline,fao.tmp_fao_yearList) ;
-    tmp_ts_kcal2_fao = tmp_ts_kcal2_fao .* lpjg_area_adjustment(IA) ;
-    title_suffix = [title_suffix ' (blAdj)'] ;
-    file_suffix = [file_suffix '_blAdj'] ;
-end
-if plum_area_adjustment ~= 1
-    tmp_ts_kcal2_yr = tmp_ts_kcal2_yr * plum_area_adjustment ;
-    title_suffix = [title_suffix ' (PLUM\times' num2str(plum_area_adjustment) ')'] ;
-    file_suffix = [file_suffix '_plumAdj' num2str(plum_area_adjustment)] ;
-end
-
-figure('Position',figurePosition,'Color','w') ;
-
-plot_timeseries(...
-    yearList_baseline, fao.tmp_fao_yearList, yearList_future, ...
-    tmp_ts_kcal2_bl, tmp_ts_kcal2_fao, tmp_ts_kcal2_yr, ...
-    cf_kcal2Ecal, Nsmth, ...
-    'Ecal', stdLegend_plusFAO, 'Caloric production', ...
-    title_suffix, lineWidth, fontSize, skip3rdColor) ;
-clear tmp_*
-
-if do_save
-    export_fig([outDir_ts 'calories2' file_suffix '.pdf'])
-    close
-end
-
-
 %% Plot timeseries: Calories, EXPECTED
 
 % % Options %%%%%%%%%
-% 
-% do_adjYieldTech = true ;
-% 
+% % 
 % plum_area_adjustment = 1 ;
 % % plum_area_adjustment = 1-0.28 ;
 % 
@@ -2848,8 +2843,6 @@ end
 % % Adjust for technology change, if doing so (do not include FAO!)
 % tmp_ts_kcal_bl = ts_kcal_bl ;
 % if do_adjYieldTech
-%     tmp_ts_kcal_bl = adj_yield_tech(tmp_ts_kcal_bl,yearList_baseline) ;
-%     tmp_ts_kcalExp_yr = adj_yield_tech(tmp_ts_kcalExp_yr,yearList_future) ;
 %     file_suffix = [file_suffix '_techAdj'] ;
 %     title_suffix = [title_suffix ' (techAdj)'] ;
 % end
@@ -2870,10 +2863,10 @@ end
 % end
 % 
 % figure('Position',figurePosition,'Color','w') ;
-% plot(yearList_baseline,cf_kcal2Ecal*movmean(tmp_ts_kcal_bl,Nsmth),'-k','LineWidth',lineWidth)
+% plot(yearList_baseline,cf_kcalEcal*movmean(tmp_ts_kcal_bl,Nsmth),'-k','LineWidth',lineWidth)
 % hold on
-% plot(fao.tmp_fao_yearList,cf_kcal2Ecal*tmp_ts_kcal_fao,'--k','LineWidth',lineWidth)
-% plot(yearList_future,cf_kcal2Ecal*tmp_ts_kcalExp_yr,'LineWidth',lineWidth)
+% plot(fao.tmp_fao_yearList,cf_kcalEcal*tmp_ts_kcal_fao,'--k','LineWidth',lineWidth)
+% plot(yearList_future,cf_kcalEcal*tmp_ts_kcalExp_yr,'LineWidth',lineWidth)
 % hold off
 % legend(stdLegend_plusFAO, ...
 %        'Location','NorthWest') ;
@@ -2892,7 +2885,6 @@ end
 %% Plot timeseries: Calories, ACTUAL/EXPECTED
 
 % % Options %%%%%%%%%
-% do_adjYieldTech = false ;
 % lineWidth = 2 ;
 % fontSize = 14 ;
 % Nsmth = 1 ;
@@ -2908,9 +2900,6 @@ end
 % 
 % figure('Position',figurePosition,'Color','w') ;
 % tmp_ts_kcal_yr = ts_kcal_yr ;
-% if do_adjYieldTech
-%     tmp_ts_kcal_yr = adj_yield_tech(tmp_ts_kcal_yr,yearList_future) ;
-% end
 % plot(yearList_future,movmean((tmp_ts_kcal_yr - ts_kcalExp_yr)./ts_kcalExp_yr*100,Nsmth,1),'-','LineWidth',lineWidth)
 % hold on
 % plot(get(gca,'XLim'),[0 0],'--k')
