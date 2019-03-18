@@ -3,21 +3,7 @@
 %%% PLUM-style native %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-do_save.LU              = true ;
-do_save.crops           = true ;
-do_save.yield           = true ;
-do_save.yield_exp       = false ;
-do_save.yield_map       = true ;
-do_save.yield_exp_map   = false ;
-do_save.irrig           = false ;
-do_save.water           = false ;
-do_save.carbon          = false ;
-do_save.mrunoff         = false ;
-do_save.albedo          = false ;
-do_save.bvocs           = false ;
-do_save.Nflux           = false ;
-do_save.Nfert           = false ;
-do_save.fpc             = false ;
+calib_file = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/remap5e_v18.csv' ;
 
 % %%% All TRUE except really unnecessary ones
 % do_save.LU              = true ;
@@ -36,80 +22,24 @@ do_save.fpc             = false ;
 % do_save.Nfert           = true ;
 % do_save.fpc             = false ;
 
-if false
-%     inDir_list = {...
-%         'LPJGPLUM_1850-2010_PLUM6xtraMisc/matlab_merge_20180605160616' ;
-%         'PLUM2LPJG_SSP1_RCP45_v4s1_v20180426/output-2018-05-17-205051' ;
-%         'PLUM2LPJG_SSP3_RCP60_v4s1_v20180426/output-2018-05-17-213445' ;
-%         'PLUM2LPJG_SSP4_RCP60_v4s1_v20180426/output-2018-05-18-035126' ;
-%         'PLUM2LPJG_SSP5_RCP85_v4s1_v20180426/output-2018-06-12-021143' ;
-%         'PLUM2LPJG_SSP1_RCP45_v4s1_v20180426_asPLUMout2011/output-2018-05-22-003904' ;
-%         'PLUM2LPJG_SSP3_RCP60_v4s1_v20180426_asPLUMout2011/output-2018-06-02-140439' ;
-%         'PLUM2LPJG_SSP4_RCP60_v4s1_v20180426_asPLUMout2011/output-2018-06-02-140613' ;
-%         'PLUM2LPJG_SSP5_RCP85_v4s1_v20180426_asPLUMout2011/output-2018-06-12-021136' ;
-%         'PLUM2LPJG_SSP1_RCP45_v3s1_constLUmgmt_asLUH2_2010/output-2018-06-13-213037' ;
-%         'PLUM2LPJG_SSP3_RCP60_v3s1_constLUmgmt_asLUH2_2010/output-2018-06-14-002019' ;
-%         'PLUM2LPJG_SSP5_RCP85_v3s1_constLUmgmt_asLUH2_2010/output-2018-06-14-002646' ;
-%         'PLUM2LPJG_SSP1_RCP45_v6s1_v20180426/output-2018-07-02-151649' ;
-%         'PLUM2LPJG_SSP3_RCP60_v6s1_v20180426/output-2018-07-02-170609' ;
-%         'PLUM2LPJG_SSP4_RCP60_v6s1_v20180426/output-2018-07-03-020625' ;
-%         'PLUM2LPJG_SSP5_RCP85_v6s1_v20180426/output-2018-07-03-020605' ;
-%         'LPJGPLUM_1850-2010_PLUM6xtraMisc_cg/matlab_merge_20180801105737' ;
-%         'PLUM2LPJG_SSP1_RCP45_v10s1_v20180730/output-2018-08-01-050407' ;
-%         'PLUM2LPJG_SSP3_RCP60_v10s1_v20180730/output-2018-08-01-135841' ;
-%         'PLUM2LPJG_SSP4_RCP60_v10s1_v20180730/output-2018-08-01-163815' ;
-%         'PLUM2LPJG_SSP5_RCP85_v10s1_v20180730/output-2018-08-01-164201' ;
-%     'LPJGPLUM_1850-2010_remap6/output-2018-10-27-073916' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-10-27-195714' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-10-29-133454' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-10-29-133454' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-10-29-135226' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP45/output-2018-10-30-124833' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP60/output-2018-10-30-220353' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP85/output-2018-10-30-214312' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-11-03-233845' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-11-03-235127' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-11-03-222204' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-11-03-233706' ;
-%     'LPJGPLUM_1850-2010_remap6p2test/output-2018-11-16-081646' ;
-%         } ;
-end
+%%% All FALSE except selected
+do_save.LU              = false ;
+do_save.crops           = false ;
+do_save.yield           = false ;
+do_save.yield_exp       = false ;
+do_save.yield_map       = false ;
+do_save.yield_exp_map   = false ;
+do_save.irrig           = false ;
+do_save.water           = false ;
+do_save.carbon          = false ;
+do_save.mrunoff         = false ;
+do_save.albedo          = true ;
+do_save.bvocs           = false ;
+do_save.Nflux           = false ;
+do_save.Nfert           = false ;
+do_save.fpc             = false ;
 
 inDir_list = {...
-%     'LPJGPLUM_1850-2010_remap6/output-2018-11-03-234931' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-11-05-085615' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-11-05-071233' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-11-05-071814' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-11-05-110842' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP1_constClimCO2/output-2018-11-03-233941' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP3_constClimCO2/output-2018-11-03-221433' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP4_constClimCO2/output-2018-11-03-221734' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP5_constClimCO2/output-2018-11-03-233913' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP45/output-2018-11-05-003042' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP60/output-2018-11-05-003344' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP85/output-2018-11-05-000411' ;
-%     'LPJGPLUM_1850-2010_remap6p3/output-2018-12-01-082125' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-01-193439' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-01-174937' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-01-175540' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-12-01-192401' ;
-%     'LPJGPLUM_1850-2010_remap6p3/output-2018-12-09-071305' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP1_RCP45/output-2018-12-11-000445' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP3_RCP60/output-2018-12-10-221610' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP4_RCP60/output-2018-12-10-221802' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP5_RCP85/output-2018-12-10-235151' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP45/output-2018-12-11-032126' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP60/output-2018-12-11-031352' ;
-%     'LPJGPLUM_2011-2100_harm2_constLU_RCP85/output-2018-12-11-025144' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP1_constClimCO2/output-2018-12-10-234221' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP3_constClimCO2/output-2018-12-10-220740' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP4_constClimCO2/output-2018-12-10-220855' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP5_constClimCO2/output-2018-12-10-233802' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP1_constClim/output-2018-12-30-225152' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP3_constClim/output-2018-12-31-045830' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP4_constClim/output-2018-12-31-045506' ;
-%bad%     'LPJGPLUM_2011-2100_harm2_SSP5_constClim/output-2018-12-31-072243' ;
-%     'LPJGPLUM_2011-2100_harm2_SSP5_constClim/output-2019-01-07-080321' ;
 %     'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851'
     'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914';
     'LPJGPLUM_2011-2100_harm3_SSP3_RCP60/output-2019-02-27-093027';
@@ -123,7 +53,32 @@ inDir_list = {...
 
 test_cropfracs_20170108 = false ;
 
-thisDir = addslashifneeded('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work') ;
+tmp = pwd ;
+if strcmp(tmp(1:5),'/User')
+    onMac = true ;
+elseif strcmp(tmp(1:5),'/pfs/')
+    onMac = false ;
+else
+    error('What system are you on?')
+end
+clear tmp
+if onMac
+    thisDir = addslashifneeded('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work') ;
+    gridlist_file = '/Users/Shared/lpj-guess/gridlists/PLUMout_gridlist.txt' ;
+    landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
+    biomes_dir = addslashifneeded('/Users/sam/Geodata/General/WWF terrestrial ecosystems') ;
+else
+    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general/')) ;
+    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general-fromshared/')) ;
+    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/lpj-guess-crop-calibration/')) ;
+    thisDir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work') ;
+    gridlist_file = '/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work/PLUMout_gridlist.txt' ;
+    landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+    biomes_dir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/PLUM/input/biomes') ;
+end
+biomes_map_file = [biomes_dir 'wwf_terr_ecos_UnpackClip.halfDeg.tif'] ;
+biomes_key_file = [biomes_dir 'wwf_terr_ecos.codes.csv'] ;
+
 if ~exist(thisDir,'dir')
     error('thisDir does not exist')
 end
@@ -151,7 +106,7 @@ anyfileexist = @(in_file) ...
     || exist([in_file '.gz'],'file') ;
 
 % Get calibration factors
-LPJGcrops_2_PLUM = readtable([thisDir 'PLUM6xtra_calib_20180423.csv']) ;
+LPJGcrops_2_PLUM = readtable(calib_file) ;
 cropTypes_conv = LPJGcrops_2_PLUM.Crop ;
 calibFactors = LPJGcrops_2_PLUM.calibFactor ;
 clear LPJGcrops_2_PLUM
@@ -166,12 +121,10 @@ end
 
 % Read PLUMout_gridlist
 if any(is_baseline_list) || contains(inDir_list{d},'LPJGPLUM_2011-2100_harm2_constLU_')
-    gridlist_file = '/Users/Shared/lpj-guess/gridlists/PLUMout_gridlist.txt' ;
     PLUMout_gridlist = lpjgu_matlab_readTable_then2map(gridlist_file,'verbose',false,'force_mat_save',true) ;
 end
 
 % Import land area (km2 to m2)
-landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
 gcel_area_YXqd = transpose(ncread(landarea_file,'carea')) ;
 land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
 land_area_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
@@ -190,6 +143,11 @@ end
 land_area_YX = land_area_YX*1e6 ;
 gcel_area_YX = gcel_area_YX*1e6 ;
 clear tmp gcel_area_YXqd land_frac_YXqd land_area_YXqd
+
+% Import biomes
+biomes_YX = flipud(imread(biomes_map_file)) ;
+biomes_YX(biomes_YX<0) = NaN ;
+biomes_key = readtable(biomes_key_file) ;
 
 % Conversion factors
 %%% All masses in kg
@@ -210,7 +168,15 @@ for d = 1:length(inDir_list)
     %%%%%%%%%%%%%
     
     % Get full inDir
-    inDir = find_PLUM2LPJG_run(inDir_list{d}) ;
+    if onMac
+        inDir = find_PLUM2LPJG_run(inDir_list{d}) ;
+    else
+        inDir = inDir_list{d} ;
+        if ~exist(inDir,'dir')
+           error('inDir (%s) not found!', inDir)
+        end
+        inDir = addslashifneeded(inDir) ;
+    end
     is_baseline = is_baseline_list(d) ;
     if is_baseline
         disp('is_baseline')
@@ -253,31 +219,54 @@ for d = 1:length(inDir_list)
         LUfile = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.someOfEachCrop.txt' ;
         cropfile = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.someOfEachCrop.txt' ;
     else
-        [x,LUfile_tmp] = unix([thisDir 'get_lu_file.sh "' inDir '"']) ;
-        if x~=0
-            error(['get_lu_file.sh failed with error ' num2str(x)])
-        end
-        LUfile_tmp = regexprep(LUfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
-        if contains(LUfile_tmp,'param "file_lu" (str "')
-            warning('LUfile_tmp badly parsed. Trying crude substitution.')
-            LUfile = crude_file_find(LUfile_tmp) ;
-        else
-            LUfile = find_PLUM2LPJG_input_file(LUfile_tmp) ;
-        end
-        [x,cropfile_tmp] = unix([thisDir 'get_cropfrac_file.sh "' inDir '"']) ;
-        if x~=0
-            error(['get_cropfrac_file.sh failed with error ' num2str(x)])
-        end
-        cropfile_tmp = regexprep(cropfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
-        if contains(cropfile_tmp,'param "file_lucrop" (str "')
-            warning('cropfile_tmp badly parsed. Trying crude substitution.')
-            cropfile = crude_file_find(cropfile_tmp) ;
-        else
-            cropfile = find_PLUM2LPJG_input_file(cropfile_tmp) ;
-            if do_save.yield_exp || do_save.yield_exp_map
-                expyieldfile_tmp = strrep(cropfile_tmp,'cropfractions','yield') ;
-                expyieldfile = find_PLUM2LPJG_input_file(expyieldfile_tmp,false) ;
+        if onMac
+            % Get LU file
+            [x,LUfile_tmp] = unix([thisDir 'get_lu_file.sh "' inDir '"']) ;
+            if x~=0
+                error(['get_lu_file.sh failed with error ' num2str(x)])
             end
+            LUfile_tmp = regexprep(LUfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            if contains(LUfile_tmp,'param "file_lu" (str "')
+                warning('LUfile_tmp badly parsed. Trying crude substitution.')
+                LUfile = crude_file_find(LUfile_tmp) ;
+            else
+                LUfile = find_PLUM2LPJG_input_file(LUfile_tmp) ;
+            end
+            % Get crop fractions file
+            [x,cropfile_tmp] = unix([thisDir 'get_cropfrac_file.sh "' inDir '"']) ;
+            if x~=0
+                error(['get_cropfrac_file.sh failed with error ' num2str(x)])
+            end
+            cropfile_tmp = regexprep(cropfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            if contains(cropfile_tmp,'param "file_lucrop" (str "')
+                warning('cropfile_tmp badly parsed. Trying crude substitution.')
+                cropfile = crude_file_find(cropfile_tmp) ;
+            else
+                cropfile = find_PLUM2LPJG_input_file(cropfile_tmp) ;
+                if do_save.yield_exp || do_save.yield_exp_map
+                    expyieldfile_tmp = strrep(cropfile_tmp,'cropfractions','yield') ;
+                    expyieldfile = find_PLUM2LPJG_input_file(expyieldfile_tmp,false) ;
+                end
+            end
+        else
+            % Get LU file
+            cmd = sprintf('grep ''param "file_lu"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lu"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
+                inDir) ;
+            [x,LUfile_tmp] = unix(cmd) ;
+            if x~=0
+                error(['Failed when trying to find LU file, with error ' num2str(x)])
+            end
+            LUfile_tmp = regexprep(LUfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            LUfile = strrep(LUfile_tmp,' ','') ; % Remove extraneous spaces
+            % Get crop fractions file
+            cmd = sprintf('grep ''param "file_lucrop"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_lucrop"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
+                inDir) ;
+            [x,cropfile_tmp] = unix(cmd) ;
+            if x~=0
+                error(['Failed when trying to find crop fractions file, with error ' num2str(x)])
+            end
+            cropfile_tmp = regexprep(cropfile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            cropfile = strrep(cropfile_tmp,' ','') ; % Remove extraneous spaces
         end
         
     end
@@ -910,9 +899,9 @@ for d = 1:length(inDir_list)
     end
     
     
-    %%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Import (and save, if doing so) FPC %%%
-    %%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     if do_save.fpc || do_save.albedo
         fpc = lpjgu_matlab_readTable_then2map([inDir 'fpc.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
@@ -978,14 +967,43 @@ for d = 1:length(inDir_list)
             get_albedo(fpc, snowdepth, LU, baresoil_albedo_YX, pftList) ;
         clear fpc
         
+        % Global
 %         weighting_YXy = repmat(land_area_YX,[1 1 Nyears]) ;
         weighting_YXy = repmat(gcel_area_YX,[1 1 Nyears]) .* (1-squeeze(LU.maps_YXvy(:,:,strcmp(LU.varNames,'BARREN'),:))) ; %land_gcel_fix
         albedo1_ts = squeeze(nansum(nansum(albedo_jan_YXy.*(weighting_YXy / nansum(nansum(weighting_YXy(:,:,1)))), 2), 1)) ;
         albedo7_ts = squeeze(nansum(nansum(albedo_jul_YXy.*(weighting_YXy / nansum(nansum(weighting_YXy(:,:,1)))), 2), 1)) ;
-        clear weighting_YXy
         save(timeseries_out,'albedo1_ts',v73_or_append(timeseries_out)) ;
         save(timeseries_out,'albedo7_ts',v73_or_append(timeseries_out)) ;
-        clear albedo*_ts
+        
+        % Boreal
+        biome_borfor_YX = biomes_YX==biomes_key.Code(strcmp(biomes_key.Biome,'Boreal Forests/Taiga')) ;
+        biome_borfor_YXy = repmat(biome_borfor_YX, [1 1 size(weighting_YXy,3)]) ;
+        weighting_YXy_borfor = weighting_YXy ;
+        weighting_YXy_borfor(~biome_borfor_YXy) = NaN ;
+        albedo_jan_YXy_borfor = albedo_jan_YXy ;
+        albedo_jan_YXy_borfor(~biome_borfor_YXy) = NaN ;
+        albedo1_borfor_ts = squeeze(nansum(nansum(albedo_jan_YXy_borfor.*(weighting_YXy_borfor / nansum(nansum(weighting_YXy_borfor(:,:,1)))), 2), 1)) ;
+        albedo_jul_YXy_borfor = albedo_jul_YXy ;
+        albedo_jul_YXy_borfor(~biome_borfor_YXy) = NaN ;
+        albedo7_borfor_ts = squeeze(nansum(nansum(albedo_jul_YXy_borfor.*(weighting_YXy_borfor / nansum(nansum(weighting_YXy_borfor(:,:,1)))), 2), 1)) ;
+        save(timeseries_out,'albedo1_borfor_ts',v73_or_append(timeseries_out)) ;
+        save(timeseries_out,'albedo7_borfor_ts',v73_or_append(timeseries_out)) ;
+        
+        % Tundra
+        biome_tundra_YX = biomes_YX==biomes_key.Code(strcmp(biomes_key.Biome,'Tundra')) ;
+        biome_tundra_YXy = repmat(biome_tundra_YX, [1 1 size(weighting_YXy,3)]) ;
+        weighting_YXy_tundra = weighting_YXy ;
+        weighting_YXy_tundra(~biome_tundra_YXy) = NaN ;
+        albedo_jan_YXy_tundra = albedo_jan_YXy ;
+        albedo_jan_YXy_tundra(~biome_tundra_YXy) = NaN ;
+        albedo1_tundra_ts = squeeze(nansum(nansum(albedo_jan_YXy_tundra.*(weighting_YXy_tundra / nansum(nansum(weighting_YXy_tundra(:,:,1)))), 2), 1)) ;
+        albedo_jul_YXy_tundra = albedo_jul_YXy ;
+        albedo_jul_YXy_tundra(~biome_tundra_YXy) = NaN ;
+        albedo7_tundra_ts = squeeze(nansum(nansum(albedo_jul_YXy_tundra.*(weighting_YXy_tundra / nansum(nansum(weighting_YXy_tundra(:,:,1)))), 2), 1)) ;
+        save(timeseries_out,'albedo1_tundra_ts',v73_or_append(timeseries_out)) ;
+        save(timeseries_out,'albedo7_tundra_ts',v73_or_append(timeseries_out)) ;
+        
+        clear albedo*_ts albedo_*_YXy_* weighting_YXy* biome_*_YX
         
         albedo.list_to_map = snowdepth.list_to_map ;
         albedo.varNames = {'January','July'} ;
@@ -1114,12 +1132,15 @@ for d = 1:length(inDir_list)
     
     if do_save.Nfert
         % Fertilizer for each crop
-%         [x,NfertFile_tmp] = unix([thisDir 'get_nfert_file.sh "' inDir '"']) ;
-        cmd = 'grep "file_nfert" %s/landcover.ins | sed ''s@param "file_nfert" (str "/project/fh1-project-lpjgpi/lr8247@/Users/Shared@'' | sed ''s@")@@''' ;
-        cmd_str = sprintf(cmd,removeslashifneeded(inDir)) ;
-        [x,NfertFile_tmp] = unix(cmd_str) ;
-        if x~=0
-            error(['get_nfert_file.sh failed with error ' num2str(x)])
+        if onMac
+            cmd = 'grep "file_nfert" %s/landcover.ins | sed ''s@param "file_nfert" (str "/project/fh1-project-lpjgpi/lr8247@/Users/Shared@'' | sed ''s@")@@''' ;
+            cmd_str = sprintf(cmd,removeslashifneeded(inDir)) ;
+            [x,NfertFile_tmp] = unix(cmd_str) ;
+            if x~=0
+                error(['get_nfert_file.sh failed with error ' num2str(x)])
+            end
+        else
+            NfertFile_tmp= 'grep "file_nfert" %s/landcover.ins | sed ''s@param "file_nfert" (str "@@'' | sed ''s@")@@''' ;
         end
         NfertFile_tmp = regexprep(NfertFile_tmp,'[\n\r]+','') ; % Remove extraneous newline
         if is_baseline
@@ -1133,9 +1154,17 @@ for d = 1:length(inDir_list)
             end
         elseif strcmp(NfertFile_tmp,'nfert_2010_luh2_aggregate_sum2x2_midpoint_rescaled_v20.txt')
             NfertFile = '/Users/Shared/PLUM/input/Nfert/LUH2/nfert_2010_luh2_aggregate_sum2x2_midpoint_rescaled_v20.txt' ;
-        else
-%             NfertFile = find_PLUM2LPJG_input_file(NfertFile_tmp) ;
+        elseif onMac
             NfertFile = crude_file_find(NfertFile_tmp) ;
+        else
+            cmd = sprintf('grep ''param "file_nfert"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_nfert"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
+                inDir) ;
+            [x,NfertFile_tmp] = unix(cmd) ;
+            if x~=0
+                error(['Failed when trying to find Nfert file, with error ' num2str(x)])
+            end
+            NfertFile_tmp = regexprep(NfertFile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+            NfertFile = strrep(NfertFile_tmp,' ','') ; % Remove extraneous spaces
         end
         Nfert = lpjgu_matlab_readTable_then2map(NfertFile,'force_mat_save',true) ;
         Nfert = adjust_cropinput_yearLists(Nfert, yearList) ;

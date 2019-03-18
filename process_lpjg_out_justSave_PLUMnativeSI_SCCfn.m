@@ -6,21 +6,38 @@ function process_lpjg_out_justSave_PLUMnativeSI_SCCfn( ...
 %%% PLUM-style native %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%% All TRUE except really unnecessary ones
-do_save.LU              = true ;
-do_save.crops           = true ;
-do_save.yield           = true ;
+% %%% All TRUE except really unnecessary ones
+% do_save.LU              = true ;
+% do_save.crops           = true ;
+% do_save.yield           = true ;
+% do_save.yield_exp       = false ;
+% do_save.yield_map       = true ;
+% do_save.yield_exp_map   = false ;
+% do_save.irrig           = true ;
+% do_save.water           = true ;
+% do_save.carbon          = true ;
+% do_save.mrunoff         = true ;
+% do_save.albedo          = true ;
+% do_save.bvocs           = true ;
+% do_save.Nflux           = true ;
+% do_save.Nfert           = true ;
+% do_save.fpc             = false ;
+
+%%% All FALSE except selected
+do_save.LU              = false ;
+do_save.crops           = false ;
+do_save.yield           = false ;
 do_save.yield_exp       = false ;
-do_save.yield_map       = true ;
+do_save.yield_map       = false ;
 do_save.yield_exp_map   = false ;
-do_save.irrig           = true ;
-do_save.water           = true ;
-do_save.carbon          = true ;
-do_save.mrunoff         = true ;
+do_save.irrig           = false ;
+do_save.water           = false ;
+do_save.carbon          = false ;
+do_save.mrunoff         = false ;
 do_save.albedo          = true ;
-do_save.bvocs           = true ;
-do_save.Nflux           = true ;
-do_save.Nfert           = true ;
+do_save.bvocs           = false ;
+do_save.Nflux           = false ;
+do_save.Nfert           = false ;
 do_save.fpc             = false ;
 
 
@@ -43,6 +60,7 @@ if onMac
     thisDir = addslashifneeded('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work') ;
     gridlist_file = '/Users/Shared/lpj-guess/gridlists/PLUMout_gridlist.txt' ;
     landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
+    biomes_dir = addslashifneeded('/Users/sam/Geodata/General/WWF terrestrial ecosystems') ;
 else
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general/')) ;
     addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general-fromshared/')) ;
@@ -50,7 +68,10 @@ else
     thisDir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work') ;
     gridlist_file = '/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work/PLUMout_gridlist.txt' ;
     landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+    biomes_dir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/PLUM/input/biomes') ;
 end
+biomes_map_file = [biomes_dir 'wwf_terr_ecos_UnpackClip.halfDeg.tif'] ;
+biomes_key_file = [biomes_dir 'wwf_terr_ecos.codes.csv'] ;
 
 if ~exist(thisDir,'dir')
     error('thisDir does not exist')
@@ -79,7 +100,6 @@ anyfileexist = @(in_file) ...
     || exist([in_file '.gz'],'file') ;
 
 % Get calibration factors
-% calib_file = [thisDir 'PLUM6xtra_calib_20180423.csv'] ;
 LPJGcrops_2_PLUM = readtable(calib_file) ;
 cropTypes_conv = LPJGcrops_2_PLUM.Crop ;
 calibFactors = LPJGcrops_2_PLUM.calibFactor ;
@@ -117,6 +137,11 @@ end
 land_area_YX = land_area_YX*1e6 ;
 gcel_area_YX = gcel_area_YX*1e6 ;
 clear tmp gcel_area_YXqd land_frac_YXqd land_area_YXqd
+
+% Import biomes
+biomes_YX = flipud(imread(biomes_map_file)) ;
+biomes_YX(biomes_YX<0) = NaN ;
+biomes_key = readtable(biomes_key_file) ;
 
 % Conversion factors
 %%% All masses in kg
@@ -187,8 +212,8 @@ for d = 1:length(inDir_list)
         cropfile = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v3/cropfracs.remapv3.20180214.cgFertIrr0.m0.txt' ;
     elseif strcmp_ignoreTrailSlash(inDir_list{d},'LPJGPLUM_1850-2010_remap6/output-2018-10-27-073916') ...
         || strcmp_ignoreTrailSlash(inDir_list{d},'LPJGPLUM_1850-2010_remap6/output-2018-11-03-234931')
-    LUfile = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.someOfEachCrop.txt' ;
-    cropfile = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.someOfEachCrop.txt' ;
+        LUfile = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.someOfEachCrop.txt' ;
+        cropfile = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.someOfEachCrop.txt' ;
     else
         if onMac
             % Get LU file
@@ -870,9 +895,9 @@ for d = 1:length(inDir_list)
     end
     
     
-    %%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Import (and save, if doing so) FPC %%%
-    %%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     if do_save.fpc || do_save.albedo
         fpc = lpjgu_matlab_readTable_then2map([inDir 'fpc.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
@@ -938,14 +963,43 @@ for d = 1:length(inDir_list)
             get_albedo(fpc, snowdepth, LU, baresoil_albedo_YX, pftList) ;
         clear fpc
         
+        % Global
 %         weighting_YXy = repmat(land_area_YX,[1 1 Nyears]) ;
         weighting_YXy = repmat(gcel_area_YX,[1 1 Nyears]) .* (1-squeeze(LU.maps_YXvy(:,:,strcmp(LU.varNames,'BARREN'),:))) ; %land_gcel_fix
         albedo1_ts = squeeze(nansum(nansum(albedo_jan_YXy.*(weighting_YXy / nansum(nansum(weighting_YXy(:,:,1)))), 2), 1)) ;
         albedo7_ts = squeeze(nansum(nansum(albedo_jul_YXy.*(weighting_YXy / nansum(nansum(weighting_YXy(:,:,1)))), 2), 1)) ;
-        clear weighting_YXy
         save(timeseries_out,'albedo1_ts',v73_or_append(timeseries_out)) ;
         save(timeseries_out,'albedo7_ts',v73_or_append(timeseries_out)) ;
-        clear albedo*_ts
+        
+        % Boreal
+        biome_borfor_YX = biomes_YX==biomes_key.Code(strcmp(biomes_key.Biome,'Boreal Forests/Taiga')) ;
+        biome_borfor_YXy = repmat(biome_borfor_YX, [1 1 size(weighting_YXy,3)]) ;
+        weighting_YXy_borfor = weighting_YXy ;
+        weighting_YXy_borfor(~biome_borfor_YXy) = NaN ;
+        albedo_jan_YXy_borfor = albedo_jan_YXy ;
+        albedo_jan_YXy_borfor(~biome_borfor_YXy) = NaN ;
+        albedo1_borfor_ts = squeeze(nansum(nansum(albedo_jan_YXy_borfor.*(weighting_YXy_borfor / nansum(nansum(weighting_YXy_borfor(:,:,1)))), 2), 1)) ;
+        albedo_jul_YXy_borfor = albedo_jul_YXy ;
+        albedo_jul_YXy_borfor(~biome_borfor_YXy) = NaN ;
+        albedo7_borfor_ts = squeeze(nansum(nansum(albedo_jul_YXy_borfor.*(weighting_YXy_borfor / nansum(nansum(weighting_YXy_borfor(:,:,1)))), 2), 1)) ;
+        save(timeseries_out,'albedo1_borfor_ts',v73_or_append(timeseries_out)) ;
+        save(timeseries_out,'albedo7_borfor_ts',v73_or_append(timeseries_out)) ;
+        
+        % Tundra
+        biome_tundra_YX = biomes_YX==biomes_key.Code(strcmp(biomes_key.Biome,'Tundra')) ;
+        biome_tundra_YXy = repmat(biome_tundra_YX, [1 1 size(weighting_YXy,3)]) ;
+        weighting_YXy_tundra = weighting_YXy ;
+        weighting_YXy_tundra(~biome_tundra_YXy) = NaN ;
+        albedo_jan_YXy_tundra = albedo_jan_YXy ;
+        albedo_jan_YXy_tundra(~biome_tundra_YXy) = NaN ;
+        albedo1_tundra_ts = squeeze(nansum(nansum(albedo_jan_YXy_tundra.*(weighting_YXy_tundra / nansum(nansum(weighting_YXy_tundra(:,:,1)))), 2), 1)) ;
+        albedo_jul_YXy_tundra = albedo_jul_YXy ;
+        albedo_jul_YXy_tundra(~biome_tundra_YXy) = NaN ;
+        albedo7_tundra_ts = squeeze(nansum(nansum(albedo_jul_YXy_tundra.*(weighting_YXy_tundra / nansum(nansum(weighting_YXy_tundra(:,:,1)))), 2), 1)) ;
+        save(timeseries_out,'albedo1_tundra_ts',v73_or_append(timeseries_out)) ;
+        save(timeseries_out,'albedo7_tundra_ts',v73_or_append(timeseries_out)) ;
+        
+        clear albedo*_ts albedo_*_YXy_* weighting_YXy* biome_*_YX
         
         albedo.list_to_map = snowdepth.list_to_map ;
         albedo.varNames = {'January','July'} ;
