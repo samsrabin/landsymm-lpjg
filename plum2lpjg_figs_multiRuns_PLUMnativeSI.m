@@ -29,10 +29,15 @@
 % thisVer = 'harm2.3_S4R6.0_attr' ;
 % thisVer = 'harm2.3_S5R8.5_attr' ;
 % thisVer = 'harm2.3_constClim' ;
-thisVer = 'harm3' ;
+% thisVer = 'harm3' ;
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
+% thisVer = 'harm3_constClimCO2' ;
+% thisVer = 'harm3_S1R4.5_attr' ;
+% thisVer = 'harm3_S3R6.0_attr' ;
+% thisVer = 'harm3_S4R6.0_attr' ;
+thisVer = 'harm3_S5R8.5_attr' ;
 
 do_adjYieldTech = true ; % Apply annual tech. change increase to yields?
 
@@ -438,6 +443,71 @@ elseif strcmp(thisVer,'harm3_constLU')
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = true ;
+elseif strcmp(thisVer,'harm3_constClimCO2')
+    runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_SSP1_constCO2_constClim/output-2019-03-12-091426' ;
+        'LPJGPLUM_2011-2100_harm3_SSP3_constCO2_constClim/output-2019-03-12-080759' ;
+        'LPJGPLUM_2011-2100_harm3_SSP4_constCO2_constClim/output-2019-03-12-083131' ;
+        'LPJGPLUM_2011-2100_harm3_SSP5_constCO2_constClim/output-2019-03-12-094118' ;
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
+elseif strcmp(thisVer,'harm3_S1R4.5_attr')
+    runList = {'SSP1-45','constLU','constClimCO2'} ;
+    runColNames = {'Full','constLU','constClimCO2'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914' ;
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP45/output-2019-03-07-164549' ;
+        'LPJGPLUM_2011-2100_harm3_SSP1_constCO2_constClim/output-2019-03-12-091426' ;
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
+elseif strcmp(thisVer,'harm3_S3R6.0_attr')
+    runList = {'SSP3-60','constLU','constClimCO2'} ;
+    runColNames = {'Full','constLU','constClimCO2'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_SSP3_RCP60/output-2019-02-27-093027' ;
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP60/output-2019-03-07-164546' ;
+        'LPJGPLUM_2011-2100_harm3_SSP3_constCO2_constClim/output-2019-03-12-080759' ;
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
+elseif strcmp(thisVer,'harm3_S4R6.0_attr')
+    runList = {'SSP4-60','constLU','constClimCO2'} ;
+    runColNames = {'Full','constLU','constClimCO2'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_SSP4_RCP60/output-2019-02-27-093259' ;
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP60/output-2019-03-07-164546' ;
+        'LPJGPLUM_2011-2100_harm3_SSP4_constCO2_constClim/output-2019-03-12-083131' ;
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
+elseif strcmp(thisVer,'harm3_S5R8.5_attr')
+%     runList = {'SSP5-85','constLU','constClimCO2'} ;
+%     runColNames = {'Full','constLU','constClimCO2'} ;
+%     runList = {'SSP5-85','constLU','constClimCO2','constClim'} ;
+%     runColNames = {'Full','constLU','constClimCO2','constClim'} ;
+    runList = {'SSP5-85','constLU','constClimCO2','constCO2'} ;
+    runColNames = {'Full','constLU','constClimCO2','constCO2'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_SSP5_RCP85/output-2019-02-27-104120' ;
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP85/output-2019-03-07-164546' ;
+        'LPJGPLUM_2011-2100_harm3_SSP5_constCO2_constClim/output-2019-03-12-094118' ;
+        'LPJGPLUM_2011-2100_harm3_SSP5_RCP85_constCO2/output-2019-03-07-170910' ;
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
 else
     error(['thisVer (' thisVer ') not recognized!'])
 end
@@ -1122,17 +1192,17 @@ years_endf = 2090:2099 ;
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM
 rowInfo = {'Vegetation C (GtC)', 'cpool_VegC', cf_kg2Pg, '%d', '%d' ;
            'Soil and litter C (GtC)', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d' ;
-           'Product C (GtC)', 'cpool_HarvSlowC', cf_kg2Pg, '%0.1f', '%0.1f' ;
+%            'Product C (GtC)', 'cpool_HarvSlowC', cf_kg2Pg, '%0.1f', '%0.1f' ;
            'Total C (GtC)', 'cpool_Total', cf_kg2Pg, '%d', '%d' ;
            'January albedo', 'albedo1', 1, '%0.3f', '%0.3f' ;
            'July albedo', 'albedo7', 1, '%0.3f', '%0.3f' ;
            'Evapotranspiration (1000 km^3)', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
            'Runoff (1000 km^3)', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
-           'Peak monthly runoff (1000 km^3)', 'pkrunoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
+%            'Peak monthly runoff (1000 km^3)', 'pkrunoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
            'Crop production (Ecal)', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f' ;
            'N loss (TgN)', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f' ;
-           'N loss: Gaseous (TgN)', 'nflux_flux', cf_kg2Tg, '%0.1f', '%0.1f' ;
-           'N loss: Dissolved (TgN)', 'nflux_leach', cf_kg2Tg, '%0.1f', '%0.1f' ;
+%            'N loss: Gaseous (TgN)', 'nflux_flux', cf_kg2Tg, '%0.1f', '%0.1f' ;
+%            'N loss: Dissolved (TgN)', 'nflux_leach', cf_kg2Tg, '%0.1f', '%0.1f' ;
            'Isoprene emissions (TgC)', 'aiso', cf_kg2Tg, '%0.1f', '%0.1f' ;
            'Monoterpene emissions (TgC)', 'amon', cf_kg2Tg, '%0.1f', '%0.1f' ;
            } ;
@@ -1155,9 +1225,6 @@ for c = 1:Nvars
     mean_endh(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
     sem_endh(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
     mean_begf(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_begf) & yearList_future<=max(years_begf),:))']) ;
-    if strcmp(thisVar,'nloss')
-        x=1;
-    end
     sem_begf(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_begf) & yearList_future<=max(years_begf),:))']) ;
     mean_endf(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
     sem_endf(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
@@ -1208,7 +1275,94 @@ end
 disp('Done making table.')
 
 
-%% Map differences from beginning to end of future: Isoprene emissions 
+%% Table after Krause et al. (2017) Table 2 but without first fut. decade
+
+disp('Making table...')
+
+years_endh = 2000:2009 ;
+years_endf = 2090:2099 ;
+
+% Name, code, conversion factor, formatSpec mean, formatSpec SEM
+rowInfo = {'Vegetation C (GtC)', 'cpool_VegC', cf_kg2Pg, '%d', '%d' ;
+           'Soil and litter C (GtC)', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d' ;
+%            'Product C (GtC)', 'cpool_HarvSlowC', cf_kg2Pg, '%0.1f', '%0.1f' ;
+           'Total C (GtC)', 'cpool_Total', cf_kg2Pg, '%d', '%d' ;
+           'January albedo', 'albedo1', 1, '%0.3f', '%0.3f' ;
+           'July albedo', 'albedo7', 1, '%0.3f', '%0.3f' ;
+           'Evapotranspiration (1000 km^3)', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
+           'Runoff (1000 km^3)', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
+%            'Peak monthly runoff (1000 km^3)', 'pkrunoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
+           'Crop production (Ecal)', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f' ;
+           'N loss (TgN)', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f' ;
+%            'N loss: Gaseous (TgN)', 'nflux_flux', cf_kg2Tg, '%0.1f', '%0.1f' ;
+%            'N loss: Dissolved (TgN)', 'nflux_leach', cf_kg2Tg, '%0.1f', '%0.1f' ;
+           'Isoprene emissions (TgC)', 'aiso', cf_kg2Tg, '%0.1f', '%0.1f' ;
+           'Monoterpene emissions (TgC)', 'amon', cf_kg2Tg, '%0.1f', '%0.1f' ;
+           } ;
+
+Nvars = size(rowInfo,1) ;
+mean_endh = nan(Nvars,1) ;
+mean_endf = nan(Nvars,Nruns) ;
+sem_endh = nan(Nvars,1) ;
+sem_endf = nan(Nvars,Nruns) ;
+string_endh = cell(Nvars,1) ;
+string_endf = cell(Nvars,Nruns) ;
+for c = 1:Nvars
+    
+    % Get values
+    thisVar = rowInfo{c,2} ;
+    thisConv = rowInfo{c,3} ;
+    mean_endh(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
+    sem_endh(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
+    mean_endf(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
+    sem_endf(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
+    
+    % Turn into strings
+    if strcmp(rowInfo{c,4},'%d')
+        thisMean = round(mean_endh(c)) ;
+    else
+        thisMean = mean_endh(c) ;
+    end
+    if strcmp(rowInfo{c,4},'%d')
+        thisSD = round(sem_endh(c)) ;
+    else
+        thisSD = sem_endh(c) ;
+    end
+    string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
+    for r = 1:Nruns
+        if strcmp(rowInfo{c,4},'%d')
+            thisMean_endf = round(mean_endf(c,r)) ;
+        else
+            thisMean_endf = mean_endf(c,r) ;
+        end
+        if strcmp(rowInfo{c,4},'%d')
+            thisSD_endf = round(sem_endf(c,r)) ;
+        else
+            thisSD_endf = sem_endf(c,r) ;
+        end
+        string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
+    end
+
+end
+
+% table_out = table(collate_empties(rowInfo(:,1)),...
+%                   collate_empties(string_endh)) ;
+table_out = table(rowInfo(:,1),...
+                  string_endh) ;
+              
+for r = 1:Nruns
+%     table_out = [table_out collate_twocells(string_begf(:,r),string_endf(:,r))] ;
+    table_out = [table_out string_endf(:,r)] ;
+end
+table_out.Properties.VariableNames = [{'Ecosystem_function','Baseline'} runColNames] ;
+
+if do_save
+    writetable(table_out,[outDir_base 'summary_table_nobegf.xlsx'],'Sheet',1) ;
+end
+disp('Done making table.')
+
+
+%% Map differences from end of historical to end of future: Isoprene emissions 
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'bvoc_iso'] ;
@@ -1227,13 +1381,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_aiso_d1, maps_aiso_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_aiso_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Monoterpene emissions
+%% Map differences from end of historical to end of future: Monoterpene emissions
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'bvoc_mon'] ;
@@ -1252,13 +1406,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_amon_d1, maps_amon_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_amon_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Total N loss
+%% Map differences from end of historical to end of future: Total N loss
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'nloss'] ;
@@ -1277,13 +1431,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_nflux_d1, maps_nflux_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Gaseous N loss
+%% Map differences from end of historical to end of future: Gaseous N loss
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'nloss_gas'] ;
@@ -1302,13 +1456,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_nflux_d1, maps_nflux_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Dissolved N loss
+%% Map differences from end of historical to end of future: Dissolved N loss
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'nloss_liq'] ;
@@ -1327,13 +1481,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_nflux_d1, maps_nflux_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: January albedo
+%% Map differences from end of historical to end of future: January albedo
 
 % warning('Skipping January albedo: pass per-year non-bare area as weighting!')
 
@@ -1354,13 +1508,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_albedo_d1, maps_albedo_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: July albedo
+%% Map differences from end of historical to end of future: July albedo
 
 % warning('Skipping July albedo: pass per-year non-bare area as weighting!')
 
@@ -1381,13 +1535,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_albedo_d1, maps_albedo_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Vegetation C
+%% Map differences from end of historical to end of future: Vegetation C
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'cpool_veg'] ;
@@ -1406,13 +1560,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_cpool_d1, maps_cpool_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Total C
+%% Map differences from end of historical to end of future: Total C
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'cpool_tot'] ;
@@ -1431,13 +1585,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_cpool_d1, maps_cpool_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Evapotranspiration
+%% Map differences from end of historical to end of future: Evapotranspiration
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'water_evapotransp'] ;
@@ -1456,13 +1610,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_awater_d1, maps_awater_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_awater_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Annual runoff
+%% Map differences from end of historical to end of future: Annual runoff
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'water_runoff'] ;
@@ -1481,13 +1635,13 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_awater_d1, maps_awater_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_awater_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
 
-%% Map differences from beginning to end of future: Peak runoff
+%% Map differences from end of historical to end of future: Peak runoff
 
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'water_runoff_peak'] ;
@@ -1506,10 +1660,14 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs(do_save, maps_pk_runoff_d1, maps_pk_runoff_d9, sumvars, title_text, filename_base, ...
+do_map_run_diffs_fromEndHist(do_save, maps_pk_runoff_d9, sumvars, title_text, filename_base, ...
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
+
+%% stop
+
+stop
 
 
 %% Map changes in LU area: End-Historical to End-Future
@@ -1577,6 +1735,7 @@ make_LUdiff_fig_v2(...
     spacing, fontSize, textX, textY_1, textY_2, ...
     nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+%
 if do_save
     export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
     close
@@ -1781,6 +1940,45 @@ if do_save
 end
 
 
+%% Map changes in cropland and pasture area: End-historical to End-Future
+
+
+%% Map changes in cropland and pasture area: Begin-Future to End-Future
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+spacing = [0.05 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+thisPos = [1 33 935 772] ;
+nx = 2 ;
+ny = 4 ;
+colorBarLoc = 'EastOutside' ;
+conv_fact_map = 1e-6 ;   % m2 to km2
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+units_map = 'km^2' ;
+units_total = 'Mkm^2' ;
+only1bl = false ;
+%%%%%%%%%%%%%%%%%%%
+
+thisY1 = yearList_future(1) ;
+thisYN = yearList_future(end) ;
+
+make_LUdiff_fig_v3(...
+    crop_area_YXBFr, past_area_YXBFr, ...
+    crop_diff_YXrF, past_diff_YXrF, ...
+    thisY1, thisYN, 'Cropland', runList, ...
+    spacing, fontSize, textX, textY_1, textY_2, ...
+    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+if do_save
+    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'],['-r' num2str(pngres)])
+    close
+end
+
+
+
 %% Map changes in each crop area: End-Historical to End-Future
 
 % Options %%%%%%%%%
@@ -1965,10 +2163,143 @@ xlabel('Year')
 ylabel(units)
 ht = title(['Natural area' title_suffix]) ;
 letterlabel_align0('B',ht,do_caps) ;
-
+stop
 if do_save
     export_fig([outDir_ts 'landUse' file_suffix '.pdf'])
     close
+end
+
+
+%% Plot timeseries: Land uses compared to comparables from Alexander et al. (2017)
+
+% Options %%%%%%%%%
+lineWidth = 3 ;
+fontSize = 18 ;
+spacing = 0.07 ;
+legloc = 'Southeast' ;
+%%%%%%%%%%%%%%%%%%%
+
+% Import
+table_in = readtable('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
+
+% Restrict to global runs
+table_in(~strcmp(table_in.location,'Global'),:) = [] ;
+
+% Only care about cropland and pasture
+table_in(~(strcmp(table_in.land_type,'c') | strcmp(table_in.land_type,'p')),:) = [] ;
+
+% Only care about part of the time period
+yearList_tmp = 2010:10:2100 ;
+Nyears_tmp = length(yearList_tmp) ;
+table_in(table_in.year<min(yearList_tmp) | table_in.year>max(yearList_tmp),:) = [] ;
+
+% Make plots
+skip_this = false ;
+if strcmp(thisVer,'harm3')
+    combos = {'SSP1', 'RCP 4.5' ;
+              'SSP3', 'RCP 6.0' ;
+              'SSP4', 'RCP 6.0' ;
+              'SSP5', 'RCP 8.5' ;
+             } ;
+else
+    warning('thisVer (%s) not recognized for comparing land uses to Alexander et al. (2017); skipping.', thisVer) ;
+    skip_this = true ;
+end
+if ~skip_this
+    if Nruns ~= 4
+        error('Nruns ~= 4')
+    end
+    for c = 1:length(combos)
+        
+        % Get matches
+        thisEcon = combos{c,1} ;
+        thisClim = combos{c,2} ;
+        thisTitle_tmp = sprintf('(%s-%s)',thisEcon, thisClim([5 7])) ;
+        isMatch = strcmp(table_in.economicScenario,thisEcon) & strcmp(table_in.rcp,thisClim) ;
+        column_runs = strcat(strcat(table_in.model(isMatch),':'), table_in.scenarioId(isMatch)) ;
+        matching_runs = unique(column_runs) ;
+        matching_runs_4legend = strrep(matching_runs,':',': ') ;
+        Nmatch = length(matching_runs) ;
+        if Nmatch==0
+            continue
+        end
+        
+        % Get data
+        data_vyc = nan(2,Nyears_tmp,Nmatch) ;
+        for i = 1:Nmatch
+            thisRun = matching_runs{i} ;
+            tmp = strsplit(thisRun, ':') ;
+            thisModel = tmp{1} ;
+            thisScenID = tmp{2} ;
+            isThisRun = strcmp(table_in.model,thisModel) & strcmp(table_in.scenarioId,thisScenID) ;
+            data_x = table_in.value_rebased(isThisRun) ;
+            years_x = table_in.year(isThisRun) ;
+            if isempty(intersect(years_x,yearList_tmp))
+                error('No matching years found!')
+            end
+            lt_x = table_in.land_type(isThisRun) ;
+            thisRun_isCrop = strcmp(lt_x,'c') ;
+            for y = 1:Nyears_tmp
+                thisYear = yearList_tmp(y) ;
+                isThisYear = years_x==thisYear ;
+                if any(isThisYear)
+                    data_vyc(1,y,i) = data_x(isThisYear & thisRun_isCrop) ;
+                    data_vyc(2,y,i) = data_x(isThisYear & ~thisRun_isCrop) ;
+                end
+            end
+            
+        end
+        data_vyc = data_vyc * 1e10 ;   % Mha to m2
+        % Rebase to LPJ-GUESS-PLUM 2011 level assuming linear between 2010-2020
+        adj = squeeze(ts_LUarea_crop_yr(yearList_future==2011,c) - ...
+            (0.9*data_vyc(1,1,:)+0.1*data_vyc(1,2,:))) ;
+        adj = permute(adj,[3 2 1]) ;
+        data_vyc(1,:,:) = data_vyc(1,:,:) + repmat(adj,[1 length(yearList_tmp) 1]) ;
+        adj = squeeze(ts_LUarea_past_yr(yearList_future==2011,c) - ...
+            (0.9*data_vyc(2,1,:)+0.1*data_vyc(2,2,:))) ;
+        data_vyc(2,:,:) = data_vyc(2,:,:) + repmat(permute(adj,[3 2 1]),[1 length(yearList_tmp) 1]) ;
+        data_vyc = data_vyc * 1e-12 ;   % m2 to Mkm2
+        data_ycv = permute(data_vyc,[2 3 1]) ;
+        
+        % Plot
+        matching_runs_4legend{end+1} = 'LPJ-GUESS-PLUM' ;
+        figure('Position',figurePos,'Color','w') ;
+        % Cropland
+        subplot_tight(1,2,1,spacing)
+        plot(yearList_tmp, data_ycv(:,:,1), 'LineWidth', lineWidth)
+        hold on
+        plot(yearList_future, ts_LUarea_crop_yr(:,c)*1e-12, 'k', 'LineWidth', lineWidth)
+        hold off
+        legend(matching_runs_4legend,'Location',legloc)
+        set(gca,'FontSize',fontSize) ;
+        thisTitle = sprintf('Cropland %s',thisTitle_tmp) ;
+        title(thisTitle)
+        xlabel('Year')
+        ylabel('Area (Mkm^2)')
+        % Pasture
+        subplot_tight(1,2,2,spacing)
+        plot(yearList_tmp, data_ycv(:,:,2), 'LineWidth', lineWidth)
+        hold on
+        plot(yearList_future, ts_LUarea_past_yr(:,c)*1e-12, 'k', 'LineWidth', lineWidth)
+        hold off
+        legend(matching_runs_4legend,'Location',legloc)
+        set(gca,'FontSize',fontSize) ;
+        thisTitle = sprintf('Pasture %s',thisTitle_tmp) ;
+        title(thisTitle)
+        xlabel('Year')
+        ylabel('Area (Mkm^2)')
+        
+        % Save
+        if do_save
+            filename_out = sprintf('%s/landUse_compAlexander2017_%s.pdf', ...
+                outDir_ts, thisTitle_tmp(2:end-1)) ;
+            export_fig(filename_out)
+            close
+        end
+        
+    end
+    
+    clear table_in
 end
 
 
@@ -2490,7 +2821,6 @@ end
 % end
 
 
-
 %% Plot timeseries: total area (FOR TROUBLESHOOTING)
 
 % error('Make this work with SI units!')
@@ -2507,52 +2837,87 @@ end
 % title('All land area')
 
 
-%% Plot timeseries: N loss
+%% Plot timeseries: N loss, total gaseous+dissolved
 
 % Options %%%%%%%%%
 lineWidth = 3 ;
 fontSize = 24 ;
 ignYrs = 0 ;
-Nsmth = 5 ;
+Nsmth = 1 ;
 spacing = [0.1 0.1] ;   % [vert, horz]
 %%%%%%%%%%%%%%%%%%%
 
-% % ts_nloss_bl = ts_nflux_flux_bl + ts_nflux_harvest_bl + ts_nflux_leach_bl + ts_nflux_LUch_bl ;
-% % ts_nloss_yr = ts_nflux_flux_yr + ts_nflux_harvest_yr + ts_nflux_leach_yr + ts_nflux_LUch_yr ;
-% ts_nloss_bl = ts_nflux_flux_bl + ts_nflux_leach_bl ;
-% ts_nloss_yr = ts_nflux_flux_yr + ts_nflux_leach_yr ;
-% 
-[tmp_ts_nflux_flux_yr, title_suffix, file_suffix] = ...
-    rebase_future2baseline(rebase, Nsmth, ts_nflux_flux_bl, ts_nflux_flux_yr, ignYrs, yearList_future) ;
-[tmp_ts_nflux_leach_yr, ~, ~] = ...
-    rebase_future2baseline(rebase, Nsmth, ts_nflux_leach_bl, ts_nflux_leach_yr, ignYrs, yearList_future) ;
+tmp_ts_nflux_total_bl = ts_nflux_flux_bl + ts_nflux_leach_bl ;
+
+[tmp_ts_nflux_total_yr, title_suffix, file_suffix] = ...
+    rebase_future2baseline(rebase, Nsmth, ...
+    tmp_ts_nflux_total_bl, ...
+    ts_nflux_flux_yr + ts_nflux_leach_yr, ...
+    ignYrs, yearList_future) ;
 
 figure('Position',figurePos,'Color','w') ;
 
-subplot_tight(1,2,1,spacing)
 ht = plot_timeseries(...
     yearList_baseline, [], yearList_future, ...
-    ts_nflux_flux_bl, [], tmp_ts_nflux_flux_yr, ...
+    tmp_ts_nflux_total_bl, [], tmp_ts_nflux_total_yr, ...
     cf_kg2Tg, Nsmth, ...
-    'TgN', stdLegend, 'N loss: Gaseous', '', lineWidth, fontSize, ...
+    'TgN', stdLegend, ['N losses (gaseous + dissolved)' title_suffix], '', lineWidth, fontSize, ...
     skip3rdColor) ;
-letterlabel_align0('A',ht,do_caps) ;
-
-subplot_tight(1,2,2,spacing)
-ht = plot_timeseries(...
-    yearList_baseline, [], yearList_future, ...
-    ts_nflux_leach_bl, [], tmp_ts_nflux_leach_yr, ...
-    cf_kg2Tg, Nsmth, ...
-    'TgN', stdLegend, 'N loss: Dissolved', '', lineWidth, fontSize, ...
-    skip3rdColor) ;
-letterlabel_align0('B',ht,do_caps) ;
 
 clear tmp_*
 
 if do_save
-    export_fig([outDir_ts 'Nloss' file_suffix '.pdf'])
+    export_fig([outDir_ts 'Nloss_gasdis' file_suffix '.pdf'])
     close
 end
+
+
+%% Plot timeseries: N loss, separate gaseous and dissolved
+
+% % Options %%%%%%%%%
+% lineWidth = 3 ;
+% fontSize = 24 ;
+% ignYrs = 0 ;
+% Nsmth = 5 ;
+% spacing = [0.1 0.1] ;   % [vert, horz]
+% %%%%%%%%%%%%%%%%%%%
+% 
+% % % ts_nloss_bl = ts_nflux_flux_bl + ts_nflux_harvest_bl + ts_nflux_leach_bl + ts_nflux_LUch_bl ;
+% % % ts_nloss_yr = ts_nflux_flux_yr + ts_nflux_harvest_yr + ts_nflux_leach_yr + ts_nflux_LUch_yr ;
+% % ts_nloss_bl = ts_nflux_flux_bl + ts_nflux_leach_bl ;
+% % ts_nloss_yr = ts_nflux_flux_yr + ts_nflux_leach_yr ;
+% % 
+% [tmp_ts_nflux_flux_yr, title_suffix, file_suffix] = ...
+%     rebase_future2baseline(rebase, Nsmth, ts_nflux_flux_bl, ts_nflux_flux_yr, ignYrs, yearList_future) ;
+% [tmp_ts_nflux_leach_yr, ~, ~] = ...
+%     rebase_future2baseline(rebase, Nsmth, ts_nflux_leach_bl, ts_nflux_leach_yr, ignYrs, yearList_future) ;
+% 
+% figure('Position',figurePos,'Color','w') ;
+% 
+% subplot_tight(1,2,1,spacing)
+% ht = plot_timeseries(...
+%     yearList_baseline, [], yearList_future, ...
+%     ts_nflux_flux_bl, [], tmp_ts_nflux_flux_yr, ...
+%     cf_kg2Tg, Nsmth, ...
+%     'TgN', stdLegend, 'N loss: Gaseous', '', lineWidth, fontSize, ...
+%     skip3rdColor) ;
+% letterlabel_align0('A',ht,do_caps) ;
+% 
+% subplot_tight(1,2,2,spacing)
+% ht = plot_timeseries(...
+%     yearList_baseline, [], yearList_future, ...
+%     ts_nflux_leach_bl, [], tmp_ts_nflux_leach_yr, ...
+%     cf_kg2Tg, Nsmth, ...
+%     'TgN', stdLegend, 'N loss: Dissolved', '', lineWidth, fontSize, ...
+%     skip3rdColor) ;
+% letterlabel_align0('B',ht,do_caps) ;
+% 
+% clear tmp_*
+% 
+% if do_save
+%     export_fig([outDir_ts 'Nloss' file_suffix '.pdf'])
+%     close
+% end
 
 
 %% Bar graph: N loss
