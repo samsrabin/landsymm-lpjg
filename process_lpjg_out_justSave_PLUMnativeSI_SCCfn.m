@@ -344,6 +344,7 @@ for d = 1:length(inDir_list)
             warning('RUN USED SOMEOFEACH LUFILE; IGNORING')
             LUfile = strrep(LUfile,'.someOfEachCrop','') ;
         end
+        fprintf('LUfile = %s\n', LUfile)
 
         LU = lpjgu_matlab_readTable_then2map(LUfile,'force_mat_save',true) ;
         if contains(LUfile,'LU_xtraCROPtoPAST')
@@ -451,6 +452,7 @@ for d = 1:length(inDir_list)
             warning('RUN USED SOMEOFEACH CROPFILE; IGNORING')
             cropfile = strrep(cropfile,'.someOfEachCrop','') ;
         end
+        fprintf('cropfile = %s\n', cropfile)
         
         cropfracs = lpjgu_matlab_readTable_then2map(cropfile,'force_mat_save',true) ;
         cropfracs = adjust_cropinput_yearLists(cropfracs, yearList) ;
@@ -1162,6 +1164,7 @@ for d = 1:length(inDir_list)
             NfertFile_tmp = regexprep(NfertFile_tmp,'[\n\r]+','') ; % Remove extraneous newline
             NfertFile = strrep(NfertFile_tmp,' ','') ; % Remove extraneous spaces
         end
+        fprintf('NfertFile = %s\n', NfertFile)
         Nfert = lpjgu_matlab_readTable_then2map(NfertFile,'force_mat_save',true) ;
         Nfert = adjust_cropinput_yearLists(Nfert, yearList) ;
         if isequal(sort(intersect(Nfert.varNames,{'CC3ann','CC3per','CC3nfx','CC4ann','CC4per'})),sort(Nfert.varNames))
