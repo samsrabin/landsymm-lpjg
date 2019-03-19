@@ -1,5 +1,6 @@
 #!/bin/env python
 import numpy as np; from netCDF4 import Dataset
+import os
 np.random.seed(1234)
 def emulate(K, c, t, w, n, case):
 	#Case: NN- no nitrogen, NNI - No nitrogen irr, N- with nitrogen, NI- with nitrogen irr
@@ -124,15 +125,15 @@ def PLUMemulate(GCM, rcp, decade, GGCM, crop):
 	elif ((GGCM == 'LPJ-GUESS') & (crop == 'soy')): print('error: LPJ-GUESS soy is not availible')
 	else: pass
 
-        print(GCM, rcp, decade, GGCM, crop)
+	print(GCM + str(rcp) + str(decade) + GGCM + crop)
 
 	# Load Emulator params
-        print('Loading emulator parameters...')
+	print('Loading emulator parameters...')
 	K  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, crop))
 	KI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, crop))
 
 	# Load climate files
-        print('Loading climate files...')
+	print('Loading climate files...')
 	t  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
 	if ((crop == 'winter_wheat') | (crop == 'spring_wheat')): 
 		tI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_ir.npy'%(rcp, GCM, crop))
@@ -145,21 +146,56 @@ def PLUMemulate(GCM, rcp, decade, GGCM, crop):
 
 	#for decade in range(9): might want to loop over decades at this point
 	# Emulate the six management cases
-        print('Emulating RF N1/3...')
+	print('Emulating RF N1/3...')
 	rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
-        print('Emulating RF N2/3...')
+	print('Emulating RF N2/3...')
 	rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
-        print('Emulating RF N3/3...')
+	print('Emulating RF N3/3...')
 	rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
-        print('Emulating IR N1/3...')
+	print('Emulating IR N1/3...')
 	ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1,             10,  'NI')
-        print('Emulating IR N2/3...')
+	print('Emulating IR N2/3...')
 	ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1,             60,  'NI')
-        print('Emulating IR N3/3...')
+	print('Emulating IR N3/3...')
 	ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1,             200, 'NI')
 
 	return(ir_10, ir_60, ir_200, rf_10, rf_60, rf_200)
 
 ### Random test ###
-a,b,c,d,e,f = PLUMemulate('ACCESS1-0', 85, 8, 'pDSSAT', 'maize')
-np.savetxt('test.csv', a, delimiter=',')
+GCM = 'ACCESS1-0'
+rcp = 85
+decade = 8
+GGCM = 'pDSSAT'
+crop = 'maize'
+
+# Make output directory, if needed
+outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + crop + "/"
+try:
+    os.makedirs(outdir)
+    print("mkdir -p " + outdir)
+except FileExistsError:
+    # directory already exists
+    pass
+
+# Emulate
+ir_10,ir_60,ir_200,rf_10,rf_60,rf_200 = PLUMemulate(GCM, rcp, decade, GGCM, crop)
+
+# Save
+outfile_base = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_"
+print(outfile_base)
+#np.savetxt(outfile_base+crop+str(decade)+".csv", ir_10, delimiter=',')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
