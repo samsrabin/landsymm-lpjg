@@ -182,22 +182,7 @@ lats_YX = np.genfromtxt(plum_dir+"PLUM_map_lats.csv", delimiter=",")
 lons = lons_YX[mask_YX==1]
 lats = lats_YX[mask_YX==1]
 
-# Make output directory, if needed
-decade_str = str(2011+10*decade) + "-" + str(2020+10*decade)
-outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + decade_str + "/"
-try:
-	os.makedirs(outdir)
-	print("mkdir -p " + outdir)
-except FileExistsError:
-	# directory already exists
-	pass
-
-# Emulate
-ir_10,ir_60,ir_200,rf_10,rf_60,rf_200 = PLUMemulate(GCM, rcp, decade, GGCM, crop, mask_YX)
-print(ir_10.shape)
-
-# Save in PLUM-readable format
-outfile = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_" + crop + str(decade) + ".csv"
+# Define dictionary for output crop names
 outcrop_dict={
 	"maize":        "maiz",
 	"rice":         "rice",
@@ -205,10 +190,28 @@ outcrop_dict={
 	"winter_wheat": "wwhe",
 	"spring_wheat": "swhe",
 }
+
+# Set up info about this run
+decade_str = str(2011+10*decade) + "-" + str(2020+10*decade)
+outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + decade_str + "/"
+outfile = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_" + crop + "_" + decade_str + ".csv"
 outcrop = outcrop_dict.get(crop)
-outheader = "Lon Lat " + outcrop + "010 " + outcrop + "060 " + outcrop + "200 " + outcrop + "010i " + outcrop + "060i " + outcrop + "200i"
-outarray = np.vstack((lons,lats,rf_10,rf_60,rf_200,ir_10,ir_60,ir_200)).T
-#outarray = np.concatenate((lons,lats,rf_10,rf_60,rf_200,ir_10,ir_60,ir_200), axis=1)
+outarray = np.vstack((lons,lats))
+
+# Make output directory, if needed
+try:
+    os.makedirs(outdir)
+    print("mkdir -p " + outdir)
+except FileExistsError:
+    # directory already exists
+    pass
+
+# Emulate
+ir_10,ir_60,ir_200,rf_10,rf_60,rf_200 = PLUMemulate(GCM, rcp, decade, GGCM, crop, mask_YX)
+
+# Save in PLUM-readable format
+outheader = "Lon Lat " + outcrop + "010 " + outcrop + "060 " + outcrop + "200 " + outcrop + "i010 " + outcrop + "i060 " + outcrop + "i200"
+outarray = np.vstack((outarray,rf_10,rf_60,rf_200,ir_10,ir_60,ir_200)).T
 print(outarray.shape)
 np.savetxt(outfile, outarray,
 	delimiter=',',
