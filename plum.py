@@ -124,13 +124,17 @@ def PLUMemulate(GCM, rcp, decade, GGCM, crop):
 	elif ((GGCM == 'LPJ-GUESS') & (crop == 'soy')): print('error: LPJ-GUESS soy is not availible')
 	else: pass
 
+        print(GCM, rcp, decade, GGCM, crop)
+
 	# Load Emulator params
+        print('Loading emulator parameters...')
 	K  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, crop))
 	KI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, crop))
 
 	# Load climate files
+        print('Loading climate files...')
 	t  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
-	if ((crop == 'winter_wheat') | (crop == 'sprin_wheat')): 
+	if ((crop == 'winter_wheat') | (crop == 'spring_wheat')): 
 		tI = np.loac('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_ir.npy'%(rcp, GCM, crop))
 	else: tI = t
 	w  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
@@ -141,11 +145,17 @@ def PLUMemulate(GCM, rcp, decade, GGCM, crop):
 
 	#for decade in range(9): might want to loop over decades at this point
 	# Emulate the six management cases
+        print('Emulating RF N1/3...')
 	rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+        print('Emulating RF N2/3...')
 	rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+        print('Emulating RF N3/3...')
 	rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
+        print('Emulating IR N1/3...')
 	ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1,             10,  'NI')
+        print('Emulating IR N2/3...')
 	ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1,             60,  'NI')
+        print('Emulating IR N3/3...')
 	ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1,             200, 'NI')
 
 	return(ir_10, ir_60, ir_200, rf_10, rf_60, rf_200)
