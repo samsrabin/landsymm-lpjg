@@ -1,0 +1,5 @@
+climate/
+crop/
+*.err
+*.out
+*.csv
