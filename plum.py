@@ -1,5 +1,5 @@
 #!/bin/env python
-import numpy as np; from netCDF4 import Dataset
+import numpy as np;
 import os
 np.random.seed(1234)
 def emulate(K, c, t, w, n, case):
@@ -112,7 +112,7 @@ def emulate(K, c, t, w, n, case):
 	Y[Y>30] = 30
 	return(Y)
 
-def PLUMemulate(GCM, rcp, decade, GGCM, crop):
+def PLUMemulate(GCM, rcp, decade, GGCM, crop, mask_YX):
 	# GCM: ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','FGOALS-g2',
 			#'GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','GISS-E2-H','GISS-E2-R','HadGEM2-AO','HadGEM2-CC','HadGEM2-ES','inmcm4','IPSL-CM5A-LR',
 			#'IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M']
@@ -148,16 +148,22 @@ def PLUMemulate(GCM, rcp, decade, GGCM, crop):
 	# Emulate the six management cases
 	print('Emulating RF N1/3...')
 	rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+	rf_10 = rf_10[mask_YX==1]
 	print('Emulating RF N2/3...')
 	rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+	rf_60 = rf_60[mask_YX==1]
 	print('Emulating RF N3/3...')
 	rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
+	rf_200 = rf_200[mask_YX==1]
 	print('Emulating IR N1/3...')
 	ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1,             10,  'NI')
+	ir_10 = ir_10[mask_YX==1]
 	print('Emulating IR N2/3...')
 	ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1,             60,  'NI')
+	ir_60 = ir_60[mask_YX==1]
 	print('Emulating IR N3/3...')
 	ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1,             200, 'NI')
+	ir_200 = ir_200[mask_YX==1]
 
 	return(ir_10, ir_60, ir_200, rf_10, rf_60, rf_200)
 
@@ -166,24 +172,49 @@ GCM = 'ACCESS1-0'
 rcp = 85
 decade = 8
 GGCM = 'pDSSAT'
-crop = 'maize'
+crop = 'maize' # ['maize' , 'rice', 'soy', 'winter_wheat', 'spring_wheat']
+
+# Import PLUM mask and lon/lat
+plum_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/plum/"
+mask_YX = np.genfromtxt(plum_dir+"PLUM_mask.csv", delimiter=",")
+lons_YX = np.genfromtxt(plum_dir+"PLUM_map_lons.csv", delimiter=",")
+lats_YX = np.genfromtxt(plum_dir+"PLUM_map_lats.csv", delimiter=",")
+lons = lons_YX[mask_YX==1]
+lats = lats_YX[mask_YX==1]
 
 # Make output directory, if needed
-outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + crop + "/"
+decade_str = str(2011+10*decade) + "-" + str(2020+10*decade)
+outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + decade_str + "/"
 try:
-    os.makedirs(outdir)
-    print("mkdir -p " + outdir)
+	os.makedirs(outdir)
+	print("mkdir -p " + outdir)
 except FileExistsError:
-    # directory already exists
-    pass
+	# directory already exists
+	pass
 
 # Emulate
-ir_10,ir_60,ir_200,rf_10,rf_60,rf_200 = PLUMemulate(GCM, rcp, decade, GGCM, crop)
+ir_10,ir_60,ir_200,rf_10,rf_60,rf_200 = PLUMemulate(GCM, rcp, decade, GGCM, crop, mask_YX)
+print(ir_10.shape)
 
-# Save
-outfile_base = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_"
-print(outfile_base)
-#np.savetxt(outfile_base+crop+str(decade)+".csv", ir_10, delimiter=',')
+# Save in PLUM-readable format
+outfile = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_" + crop + str(decade) + ".csv"
+outcrop_dict={
+	"maize":        "maiz",
+	"rice":         "rice",
+	"soy":          "soya",
+	"winter_wheat": "wwhe",
+	"spring_wheat": "swhe",
+}
+outcrop = outcrop_dict.get(crop)
+outheader = "Lon Lat " + outcrop + "010 " + outcrop + "060 " + outcrop + "200 " + outcrop + "010i " + outcrop + "060i " + outcrop + "200i"
+outarray = np.vstack((lons,lats,rf_10,rf_60,rf_200,ir_10,ir_60,ir_200)).T
+#outarray = np.concatenate((lons,lats,rf_10,rf_60,rf_200,ir_10,ir_60,ir_200), axis=1)
+print(outarray.shape)
+np.savetxt(outfile, outarray,
+	delimiter=',',
+	fmt="%0.2f %0.2f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f",
+	header=outheader,
+	comments="")
 
 
 
