@@ -3,3 +3,5 @@ crop/
 *.err
 *.out
 *.csv
+*.swp
+*.gz
