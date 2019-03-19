@@ -112,7 +112,7 @@ def emulate(K, c, t, w, n, case):
 	Y[Y>30] = 30
 	return(Y)
 
-def PLUMemulate(GCM, rcp, decade, GGCM, crop, mask_YX):
+def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 	# GCM: ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','FGOALS-g2',
 			#'GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','GISS-E2-H','GISS-E2-R','HadGEM2-AO','HadGEM2-CC','HadGEM2-ES','inmcm4','IPSL-CM5A-LR',
 			#'IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M']
@@ -121,58 +121,75 @@ def PLUMemulate(GCM, rcp, decade, GGCM, crop, mask_YX):
 	# GGCM: ['EPIC-TAMU','pDSSAT','LPJ-GUESS', 'LPJmL']
 	# crop: ['maize' , 'rice', 'soy', 'winter_wheat', 'spring_wheat']
 
-	if ((GGCM == 'LPJ-GUESS') & (crop == 'rice')): print('error: LPJ-GUESS rice is not availible')
-	elif ((GGCM == 'LPJ-GUESS') & (crop == 'soy')): print('error: LPJ-GUESS soy is not availible')
-	else: pass
+	#if ((GGCM == 'LPJ-GUESS') & (crop == 'rice')): print('error: LPJ-GUESS rice is not availible')
+	#elif ((GGCM == 'LPJ-GUESS') & (crop == 'soy')): print('error: LPJ-GUESS soy is not availible')
+	#else: pass
 
-	print(GCM + str(rcp) + str(decade) + GGCM + crop)
+	# Begin strings for outfmt and outheader
+	outfmt="%0.2f %0.2f"
+	outheader = "Lon Lat"
 
-	# Load Emulator params
-	print('Loading emulator parameters...')
-	K  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, crop))
-	KI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, crop))
+	# Define crop name list and dictionary for output crop names
+	if GGCM == "LPJ-GUESS":
+		crops = ["maize", "winter_wheat", "spring_wheat"]
+	else:
+		crops = ["maize" , "rice", "soy", "winter_wheat", "spring_wheat"]
+	
+	outcrop_dict={
+		"maize":        "maiz",
+		"rice":         "rice",
+		"soy":          "soya",
+		"winter_wheat": "wwhe",
+		"spring_wheat": "swhe",
+	}
 
-	# Load climate files
-	print('Loading climate files...')
-	t  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
-	if ((crop == 'winter_wheat') | (crop == 'spring_wheat')): 
-		tI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_ir.npy'%(rcp, GCM, crop))
-	else: tI = t
-	w  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
+	for crop in crops:
+		print("%s rcp%d dec%d %s %s"%(GCM, rcp, decade, GGCM, crop))
 
-	# CO2 vars
-	if rcp == 85: co2 = [402.552, 432.3075, 469.135, 514.989, 572.0315, 640.299, 717.63, 801.4935, 890.3395]
-	elif rcp == 45: co2 =[400.1285, 423.0875, 447.9455, 473.69, 497.703, 516.5865, 527.72, 532.4395, 536.0495]
+		# Load Emulator params
+		K  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, crop))
+		KI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, crop))
 
-	#for decade in range(9): might want to loop over decades at this point
-	# Emulate the six management cases
-	print('Emulating RF N1/3...')
-	rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
-	rf_10 = rf_10[mask_YX==1]
-	print('Emulating RF N2/3...')
-	rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
-	rf_60 = rf_60[mask_YX==1]
-	print('Emulating RF N3/3...')
-	rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
-	rf_200 = rf_200[mask_YX==1]
-	print('Emulating IR N1/3...')
-	ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1,             10,  'NI')
-	ir_10 = ir_10[mask_YX==1]
-	print('Emulating IR N2/3...')
-	ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1,             60,  'NI')
-	ir_60 = ir_60[mask_YX==1]
-	print('Emulating IR N3/3...')
-	ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1,             200, 'NI')
-	ir_200 = ir_200[mask_YX==1]
+		# Load climate files
+		t  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
+		if ((crop == 'winter_wheat') | (crop == 'spring_wheat')): 
+			#tI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_ir.npy'%(rcp, GCM, crop))
+			tI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
+		else: tI = t
+		w  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
 
-	return(ir_10, ir_60, ir_200, rf_10, rf_60, rf_200)
+		# CO2 vars
+		if rcp == 85: co2 = [402.552, 432.3075, 469.135, 514.989, 572.0315, 640.299, 717.63, 801.4935, 890.3395]
+		elif rcp == 45: co2 =[400.1285, 423.0875, 447.9455, 473.69, 497.703, 516.5865, 527.72, 532.4395, 536.0495]
+
+		# Emulate the six management cases
+		rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+		outarray = np.vstack((outarray, rf_10[mask_YX==1]))
+		rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+		outarray = np.vstack((outarray, rf_60[mask_YX==1]))
+		rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
+		outarray = np.vstack((outarray, rf_200[mask_YX==1]))
+		ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1,             10,  'NI')
+		outarray = np.vstack((outarray, ir_10[mask_YX==1]))
+		ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1,             60,  'NI')
+		outarray = np.vstack((outarray, ir_60[mask_YX==1]))
+		ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1,             200, 'NI')
+		outarray = np.vstack((outarray, ir_200[mask_YX==1]))
+		#ir_200 = ir_200[mask_YX==1]
+
+		# Update header
+		outcrop = outcrop_dict.get(crop)
+		outheader = outheader + " " + outcrop + "010 " + outcrop + "060 " + outcrop + "200 " + outcrop + "i010 " + outcrop + "i060 " + outcrop + "i200"
+		outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
+
+	#return(ir_10, ir_60, ir_200, rf_10, rf_60, rf_200)
+	return(outarray, outheader, outfmt)
 
 ### Random test ###
-GCM = 'ACCESS1-0'
+GCM = 'IPSL-CM5A-MR'
 rcp = 85
 decade = 8
 GGCM = 'pDSSAT'
-crop = 'maize' # ['maize' , 'rice', 'soy', 'winter_wheat', 'spring_wheat']
 
 # Import PLUM mask and lon/lat
 plum_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/plum/"
@@ -182,40 +199,28 @@ lats_YX = np.genfromtxt(plum_dir+"PLUM_map_lats.csv", delimiter=",")
 lons = lons_YX[mask_YX==1]
 lats = lats_YX[mask_YX==1]
 
-# Define dictionary for output crop names
-outcrop_dict={
-	"maize":        "maiz",
-	"rice":         "rice",
-	"soy":          "soya",
-	"winter_wheat": "wwhe",
-	"spring_wheat": "swhe",
-}
-
 # Set up info about this run
 decade_str = str(2011+10*decade) + "-" + str(2020+10*decade)
 outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + decade_str + "/"
-outfile = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_" + crop + "_" + decade_str + ".csv"
-outcrop = outcrop_dict.get(crop)
-outarray = np.vstack((lons,lats))
+#outfile = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_" + crop + "_" + decade_str + ".csv"
+outfile = outdir + "yield." + decade_str + ".out"
+lonlats = np.vstack((lons,lats))
 
 # Make output directory, if needed
 try:
-    os.makedirs(outdir)
-    print("mkdir -p " + outdir)
+	os.makedirs(outdir)
+	print("mkdir -p " + outdir)
 except FileExistsError:
-    # directory already exists
-    pass
+	# directory already exists
+	pass
 
 # Emulate
-ir_10,ir_60,ir_200,rf_10,rf_60,rf_200 = PLUMemulate(GCM, rcp, decade, GGCM, crop, mask_YX)
+outarray,outheader,outfmt = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats)
 
 # Save in PLUM-readable format
-outheader = "Lon Lat " + outcrop + "010 " + outcrop + "060 " + outcrop + "200 " + outcrop + "i010 " + outcrop + "i060 " + outcrop + "i200"
-outarray = np.vstack((outarray,rf_10,rf_60,rf_200,ir_10,ir_60,ir_200)).T
-print(outarray.shape)
-np.savetxt(outfile, outarray,
-	delimiter=',',
-	fmt="%0.2f %0.2f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f",
+np.savetxt(outfile, outarray.T,
+	delimiter=" ",
+	fmt=outfmt,
 	header=outheader,
 	comments="")
 

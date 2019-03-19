@@ -7,5 +7,4 @@
 #SBATCH --partition=broadwl
 #SBATCH --mem-per-cpu=20000
 module load python/3.6.1+intel-16.0
-module load netcdf
 python plum.py
