@@ -9,43 +9,21 @@ markerSize = 15 ;
 spacing = [0.1 0.1] ;   % [vertical horizontal]
 
 % Check inputs
-if ~any(strcmp(mapstructX.varNames, thisVarX))
-    error('Variable %s not found in mapstructX!', thisVarX)
-elseif ~any(strcmp(mapstructY.varNames, thisVarY))
-    error('Variable %s not found in mapstructY!', thisVarY)
-end
-if ~isfield(mapstructX, 'maps_YXvyB')
-    error('maps_YXvyB not found in mapstructX!')
-elseif ~isfield(mapstructX, 'maps_YXvyr')
-    error('maps_YXvyr not found in mapstructX!')
-elseif ~isfield(mapstructY, 'maps_YXvyB')
-    error('maps_YXvyB not found in mapstructY!')
-elseif ~isfield(mapstructY, 'maps_YXvyr')
-    error('maps_YXvyr not found in mapstructY!')
-end
-size_XB = size(mapstructX.maps_YXvyB(:,:,1,:)) ;
-size_Xr = size(mapstructX.maps_YXvyr(:,:,1,:,:)) ;
-if ~isequal(size_XB(1:2), size(countries_YX))
-    error('~isequal(size_XB(1:2), size(countries_YX))')
-elseif ~isequal(size_Xr(1:2), size(countries_YX))
-    error('~isequal(size_Xr(1:2), size(countries_YX))')
-end
-if ~isequal(size_XB, size(mapstructY.maps_YXvyB(:,:,1,:)))
-    error('~isequal(size_XB, size(mapstructY.maps_YXvyB(:,:,1,:)))')
-elseif ~isequal(size_Xr, size(mapstructY.maps_YXvyr(:,:,1,:,:)))
-    error('~isequal(size_Xr, size(mapstructY.maps_YXvyr(:,:,1,:,:)))')
-end
+ESscatter_check_inputs(...
+    mapstructX, thisVarX, ...
+    mapstructY, thisVarY, ...
+    countries_YX) ;
 
 % Get information about inputs
-countries_list = unique(countries_YX(~isnan(countries_YX))) ;
-Ncountries = length(countries_list) ;
+countries_codes = unique(countries_YX(~isnan(countries_YX))) ;
+Ncountries = length(countries_codes) ;
 Nruns = size(mapstructX.maps_YXvyr,5) ;
 
 % Get mean for variable in question
-maps1_YXB = mean(mapstructX.maps_YXvyB(:,:,strcmp(mapstructX.varNames,thisVarX),:),4) ;
-maps1_YXr = squeeze(mean(mapstructX.maps_YXvyr(:,:,strcmp(mapstructX.varNames,thisVarX),:,:),4)) ;
-maps2_YXB = mean(mapstructY.maps_YXvyB(:,:,strcmp(mapstructY.varNames,thisVarY),:),4) ;
-maps2_YXr = squeeze(mean(mapstructY.maps_YXvyr(:,:,strcmp(mapstructY.varNames,thisVarY),:,:),4)) ;
+[mapsX_YXB, mapsX_YXr, mapsY_YXB, mapsY_YXr]= ...
+    ESscatter_getMeanOverPeriod(...
+        mapstructX, thisVarX, ...
+        mapstructY, thisVarY) ;
 
 % Get means for each country
 resX_cB = nan(Ncountries,1) ;
@@ -53,13 +31,13 @@ resY_cB = nan(Ncountries,1) ;
 resX_cr = nan(Ncountries,Nruns) ;
 resY_cr = nan(Ncountries,Nruns) ;
 for c = 1:Ncountries
-    thisCountry = countries_list(c) ;
-    resX_cB(c) = nanmean(maps1_YXB(countries_YX==thisCountry)) ;
-    resY_cB(c) = nanmean(maps2_YXB(countries_YX==thisCountry)) ;
+    thisCountry = countries_codes(c) ;
+    resX_cB(c) = nanmean(mapsX_YXB(countries_YX==thisCountry)) ;
+    resY_cB(c) = nanmean(mapsY_YXB(countries_YX==thisCountry)) ;
     for r = 1:Nruns
-        tmp_YX = maps1_YXr(:,:,r) ;        
+        tmp_YX = mapsX_YXr(:,:,r) ;        
         resX_cr(c,r) = nanmean(tmp_YX(countries_YX==thisCountry)) ;
-        tmp_YX = maps2_YXr(:,:,r) ;        
+        tmp_YX = mapsY_YXr(:,:,r) ;        
         resY_cr(c,r) = nanmean(tmp_YX(countries_YX==thisCountry)) ;
     end
 end
@@ -81,8 +59,8 @@ elseif any(any(isnan(resY_cr)))
 end
 
 % Get diffs (future minus historical)
-diff1_cr = resX_cr - repmat(resX_cB,[1 Nruns]) ;
-diff2_cr = resY_cr - repmat(resY_cB,[1 Nruns]) ;
+diffX_cr = resX_cr - repmat(resX_cB,[1 Nruns]) ;
+diffY_cr = resY_cr - repmat(resY_cB,[1 Nruns]) ;
 
 % Make figure
 figure('Color','w','Position',figurePos) ;
@@ -93,11 +71,11 @@ ymin = NaN ;
 ymax = NaN ;
 for r = 1:Nruns
     hs(r) = subplot_tight(2,2,r,spacing) ;
-    plot(diff1_cr(:,r),diff2_cr(:,r),'.', ...
+    plot(diffX_cr(:,r),diffY_cr(:,r),'.', ...
         'MarkerSize',markerSize)
     title(runList{r})
-    xlabel(labelX)
-    ylabel(labelY)
+    xlabel(['? ' labelX])
+    ylabel(['? ' labelY])
     set(gca,'FontSize',fontSize)
     xmin = min(xmin, min(get(gca,'XLim'))) ;
     ymin = min(ymin, min(get(gca,'YLim'))) ;
