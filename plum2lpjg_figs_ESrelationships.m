@@ -45,42 +45,63 @@ if exist('runDirs_plum', 'var')
         thisDir = runDirs_plum{r} ;
         fprintf('%d... ', r)
         table_in_countryDemand = readtable(sprintf('%s/countryDemand.txt', thisDir)) ;
+        table_in_countryDemand = sortrows(table_in_countryDemand, ...
+            {'Year','Commodity','Country'}) ; % Reverse of dimension order
+        
         table_in_domestic = readtable(sprintf('%s/domestic.txt', thisDir)) ;
+        table_in_domestic.Import_price = remove_nul(table_in_domestic.Import_price) ;
+        table_in_domestic.Export_price = remove_nul(table_in_domestic.Export_price) ;
+        table_in_domestic.Net_imports = remove_nul(table_in_domestic.Net_imports) ;
+        table_in_domestic.Net_import_cost = remove_nul(table_in_domestic.Net_import_cost) ;
         if r==1
-            countryDemand.year = table_in_countryDemand.Year ;
-            countryDemand.countrygroup = table_in_countryDemand.Country ;
-            countryDemand.commodity = table_in_countryDemand.Commodity ;
-            countryDemand.data_xr = nan(length(countryDemand.year), Nruns) ;
+            countryDemand.years = unique(table_in_countryDemand.Year) ;
+            countryDemand.countrygroups = unique(table_in_countryDemand.Country) ;
+            countryDemand.commodities = unique(table_in_countryDemand.Commodity) ;
+            countryDemand.data_umyr = nan( ...
+                length(countryDemand.countrygroups), ...
+                length(countryDemand.commodities), ...
+                length(countryDemand.years), ...
+                Nruns) ;
+            size_countryDemand_data = size(countryDemand.data_umyr) ;
             domestic.header = table_in_domestic.Properties.VariableNames ;
-            domestic.year = table_in_domestic.Year ;
-            domestic.countrygroup = table_in_domestic.Country ;
-            domestic.commodity = table_in_domestic.Crop ;
+            domestic.years = unique(table_in_domestic.Year) ;
+            domestic.countrygroups = unique(table_in_domestic.Country) ;
+            domestic.commodities = unique(table_in_domestic.Crop) ;
             [domestic.varNames, IA] = setdiff(domestic.header, {'Year','Country','Crop'},'stable') ;
-            domestic.data_xvr = nan(length(domestic.year), length(IA), Nruns) ;
+            domestic.data_umvyr = nan( ...
+                length(domestic.countrygroups), ...
+                length(domestic.commodities), ...
+                length(domestic.varNames), ...
+                length(domestic.years), ...
+                Nruns) ;
+            size_domestic_data = size(domestic.data_umvyr) ;
         else
-            if ~isequal(countryDemand.year, table_in_countryDemand.Year)
+            if ~isequal(countryDemand.years, unique(table_in_countryDemand.Year))
                 error('countryDemand: YEAR column does not match')
-            elseif ~isequal(countryDemand.countrygroup, table_in_countryDemand.Country)
+            elseif ~isequal(countryDemand.countrygroups, unique(table_in_countryDemand.Country))
                 error('countryDemand: COUNTRYGROUP column does not match')
-            elseif ~isequal(countryDemand.commodity, table_in_countryDemand.Commodity)
+            elseif ~isequal(countryDemand.commodities, unique(table_in_countryDemand.Commodity))
                 error('countryDemand: COMMODITY column does not match')
             end
-            if ~isequal(domestic.year, table_in_domestic.Year)
+            if ~isequal(domestic.years, unique(table_in_domestic.Year))
                 error('domestic: YEAR column does not match')
-            elseif ~isequal(domestic.countrygroup, table_in_domestic.Country)
+            elseif ~isequal(domestic.countrygroups, unique(table_in_domestic.Country))
                 error('domestic: COUNTRYGROUP column does not match')
-            elseif ~isequal(domestic.commodity, table_in_domestic.Crop)
+            elseif ~isequal(domestic.commodities, unique(table_in_domestic.Crop))
                 error('domestic: COMMODITY column does not match')
             elseif ~isequal(domestic.header, table_in_domestic.Properties.VariableNames)
                 error('domestic: HEADER does not match')
             end
         end
-        countryDemand.data_xr(:,r) = table_in_countryDemand.Demand ;
-        table_in_domestic.Import_price = remove_nul(table_in_domestic.Import_price) ;
-        table_in_domestic.Export_price = remove_nul(table_in_domestic.Export_price) ;
-        table_in_domestic.Net_imports = remove_nul(table_in_domestic.Net_imports) ;
-        table_in_domestic.Net_import_cost = remove_nul(table_in_domestic.Net_import_cost) ;
-        domestic.data_xvr(:,:,r) = table2array(table_in_domestic(:,IA)) ;
+        countryDemand.data_umyr(:,:,:,r) = reshape(table_in_countryDemand.Demand,size_countryDemand_data(1:end-1)) ;
+        
+        table_in_domestic = stack(table_in_domestic, ...
+            domestic.varNames, ...
+            'NewDataVariableName','Value',...
+            'IndexVariableName','Var') ;
+        table_in_domestic = sortrows(table_in_domestic, ...
+            {'Year','Var','Crop','Country'}) ; % Reverse of dimension order
+        domestic.data_umvyr(:,:,:,:,r) = reshape(table_in_domestic.Value,size_domestic_data(1:end-1)) ;
         clear table_in_countryDemand table_in_domestic
     end
     clear IA
