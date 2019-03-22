@@ -4,7 +4,6 @@
 %%% Ecosystem service relationships %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 thisVer = 'harm3' ;
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
@@ -14,6 +13,9 @@ thisVer = 'harm3' ;
 % thisVer = 'harm3_S3R6.0_attr' ;
 % thisVer = 'harm3_S4R6.0_attr' ;
 % thisVer = 'harm3_S5R8.5_attr' ;
+
+       
+%% Setup; import LPJ-GUESS results
 
 do_adjYieldTech = true ; % Apply annual tech. change increase to yields?
 
@@ -29,10 +31,63 @@ pngres = 150 ;
 
 do_caps = -1 ;
 
-       
-%% Setup and import
-
+% Import LPJ-GUESS results
 run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import.m') ;
+
+
+%% Import PLUM outputs
+
+if exist('runDirs_plum', 'var')
+    fprintf('Reading PLUM outputs: ')
+    countryDemand = struct ; 
+    domestic = struct ; 
+    for r = 1:Nruns
+        thisDir = runDirs_plum{r} ;
+        fprintf('%d... ', r)
+        table_in_countryDemand = readtable(sprintf('%s/countryDemand.txt', thisDir)) ;
+        table_in_domestic = readtable(sprintf('%s/domestic.txt', thisDir)) ;
+        if r==1
+            countryDemand.year = table_in_countryDemand.Year ;
+            countryDemand.country = table_in_countryDemand.Country ;
+            countryDemand.commodity = table_in_countryDemand.Commodity ;
+            countryDemand.data_xr = nan(length(countryDemand.year), Nruns) ;
+            domestic.header = table_in_domestic.Properties.VariableNames ;
+            domestic.year = table_in_domestic.Year ;
+            domestic.country = table_in_domestic.Country ;
+            domestic.crop = table_in_domestic.Crop ;
+            [domestic.varNames, IA] = setdiff(domestic.header, {'Year','Country','Crop'},'stable') ;
+            domestic.data_xvr = nan(length(domestic.year), length(IA), Nruns) ;
+        else
+            if ~isequal(countryDemand.year, table_in_countryDemand.Year)
+                error('countryDemand: YEAR column does not match')
+            elseif ~isequal(countryDemand.country, table_in_countryDemand.Country)
+                error('countryDemand: COUNTRY column does not match')
+            elseif ~isequal(countryDemand.commodity, table_in_countryDemand.Commodity)
+                error('countryDemand: COMMODITY column does not match')
+            end
+            if ~isequal(domestic.year, table_in_domestic.Year)
+                error('domestic: YEAR column does not match')
+            elseif ~isequal(domestic.country, table_in_domestic.Country)
+                error('domestic: COUNTRY column does not match')
+            elseif ~isequal(domestic.crop, table_in_domestic.Crop)
+                error('domestic: CROP column does not match')
+            elseif ~isequal(domestic.header, table_in_domestic.Properties.VariableNames)
+                error('domestic: HEADER does not match')
+            end
+        end
+        countryDemand.data_xr(:,r) = table_in_countryDemand.Demand ;
+        table_in_domestic.Import_price = remove_nul(table_in_domestic.Import_price) ;
+        table_in_domestic.Export_price = remove_nul(table_in_domestic.Export_price) ;
+        table_in_domestic.Net_imports = remove_nul(table_in_domestic.Net_imports) ;
+        table_in_domestic.Net_import_cost = remove_nul(table_in_domestic.Net_import_cost) ;
+        domestic.data_xvr(:,:,r) = table2array(table_in_domestic(:,IA)) ;
+        clear table_in_countryDemand table_in_domestic
+    end
+    clear IA
+    fprintf('Done.\n')
+else
+    warning('Not importing any PLUM results.')
+end
 
 
 %% Import countries

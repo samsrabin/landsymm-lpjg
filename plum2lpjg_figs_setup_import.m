@@ -348,6 +348,12 @@ elseif strcmp(thisVer,'harm3')
         'LPJGPLUM_2011-2100_harm3_SSP4_RCP60/output-2019-02-27-093259';
         'LPJGPLUM_2011-2100_harm3_SSP5_RCP85/output-2019-02-27-104120';
         } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        } ;
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
