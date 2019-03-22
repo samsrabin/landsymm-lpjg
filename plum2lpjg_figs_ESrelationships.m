@@ -250,5 +250,5 @@ ESscatter_byRegion( ...
     tmp_carbon_2090s_YXyr, 'Total carbon (kgC m^{-2})', ...
     countries_YX, runList)
 
-
+clear tmp*
 
