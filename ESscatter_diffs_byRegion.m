@@ -74,8 +74,8 @@ for r = 1:Nruns
     plot(diffX_cr(:,r),diffY_cr(:,r),'.', ...
         'MarkerSize',markerSize)
     title(runList{r})
-    xlabel(['? ' labelX])
-    ylabel(['? ' labelY])
+    xlabel(['\Delta ' labelX])
+    ylabel(['\Delta ' labelY])
     set(gca,'FontSize',fontSize)
     xmin = min(xmin, min(get(gca,'XLim'))) ;
     ymin = min(ymin, min(get(gca,'YLim'))) ;
