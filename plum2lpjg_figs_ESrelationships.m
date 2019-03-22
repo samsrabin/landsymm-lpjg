@@ -236,9 +236,19 @@ ESscatter_diffs_byCellPerRegion( ...
 
 
 
+%% By-countrygroup RUMINANT PRODUCTION vs CARBON
 
+tmp_rumprod_2090s_YXyr = make_map_from_plum_out( ...
+    domestic, 'ruminants', 'Production', 2091:2100, ...
+    countrygroups_YX, countrygroup_list) ;
 
+tmp_carbon_2090s_YXyr = squeeze(maps_cpool_d9.maps_YXvyr(:,:,strcmp(maps_cpool_d9.varNames,'Total'),:,:)) ;
 
+warning('Normalize by area?')
+ESscatter_byRegion( ...
+    tmp_rumprod_2090s_YXyr, 'Ruminant production (??)', ...
+    tmp_carbon_2090s_YXyr, 'Total carbon (kgC m^{-2})', ...
+    countries_YX, runList)
 
 
 
