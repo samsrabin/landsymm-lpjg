@@ -48,29 +48,29 @@ if exist('runDirs_plum', 'var')
         table_in_domestic = readtable(sprintf('%s/domestic.txt', thisDir)) ;
         if r==1
             countryDemand.year = table_in_countryDemand.Year ;
-            countryDemand.country = table_in_countryDemand.Country ;
+            countryDemand.countrygroup = table_in_countryDemand.Country ;
             countryDemand.commodity = table_in_countryDemand.Commodity ;
             countryDemand.data_xr = nan(length(countryDemand.year), Nruns) ;
             domestic.header = table_in_domestic.Properties.VariableNames ;
             domestic.year = table_in_domestic.Year ;
-            domestic.country = table_in_domestic.Country ;
-            domestic.crop = table_in_domestic.Crop ;
+            domestic.countrygroup = table_in_domestic.Country ;
+            domestic.commodity = table_in_domestic.Crop ;
             [domestic.varNames, IA] = setdiff(domestic.header, {'Year','Country','Crop'},'stable') ;
             domestic.data_xvr = nan(length(domestic.year), length(IA), Nruns) ;
         else
             if ~isequal(countryDemand.year, table_in_countryDemand.Year)
                 error('countryDemand: YEAR column does not match')
-            elseif ~isequal(countryDemand.country, table_in_countryDemand.Country)
-                error('countryDemand: COUNTRY column does not match')
+            elseif ~isequal(countryDemand.countrygroup, table_in_countryDemand.Country)
+                error('countryDemand: COUNTRYGROUP column does not match')
             elseif ~isequal(countryDemand.commodity, table_in_countryDemand.Commodity)
                 error('countryDemand: COMMODITY column does not match')
             end
             if ~isequal(domestic.year, table_in_domestic.Year)
                 error('domestic: YEAR column does not match')
-            elseif ~isequal(domestic.country, table_in_domestic.Country)
-                error('domestic: COUNTRY column does not match')
-            elseif ~isequal(domestic.crop, table_in_domestic.Crop)
-                error('domestic: CROP column does not match')
+            elseif ~isequal(domestic.countrygroup, table_in_domestic.Country)
+                error('domestic: COUNTRYGROUP column does not match')
+            elseif ~isequal(domestic.commodity, table_in_domestic.Crop)
+                error('domestic: COMMODITY column does not match')
             elseif ~isequal(domestic.header, table_in_domestic.Properties.VariableNames)
                 error('domestic: HEADER does not match')
             end
