@@ -185,11 +185,10 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 	#return(ir_10, ir_60, ir_200, rf_10, rf_60, rf_200)
 	return(outarray, outheader, outfmt)
 
-### Random test ###
-GCM = 'IPSL-CM5A-MR'
-rcp = 85
-decade = 8
-GGCM = 'pDSSAT'
+GCMs = ["IPSL-CM5A-MR"]
+rcps = [45, 85]
+decades = range(9)
+GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
 
 # Import PLUM mask and lon/lat
 plum_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/plum/"
@@ -198,31 +197,37 @@ lons_YX = np.genfromtxt(plum_dir+"PLUM_map_lons.csv", delimiter=",")
 lats_YX = np.genfromtxt(plum_dir+"PLUM_map_lats.csv", delimiter=",")
 lons = lons_YX[mask_YX==1]
 lats = lats_YX[mask_YX==1]
-
-# Set up info about this run
-decade_str = str(2011+10*decade) + "-" + str(2020+10*decade)
-outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + decade_str + "/"
-#outfile = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_" + crop + "_" + decade_str + ".csv"
-outfile = outdir + "yield." + decade_str + ".out"
 lonlats = np.vstack((lons,lats))
 
-# Make output directory, if needed
-try:
-	os.makedirs(outdir)
-	print("mkdir -p " + outdir)
-except FileExistsError:
-	# directory already exists
-	pass
+for decade in decades:
+    for rcp in rcps:
+        for GCM in GCMs:
+            for GGCM in GGCMs:
 
-# Emulate
-outarray,outheader,outfmt = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats)
-
-# Save in PLUM-readable format
-np.savetxt(outfile, outarray.T,
-	delimiter=" ",
-	fmt=outfmt,
-	header=outheader,
-	comments="")
+                # Set up info about this run
+                decade_str = str(2011+10*decade) + "-" + str(2020+10*decade)
+                print("%s rcp%d %s %s..."%(GCM, rcp, decade_str, GGCM))
+                outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields.nowheatIR/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + decade_str + "/"
+                #outfile = outdir + GCM + "_rcp" + str(rcp) + "_" + GGCM + "_" + crop + "_" + decade_str + ".csv"
+                outfile = outdir + "yield.nowheatIR." + decade_str + ".out"
+                
+                # Make output directory, if needed
+                try:
+                	os.makedirs(outdir)
+                	print("mkdir -p " + outdir)
+                except FileExistsError:
+                	# directory already exists
+                	pass
+                
+                # Emulate
+                outarray,outheader,outfmt = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats)
+                
+                # Save in PLUM-readable format
+                np.savetxt(outfile, outarray.T,
+                	delimiter=" ",
+                	fmt=outfmt,
+                	header=outheader,
+                	comments="")
 
 
 
