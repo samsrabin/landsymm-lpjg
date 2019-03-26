@@ -128,23 +128,44 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 	# Begin strings for outfmt and outheader
 	outfmt="%0.2f %0.2f"
 	outheader = "Lon Lat"
+        
+        # Define PLUM output crops
+        PLUMcrops = ["CerealsC3", "CerealsC4", "Rice", "Oilcrops", "Pulses", "StarchyRoots"];
 
-	# Define crop name list and dictionary for output crop names
+        # Define matching to GGCMI crops
+        PLUM2GGCMI_dict={
+        "CerealsC3":    "max_wheat",
+	    "CerealsC4":    "maize",
+	    "Rice":         "rice",
+	    "Oilcrops":     "soy",
+	    "Pulses":       "soy",
+	    "StarchyRoots": "spring_wheat",
+        }
 	if GGCM == "LPJ-GUESS":
-		crops = ["maize", "winter_wheat", "spring_wheat"]
-	else:
-		crops = ["maize" , "rice", "soy", "winter_wheat", "spring_wheat"]
-	
-	outcrop_dict={
-		"maize":        "maiz",
-		"rice":         "rice",
-		"soy":          "soya",
-		"winter_wheat": "wwhe",
-		"spring_wheat": "swhe",
-	}
+	    PLUM2GGCMI_dict["Rice"] = "spring_wheat"
+	    PLUM2GGCMI_dict["Oilcrops"] = "spring_wheat"
+	    PLUM2GGCMI_dict["StarchyRoots"] = "spring_wheat"
 
-	for crop in crops:
-		print("%s rcp%d dec%d %s %s"%(GCM, rcp, decade, GGCM, crop))
+#	# Define crop name list and dictionary for output crop names
+#	if GGCM == "LPJ-GUESS":
+#		crops = ["maize", "winter_wheat", "spring_wheat"]
+#	else:
+#		crops = ["maize" , "rice", "soy", "winter_wheat", "spring_wheat"]
+#	
+#	PLUMcrop_dict={
+#		"maize":        "maiz",
+#		"rice":         "rice",
+#		"soy":          "soya",
+#		"winter_wheat": "wwhe",
+#		"spring_wheat": "swhe",
+#	}
+
+	for PLUMcrop in PLUMcrops:
+                
+		print("%s rcp%d dec%d %s %s"%(GCM, rcp, decade, GGCM, PLUMcrop))
+                crop = PLUM2GGCMI_dict[PLUMcrop]
+
+                # Could make this more efficient by not redoing emulation for two PLUMcrops that use the same GGCMI crop
 
 		# Load Emulator params
 		K  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, crop))
@@ -178,8 +199,8 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 		#ir_200 = ir_200[mask_YX==1]
 
 		# Update header
-		outcrop = outcrop_dict.get(crop)
-		outheader = outheader + " " + outcrop + "010 " + outcrop + "060 " + outcrop + "200 " + outcrop + "i010 " + outcrop + "i060 " + outcrop + "i200"
+#		PLUMcrop = PLUMcrop_dict.get(crop)
+		outheader = outheader + " " + PLUMcrop + "010 " + PLUMcrop + "060 " + PLUMcrop + "200 " + PLUMcrop + "i010 " + PLUMcrop + "i060 " + PLUMcrop + "i200"
 		outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
 
 	#return(ir_10, ir_60, ir_200, rf_10, rf_60, rf_200)
