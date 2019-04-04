@@ -1116,4 +1116,24 @@ if exist('maps_mon_runoff_d1','var')
     maps_pk_runoff_d9.varNames = {'Max'} ;
 end
 
+% Change in 5th and 95th percentile of peak monthly runoff
+% After Asadieh & Krakauer (2017)
+maps_pk_runoff_d1.maps_p05_YXB = prctile(maps_pk_runoff_d1.maps_YXvyB,5,4) ;
+maps_pk_runoff_d1.maps_p95_YXB = prctile(maps_pk_runoff_d1.maps_YXvyB,95,4) ;
+maps_pk_runoff_d9.maps_p05_YXB = prctile(maps_pk_runoff_d9.maps_YXvyB,5,4) ;
+maps_pk_runoff_d9.maps_p95_YXB = prctile(maps_pk_runoff_d9.maps_YXvyB,95,4) ;
+maps_pk_runoff_d1.maps_p05_YXr = squeeze(prctile(maps_pk_runoff_d1.maps_YXvyr(:,:,:,:,:),5,4)) ;
+maps_pk_runoff_d1.maps_p95_YXr = squeeze(prctile(maps_pk_runoff_d1.maps_YXvyr(:,:,:,:,:),95,4)) ;
+maps_pk_runoff_d9.maps_p05_YXr = squeeze(prctile(maps_pk_runoff_d9.maps_YXvyr(:,:,:,:,:),5,4)) ;
+maps_pk_runoff_d9.maps_p95_YXr = squeeze(prctile(maps_pk_runoff_d9.maps_YXvyr(:,:,:,:,:),95,4)) ;
+below_thresh_YX = mean(maps_awater_d1.maps_YXvyB(:,:,strcmp(maps_awater_d1.varNames,'Runoff'),:),4)/365 < 0.01 ;
+maps_pk_runoff_d1.maps_p05_YXB(below_thresh_YX) = NaN ;
+maps_pk_runoff_d1.maps_p95_YXB(below_thresh_YX) = NaN ;
+maps_pk_runoff_d9.maps_p05_YXB(below_thresh_YX) = NaN ;
+maps_pk_runoff_d9.maps_p95_YXB(below_thresh_YX) = NaN ;
+maps_pk_runoff_d1.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+maps_pk_runoff_d1.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+maps_pk_runoff_d9.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+maps_pk_runoff_d9.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+
 disp('Done performing secondary calculations.')
