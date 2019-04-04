@@ -71,6 +71,96 @@ if false
 end
 
 
+%% Table after Krause et al. (2017) Table 2 but without first fut. decade
+
+disp('Making table...')
+
+years_endh = 2000:2009 ;
+years_endf = 2090:2099 ;
+
+% Name, code, conversion factor, formatSpec mean, formatSpec SEM
+rowInfo = {'Vegetation C (GtC)', 'cpool_VegC', cf_kg2Pg, '%d', '%d' ;
+           'Soil and litter C (GtC)', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d' ;
+%            'Product C (GtC)', 'cpool_HarvSlowC', cf_kg2Pg, '%0.1f', '%0.1f' ;
+           'Total C (GtC)', 'cpool_Total', cf_kg2Pg, '%d', '%d' ;
+           'January albedo', 'albedo1', 1, '%0.3f', '%0.3f' ;
+           'July albedo', 'albedo7', 1, '%0.3f', '%0.3f' ;
+           'Evapotranspiration (1000 km^3)', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
+           'Runoff (1000 km^3)', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
+%            'Peak monthly runoff (1000 km^3)', 'pkrunoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
+           'Crop production (Ecal)', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f' ;
+           'N loss (TgN)', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f' ;
+%            'N loss: Gaseous (TgN)', 'nflux_flux', cf_kg2Tg, '%0.1f', '%0.1f' ;
+%            'N loss: Dissolved (TgN)', 'nflux_leach', cf_kg2Tg, '%0.1f', '%0.1f' ;
+           'Isoprene emissions (TgC)', 'aiso', cf_kg2Tg, '%0.1f', '%0.1f' ;
+           'Monoterpene emissions (TgC)', 'amon', cf_kg2Tg, '%0.1f', '%0.1f' ;
+           'January albedo, boreal forest', 'albedo1_borfor', 1, '%0.3f', '%0.3f' ;
+           'January albedo,  tundra', 'albedo1_tundra', 1, '%0.3f', '%0.3f' ;
+           } ;
+
+Nvars = size(rowInfo,1) ;
+mean_endh_v = nan(Nvars,1) ;
+mean_endf_vr = nan(Nvars,Nruns) ;
+sem_endh_v = nan(Nvars,1) ;
+sem_endf_vr = nan(Nvars,Nruns) ;
+string_endh = cell(Nvars,1) ;
+string_endf = cell(Nvars,Nruns) ;
+for c = 1:Nvars
+    
+    % Get values
+    thisVar = rowInfo{c,2} ;
+    thisConv = rowInfo{c,3} ;
+    mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
+    sem_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh))) / length(years_endh)']) ;
+    mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
+    sem_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:)) / length(years_endf)']) ;
+    
+    % Turn into strings
+    if strcmp(rowInfo{c,4},'%d')
+        thisMean = round(mean_endh_v(c)) ;
+    else
+        thisMean = mean_endh_v(c) ;
+    end
+    if strcmp(rowInfo{c,4},'%d')
+        thisSD = round(sem_endh_v(c)) ;
+    else
+        thisSD = sem_endh_v(c) ;
+    end
+    string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
+    for r = 1:Nruns
+        if strcmp(rowInfo{c,4},'%d')
+            thisMean_endf = round(mean_endf_vr(c,r)) ;
+        else
+            thisMean_endf = mean_endf_vr(c,r) ;
+        end
+        if strcmp(rowInfo{c,4},'%d')
+            thisSD_endf = round(sem_endf_vr(c,r)) ;
+        else
+            thisSD_endf = sem_endf_vr(c,r) ;
+        end
+        string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
+    end
+
+end
+
+% table_out = table(collate_empties(rowInfo(:,1)),...
+%                   collate_empties(string_endh)) ;
+table_out = table(rowInfo(:,1),...
+                  string_endh) ;
+              
+for r = 1:Nruns
+%     table_out = [table_out collate_twocells(string_begf(:,r),string_endf(:,r))] ;
+    table_out = [table_out string_endf(:,r)] ;
+end
+table_out.Properties.VariableNames = [{'Ecosystem_function','Baseline'} runColNames] ;
+
+if do_save
+    writetable(table_out,[outDir_base 'summary_table_nobegf.xlsx'],'Sheet',1) ;
+end
+disp('Done making table.')
+
+
+
 %% Figure-ified table after Krause et al. (2017) Table 2
 
 fontSize = 14 ;
@@ -79,7 +169,7 @@ years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [4.5 9.5 11.5] ;
+where2sep = [4.5 10.5 12.5] ;
 rowInfo = { ...
            % LU variables
 %            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
@@ -94,6 +184,7 @@ rowInfo = { ...
            'Jan. albedo', 'albedo1', 1, '%0.3f', '%0.3f', '' ;
            'Jul. albedo', 'albedo7', 1, '%0.3f', '%0.3f', '' ;
            'Jan. albedo, borfor+tundra', 'albedo1_borfor+albedo1_tundra', 1, '%0.3f', '%0.3f', '' ;
+           'Area: Biodiv. hotspots', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
            % "Lower is better"
            'N loss', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f', 'TgN' ;
            'BVOC emis.', 'aiso+amon', cf_kg2Tg, '%0.1f', '%0.1f', 'TgC' ;
@@ -112,23 +203,41 @@ for c = 1:Nvars
     % Get values
     thisVar = rowInfo{c,2} ;
     thisConv = rowInfo{c,3} ;
-    if contains(thisVar,'+')
-        theseVars = strsplit(thisVar,'+') ;
-        thisVar = theseVars{1} ;
-        ts_thisVar_bl = eval(['ts_' thisVar '_bl']) ;
-        ts_thisVar_yr = eval(['ts_' thisVar '_yr']) ;
-        for v = 2:length(theseVars)
-            thisVar = theseVars{v} ;
-            ts_thisVar_bl = ts_thisVar_bl + eval(['ts_' thisVar '_bl']) ;
-            ts_thisVar_yr = ts_thisVar_yr + eval(['ts_' thisVar '_yr']) ;
+    if strcmp(thisVar, 'hotspot_area')
+        % End-hist
+        hotspot_area_YXy = repmat(hotspot_area_YX, [1 1 1 length(years_endh)]) ;
+        area_endh_y = thisConv * squeeze(nansum(nansum( ...
+            hotspot_area_YXy .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:), ...
+            1), 2)) ;
+        mean_endh_v(c) = mean(area_endh_y) ;
+        sem_endh_v(c) = std(area_endh_y) / sqrt(length(years_endh)) ;
+        % End-fut
+        hotspot_area_YXy = repmat(hotspot_area_YX, [1 1 1 length(years_endf)]) ;
+        area_endf_yr = thisConv * squeeze(nansum(nansum( ...
+            hotspot_area_YXy .* maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:,:), ...
+            1), 2)) ;
+        mean_endf_vr(c,:) = mean(area_endf_yr,1) ;
+        sem_endf_vr(c,:) = std(area_endf_yr,1) / sqrt(length(years_endf)) ;
+%         stop
+    else
+        if contains(thisVar,'+')
+            theseVars = strsplit(thisVar,'+') ;
+            thisVar = theseVars{1} ;
+            ts_thisVar_bl = eval(['ts_' thisVar '_bl']) ;
+            ts_thisVar_yr = eval(['ts_' thisVar '_yr']) ;
+            for v = 2:length(theseVars)
+                thisVar = theseVars{v} ;
+                ts_thisVar_bl = ts_thisVar_bl + eval(['ts_' thisVar '_bl']) ;
+                ts_thisVar_yr = ts_thisVar_yr + eval(['ts_' thisVar '_yr']) ;
+            end
+            thisVar = 'thisVar' ;
         end
-        thisVar = 'thisVar' ;
+        mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
+        sem_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh))) ./ sqrt(length(years_endh))']) ;
+        mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
+        sem_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:)) ./ sqrt(length(years_endf))']) ;
+        clear ts_thisVar_yr % Does nothing if does not exist
     end
-    mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-    sem_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-    mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
-    sem_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
-    clear ts_thisVar_yr % Does nothing if does not exist
 end
 
 % Calculate % difference
@@ -191,7 +300,7 @@ end
 legend(runList)
 title('Change in ecosystem service indicators, 2001-2010 to 2091-2100')
 xlabel('Indicator')
-ylabel('Change (%)')
+ylabel('Change +/- SEM (%)')
 set(gca, 'FontSize', fontSize) ;
 
 
@@ -2474,93 +2583,6 @@ end
 % disp('Done making table.')
 
 
-%% Table after Krause et al. (2017) Table 2 but without first fut. decade
-
-% disp('Making table...')
-% 
-% years_endh = 2000:2009 ;
-% years_endf = 2090:2099 ;
-% 
-% % Name, code, conversion factor, formatSpec mean, formatSpec SEM
-% rowInfo = {'Vegetation C (GtC)', 'cpool_VegC', cf_kg2Pg, '%d', '%d' ;
-%            'Soil and litter C (GtC)', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d' ;
-% %            'Product C (GtC)', 'cpool_HarvSlowC', cf_kg2Pg, '%0.1f', '%0.1f' ;
-%            'Total C (GtC)', 'cpool_Total', cf_kg2Pg, '%d', '%d' ;
-%            'January albedo', 'albedo1', 1, '%0.3f', '%0.3f' ;
-%            'July albedo', 'albedo7', 1, '%0.3f', '%0.3f' ;
-%            'Evapotranspiration (1000 km^3)', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
-%            'Runoff (1000 km^3)', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
-% %            'Peak monthly runoff (1000 km^3)', 'pkrunoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f' ;
-%            'Crop production (Ecal)', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f' ;
-%            'N loss (TgN)', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f' ;
-% %            'N loss: Gaseous (TgN)', 'nflux_flux', cf_kg2Tg, '%0.1f', '%0.1f' ;
-% %            'N loss: Dissolved (TgN)', 'nflux_leach', cf_kg2Tg, '%0.1f', '%0.1f' ;
-%            'Isoprene emissions (TgC)', 'aiso', cf_kg2Tg, '%0.1f', '%0.1f' ;
-%            'Monoterpene emissions (TgC)', 'amon', cf_kg2Tg, '%0.1f', '%0.1f' ;
-%            'January albedo, boreal forest', 'albedo1_borfor', 1, '%0.3f', '%0.3f' ;
-%            'January albedo,  tundra', 'albedo1_tundra', 1, '%0.3f', '%0.3f' ;
-%            } ;
-% 
-% Nvars = size(rowInfo,1) ;
-% mean_endh_v = nan(Nvars,1) ;
-% mean_endf_vr = nan(Nvars,Nruns) ;
-% sem_endh_v = nan(Nvars,1) ;
-% sem_endf_vr = nan(Nvars,Nruns) ;
-% string_endh = cell(Nvars,1) ;
-% string_endf = cell(Nvars,Nruns) ;
-% for c = 1:Nvars
-%     
-%     % Get values
-%     thisVar = rowInfo{c,2} ;
-%     thisConv = rowInfo{c,3} ;
-%     mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-%     sem_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-%     mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
-%     sem_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
-%     
-%     % Turn into strings
-%     if strcmp(rowInfo{c,4},'%d')
-%         thisMean = round(mean_endh_v(c)) ;
-%     else
-%         thisMean = mean_endh_v(c) ;
-%     end
-%     if strcmp(rowInfo{c,4},'%d')
-%         thisSD = round(sem_endh_v(c)) ;
-%     else
-%         thisSD = sem_endh_v(c) ;
-%     end
-%     string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
-%     for r = 1:Nruns
-%         if strcmp(rowInfo{c,4},'%d')
-%             thisMean_endf = round(mean_endf_vr(c,r)) ;
-%         else
-%             thisMean_endf = mean_endf_vr(c,r) ;
-%         end
-%         if strcmp(rowInfo{c,4},'%d')
-%             thisSD_endf = round(sem_endf_vr(c,r)) ;
-%         else
-%             thisSD_endf = sem_endf_vr(c,r) ;
-%         end
-%         string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
-%     end
-% 
-% end
-% 
-% % table_out = table(collate_empties(rowInfo(:,1)),...
-% %                   collate_empties(string_endh)) ;
-% table_out = table(rowInfo(:,1),...
-%                   string_endh) ;
-%               
-% for r = 1:Nruns
-% %     table_out = [table_out collate_twocells(string_begf(:,r),string_endf(:,r))] ;
-%     table_out = [table_out string_endf(:,r)] ;
-% end
-% table_out.Properties.VariableNames = [{'Ecosystem_function','Baseline'} runColNames] ;
-% 
-% if do_save
-%     writetable(table_out,[outDir_base 'summary_table_nobegf.xlsx'],'Sheet',1) ;
-% end
-% disp('Done making table.')
 
 
 %%
