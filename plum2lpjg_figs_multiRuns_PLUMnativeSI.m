@@ -156,12 +156,13 @@ disp('Done making table.')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Options
-spacing = [0.2 0.04] ;
+orientation = 'h' ; % v(ertical) or h(orizontal)
 sd_or_sem = 'st. dev.' ;
 % sd_or_sem = 'SEM' ;
+% errbar_color = 'k' ;
+errbar_color = 0.5*ones(3,1) ;
+fontSize = 12 ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fontSize = 14 ;
 
 years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
@@ -177,20 +178,24 @@ rowInfo = { ...
            'Crop prod.', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f', 'Ecal' ;
            'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, '%0.1f', '%0.1f', 'Mt' ;
            % "Higher is better"
-           'Veg. C', 'cpool_VegC', cf_kg2Pg, '%d', '%d', 'GtC' ;
-%            'Soil/litter C', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d', 'GtC' ;
-           'Total C', 'cpool_Total', cf_kg2Pg, '%d', '%d', 'GtC' ;
-           'Jan. albedo', 'albedo1', 1, '%0.3f', '%0.3f', '' ;
-           'Jul. albedo', 'albedo7', 1, '%0.3f', '%0.3f', '' ;
-           'Jan. albedo, borfor+tundra', 'albedo1_borfor+albedo1_tundra', 1, '%0.3f', '%0.3f', '' ;
-           'Area: Biodiv. hotspots', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+           '(+) Veg. C', 'cpool_VegC', cf_kg2Pg, '%d', '%d', 'GtC' ;
+%            '(+) Soil/litter C', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d', 'GtC' ;
+           '(+) Total C', 'cpool_Total', cf_kg2Pg, '%d', '%d', 'GtC' ;
+           '(+) Jan. albedo', 'albedo1', 1, '%0.3f', '%0.3f', '' ;
+           '(+) Jul. albedo', 'albedo7', 1, '%0.3f', '%0.3f', '' ;
+           '(+) Jan. albedo, borfor+tundra', 'albedo1_borfor+albedo1_tundra', 1, '%0.3f', '%0.3f', '' ;
+           '(+) Area: Biodiv. hotspots', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
            % "Lower is better"
-           'N loss', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f', 'TgN' ;
-           'BVOC emis.', 'aiso+amon', cf_kg2Tg, '%0.1f', '%0.1f', 'TgC' ;
+           '(?) N loss', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f', 'TgN' ;
+           '(?) BVOC emis.', 'aiso+amon', cf_kg2Tg, '%0.1f', '%0.1f', 'TgC' ;
            % "Neutral"
-           'ET', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
-           'Runoff', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
+           '(  ) ET', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
+           '(  ) Runoff', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
            } ;
+% if strcmp(orientation,'h')
+%     rowInfo = flipud(rowInfo) ;
+%     where2sep = size(rowInfo,1) - where2sep + 1 ;
+% end
 
 % Define function to calculate sem
 sem_ssr = @(data,yrs) std(data,find(size(data)==length(yrs))) / sqrt(length(yrs)) ;
@@ -289,11 +294,20 @@ errb_diff_vr = sqrt(errb_endh_vr.^2 + errb_endf_vr.^2) ;
 errb_diffPct_vr = 100 * (errb_diff_vr ./ mean_endh_vr) ;
 
 % Make figure
-figure('Color','w','Position',figurePos) ;
-subplot_tight(1,1,1,spacing)
-h = bar(mean_diffPct_vr, 'grouped') ;
-set(gca, 'XTickLabel', rowInfo(:,1)) ;
-xtickangle(45) ;
+if strcmp(orientation,'v')
+    figure('Color','w','Position',figurePos) ;
+    subplot_tight(1,1,1,[0.2 0.04])
+    bar(mean_diffPct_vr, 'grouped') ;
+    set(gca, 'XTickLabel', rowInfo(:,1)) ;
+    xtickangle(45) ;
+elseif strcmp(orientation,'h')
+    figure('Color','w','Position',[1    33   720   772]) ;
+    subplot_tight(1,1,1,[0.04 0.2])
+    barh(mean_diffPct_vr, 'grouped') ;
+    set(gca, 'YTickLabel', rowInfo(:,1)) ;
+else
+    error('orientation (%s) not recognized', orientation)
+end
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%% Add error bars %%%
@@ -310,30 +324,55 @@ groupwidth = min(0.8, nbars/(nbars + 1.5));
 % Set the position of each error bar in the centre of the main bar
 % Based on barweb.m by Bolu Ajiboye from MATLAB File Exchange
 hold on
-text
-ylims = get(gca,'YLim') ;
-ylims_diff = ylims(2) - ylims(1) ;
-thisPad = 0.01 * ylims_diff ;
+if strcmp(orientation,'v')
+    lims = get(gca,'YLim') ;
+    thisPad_factor = 0.005 ;
+else
+    lims = get(gca,'XLim') ;
+    thisPad_factor = 0.01 ;
+end
+lims_diff = lims(2) - lims(1) ;
+thisPad = thisPad_factor * lims_diff ;
 for i = 1:nbars
     % Calculate center of each bar
-    x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars) ;
-    he = errorbar(x, mean_diffPct_vr(:,i), errb_diffPct_vr(:,i), 'k', 'linestyle', 'none', 'linewidth', 0.5) ;
+    if strcmp(orientation,'v')
+        x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars) ;
+        he = errorbar(x, mean_diffPct_vr(:,i), errb_diffPct_vr(:,i), 'linestyle', 'none', 'linewidth', 0.5) ;
+    else
+        y = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars) ;
+        he = errorbar(mean_diffPct_vr(:,i), y, errb_diffPct_vr(:,i), 'horizontal', 'linestyle', 'none', 'linewidth', 0.5) ;
+    end
+    set(he, 'Color', errbar_color) ;
     for g = 1:ngroups
-        thisX = he.XData(g) ;
-        thisY = he.YData(g) + he.YPositiveDelta(g) ;
-        if thisY < 0
-            thisY = he.YData(g) - he.YNegativeDelta(g) ;
+        if strcmp(orientation,'v')
+            thisX = he.XData(g) ;
+            thisY = he.YData(g) + he.YPositiveDelta(g) ;
+            if thisY < 0
+                thisY = he.YData(g) - he.YNegativeDelta(g) - thisPad ;
+            else
+                thisY = thisY + thisPad ;
+            end
+        else
+            thisY = he.YData(g) ;
+            thisX = he.XData(g) + he.XPositiveDelta(g) ;
+            if thisX < 0
+                thisX = he.XData(g) - he.XNegativeDelta(g) - thisPad ;
+            else
+                thisX = thisX + thisPad ;
+            end
         end
         thisText = sprintf('%.0f%%', mean_diffPct_vr(g,i)) ;
         if mean_diffPct_vr(g,i) > 0
             thisText = ['+' thisText] ;
         end
-        if thisY > 0
-            ht = text(thisX, thisY+thisPad, thisText) ;
+        ht = text(thisX, thisY, thisText) ;
+        if strcmp(orientation,'v')
             ht.Rotation = 90 ;
         else
-            ht = text(thisX, thisY-thisPad, thisText) ;
-            ht.Rotation = 90 ;
+            ht.FontSize = 8 ;
+        end
+        if (strcmp(orientation,'v') && thisY < 0) ...
+        || (strcmp(orientation,'h') && thisX < 0)
             ht.HorizontalAlignment = 'right' ;
         end
     end
@@ -347,11 +386,18 @@ hold off
 
 if ~isempty(where2sep)
     hold on
-    ylims = get(gca,'YLim') ;
-    for i = 1:length(where2sep)
-%         x = floor(where2sep(i)) + groupwidth/2 ;
-        x = where2sep(i) ;
-        line([x x], ylims, 'Color', 0.8*(ones(3,1)), 'LineWidth', 10) ;
+    if strcmp(orientation,'v')
+        ylims = get(gca,'YLim') ;
+        for i = 1:length(where2sep)
+            x = where2sep(i) ;
+            line([x x], ylims, 'Color', 0.8*(ones(3,1)), 'LineWidth', 10) ;
+        end
+    else
+        xlims = get(gca,'XLim') ;
+        for i = 1:length(where2sep)
+            y = where2sep(i) ;
+            line(xlims, [y y], 'Color', 0.8*(ones(3,1)), 'LineWidth', 5) ;
+        end
     end
     hold off
 end
@@ -360,15 +406,51 @@ end
 %%% Finish %%%
 %%%%%%%%%%%%%%
 
-legend(runList, 'Location', 'Northwest')
+% Add title, legend, and labels
 if any_notFirstDecade
     title('Change in ecosystem service indicators, 2001-2010* to 2091-2100')
 else
     title('Change in ecosystem service indicators, 2001-2010 to 2091-2100')
 end
-xlabel('Indicator')
-ylabel(['Change +/- ' sd_or_sem ' (%)'])
+if strcmp(orientation,'v')
+    legend(runList, 'Location', 'Northwest')
+    hxl = xlabel('Indicator') ;
+    hyl = ylabel(['Change +/- ' sd_or_sem ' (%)']) ;
+else
+    legend(runList, 'Location', 'Northeast')
+    hyl = ylabel('Indicator') ;
+    hxl = xlabel(['Change +/- ' sd_or_sem ' (%)']) ;
+end
 set(gca, 'FontSize', fontSize) ;
+hxl.FontWeight = 'bold' ;
+hyl.FontWeight = 'bold' ;
+
+% Reposition axexs
+h = gca ;
+h.Units = 'normalized' ;
+op = get(h, 'OuterPosition') ;
+if strcmp(orientation,'v')
+    op(2) = 0.02 ;
+    op(4) = 1.05 ;
+    op(3) = 1.24 ;
+    set(h, 'OuterPosition', op) ;
+else
+    op(1) = 0 ;
+    op(3) = 1 ;
+    op(2) = -0.17 ;
+    op(4) = 1.2678 ;
+    set(h, 'OuterPosition', op) ;
+    set(h,'YDir','reverse')
+end
+
+%%%%%%%%%%%%
+%%% Save %%%
+%%%%%%%%%%%%
+
+if do_save
+    export_fig([outDir_base 'ES_bargraph.pdf'],['-r' num2str(pngres)])
+    close
+end
 
 
 %% Map differences from end of historical to end of future: Isoprene emissions 
