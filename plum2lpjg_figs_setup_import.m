@@ -366,6 +366,12 @@ elseif strcmp(thisVer,'harm3_constClim')
         'LPJGPLUM_2011-2100_harm3_SSP4_RCP60co2_constClim/output-2019-03-07-170847' ;
         'LPJGPLUM_2011-2100_harm3_SSP5_RCP85co2_constClim/output-2019-03-07-170908' ;
         } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        } ;
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
@@ -376,7 +382,14 @@ elseif strcmp(thisVer,'harm3_constCO2')
         'LPJGPLUM_2011-2100_harm3_SSP1_RCP45_constCO2/output-2019-03-07-164547' ;
         'LPJGPLUM_2011-2100_harm3_SSP3_RCP60_constCO2/output-2019-03-07-170846' ;
         'LPJGPLUM_2011-2100_harm3_SSP4_RCP60_constCO2/output-2019-03-07-170858' ;
-        'LPJGPLUM_2011-2100_harm3_SSP5_RCP85_constCO2/output-2019-03-07-170910' ;        } ;
+        'LPJGPLUM_2011-2100_harm3_SSP5_RCP85_constCO2/output-2019-03-07-170910' ;
+        } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        } ;
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
@@ -389,6 +402,11 @@ elseif strcmp(thisVer,'harm3_constLU')
         'LPJGPLUM_2011-2100_harm3_constLU_RCP60/output-2019-03-07-164546' ;
         'LPJGPLUM_2011-2100_harm3_constLU_RCP85/output-2019-03-07-164546' ;
         } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        } ; warning('constLU run, but will display regular PLUM outputs! (from SSP3 for RCP60)')
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
@@ -400,6 +418,12 @@ elseif strcmp(thisVer,'harm3_constClimCO2')
         'LPJGPLUM_2011-2100_harm3_SSP3_constCO2_constClim/output-2019-03-12-080759' ;
         'LPJGPLUM_2011-2100_harm3_SSP4_constCO2_constClim/output-2019-03-12-083131' ;
         'LPJGPLUM_2011-2100_harm3_SSP5_constCO2_constClim/output-2019-03-12-094118' ;
+        } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
         } ;
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
@@ -413,6 +437,11 @@ elseif strcmp(thisVer,'harm3_S1R4.5_attr')
         'LPJGPLUM_2011-2100_harm3_constLU_RCP45/output-2019-03-07-164549' ;
         'LPJGPLUM_2011-2100_harm3_SSP1_constCO2_constClim/output-2019-03-12-091426' ;
         } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        } ; warning('constLU run, but will display regular PLUM outputs!')
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
@@ -425,6 +454,11 @@ elseif strcmp(thisVer,'harm3_S3R6.0_attr')
         'LPJGPLUM_2011-2100_harm3_constLU_RCP60/output-2019-03-07-164546' ;
         'LPJGPLUM_2011-2100_harm3_SSP3_constCO2_constClim/output-2019-03-12-080759' ;
         } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        } ; warning('constLU run, but will display regular PLUM outputs!')
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
@@ -437,6 +471,11 @@ elseif strcmp(thisVer,'harm3_S4R6.0_attr')
         'LPJGPLUM_2011-2100_harm3_constLU_RCP60/output-2019-03-07-164546' ;
         'LPJGPLUM_2011-2100_harm3_SSP4_constCO2_constClim/output-2019-03-12-083131' ;
         } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
+        } ; warning('constLU run, but will display regular PLUM outputs!')
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
@@ -454,6 +493,12 @@ elseif strcmp(thisVer,'harm3_S5R8.5_attr')
         'LPJGPLUM_2011-2100_harm3_SSP5_constCO2_constClim/output-2019-03-12-094118' ;
         'LPJGPLUM_2011-2100_harm3_SSP5_RCP85_constCO2/output-2019-03-07-170910' ;
         } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        } ; warning('constLU run, but will display regular PLUM outputs!')
     yearList_future = 2011:2100 ;
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
