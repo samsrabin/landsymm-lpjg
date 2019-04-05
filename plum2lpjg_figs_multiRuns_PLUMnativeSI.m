@@ -92,8 +92,8 @@ rowInfo = {'Vegetation C (GtC)', 'cpool_VegC', cf_kg2Pg, '%d', '%d' ;
 Nvars = size(rowInfo,1) ;
 mean_endh_v = nan(Nvars,1) ;
 mean_endf_vr = nan(Nvars,Nruns) ;
-sem_endh_v = nan(Nvars,1) ;
-sem_endf_vr = nan(Nvars,Nruns) ;
+errb_endh_v = nan(Nvars,1) ;
+errb_endf_vr = nan(Nvars,Nruns) ;
 string_endh = cell(Nvars,1) ;
 string_endf = cell(Nvars,Nruns) ;
 for c = 1:Nvars
@@ -102,9 +102,9 @@ for c = 1:Nvars
     thisVar = rowInfo{c,2} ;
     thisConv = rowInfo{c,3} ;
     mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-    sem_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh))) / length(years_endh)']) ;
+    errb_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh))) / length(years_endh)']) ;
     mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
-    sem_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:)) / length(years_endf)']) ;
+    errb_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:)) / length(years_endf)']) ;
     
     % Turn into strings
     if strcmp(rowInfo{c,4},'%d')
@@ -113,9 +113,9 @@ for c = 1:Nvars
         thisMean = mean_endh_v(c) ;
     end
     if strcmp(rowInfo{c,4},'%d')
-        thisSD = round(sem_endh_v(c)) ;
+        thisSD = round(errb_endh_v(c)) ;
     else
-        thisSD = sem_endh_v(c) ;
+        thisSD = errb_endh_v(c) ;
     end
     string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
     for r = 1:Nruns
@@ -125,9 +125,9 @@ for c = 1:Nvars
             thisMean_endf = mean_endf_vr(c,r) ;
         end
         if strcmp(rowInfo{c,4},'%d')
-            thisSD_endf = round(sem_endf_vr(c,r)) ;
+            thisSD_endf = round(errb_endf_vr(c,r)) ;
         else
-            thisSD_endf = sem_endf_vr(c,r) ;
+            thisSD_endf = errb_endf_vr(c,r) ;
         end
         string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
     end
@@ -153,6 +153,9 @@ disp('Done making table.')
 
 
 %% Figure-ified table after Krause et al. (2017) Table 2
+
+% sd_or_sem = 'st. dev.' ;
+sd_or_sem = 'SEM' ;
 
 fontSize = 14 ;
 
@@ -185,11 +188,14 @@ rowInfo = { ...
            'Runoff', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
            } ;
 
+% Define function to calculate sem
+sem_ssr = @(data,yrs) std(data,find(size(data)==length(yrs))) / sqrt(length(yrs)) ;
+
 Nvars = size(rowInfo,1) ;
 mean_endh_v = nan(Nvars,1) ;
 mean_endf_vr = nan(Nvars,Nruns) ;
-sem_endh_v = nan(Nvars,1) ;
-sem_endf_vr = nan(Nvars,Nruns) ;
+errb_endh_v = nan(Nvars,1) ;
+errb_endf_vr = nan(Nvars,Nruns) ;
 for c = 1:Nvars
     
     % Get values
@@ -202,14 +208,21 @@ for c = 1:Nvars
             hotspot_area_YXy .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:), ...
             1), 2)) ;
         mean_endh_v(c) = mean(area_endh_y) ;
-        sem_endh_v(c) = std(area_endh_y) / sqrt(length(years_endh)) ;
         % End-fut
         hotspot_area_YXy = repmat(hotspot_area_YX, [1 1 1 length(years_endf)]) ;
         area_endf_yr = thisConv * squeeze(nansum(nansum( ...
             hotspot_area_YXy .* maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:,:), ...
             1), 2)) ;
         mean_endf_vr(c,:) = mean(area_endf_yr,1) ;
-        sem_endf_vr(c,:) = std(area_endf_yr,1) / sqrt(length(years_endf)) ;
+        % Error bars
+        if strcmp(sd_or_sem,'st. dev.')
+            errb_endh_v(c) = std(area_endh_y) ;
+            errb_endf_vr(c,:) = std(area_endf_yr, 1) ;
+        else
+            errb_endh_v(c) = sem_ssr(area_endh_y, years_endh) ;
+            errb_endf_vr(c,:) = sem_ssr(area_endf_yr, years_endf) ;
+        end
+        
     elseif contains(thisVar,'demand')
         % Which commodity
         thisCommod = strsplit(thisVar,'.') ;
@@ -220,10 +233,14 @@ for c = 1:Nvars
             error('This code assumes all runs have identical 2010 demand!')
         end
         mean_endh_v(c) = thisConv*ts_commodDemand_yvr(1,i,1) ;
-        sem_endh_v(c) = 0 ;
+        errb_endh_v(c) = 0 ;
         ok_years = yearList_PLUMout>=min(years_endf) & yearList_PLUMout<=max(years_endf) ;
         mean_endf_vr(c,:) = thisConv*mean(ts_commodDemand_yvr(ok_years,i,:),1) ;
-        sem_endf_vr(c,:) = thisConv*std(ts_commodDemand_yvr(ok_years,i,:),1) / sqrt(length(years_endf)) ;
+        if strcmp(sd_or_sem,'st. dev.')
+            errb_endf_vr(c,:) = thisConv*std(ts_commodDemand_yvr(ok_years,i,:), 1) ;
+        else
+            errb_endf_vr(c,:) = thisConv*sem_ssr(ts_commodDemand_yvr(ok_years,i,:), years_endf) ;
+        end
     else
         if contains(thisVar,'+')
             theseVars = strsplit(thisVar,'+') ;
@@ -238,21 +255,26 @@ for c = 1:Nvars
             thisVar = 'thisVar' ;
         end
         mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-        sem_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh))) ./ sqrt(length(years_endh))']) ;
         mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
-        sem_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:)) ./ sqrt(length(years_endf))']) ;
+        if strcmp(sd_or_sem,'st. dev.')
+            errb_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
+            errb_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:), 1)']) ;
+        else
+            errb_endh_v(c) = thisConv*eval(['sem_ssr(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)), years_endh)']) ;
+            errb_endf_vr(c,:) = thisConv*eval(['sem_ssr(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:), years_endf)']) ;
+        end
         clear ts_thisVar_yr % Does nothing if does not exist
     end
 end
 
 % Calculate % difference
 mean_endh_vr = repmat(mean_endh_v,[1 Nruns]) ;
-sem_endh_vr = repmat(sem_endh_v,[1 Nruns]) ;
+errb_endh_vr = repmat(errb_endh_v,[1 Nruns]) ;
 mean_diff_vr = mean_endf_vr - mean_endh_vr ;
 mean_diffPct_vr = 100 * (mean_diff_vr ./ mean_endh_vr) ;
-sem_diff_vr = sqrt(sem_endh_vr.^2 + sem_endf_vr.^2) ;
-% EQUIVALENT TO BELOW % sem_diffPct_vr = 100 * ((mean_endf_vr+sem_diff_vr-mean_endh_vr)./mean_endh_vr - (mean_endf_vr-mean_endh_vr)./mean_endh_vr) ;
-sem_diffPct_vr = 100 * (sem_diff_vr ./ mean_endh_vr) ;
+errb_diff_vr = sqrt(errb_endh_vr.^2 + errb_endf_vr.^2) ;
+% EQUIVALENT TO BELOW % errb_diffPct_vr = 100 * ((mean_endf_vr+errb_diff_vr-mean_endh_vr)./mean_endh_vr - (mean_endf_vr-mean_endh_vr)./mean_endh_vr) ;
+errb_diffPct_vr = 100 * (errb_diff_vr ./ mean_endh_vr) ;
 
 % Make figure
 figure('Color','w','Position',figurePos) ; 
@@ -278,7 +300,7 @@ hold on
 for i = 1:nbars
     % Calculate center of each bar
     x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars) ;
-    errorbar(x, mean_diffPct_vr(:,i), sem_diffPct_vr(:,i), 'k', 'linestyle', 'none', 'linewidth', 0.5);
+    errorbar(x, mean_diffPct_vr(:,i), errb_diffPct_vr(:,i), 'k', 'linestyle', 'none', 'linewidth', 0.5);
 end
 hold off
 
@@ -305,7 +327,7 @@ end
 legend(runList, 'Location', 'Northwest')
 title('Change in ecosystem service indicators, 2001-2010 to 2091-2100')
 xlabel('Indicator')
-ylabel('Change +/- SEM (%)')
+ylabel(['Change +/- ' sd_or_sem ' (%)'])
 set(gca, 'FontSize', fontSize) ;
 
 
@@ -2524,9 +2546,9 @@ end
 % mean_endh_v = nan(Nvars,1) ;
 % mean_begf = nan(Nvars,Nruns) ;
 % mean_endf_vr = nan(Nvars,Nruns) ;
-% sem_endh_v = nan(Nvars,1) ;
+% errb_endh_v = nan(Nvars,1) ;
 % sem_begf = nan(Nvars,Nruns) ;
-% sem_endf_vr = nan(Nvars,Nruns) ;
+% errb_endf_vr = nan(Nvars,Nruns) ;
 % string_endh = cell(Nvars,1) ;
 % string_begf = cell(Nvars,Nruns) ;
 % string_endf = cell(Nvars,Nruns) ;
@@ -2536,11 +2558,11 @@ end
 %     thisVar = rowInfo{c,2} ;
 %     thisConv = rowInfo{c,3} ;
 %     mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-%     sem_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
+%     errb_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
 %     mean_begf(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_begf) & yearList_future<=max(years_begf),:))']) ;
 %     sem_begf(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_begf) & yearList_future<=max(years_begf),:))']) ;
 %     mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
-%     sem_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
+%     errb_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
 %     
 %     % Turn into strings
 %     if strcmp(rowInfo{c,4},'%d')
@@ -2549,9 +2571,9 @@ end
 %         thisMean = mean_endh_v(c) ;
 %     end
 %     if strcmp(rowInfo{c,4},'%d')
-%         thisSD = round(sem_endh_v(c)) ;
+%         thisSD = round(errb_endh_v(c)) ;
 %     else
-%         thisSD = sem_endh_v(c) ;
+%         thisSD = errb_endh_v(c) ;
 %     end
 %     string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
 %     for r = 1:Nruns
@@ -2564,10 +2586,10 @@ end
 %         end
 %         if strcmp(rowInfo{c,4},'%d')
 %             thisSD_begf = round(sem_begf(c,r)) ;
-%             thisSD_endf = round(sem_endf_vr(c,r)) ;
+%             thisSD_endf = round(errb_endf_vr(c,r)) ;
 %         else
 %             thisSD_begf = sem_begf(c,r) ;
-%             thisSD_endf = sem_endf_vr(c,r) ;
+%             thisSD_endf = errb_endf_vr(c,r) ;
 %         end
 %         string_begf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_begf thisSD_begf]) ;
 %         string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
