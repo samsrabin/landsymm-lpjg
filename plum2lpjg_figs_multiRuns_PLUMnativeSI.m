@@ -178,19 +178,19 @@ rowInfo = { ...
            'Crop prod.', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f', 'Ecal' ;
            'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, '%0.1f', '%0.1f', 'Mt' ;
            % "Higher is better"
-           '(+) Veg. C', 'cpool_VegC', cf_kg2Pg, '%d', '%d', 'GtC' ;
-%            '(+) Soil/litter C', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d', 'GtC' ;
-           '(+) Total C', 'cpool_Total', cf_kg2Pg, '%d', '%d', 'GtC' ;
-           '(+) Jan. albedo', 'albedo1', 1, '%0.3f', '%0.3f', '' ;
-           '(+) Jul. albedo', 'albedo7', 1, '%0.3f', '%0.3f', '' ;
-           '(+) Jan. albedo, borfor+tundra', 'albedo1_borfor+albedo1_tundra', 1, '%0.3f', '%0.3f', '' ;
-           '(+) Area: Biodiv. hotspots', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+           'Veg. C (+)', 'cpool_VegC', cf_kg2Pg, '%d', '%d', 'GtC' ;
+%            'Soil/litter C (+)', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d', 'GtC' ;
+           'Total C (+)', 'cpool_Total', cf_kg2Pg, '%d', '%d', 'GtC' ;
+           'Jan. albedo (+)', 'albedo1', 1, '%0.3f', '%0.3f', '' ;
+           'Jul. albedo (+)', 'albedo7', 1, '%0.3f', '%0.3f', '' ;
+           'Jan. albedo, borfor+tundra (+)', 'albedo1_borfor+albedo1_tundra', 1, '%0.3f', '%0.3f', '' ;
+           'Area: Biodiv. hotspots (+)', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
            % "Lower is better"
-           '(?) N loss', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f', 'TgN' ;
-           '(?) BVOC emis.', 'aiso+amon', cf_kg2Tg, '%0.1f', '%0.1f', 'TgC' ;
+           'N loss (?)', 'nloss', cf_kg2Tg, '%0.1f', '%0.1f', 'TgN' ;
+           'BVOC emis. (?)', 'aiso+amon', cf_kg2Tg, '%0.1f', '%0.1f', 'TgC' ;
            % "Neutral"
-           '(  ) ET', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
-           '(  ) Runoff', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
+           'ET (  )', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
+           'Runoff (  )', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
            } ;
 % if strcmp(orientation,'h')
 %     rowInfo = flipud(rowInfo) ;
@@ -442,6 +442,10 @@ else
     set(h, 'OuterPosition', op) ;
     set(h,'YDir','reverse')
 end
+
+% Remove surrounding chartjunk
+box off
+
 
 %%%%%%%%%%%%
 %%% Save %%%
