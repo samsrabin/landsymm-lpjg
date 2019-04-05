@@ -200,6 +200,7 @@ mean_endh_v = nan(Nvars,1) ;
 mean_endf_vr = nan(Nvars,Nruns) ;
 errb_endh_v = nan(Nvars,1) ;
 errb_endf_vr = nan(Nvars,Nruns) ;
+any_notFirstDecade = false ;
 for c = 1:Nvars
     
     % Get values
@@ -245,6 +246,13 @@ for c = 1:Nvars
         else
             errb_endf_vr(c,:) = thisConv*sem_ssr(ts_commodDemand_yvr(ok_years,i,:), years_endf) ;
         end
+        % Add marker indicating difference is from firstYear_PLUM, not
+        % years_endh
+        if ~any_notFirstDecade
+            firstYear_PLUM = yearList_PLUMout(1) ;
+            any_notFirstDecade = true ;
+        end
+        rowInfo{c,1} = [rowInfo{c,1} '*'] ;
     else
         if contains(thisVar,'+')
             theseVars = strsplit(thisVar,'+') ;
@@ -353,7 +361,11 @@ end
 %%%%%%%%%%%%%%
 
 legend(runList, 'Location', 'Northwest')
-title('Change in ecosystem service indicators, 2001-2010 to 2091-2100')
+if any_notFirstDecade
+    title('Change in ecosystem service indicators, 2001-2010* to 2091-2100')
+else
+    title('Change in ecosystem service indicators, 2001-2010 to 2091-2100')
+end
 xlabel('Indicator')
 ylabel(['Change +/- ' sd_or_sem ' (%)'])
 set(gca, 'FontSize', fontSize) ;
