@@ -1146,3 +1146,30 @@ hotspot_YX(nanmask) = NaN ;
 hotspot_YX = 1==hotspot_YX ;
 hotspot_area_YX = hotspot_YX.*land_area_YX ;
 
+
+%% Import global demand (Mt)
+
+warning('off','MATLAB:table:ModifiedAndSavedVarnames')
+for r = 1:Nruns
+    thisDir = runDirs_plum{r} ;
+    thisFile = sprintf('%s/demand.txt', thisDir) ;
+    thisTable = readtable(thisFile) ;
+    [~,~,sortCols] = intersect({'Commodity','Year'},thisTable.Properties.VariableNames) ;
+    thisTable = sortrows(thisTable,sortCols) ; % Needed to produce _yvr dimensioned array
+    if r==1
+        commods = unique(thisTable.Commodity) ; % Sorts alphabetically
+        Ncommods = length(commods) ;
+        yearList_PLUMout = unique(thisTable.Year) ;
+        Nyears_PLUMout = length(yearList_PLUMout) ;
+        ts_commodDemand_yvr = nan(Nyears_PLUMout, Ncommods, Nruns) ;
+    end
+    ts_commodDemand_yvr(:,:,r) = reshape(thisTable.Amount_Mt_,[Nyears_PLUMout Ncommods]) ;
+    clear this* sortCols
+end
+warning('on','MATLAB:table:ModifiedAndSavedVarnames')
+
+% Convert Mt to kg
+ts_commodDemand_yvr = ts_commodDemand_yvr * 1e6*1e3 ;
+
+
+

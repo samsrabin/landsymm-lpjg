@@ -3,32 +3,35 @@
 %%% PLUM-style native %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% % thisVer = '20180424agmip7' ;
-% % thisVer = '20180424agmip7_asPLUMout2011-2015' ;
-% thisVer = 'v4s1_v20180426' ;
-% thisVer = 'v4s1_v20180426_asPLUMout2011' ;
-% thisVer = 'v4s1_v20180426_asLUH2_2010' ;
-% thisVer = 'v6s1_v20180703' ;
-% thisVer = 'v10s1_v20180801' ;
-% thisVer = 'v10s1_v20180801' ;
-% thisVer = 'harm2' ;
-% thisVer = 'harm2_constLU' ;
-% thisVer = 'harm2.1' ;
-% thisVer = 'harm2.1_constClimCO2' ;
-% thisVer = 'harm2.1_constLU' ;
-% thisVer = 'harm2.1_S1R4.5_attr' ;
-% thisVer = 'harm2.1_S3R6.0_attr' ;
-% thisVer = 'harm2.1_S4R6.0_attr' ;
-% thisVer = 'harm2.1_S5R8.5_attr' ;
-% thisVer = 'harm2.2' ;
-% thisVer = 'harm2.3' ;
-% thisVer = 'harm2.3_constClimCO2' ;
-% thisVer = 'harm2.3_constLU' ;
-% thisVer = 'harm2.3_S1R4.5_attr' ;
-% thisVer = 'harm2.3_S3R6.0_attr' ;
-% thisVer = 'harm2.3_S4R6.0_attr' ;
-% thisVer = 'harm2.3_S5R8.5_attr' ;
+if false
+    % % thisVer = '20180424agmip7' ;
+    % % thisVer = '20180424agmip7_asPLUMout2011-2015' ;
+    % thisVer = 'v4s1_v20180426' ;
+    % thisVer = 'v4s1_v20180426_asPLUMout2011' ;
+    % thisVer = 'v4s1_v20180426_asLUH2_2010' ;
+    % thisVer = 'v6s1_v20180703' ;
+    % thisVer = 'v10s1_v20180801' ;
+    % thisVer = 'v10s1_v20180801' ;
+    % thisVer = 'harm2' ;
+    % thisVer = 'harm2_constLU' ;
+    % thisVer = 'harm2.1' ;
+    % thisVer = 'harm2.1_constClimCO2' ;
+    % thisVer = 'harm2.1_constLU' ;
+    % thisVer = 'harm2.1_S1R4.5_attr' ;
+    % thisVer = 'harm2.1_S3R6.0_attr' ;
+    % thisVer = 'harm2.1_S4R6.0_attr' ;
+    % thisVer = 'harm2.1_S5R8.5_attr' ;
+    % thisVer = 'harm2.2' ;
+    % thisVer = 'harm2.3' ;
+    % thisVer = 'harm2.3_constClimCO2' ;
+    % thisVer = 'harm2.3_constLU' ;
+    % thisVer = 'harm2.3_S1R4.5_attr' ;
+    % thisVer = 'harm2.3_S3R6.0_attr' ;
+    % thisVer = 'harm2.3_S4R6.0_attr' ;
+    % thisVer = 'harm2.3_S5R8.5_attr' ;
 % thisVer = 'harm2.3_constClim' ;
+end
+
 thisVer = 'harm3' ;
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
@@ -57,18 +60,6 @@ do_caps = -1 ;
 %% Setup and import
 
 run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import.m') ;
-
-
-%% Save outputs
-
-if false
-    disp('Saving outputs...')
-    save(['/Volumes/WDMPP_Storage/Shared/PLUM/trunk_runs/fig_script_outputs/' thisVer '.mat'], ...
-        'agri_*', 'bare_*', 'bl_*', 'crop*', 'firstdec_tmp', 'lastdec_tmp', ...
-        'land_area_YX', 'gcel_area_YX', 'maps_*', 'nanmask', 'ntrl_*', 'past*', ...
-        'ts_*_bl','ts_*_yr')
-    disp('Done.')
-end
 
 
 %% Table after Krause et al. (2017) Table 2 but without first fut. decade
@@ -169,7 +160,7 @@ years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [4.5 10.5 12.5] ;
+where2sep = [5.5 11.5 13.5] ;
 rowInfo = { ...
            % LU variables
 %            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
@@ -177,6 +168,7 @@ rowInfo = { ...
            'Fertilizer', 'nflux_fert', -1e-9, '%0.1f', '%0.1f', 'TgN' ;
            'Irrigation', 'irrig', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
            'Crop prod.', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f', 'Ecal' ;
+           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, '%0.1f', '%0.1f', 'Mt' ;
            % "Higher is better"
            'Veg. C', 'cpool_VegC', cf_kg2Pg, '%d', '%d', 'GtC' ;
 %            'Soil/litter C', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d', 'GtC' ;
@@ -218,7 +210,20 @@ for c = 1:Nvars
             1), 2)) ;
         mean_endf_vr(c,:) = mean(area_endf_yr,1) ;
         sem_endf_vr(c,:) = std(area_endf_yr,1) / sqrt(length(years_endf)) ;
-%         stop
+    elseif contains(thisVar,'demand')
+        % Which commodity
+        thisCommod = strsplit(thisVar,'.') ;
+        thisCommod = thisCommod{2} ;
+        i = find(strcmp(commods,thisCommod)) ;
+        % Get difference from first year to last decade
+        if length(unique(ts_commodDemand_yvr(1,i,:))) > 1
+            error('This code assumes all runs have identical 2010 demand!')
+        end
+        mean_endh_v(c) = thisConv*ts_commodDemand_yvr(1,i,1) ;
+        sem_endh_v(c) = 0 ;
+        ok_years = yearList_PLUMout>=min(years_endf) & yearList_PLUMout<=max(years_endf) ;
+        mean_endf_vr(c,:) = thisConv*mean(ts_commodDemand_yvr(ok_years,i,:),1) ;
+        sem_endf_vr(c,:) = thisConv*std(ts_commodDemand_yvr(ok_years,i,:),1) / sqrt(length(years_endf)) ;
     else
         if contains(thisVar,'+')
             theseVars = strsplit(thisVar,'+') ;
@@ -297,7 +302,7 @@ end
 %%% Finish %%%
 %%%%%%%%%%%%%%
 
-legend(runList)
+legend(runList, 'Location', 'Northwest')
 title('Change in ecosystem service indicators, 2001-2010 to 2091-2100')
 xlabel('Indicator')
 ylabel('Change +/- SEM (%)')
@@ -2583,6 +2588,16 @@ end
 % disp('Done making table.')
 
 
+%% Save outputs
+
+if false
+    disp('Saving outputs...')
+    save(['/Volumes/WDMPP_Storage/Shared/PLUM/trunk_runs/fig_script_outputs/' thisVer '.mat'], ...
+        'agri_*', 'bare_*', 'bl_*', 'crop*', 'firstdec_tmp', 'lastdec_tmp', ...
+        'land_area_YX', 'gcel_area_YX', 'maps_*', 'nanmask', 'ntrl_*', 'past*', ...
+        'ts_*_bl','ts_*_yr')
+    disp('Done.')
+end
 
 
 %%
