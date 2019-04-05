@@ -154,8 +154,12 @@ disp('Done making table.')
 
 %% Figure-ified table after Krause et al. (2017) Table 2
 
-% sd_or_sem = 'st. dev.' ;
-sd_or_sem = 'SEM' ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Options
+spacing = [0.2 0.04] ;
+sd_or_sem = 'st. dev.' ;
+% sd_or_sem = 'SEM' ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fontSize = 14 ;
 
@@ -277,7 +281,8 @@ errb_diff_vr = sqrt(errb_endh_vr.^2 + errb_endf_vr.^2) ;
 errb_diffPct_vr = 100 * (errb_diff_vr ./ mean_endh_vr) ;
 
 % Make figure
-figure('Color','w','Position',figurePos) ; 
+figure('Color','w','Position',figurePos) ;
+subplot_tight(1,1,1,spacing)
 h = bar(mean_diffPct_vr, 'grouped') ;
 set(gca, 'XTickLabel', rowInfo(:,1)) ;
 xtickangle(45) ;
@@ -297,10 +302,33 @@ groupwidth = min(0.8, nbars/(nbars + 1.5));
 % Set the position of each error bar in the centre of the main bar
 % Based on barweb.m by Bolu Ajiboye from MATLAB File Exchange
 hold on
+text
+ylims = get(gca,'YLim') ;
+ylims_diff = ylims(2) - ylims(1) ;
+thisPad = 0.01 * ylims_diff ;
 for i = 1:nbars
     % Calculate center of each bar
     x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars) ;
-    errorbar(x, mean_diffPct_vr(:,i), errb_diffPct_vr(:,i), 'k', 'linestyle', 'none', 'linewidth', 0.5);
+    he = errorbar(x, mean_diffPct_vr(:,i), errb_diffPct_vr(:,i), 'k', 'linestyle', 'none', 'linewidth', 0.5) ;
+    for g = 1:ngroups
+        thisX = he.XData(g) ;
+        thisY = he.YData(g) + he.YPositiveDelta(g) ;
+        if thisY < 0
+            thisY = he.YData(g) - he.YNegativeDelta(g) ;
+        end
+        thisText = sprintf('%.0f%%', mean_diffPct_vr(g,i)) ;
+        if mean_diffPct_vr(g,i) > 0
+            thisText = ['+' thisText] ;
+        end
+        if thisY > 0
+            ht = text(thisX, thisY+thisPad, thisText) ;
+            ht.Rotation = 90 ;
+        else
+            ht = text(thisX, thisY-thisPad, thisText) ;
+            ht.Rotation = 90 ;
+            ht.HorizontalAlignment = 'right' ;
+        end
+    end
 end
 hold off
 
