@@ -1281,7 +1281,6 @@ end
 thisTable_bl = readtable(co2file) ;
 thisTable_bl(:,3) = [] ;
 thisTable_bl.Properties.VariableNames = {'Year','co2'} ;
-thisTable_bl = thisTable_bl(thisTable_bl.Year>=min(yearList_baseline) & thisTable_bl.Year<=max(yearList_baseline),:) ;
 % Add extra years to beginning, if needed
 while min(thisTable_bl.Year) > min(yearList_baseline)
     thisTable_bl = cat(1, {max(thisTable_bl.Year)-1 thisTable_bl.co2(1)}, thisTable_bl) ;
@@ -1290,9 +1289,7 @@ end
 while max(thisTable_bl.Year) < max(yearList_baseline)
     thisTable_bl = cat(1, thisTable_bl, {max(thisTable_bl.Year)+1 thisTable_bl.co2(end)}) ;
 end
-if length(thisTable_bl.Year)~=Nyears_bl
-    error('length(thisTable_bl.Year)~=Nyears_bl')
-end
+thisTable_bl = thisTable_bl(thisTable_bl.Year>=min(yearList_baseline) & thisTable_bl.Year<=max(yearList_baseline),:) ;
 ts_co2_bl = thisTable_bl.co2 ;
 clear thisTable_bl
 
@@ -1315,7 +1312,6 @@ for r = 1:Nruns
     thisTable.Properties.VariableNames = {'Year','co2'} ;
     
     % Get future CO2
-    thisTable = thisTable(thisTable.Year>=min(yearList_future) & thisTable.Year<=max(yearList_future),:) ;
     % Add extra years to beginning, if needed
     while min(thisTable.Year) > min(yearList_future)
         thisTable = cat(1, {max(thisTable.Year)-1 thisTable.co2(1)}, thisTable) ;
@@ -1325,6 +1321,7 @@ for r = 1:Nruns
         thisTable = cat(1, thisTable, {max(thisTable.Year)+1 thisTable.co2(end)}) ;
     end
     % Save
+    thisTable = thisTable(thisTable.Year>=min(yearList_future) & thisTable.Year<=max(yearList_future),:) ;
     ts_co2_yr(:,r) = thisTable.co2 ;
 
     clear thisTable co2file thisDir tmp
