@@ -218,6 +218,7 @@ hold off
 if ~isempty(where2sep)
     hold on
     if strcmp(orientation,'v')
+        error('Deal with this for vertically-oriented bars!')
         ylims = get(gca,'YLim') ;
         for i = 1:length(where2sep)
             x = where2sep(i) ;
@@ -225,9 +226,17 @@ if ~isempty(where2sep)
         end
     else
         xlims = get(gca,'XLim') ;
+        sepwidth = groupwidth * 0.2 ;
         for i = 1:length(where2sep)
-            y = where2sep(i) ;
-            line(xlims, [y y], 'Color', 0.8*(ones(3,1)), 'LineWidth', 5) ;
+            y = where2sep(i) + sepwidth/2 ;
+            basevalue = y - sepwidth ;
+            ha = jbfill(xlims, [y y], [basevalue basevalue]) ;
+            ha.EdgeColor = 0.8*(ones(3,1)) ;
+            ha.FaceColor = 0.8*(ones(3,1)) ;
+            ha.EdgeAlpha=1 ;
+            ha.FaceAlpha=1 ;
+            ht = text(min(xlims)+0.03*(max(xlims)-min(xlims)), where2sep(i), sep_labels{i}) ;
+            set(ht, 'FontWeight', 'bold', 'FontAngle', 'italic')
         end
     end
     hold off
@@ -241,11 +250,11 @@ end
 if strcmp(orientation,'v')
     legend(runList, 'Location', 'Northwest')
     hxl = xlabel('Indicator') ;
-    hyl = ylabel(['Change +/- across-year ' sd_or_sem ' (%)']) ;
+    hyl = ylabel(['Change ' plusminus ' across-year ' sd_or_sem ' (%)']) ;
 else
     legend(runList, 'Location', 'Northeast')
     hyl = ylabel('Indicator') ;
-    hxl = xlabel(['Change +/- across-year ' sd_or_sem ' (%)']) ;
+    hxl = xlabel(['Change ' plusminus ' across-year ' sd_or_sem ' (%)']) ;
 end
 set(gca, 'FontSize', fontSize) ;
 hxl.FontWeight = 'bold' ;
@@ -271,3 +280,7 @@ end
 
 % Remove surrounding chartjunk
 box off
+
+% Get rid of extraneous space at top
+ylims = get(gca,'YLim') ;
+set(gca,'YLim',[0.4 max(ylims)])

@@ -64,6 +64,10 @@ run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setu
 % Define function to calculate sem
 sem_ssr = @(data,yrs) std(data,find(size(data)==length(yrs))) / sqrt(length(yrs)) ;
 
+% Define special characters
+en_dash = char(8211) ;
+plusminus = char(177) ;
+
 
 %% Big bar graph: Drivers
 
@@ -81,15 +85,19 @@ years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [0.5 2.5 5.5] ;
-en_dash = char(8211) ;
+where2sep = [0.5 2.5 4.5] ;
+sep_labels = {...
+    'Exogenous forcing'; ...
+    'PLUM demand calculations'; ...
+    'PLUM management outputs';
+    } ;
 rowInfo = { ...
            % Exogenous inputs
            'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'bill.' ;
            '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
            % PLUM demand calculations
-           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' s%.0f', '%.0f', 'Mt' ;
-           'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
+%            'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
            'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
            % PLUM management outputs
            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
@@ -118,7 +126,8 @@ end
 %%%%%%%%%%%%
 
 if do_save
-    export_fig([outDir_base 'bargraph.drivers.pdf'],['-r' num2str(pngres)])
+%     set(gcf,'Renderer', 'Painters') % Ensures vector graphics; https://www.mathworks.com/matlabcentral/answers/2755-printing-figure-to-pdf-produces-bitmap-instead-of-vector
+    export_fig([outDir_base 'bargraph.drivers.pdf'],['-r' num2str(300)])
     close
 end
 
@@ -140,7 +149,11 @@ years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
 where2sep = [0.5 6.5 8.5] ;
-en_dash = char(8211) ;
+sep_labels = {...
+    'Beneficial' ; ...
+    'Detrimental' ; ...
+    'Neutral/varying' ;
+    } ;
 rowInfo = { ...
            % "Higher is better"
            'Veg. C (+)', 'cpool_VegC', cf_kg2Pg, '%.0f', '%.0f', 'GtC' ;
@@ -177,7 +190,7 @@ end
 %%%%%%%%%%%%
 
 if do_save
-    export_fig([outDir_base 'bargraph.indicators.pdf'],['-r' num2str(pngres)])
+    export_fig([outDir_base 'bargraph.indicators.pdf'],['-r' num2str(300)])
     close
 end
 
