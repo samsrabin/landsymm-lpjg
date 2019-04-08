@@ -216,11 +216,11 @@ end
 if strcmp(orientation,'v')
     legend(runList, 'Location', 'Northwest')
     hxl = xlabel('Indicator') ;
-    hyl = ylabel(['Change +/- ' sd_or_sem ' (%)']) ;
+    hyl = ylabel(['Change +/- across-year ' sd_or_sem ' (%)']) ;
 else
     legend(runList, 'Location', 'Northeast')
     hyl = ylabel('Indicator') ;
-    hxl = xlabel(['Change +/- ' sd_or_sem ' (%)']) ;
+    hxl = xlabel(['Change +/- across-year ' sd_or_sem ' (%)']) ;
 end
 set(gca, 'FontSize', fontSize) ;
 hxl.FontWeight = 'bold' ;
