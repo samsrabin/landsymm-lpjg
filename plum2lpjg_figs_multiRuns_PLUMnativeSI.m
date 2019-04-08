@@ -81,18 +81,21 @@ years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [] ;
+where2sep = [0.5 2.5 5.5] ;
 en_dash = char(8211) ;
 rowInfo = { ...
+           % Exogenous inputs
+           'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'bill.' ;
+           '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
+           % PLUM demand calculations
+           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' s%.0f', '%.0f', 'Mt' ;
+           'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
+           % PLUM management outputs
            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
 %            'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
            'Fertilizer', 'nflux_fert', -1e-9, '%.0f', '%.0f', 'TgN' ;
            'Irrigation', 'irrig', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
-           'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
-           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' s%.0f', '%.0f', 'Mt' ;
-           'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-           'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'bill.' ;
-           '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
            } ;
 
        
@@ -136,7 +139,7 @@ years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [6.5 8.5] ;
+where2sep = [0.5 6.5 8.5] ;
 en_dash = char(8211) ;
 rowInfo = { ...
            % "Higher is better"
