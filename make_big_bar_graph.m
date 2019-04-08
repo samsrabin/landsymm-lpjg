@@ -159,10 +159,18 @@ for i = 1:nbars
                 thisX = thisX + thisPad ;
             end
         end
-        thisText = sprintf('%.0f%%', mean_diffPct_vr(g,i)) ;
+        % Mean diff (%)
+        thisText1 = sprintf('%.0f%%', mean_diffPct_vr(g,i)) ;
         if mean_diffPct_vr(g,i) > 0
-            thisText = ['+' thisText] ;
+            thisText1 = ['+' thisText1] ;
         end
+        % Mean diff (absolute units)
+        thisText2 = sprintf([rowInfo{g,4} ' %s'], mean_diff_vr(g,i), rowInfo{g,6}) ;
+        if mean_diffPct_vr(g,i) > 0
+            thisText2 = ['+' thisText2] ;
+        end
+        % Combine and add
+        thisText = sprintf('%s (%s)', thisText1, thisText2) ;
         ht = text(thisX, thisY, thisText) ;
         if strcmp(orientation,'v')
             ht.Rotation = 90 ;

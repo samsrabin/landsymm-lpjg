@@ -84,13 +84,13 @@ years_endf = 2091:2100 ;
 where2sep = [] ;
 en_dash = char(8211) ;
 rowInfo = { ...
-           'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
-%            'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
-           'Fertilizer', 'nflux_fert', -1e-9, '%0.1f', '%0.1f', 'TgN' ;
-           'Irrigation', 'irrig', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
-           'Crop prod.', 'kcal', cf_kcalEcal, '%0.1f', '%0.1f', 'Ecal' ;
-           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, '%0.1f', '%0.1f', 'Mt' ;
-           'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%0.1f', '%0.1f', 'Mt' ;
+           'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
+%            'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
+           'Fertilizer', 'nflux_fert', -1e-9, '%.0f', '%.0f', 'TgN' ;
+           'Irrigation', 'irrig', cf_m3_to_km3*1e-3, '%.0f', '%.0f', 'Kkm^3' ;
+           'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
+           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
            } ;
 
 %%%%%%%%%%%%%%%%%%%
@@ -137,19 +137,19 @@ where2sep = [6.5 8.5] ;
 en_dash = char(8211) ;
 rowInfo = { ...
            % "Higher is better"
-           'Veg. C (+)', 'cpool_VegC', cf_kg2Pg, '%d', '%d', 'GtC' ;
+           'Veg. C (+)', 'cpool_VegC', cf_kg2Pg, '%.0f', '%.0f', 'GtC' ;
 %            'Soil/litter C (+)', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d', 'GtC' ;
-           'Total C (+)', 'cpool_Total', cf_kg2Pg, '%d', '%d', 'GtC' ;
+           'Total C (+)', 'cpool_Total', cf_kg2Pg, '%.0f', '%.0f', 'GtC' ;
            'Jan. albedo (+)', 'albedo1', 1, '%0.3f', '%0.3f', '' ;
            'Jul. albedo (+)', 'albedo7', 1, '%0.3f', '%0.3f', '' ;
            'Jan. albedo, borfor+tundra (+)', 'albedo1_borfor+albedo1_tundra', 1, '%0.3f', '%0.3f', '' ;
-           'Area: Biodiv. hotspots (+)', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+           'Area: Biodiv. hotspots (+)', 'hotspot_area', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
            % "Lower is better"
-           ['N loss (' en_dash ')'], 'nloss', cf_kg2Tg, '%0.1f', '%0.1f', 'TgN' ;
-           ['BVOC emis. (' en_dash ')'], 'aiso+amon', cf_kg2Tg, '%0.1f', '%0.1f', 'TgC' ;
+           ['N loss (' en_dash ')'], 'nloss', cf_kg2Tg, '%.0f', '%.0f', 'TgN' ;
+           ['BVOC emis. (' en_dash ')'], 'aiso+amon', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
            % "Neutral"
-           'ET (  )', 'aevapaaet', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
-           'Runoff (  )', 'tot_runoff', cf_m3_to_km3*1e-3, '%0.1f', '%0.1f', '1000 km^3' ;
+           'ET (  )', 'aevapaaet', cf_m3_to_km3*1e-3, '%.0f', '%.0f', 'Kkm^3' ;
+           'Runoff (  )', 'tot_runoff', cf_m3_to_km3*1e-3, '%.0f', '%.0f', 'Kkm^3' ;
            } ;
 
 %%%%%%%%%%%%%%%%%%%
