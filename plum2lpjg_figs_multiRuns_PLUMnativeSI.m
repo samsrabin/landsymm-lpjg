@@ -89,9 +89,10 @@ rowInfo = { ...
            'Fertilizer', 'nflux_fert', -1e-9, '%.0f', '%.0f', 'TgN' ;
            'Irrigation', 'irrig', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
-           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' s%.0f', '%.0f', 'Mt' ;
            'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-           'Population', 'population', 1e-9, '%0.1f', '%0.1f', 'bill.' ;
+           'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'bill.' ;
+           '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
            } ;
 
        

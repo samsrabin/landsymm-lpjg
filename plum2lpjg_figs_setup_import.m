@@ -1262,3 +1262,71 @@ clear pop_ycr_interpd rearranged
 % Get global array
 pop_yr = squeeze(sum(pop_ycr,2)) ;
 
+
+%% Get CO2
+
+% Baselind
+[status, result] = unix(sprintf( ...
+    'grep -he "^param \\"file_co2" %s/main_plum_lpjg.ins', ...
+    baselineDir)) ;
+if status~=0
+    error('Error in unix() call')
+end
+tmp = strsplit(result,'"') ;
+co2file = tmp{4} ;
+co2file = strrep(co2file,'/home/fh1-project-lpjgpi/lr8247','/Users/Shared/lpj-guess') ;
+if ~exist(co2file, 'file')
+    error('co2file (%s) not found!', co2file)
+end
+thisTable_bl = readtable(co2file) ;
+thisTable_bl(:,3) = [] ;
+thisTable_bl.Properties.VariableNames = {'Year','co2'} ;
+thisTable_bl = thisTable_bl(thisTable_bl.Year>=min(yearList_baseline) & thisTable_bl.Year<=max(yearList_baseline),:) ;
+% Add extra years to beginning, if needed
+while min(thisTable_bl.Year) > min(yearList_baseline)
+    thisTable_bl = cat(1, {max(thisTable_bl.Year)-1 thisTable_bl.co2(1)}, thisTable_bl) ;
+end
+% Add extra years to end, if needed
+while max(thisTable_bl.Year) < max(yearList_baseline)
+    thisTable_bl = cat(1, thisTable_bl, {max(thisTable_bl.Year)+1 thisTable_bl.co2(end)}) ;
+end
+if length(thisTable_bl.Year)~=Nyears_bl
+    error('length(thisTable_bl.Year)~=Nyears_bl')
+end
+ts_co2_bl = thisTable_bl.co2 ;
+clear thisTable_bl
+
+% Future
+ts_co2_yr = nan(Nyears_fu, Nruns) ;
+for r = 1:Nruns
+    thisDir = runDirs{r} ;
+    [status, result] = unix(sprintf('grep -he "^param \\"file_co2" %s/main_plum_lpjg.ins', thisDir)) ;
+    if status~=0
+        error('Error in unix() call')
+    end
+    tmp = strsplit(result,'"') ;
+    co2file = tmp{4} ;
+    co2file = strrep(co2file,'/home/fh1-project-lpjgpi/lr8247','/Users/Shared/lpj-guess') ;
+    if ~exist(co2file, 'file')
+        error('co2file (%s) not found!', co2file)
+    end
+    thisTable = readtable(co2file) ;
+    thisTable(:,3) = [] ;
+    thisTable.Properties.VariableNames = {'Year','co2'} ;
+    
+    % Get future CO2
+    thisTable = thisTable(thisTable.Year>=min(yearList_future) & thisTable.Year<=max(yearList_future),:) ;
+    % Add extra years to beginning, if needed
+    while min(thisTable.Year) > min(yearList_future)
+        thisTable = cat(1, {max(thisTable.Year)-1 thisTable.co2(1)}, thisTable) ;
+    end
+    % Add extra years to end, if needed
+    while max(thisTable.Year) < max(yearList_future)
+        thisTable = cat(1, thisTable, {max(thisTable.Year)+1 thisTable.co2(end)}) ;
+    end
+    % Save
+    ts_co2_yr(:,r) = thisTable.co2 ;
+
+    clear thisTable co2file thisDir tmp
+end; clear r
+

@@ -57,19 +57,20 @@ for c = 1:Nvars
         end
         rowInfo{c,1} = [rowInfo{c,1} '*'] ;
         
-    elseif contains(thisVar,'population')
+    elseif strcmp(thisVar, 'pop')
+        eval(sprintf('thisVar_yr = %s_yr ;', thisVar)) ;
         % Get difference from first year to last decade
-        if length(unique(pop_yr(1,:))) > 1
-            error('This code assumes all runs have identical 2010 population!')
+        if length(unique(thisVar_yr(1,:))) > 1
+            error('This code assumes all runs have identical 2010 %s!', thisVar)
         end
-        mean_endh_v(c) = thisConv*pop_yr(1,1) ;
+        mean_endh_v(c) = thisConv*thisVar_yr(1,1) ;
         errb_endh_v(c) = 0 ;
         ok_years = yearList_PLUMout>=min(years_endf) & yearList_PLUMout<=max(years_endf) ;
-        mean_endf_vr(c,:) = thisConv*mean(pop_yr(ok_years,:),1) ;
+        mean_endf_vr(c,:) = thisConv*mean(thisVar_yr(ok_years,:),1) ;
         if strcmp(sd_or_sem,'st. dev.')
-            errb_endf_vr(c,:) = thisConv*std(pop_yr(ok_years,:), 1) ;
+            errb_endf_vr(c,:) = thisConv*std(thisVar_yr(ok_years,:), 1) ;
         else
-            errb_endf_vr(c,:) = thisConv*sem_ssr(pop_yr(ok_years,:), years_endf) ;
+            errb_endf_vr(c,:) = thisConv*sem_ssr(thisVar_yr(ok_years,:), years_endf) ;
         end
         % Add marker indicating difference is from firstYear_PLUM, not
         % years_endh
@@ -78,6 +79,7 @@ for c = 1:Nvars
             any_notFirstDecade = true ;
         end
         rowInfo{c,1} = [rowInfo{c,1} '*'] ;
+        clear thisVar_yr
         
     else
         if contains(thisVar,'+')
@@ -249,7 +251,7 @@ set(gca, 'FontSize', fontSize) ;
 hxl.FontWeight = 'bold' ;
 hyl.FontWeight = 'bold' ;
 
-% Reposition axexs
+% Reposition axes
 h = gca ;
 h.Units = 'normalized' ;
 op = get(h, 'OuterPosition') ;
