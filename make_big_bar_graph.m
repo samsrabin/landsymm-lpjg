@@ -56,6 +56,29 @@ for c = 1:Nvars
             any_notFirstDecade = true ;
         end
         rowInfo{c,1} = [rowInfo{c,1} '*'] ;
+        
+    elseif contains(thisVar,'population')
+        % Get difference from first year to last decade
+        if length(unique(pop_yr(1,:))) > 1
+            error('This code assumes all runs have identical 2010 population!')
+        end
+        mean_endh_v(c) = thisConv*pop_yr(1,1) ;
+        errb_endh_v(c) = 0 ;
+        ok_years = yearList_PLUMout>=min(years_endf) & yearList_PLUMout<=max(years_endf) ;
+        mean_endf_vr(c,:) = thisConv*mean(pop_yr(ok_years,:),1) ;
+        if strcmp(sd_or_sem,'st. dev.')
+            errb_endf_vr(c,:) = thisConv*std(pop_yr(ok_years,:), 1) ;
+        else
+            errb_endf_vr(c,:) = thisConv*sem_ssr(pop_yr(ok_years,:), years_endf) ;
+        end
+        % Add marker indicating difference is from firstYear_PLUM, not
+        % years_endh
+        if ~any_notFirstDecade
+            firstYear_PLUM = yearList_PLUMout(1) ;
+            any_notFirstDecade = true ;
+        end
+        rowInfo{c,1} = [rowInfo{c,1} '*'] ;
+        
     else
         if contains(thisVar,'+')
             theseVars = strsplit(thisVar,'+') ;

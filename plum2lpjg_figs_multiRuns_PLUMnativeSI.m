@@ -91,8 +91,10 @@ rowInfo = { ...
            'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
            'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
            'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Population', 'population', 1e-9, '%0.1f', '%0.1f', 'bill.' ;
            } ;
 
+       
 %%%%%%%%%%%%%%%%%%%
 %%% Make figure %%%
 %%%%%%%%%%%%%%%%%%%

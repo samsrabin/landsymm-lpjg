@@ -1199,7 +1199,7 @@ for r = 1:Nruns
     thisDir = runDirs_plum{r} ;
     thisFile = sprintf('%s/demand.txt', thisDir) ;
     thisTable = readtable(thisFile) ;
-    [~,~,sortCols] = intersect({'Commodity','Year'},thisTable.Properties.VariableNames) ;
+    [~,~,sortCols] = intersect({'Commodity','Year'},thisTable.Properties.VariableNames, 'stable') ;
     thisTable = sortrows(thisTable,sortCols) ; % Needed to produce _yvr dimensioned array
     if r==1
         commods = unique(thisTable.Commodity) ; % Sorts alphabetically
@@ -1217,4 +1217,48 @@ warning('on','MATLAB:table:ModifiedAndSavedVarnames')
 ts_commodDemand_yvr = ts_commodDemand_yvr * 1e6*1e3 ;
 
 
+%% Import population
+
+pop = readtable('/Users/Shared/PLUM/other_plum_data/SSP/ssp.csv') ;
+pop(:,strcmp(pop.Properties.VariableNames,'Model')) = [] ;
+pop = pop(contains(pop.Scenario, 'v9_130325'),:) ;
+pop.Scenario = strrep(pop.Scenario,'_v9_130325','') ;
+[~,~,sortCols] = intersect({'Scenario','Country','Year'},pop.Properties.VariableNames,'stable') ;
+pop = sortrows(pop,sortCols) ; % Needed to produce _ycr dimensioned array
+
+yearList_pop = unique(pop.Year) ;
+Nyears_pop = length(yearList_pop) ;
+countryList_pop = unique(pop.Country) ;
+Ncountries_pop = length(countryList_pop) ;
+runList_pop = unique(pop.Scenario) ;
+Nruns_pop = length(runList_pop) ;
+
+% Get population array, interpolating and converting millions of people to people
+pop_ycr_preInterp = reshape(pop.population*1e6,[Nyears_pop Ncountries_pop Nruns_pop]) ;
+pop_ycr_interpd = nan(Nyears_PLUMout, Ncountries_pop, Nruns_pop) ;
+for c = 1:Ncountries_pop
+    for r = 1:Nruns_pop
+        pop_ycr_interpd(:,c,r) = interp1(yearList_pop, pop_ycr_preInterp(:,c,r), yearList_PLUMout) ;
+    end
+end
+clear pop_ycr_preInterp
+
+% Rearrange to correspond to runDirs_plum
+rearranged = zeros(size(runDirs_plum)) ;
+for r = 1:Nruns
+    thisSSP = regexp(runDirs_plum{r},'SSP.','match') ;
+    i = find(strcmp(runList_pop,thisSSP)) ;
+    if isempty(i)
+        error('thisSSP (%s) not found in runList_pop', thisSSP)
+    elseif length(i) > 1
+        error('thisSSP (%s) found more than once in runList_pop', thisSSP)
+    end
+    rearranged(r) = i ;
+    clear i
+end; clear r
+pop_ycr = pop_ycr_interpd(:,:,rearranged) ;
+clear pop_ycr_interpd rearranged
+
+% Get global array
+pop_yr = squeeze(sum(pop_ycr,2)) ;
 
