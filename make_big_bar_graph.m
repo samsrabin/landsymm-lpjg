@@ -231,12 +231,16 @@ if ~isempty(where2sep)
             y = where2sep(i) + sepwidth/2 ;
             basevalue = y - sepwidth ;
             ha = jbfill(xlims, [y y], [basevalue basevalue]) ;
-            ha.EdgeColor = 0.8*(ones(3,1)) ;
-            ha.FaceColor = 0.8*(ones(3,1)) ;
+            ha.EdgeColor = sepcolor ;
+            ha.FaceColor = sepcolor ;
             ha.EdgeAlpha=1 ;
             ha.FaceAlpha=1 ;
-            ht = text(min(xlims)+0.03*(max(xlims)-min(xlims)), where2sep(i), sep_labels{i}) ;
-            set(ht, 'FontWeight', 'bold', 'FontAngle', 'italic')
+%             ht = text(min(xlims)+0.03*(max(xlims)-min(xlims)), where2sep(i), sep_labels{i}) ;
+            ht = text(0, where2sep(i), sep_labels{i}) ;
+            set(ht, ...
+                'HorizontalAlignment', 'center', ...
+                'FontWeight', 'bold', ...
+                'FontAngle', 'italic')
         end
     end
     hold off

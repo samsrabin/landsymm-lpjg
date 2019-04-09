@@ -72,6 +72,7 @@ sd_or_sem = 'st. dev.' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
 fontSize = 12 ;
+sepcolor = 0.85*(ones(3,1)) ; % Color of separators between bar graph sections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 years_endh = 2001:2010 ;
@@ -135,6 +136,7 @@ sd_or_sem = 'st. dev.' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
 fontSize = 12 ;
+sepcolor = 0.85*(ones(3,1)) ; % Color of separators between bar graph sections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 years_endh = 2001:2010 ;
