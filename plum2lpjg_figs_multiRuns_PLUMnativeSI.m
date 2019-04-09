@@ -141,7 +141,7 @@ years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [0.5 6.5 7.5] ;
+where2sep = [0.5 5.5 6.5] ;
 sep_labels = {...
     'Beneficial' ; ...
     'Detrimental' ; ...
@@ -153,7 +153,6 @@ rowInfo = { ...
 %            'Soil/litter C (+)', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d', 'GtC' ;
            'Total C (+)', 'cpool_Total', cf_kg2Pg, '%.0f', '%.0f', 'GtC' ;
            'Jan. albedo (+)', 'albedo1', 1, '%0.3f', '%0.3f', '' ;
-           'Jul. albedo (+)', 'albedo7', 1, '%0.3f', '%0.3f', '' ;
            'Jan. albedo, borfor+tundra (+)', 'albedo1_borfor+albedo1_tundra', 1, '%0.3f', '%0.3f', '' ;
            'Area: Biodiv. hotspots (+)', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
            % "Lower is better"
