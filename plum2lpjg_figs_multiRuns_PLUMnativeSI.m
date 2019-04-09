@@ -61,13 +61,6 @@ do_caps = -1 ;
 
 run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import.m') ;
 
-% Define function to calculate sem
-sem_ssr = @(data,yrs) std(data,find(size(data)==length(yrs))) / sqrt(length(yrs)) ;
-
-% Define special characters
-en_dash = char(8211) ;
-plusminus = char(177) ;
-
 
 %% Big bar graph: Drivers
 
@@ -148,7 +141,7 @@ years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [0.5 6.5 8.5] ;
+where2sep = [0.5 6.5 7.5] ;
 sep_labels = {...
     'Beneficial' ; ...
     'Detrimental' ; ...
@@ -165,10 +158,10 @@ rowInfo = { ...
            'Area: Biodiv. hotspots (+)', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
            % "Lower is better"
            ['N loss (' en_dash ')'], 'nloss', cf_kg2Tg, '%.0f', '%.0f', 'TgN' ;
-           ['BVOC emis. (' en_dash ')'], 'aiso+amon', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
            % "Neutral"
            'ET (  )', 'aevapaaet', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            'Runoff (  )', 'tot_runoff', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
+           'BVOC emis. (  )', 'aiso+amon', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
            } ;
 
 %%%%%%%%%%%%%%%%%%%

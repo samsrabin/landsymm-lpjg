@@ -1,5 +1,12 @@
 %% Setup
 
+% Define function to calculate sem
+sem_ssr = @(data,yrs) std(data,find(size(data)==length(yrs))) / sqrt(length(yrs)) ;
+
+% Define special characters
+en_dash = char(8211) ;
+plusminus = char(177) ;
+
 include_fao = true ;
 if strcmp(thisVer,'20180424agmip7') || strcmp(thisVer,'20180424agmip7_asPLUMout2011-2015')
     warning('not including fao data!')
