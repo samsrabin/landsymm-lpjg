@@ -56,6 +56,9 @@ pngres = 150 ;
 
 do_caps = -1 ;
 
+years_endh = 2001:2010 ;
+years_endf = 2091:2100 ;
+
        
 %% Setup and import
 
@@ -75,11 +78,8 @@ fontSize = 12 ;
 sepcolor = 0.85*(ones(3,1)) ; % Color of separators between bar graph sections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-years_endh = 2001:2010 ;
-years_endf = 2091:2100 ;
-
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [0.5 2.5 4.5] ;
+where2sep = [0.5 3.5 5.5] ;
 sep_labels = {...
     'Exogenous forcing'; ...
     'PLUM demand calculations'; ...
@@ -89,6 +89,7 @@ rowInfo = { ...
            % Exogenous inputs
            'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'bill.' ;
            '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
+           'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
            % PLUM demand calculations
            'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
 %            'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
@@ -107,13 +108,14 @@ rowInfo = { ...
 
 run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph.m') ;
 
-
 if any_notFirstDecade
-    title('Change in land use and drivers, 2001-2010* to 2091-2100')
+    title_pattern = 'Change in land use and drivers, %d-%d* to %d-%d' ;
 else
-    title('Change in land use and drivers, 2001-2010 to 2091-2100')
+    title_pattern = 'Change in land use and drivers, %d-%d to %d-%d' ;
 end
-
+title(sprintf(title_pattern, ...
+    min(years_endh), max(years_endh), min(years_endf), max(years_endf)))
+clear title_pattern
 
 %%%%%%%%%%%%
 %%% Save %%%
@@ -139,8 +141,6 @@ fontSize = 12 ;
 sepcolor = 0.85*(ones(3,1)) ; % Color of separators between bar graph sections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-years_endh = 2001:2010 ;
-years_endf = 2091:2100 ;
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
 where2sep = [0.5 5.5 6.5] ;
@@ -173,10 +173,13 @@ run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph.
 
 
 if any_notFirstDecade
-    title('Change in ecosystem service indicators, 2001-2010* to 2091-2100')
+    title_pattern = 'Change in ecosystem service indicators, %d-%d* to %d-%d' ;
 else
-    title('Change in ecosystem service indicators, 2001-2010 to 2091-2100')
+    title_pattern = 'Change in ecosystem service indicators, %d-%d to %d-%d' ;
 end
+title(sprintf(title_pattern, ...
+    min(years_endh), max(years_endh), min(years_endf), max(years_endf)))
+clear title_pattern
 
 
 %%%%%%%%%%%%
