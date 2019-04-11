@@ -248,9 +248,11 @@ for i = 1:nbars
         else
             ht.FontSize = 8 ;
         end
-        if (strcmp(orientation,'v') && thisY < 0) ...
-        || (strcmp(orientation,'h') && thisX < 0)
-            ht.HorizontalAlignment = 'right' ;
+        if strcmp(orientation,'v')
+            error('Write realignment code for vertical orientation')
+        end
+        if strcmp(orientation,'h') && thisX < 0
+            ht.Position(1) = thisPad ;
         end
         h_barLabels{x} = ht ;
     end
@@ -328,15 +330,26 @@ box off
 ylims = get(gca,'YLim') ;
 set(gca,'YLim',[0.4 max(ylims)])
 
-% Move bar labels that have fallen off the right edge
+% Tweak bar label locations
 xlims = get(gca,'XLim') ;
 for x = 1:length(h_barLabels)
     thisH = h_barLabels{x} ;
+    % Move bar labels that have fallen off the right edge
     if thisH.Extent(1)+thisH.Extent(3) > xlims(2)
         newPosition = thisH.Position ;
-        newPosition(2) = newPosition(2) + 0.11 ; % Not minus because we've flipped the Y axis
+        if contains(thisH.String,'^')
+            newPosition(2) = newPosition(2) + 0.13*ngroups/9 ; % Not minus because we've flipped the Y axis
+        else
+            newPosition(2) = newPosition(2) + 0.15*ngroups/9 ; % Not minus because we've flipped the Y axis
+        end
         excess = thisH.Extent(1)+thisH.Extent(3) - xlims(2) ;
         newPosition(1) = newPosition(1) - excess ;
+        thisH.Position = newPosition ;
+    end
+    % Nudge up bar labels that were pushed down because of a superscript
+    if contains(thisH.String,'^')
+        newPosition = thisH.Position ;
+        newPosition(2) = newPosition(2) - 0.2*thisH.Extent(4) ; % Not plus because we've flipped the Y axis
         thisH.Position = newPosition ;
     end
 end

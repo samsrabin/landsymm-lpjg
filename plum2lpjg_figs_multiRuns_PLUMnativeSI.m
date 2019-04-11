@@ -92,13 +92,14 @@ rowInfo = { ...
            '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
            'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
            % PLUM demand calculations
-%            'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
-%            'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-%            'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
-           'Ruminant demand', 'demandPC.ruminants', 1, ' %.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
-           'Monogastric demand', 'demandPC.monogastrics', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
-           'Crop demand', 'demandPC.crops', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
-           'Crop prod.', 'kcalPC', 1/365, '%.0f', '%.0f', 'kcal person^{-1} day^{-1}' ;
+           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
+           'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Crop demand', 'demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
+%            'Ruminant demand', 'demandPC.ruminants', 1, ' %.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
+%            'Monogastric demand', 'demandPC.monogastrics', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
+%            'Crop demand', 'demandPC.crops', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
+%            'Crop prod.', 'kcalPC', 1/365, '%.0f', '%.0f', 'kcal person^{-1} day^{-1}' ;
            % PLUM management outputs
            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
 %            'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
