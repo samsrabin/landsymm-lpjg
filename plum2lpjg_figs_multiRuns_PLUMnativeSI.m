@@ -590,10 +590,6 @@ do_map_run_diffs_fromEndHist(do_save, maps_pk_runoff_d9, sumvars, title_text, fi
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
-%% stop
-
-stop
-
 
 %% Map changes in LU area: End-Historical to End-Future
 
@@ -1088,7 +1084,6 @@ xlabel('Year')
 ylabel(units)
 ht = title(['Natural area' title_suffix]) ;
 letterlabel_align0('B',ht,do_caps) ;
-stop
 if do_save
     export_fig([outDir_ts 'landUse' file_suffix '.pdf'])
     close
