@@ -75,24 +75,23 @@ sd_or_sem = 'st. dev.' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
 fontSize = 12 ;
-sepcolor = 0.85*(ones(3,1)) ; % Color of separators between bar graph sections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [0.5 3.5 5.5] ;
+where2sep = [0.5 3.5 6.5] ;
 sep_labels = {...
     'Exogenous forcing'; ...
-    'PLUM demand calculations'; ...
-    'PLUM management outputs';
+    'Agricultural commodity demand'; ...
+    'Projected land management';
     } ;
 rowInfo = { ...
            % Exogenous inputs
-           'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'bill.' ;
+           'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'billion' ;
            '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
            'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
            % PLUM demand calculations
            'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
-%            'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
            'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
            % PLUM management outputs
            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
@@ -138,7 +137,6 @@ sd_or_sem = 'st. dev.' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
 fontSize = 12 ;
-sepcolor = 0.85*(ones(3,1)) ; % Color of separators between bar graph sections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

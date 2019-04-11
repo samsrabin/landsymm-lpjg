@@ -132,6 +132,7 @@ else
     error('orientation (%s) not recognized', orientation)
 end
 
+
 %%%%%%%%%%%%%%%%%%%%%%
 %%% Add error bars %%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -228,19 +229,20 @@ if ~isempty(where2sep)
         xlims = get(gca,'XLim') ;
         sepwidth = groupwidth * 0.2 ;
         for i = 1:length(where2sep)
-            y = where2sep(i) + sepwidth/2 ;
-            basevalue = y - sepwidth ;
-            ha = jbfill(xlims, [y y], [basevalue basevalue]) ;
-            ha.EdgeColor = sepcolor ;
-            ha.FaceColor = sepcolor ;
-            ha.EdgeAlpha=1 ;
-            ha.FaceAlpha=1 ;
-%             ht = text(min(xlims)+0.03*(max(xlims)-min(xlims)), where2sep(i), sep_labels{i}) ;
+%             y = where2sep(i) + sepwidth/2 ;
+%             basevalue = y - sepwidth ;
+%             ha = jbfill(xlims, [y y], [basevalue basevalue]) ;
+%             ha.EdgeColor = sepcolor ;
+%             ha.FaceColor = sepcolor ;
+%             ha.EdgeAlpha=1 ;
+%             ha.FaceAlpha=1 ;
+            plot(xlims,where2sep(i)*ones(size(xlims)), '--k')
             ht = text(0, where2sep(i), sep_labels{i}) ;
             set(ht, ...
                 'HorizontalAlignment', 'center', ...
                 'FontWeight', 'bold', ...
-                'FontAngle', 'italic')
+                'FontAngle', 'italic', ...
+                'BackgroundColor', 'w')
         end
     end
     hold off
