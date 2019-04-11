@@ -1201,33 +1201,6 @@ hotspot_YX = 1==hotspot_YX ;
 hotspot_area_YX = hotspot_YX.*land_area_YX ;
 
 
-%% Import global demand (Mt)
-
-disp('Importing global demand...')
-
-warning('off','MATLAB:table:ModifiedAndSavedVarnames')
-for r = 1:Nruns
-    thisDir = runDirs_plum{r} ;
-    thisFile = sprintf('%s/demand.txt', thisDir) ;
-    thisTable = readtable(thisFile) ;
-    [~,~,sortCols] = intersect({'Commodity','Year'},thisTable.Properties.VariableNames, 'stable') ;
-    thisTable = sortrows(thisTable,sortCols) ; % Needed to produce _yvr dimensioned array
-    if r==1
-        commods = unique(thisTable.Commodity) ; % Sorts alphabetically
-        Ncommods = length(commods) ;
-        yearList_PLUMout = unique(thisTable.Year) ;
-        Nyears_PLUMout = length(yearList_PLUMout) ;
-        ts_commodDemand_yvr = nan(Nyears_PLUMout, Ncommods, Nruns) ;
-    end
-    ts_commodDemand_yvr(:,:,r) = reshape(thisTable.Amount_Mt_,[Nyears_PLUMout Ncommods]) ;
-    clear this* sortCols
-end
-warning('on','MATLAB:table:ModifiedAndSavedVarnames')
-
-% Convert Mt to kg
-ts_commodDemand_yvr = ts_commodDemand_yvr * 1e6*1e3 ;
-
-
 %% Import population
 
 disp('Importing population...')
@@ -1254,6 +1227,8 @@ for c = 1:Ncountries_pop
         pop_ycr_interpd(:,c,r) = interp1(yearList_pop, pop_ycr_preInterp(:,c,r), yearList_PLUMout) ;
     end
 end
+yearList_pop = min(yearList_pop):max(yearList_pop) ;
+Nyears_pop = length(yearList_pop) ;
 clear pop_ycr_preInterp
 
 % Rearrange to correspond to runDirs_plum
@@ -1274,6 +1249,51 @@ clear pop_ycr_interpd rearranged
 
 % Get global array
 pop_yr = squeeze(sum(pop_ycr,2)) ;
+
+
+%% Import global demand (Mt)
+
+disp('Importing global demand...')
+
+warning('off','MATLAB:table:ModifiedAndSavedVarnames')
+for r = 1:Nruns
+    thisDir = runDirs_plum{r} ;
+    thisFile = sprintf('%s/demand.txt', thisDir) ;
+    thisTable = readtable(thisFile) ;
+    [~,~,sortCols] = intersect({'Commodity','Year'},thisTable.Properties.VariableNames, 'stable') ;
+    thisTable = sortrows(thisTable,sortCols) ; % Needed to produce _yvr dimensioned array
+    if r==1
+        commods = unique(thisTable.Commodity) ; % Sorts alphabetically
+        Ncommods = length(commods) ;
+        yearList_PLUMout = unique(thisTable.Year) ;
+        Nyears_PLUMout = length(yearList_PLUMout) ;
+        ts_commodDemand_yvr = nan(Nyears_PLUMout, Ncommods, Nruns) ;
+    end
+    ts_commodDemand_yvr(:,:,r) = reshape(thisTable.Amount_Mt_,[Nyears_PLUMout Ncommods]) ;
+    clear this* sortCols
+end
+warning('on','MATLAB:table:ModifiedAndSavedVarnames')
+
+% Add total crop and livestock demand
+commods_livestock = {'ruminants','monogastrics'} ;
+[~, i_crop] = setdiff(commods, commods_livestock) ;
+ts_commodDemand_yvr(:,end+1,:) = sum(ts_commodDemand_yvr(:,i_crop,:),2) ;
+commods{end+1} = 'crops' ;
+[~, i_livestock] = intersect(commods, commods_livestock) ;
+ts_commodDemand_yvr(:,end+1,:) = sum(ts_commodDemand_yvr(:,i_livestock,:),2) ;
+commods{end+1} = 'livestock' ;
+Ncommods = length(commods) ;
+
+% Convert Mt to kg
+ts_commodDemand_yvr = ts_commodDemand_yvr * 1e6*1e3 ;
+
+% Get per-capita demand (kg/person)
+if ~isequal(shiftdim(yearList_pop), shiftdim(yearList_PLUMout))
+    error('This code assumes population and demand have identical yearLists!')
+end
+pop_yvr = repmat(permute(pop_yr,[1 3 2]), [1 size(ts_commodDemand_yvr,2) 1]) ;
+ts_commodDemandPC_yvr = ts_commodDemand_yvr ./ pop_yvr ;
+clear pop_yvr
 
 
 %% Get CO2

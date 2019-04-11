@@ -37,18 +37,27 @@ for c = 1:Nvars
         thisCommod = thisCommod{2} ;
         i = find(strcmp(commods,thisCommod)) ;
         % Get difference from first year to last decade
-        if length(unique(ts_commodDemand_yvr(1,i,:))) > 1
+        if contains(thisVar,'demandPC')
+            ts_commodDemandTMP_1ir = ts_commodDemandPC_yvr(1,i,:) ;
+            ts_commodDemandTMP_Fir = ts_commodDemandPC_yvr(ok_years,i,:) ;
+        else
+            ts_commodDemandTMP_1ir = ts_commodDemand_yvr(1,i,:) ;
+            ts_commodDemandTMP_Fir = ts_commodDemand_yvr(ok_years,i,:) ;
+        end
+        if length(unique(ts_commodDemandTMP_1ir)) > 1
             error('This code assumes all runs have identical 2010 demand!')
         end
-        mean_endh_v(c) = thisConv*ts_commodDemand_yvr(1,i,1) ;
+        mean_endh_v(c) = thisConv*ts_commodDemandTMP_1ir(:,:,1) ;
+        clear ts_commodDemandTMP_1ir
         errb_endh_v(c) = 0 ;
         ok_years = yearList_PLUMout>=min(years_endf) & yearList_PLUMout<=max(years_endf) ;
-        mean_endf_vr(c,:) = thisConv*mean(ts_commodDemand_yvr(ok_years,i,:),1) ;
+        mean_endf_vr(c,:) = thisConv*mean(ts_commodDemandTMP_Fir,1) ;
         if strcmp(sd_or_sem,'st. dev.')
-            errb_endf_vr(c,:) = thisConv*std(ts_commodDemand_yvr(ok_years,i,:), 1) ;
+            errb_endf_vr(c,:) = thisConv*std(ts_commodDemandTMP_Fir, 1) ;
         else
-            errb_endf_vr(c,:) = thisConv*sem_ssr(ts_commodDemand_yvr(ok_years,i,:), years_endf) ;
+            errb_endf_vr(c,:) = thisConv*sem_ssr(ts_commodDemandTMP_Fir, years_endf) ;
         end
+        clear ts_commodDemandTMP_Fir
         % Add marker indicating difference is from firstYear_PLUM, not
         % years_endh
         if ~any_notFirstDecade
@@ -82,6 +91,11 @@ for c = 1:Nvars
         clear thisVar_yr
         
     else
+        % Is this per-capita?
+        is_percapita = contains(thisVar,'PC') ;
+        thisVar = strrep(thisVar, 'PC', '') ;
+        
+        % Add multiple variables, if specified
         if contains(thisVar,'+')
             theseVars = strsplit(thisVar,'+') ;
             thisVar = theseVars{1} ;
@@ -94,14 +108,42 @@ for c = 1:Nvars
             end
             thisVar = 'thisVar' ;
         end
-        mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-        mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
+        
+        % Get means and variation
+        ts_thisVarTMP_bl = eval(['ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)) ;']) ;
+        ts_thisVarTMP_yr = eval(['ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:) ;']) ;
+        if is_percapita
+            [~,IA] = intersect(yearList_pop, years_endh) ;
+            if length(IA) ~= 1
+                error('This code assumes that there is only one year of overlap between population data and years_endh')
+            elseif abs(max(pop_yr(IA,:)) - min(pop_yr(IA,:))) > 0
+                error('This code assumes that all runs have identical starting population!')
+            end
+            ts_thisVarTMP_bl = ts_thisVarTMP_bl / pop_yr(IA,1) ;
+            clear IA
+            [tmp_years,IA] = intersect(yearList_pop, years_endf) ;
+            if ~isequal(shiftdim(tmp_years), shiftdim(years_endf))
+                error('Problem with overlap of yearList_pop and years_endf')
+            end
+            ts_thisVarTMP_yr = ts_thisVarTMP_yr ./ pop_yr(IA,:) ;
+            clear IA tmp_years
+            % Add marker indicating difference is from firstYear_PLUM, not
+            % years_endh
+            if ~any_notFirstDecade
+                firstYear_PLUM = yearList_PLUMout(1) ;
+                any_notFirstDecade = true ;
+            end
+            rowInfo{c,1} = [rowInfo{c,1} '*'] ;
+        end
+        mean_endh_v(c) = thisConv*mean(ts_thisVarTMP_bl) ;
+        mean_endf_vr(c,:) = thisConv*mean(ts_thisVarTMP_yr,1) ;
+        clear tmp_endh_y tmp_endf_yr
         if strcmp(sd_or_sem,'st. dev.')
-            errb_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-            errb_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:), 1)']) ;
+            errb_endh_v(c) = thisConv*std(ts_thisVarTMP_bl) ;
+            errb_endf_vr(c,:) = thisConv*std(ts_thisVarTMP_yr, 1) ;
         else
-            errb_endh_v(c) = thisConv*eval(['sem_ssr(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)), years_endh)']) ;
-            errb_endf_vr(c,:) = thisConv*eval(['sem_ssr(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:), years_endf)']) ;
+            errb_endh_v(c) = thisConv*sem_ssr(ts_thisVarTMP_bl) ;
+            errb_endf_vr(c,:) = thisConv*sem_ssr(ts_thisVarTMP_yr, years_endf) ;
         end
         clear ts_thisVar_yr % Does nothing if does not exist
     end
@@ -117,25 +159,25 @@ errb_diff_vr = sqrt(errb_endh_vr.^2 + errb_endf_vr.^2) ;
 errb_diffPct_vr = 100 * (errb_diff_vr ./ mean_endh_vr) ;
 
 % Make figure
+groupnames = rowInfo(:,1) ;
+% unitnames = rowInfo(:,6) ;
+% groupnames = strcat(groupnames, strcat(strcat('\n(', unitnames), ')')) ;
+figure('Color','w','Position',figure_position) ;
 if strcmp(orientation,'v')
-    figure('Color','w','Position',figurePos) ;
     subplot_tight(1,1,1,[0.2 0.04])
     bar(mean_diffPct_vr, 'grouped') ;
-    set(gca, 'XTickLabel', rowInfo(:,1)) ;
+    set(gca, 'XTickLabel', groupnames) ;
     xtickangle(45) ;
 elseif strcmp(orientation,'h')
-    figure('Color','w','Position',[1    33   720   772]) ;
     subplot_tight(1,1,1,[0.04 0.2])
     barh(mean_diffPct_vr, 'grouped') ;
-    set(gca, 'YTickLabel', rowInfo(:,1)) ;
+    set(gca, 'YTickLabel', groupnames) ;
 else
     error('orientation (%s) not recognized', orientation)
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%
-%%% Add error bars %%%
-%%%%%%%%%%%%%%%%%%%%%%
+%% Add error bars
 % https://www.mathworks.com/matlabcentral/answers/102220-how-do-i-place-errorbars-on-my-grouped-bar-graph-using-function-errorbar-in-matlab
 
 % Finding the number of groups and the number of bars in each group
@@ -157,6 +199,8 @@ else
 end
 lims_diff = lims(2) - lims(1) ;
 thisPad = thisPad_factor * lims_diff ;
+h_barLabels = {} ;
+x = 0 ;
 for i = 1:nbars
     % Calculate center of each bar
     if strcmp(orientation,'v')
@@ -168,6 +212,7 @@ for i = 1:nbars
     end
     set(he, 'Color', errbar_color) ;
     for g = 1:ngroups
+        x = x + 1 ;
         if strcmp(orientation,'v')
             thisX = he.XData(g) ;
             thisY = he.YData(g) + he.YPositiveDelta(g) ;
@@ -207,14 +252,14 @@ for i = 1:nbars
         || (strcmp(orientation,'h') && thisX < 0)
             ht.HorizontalAlignment = 'right' ;
         end
+        h_barLabels{x} = ht ;
     end
 end
 hold off
+clear x
 
 
-%%%%%%%%%%%%%%%%%%%%%%
-%%% Add separators %%%
-%%%%%%%%%%%%%%%%%%%%%%
+%% Add separators
 
 if ~isempty(where2sep)
     hold on
@@ -229,13 +274,6 @@ if ~isempty(where2sep)
         xlims = get(gca,'XLim') ;
         sepwidth = groupwidth * 0.2 ;
         for i = 1:length(where2sep)
-%             y = where2sep(i) + sepwidth/2 ;
-%             basevalue = y - sepwidth ;
-%             ha = jbfill(xlims, [y y], [basevalue basevalue]) ;
-%             ha.EdgeColor = sepcolor ;
-%             ha.FaceColor = sepcolor ;
-%             ha.EdgeAlpha=1 ;
-%             ha.FaceAlpha=1 ;
             plot(xlims,where2sep(i)*ones(size(xlims)), '--k')
             ht = text(0, where2sep(i), sep_labels{i}) ;
             set(ht, ...
@@ -248,9 +286,8 @@ if ~isempty(where2sep)
     hold off
 end
 
-%%%%%%%%%%%%%%
-%%% Finish %%%
-%%%%%%%%%%%%%%
+
+%% Finish
 
 % Add legend, and labels
 if strcmp(orientation,'v')
@@ -290,3 +327,16 @@ box off
 % Get rid of extraneous space at top
 ylims = get(gca,'YLim') ;
 set(gca,'YLim',[0.4 max(ylims)])
+
+% Move bar labels that have fallen off the right edge
+xlims = get(gca,'XLim') ;
+for x = 1:length(h_barLabels)
+    thisH = h_barLabels{x} ;
+    if thisH.Extent(1)+thisH.Extent(3) > xlims(2)
+        newPosition = thisH.Position ;
+        newPosition(2) = newPosition(2) + 0.11 ; % Not minus because we've flipped the Y axis
+        excess = thisH.Extent(1)+thisH.Extent(3) - xlims(2) ;
+        newPosition(1) = newPosition(1) - excess ;
+        thisH.Position = newPosition ;
+    end
+end
