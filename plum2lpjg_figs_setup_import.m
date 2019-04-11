@@ -1198,7 +1198,7 @@ disp('Importing biodiversity hotspots...')
 hotspot_YX = flipud(imread('/Users/sam/Geodata/BiodiversityHotspotsRevisited_ConservationInternational_2004/data/hotspots_revisited_2004.outerlimit.tif')) ;
 hotspot_YX(nanmask) = NaN ;
 hotspot_YX = 1==hotspot_YX ;
-hotspot_area_YX = hotspot_YX.*land_area_YX ;
+hotspot_area_YX = hotspot_YX.*gcel_area_YX ;
 
 
 %% Import population
