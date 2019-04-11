@@ -87,9 +87,13 @@ cd(thisDir) ;
 addpath(genpath(pwd))
 
 is_baseline_list = false(length(inDir_list),1) ;
+do_PLUMout_gridlist_adjust_list = false(length(inDir_list),1) ;
 for d = 1:length(inDir_list)
     if contains(inDir_list{d},'1850-')
         is_baseline_list(d) = true ;
+        do_PLUMout_gridlist_adjust_list(d) = true ;
+    elseif contains(inDir_list{d},'constLU')
+        do_PLUMout_gridlist_adjust_list(d) = true ;
     end
 end
 
@@ -121,7 +125,7 @@ if do_save.albedo
 end
 
 % Read PLUMout_gridlist, if needed
-do_PLUMout_gridlist_adjust = any(is_baseline_list) || contains(inDir_list{d},'constLU') ;
+do_PLUMout_gridlist_adjust = any(do_PLUMout_gridlist_adjust_list) ;
 if do_PLUMout_gridlist_adjust
     PLUMout_gridlist = lpjgu_matlab_readTable_then2map(gridlist_file,'verbose',false,'force_mat_save',true) ;
 end
@@ -132,18 +136,12 @@ land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
 land_area_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
 %%%% Convert to half-degree
 tmp = land_area_YXqd(:,1:2:1440) + land_area_YXqd(:,2:2:1440) ;
-land_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-if do_PLUMout_gridlist_adjust
-    land_area_YX(~PLUMout_gridlist.mask_YX) = NaN ;
-end
+land_area_YX_orig = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 tmp = gcel_area_YXqd(:,1:2:1440) + gcel_area_YXqd(:,2:2:1440) ;
-gcel_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-if do_PLUMout_gridlist_adjust
-    gcel_area_YX(~PLUMout_gridlist.mask_YX) = NaN ;
-end
+gcel_area_YX_orig = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 % Convert to m2
-land_area_YX = land_area_YX*1e6 ;
-gcel_area_YX = gcel_area_YX*1e6 ;
+land_area_YX_orig = land_area_YX_orig*1e6 ;
+gcel_area_YX_orig = gcel_area_YX_orig*1e6 ;
 clear tmp gcel_area_YXqd land_frac_YXqd land_area_YXqd
 
 % Import biomes

@@ -18,6 +18,10 @@ for d = 1:length(inDir_list)
     if is_baseline
         disp('is_baseline')
     end
+    do_PLUMout_gridlist_adjust = do_PLUMout_gridlist_adjust_list(d) ;
+    if do_PLUMout_gridlist_adjust
+        disp('do_PLUMout_gridlist_adjust')
+    end
     
     timeseries_out = [inDir 'timeseries.mat'] ;
     timeseries_PLUMexp_out = [inDir 'timeseries_PLUMexp.mat'] ;
@@ -29,12 +33,19 @@ for d = 1:length(inDir_list)
     % Get baseline/not info
     if is_baseline
         yearList = 1850:2010 ;
-        if ~exist('PLUMout_mask_YX1y','var')
-            PLUMout_mask_YX1y = repmat(PLUMout_gridlist.mask_YX,[1 1 1 length(yearList)]) ;
-        end
     else
         yearList = 2011:2100 ;
     end
+    land_area_YX = land_area_YX_orig ;
+    gcel_area_YX = gcel_area_YX_orig ;
+    if do_PLUMout_gridlist_adjust
+        land_area_YX(~PLUMout_gridlist.mask_YX) = NaN ;
+        gcel_area_YX(~PLUMout_gridlist.mask_YX) = NaN ;
+        if ~exist('PLUMout_mask_YX1y','var')
+            PLUMout_mask_YX1y = repmat(PLUMout_gridlist.mask_YX,[1 1 1 length(yearList)]) ;
+        end
+    end
+        
     yearList = transpose(yearList) ;
     Nyears = length(yearList) ;
         
@@ -275,7 +286,7 @@ for d = 1:length(inDir_list)
         end
 
         % Align NaN mask, if needed
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             LU.list_to_map = PLUMout_gridlist.list_to_map ;
             LU.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(LU.varNames) 1])) = NaN ;
             if exist('LU0','var')
@@ -318,7 +329,7 @@ for d = 1:length(inDir_list)
         [cropfracs, inds_cropTypes_cropFracsOrig, inds_cropTypesI_cropFracsOrig, inds_cropTypes_nonCGs_cropFracsOrig] = ...
             CrOp_and_CrOpi(cropfracs, 'cropfracs', cropTypes, merge_or_replace, cropfile) ;
 
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             cropfracs.list_to_map = PLUMout_gridlist.list_to_map ;
             cropfracs.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(cropfracs.varNames) 1])) = NaN ;
             if exist('cropfracs_orig','var')
@@ -362,7 +373,7 @@ for d = 1:length(inDir_list)
         
         if do_save.yield || do_save.yield_map
             disp('   Saving yield/cropprod...')
-            if is_baseline
+            if do_PLUMout_gridlist_adjust
                 yield.list_to_map = PLUMout_gridlist.list_to_map ;
                 yield.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(yield.varNames) 1])) = NaN ;
             end
@@ -414,7 +425,7 @@ for d = 1:length(inDir_list)
             warning('This appears to be a constant-LU run. Skipping expected yield.')
         else
             disp('   Saving EXPECTED yield/cropprod...')
-            if is_baseline
+            if do_PLUMout_gridlist_adjust
                 expyield.list_to_map = PLUMout_gridlist.list_to_map ;
                 expyield.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(expyield.varNames) 1])) = NaN ;
             end
@@ -503,7 +514,7 @@ for d = 1:length(inDir_list)
             '', cropfracs_orig, inds_cropTypes_cropFracsOrig, inds_cropTypesI_cropFracsOrig, inds_cropTypes_nonCGs_cropFracsOrig) ;
         gsirrig.maps_YXvy(:,:,contains(gsirrig.varNames,{'CC3G_ic','CC4G_ic','ExtraCrop'}),:) = [] ;
         gsirrig.varNames(contains(gsirrig.varNames,{'CC3G_ic','CC4G_ic','ExtraCrop'})) = [] ;
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             irrig.list_to_map = PLUMout_gridlist.list_to_map ;
             irrig.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(irrig.varNames) 1])) = NaN ;
             gsirrig.list_to_map = PLUMout_gridlist.list_to_map ;
@@ -592,12 +603,12 @@ for d = 1:length(inDir_list)
                 aevap.list_to_map = mevap.list_to_map ;
                 aevap.varNames = {'Total'} ;
                 aevap.yearList = mevap.yearList ;
-                aevap.maps_YXvy = sum(mevap.maps_YXvy .* repmat(permute(monthlengths,[4 3 2 1]),size(PLUMout_mask_YX1y)) / 365, 3) ;
+                aevap.maps_YXvy = sum(mevap.maps_YXvy .* repmat(permute(monthlengths,[4 3 2 1]),[size(land_area_YX) 1 length(yearList)]) / 365, 3) ;
             else
                 error('???') ;
             end
             disp('   Saving evaporation...')
-            if is_baseline
+            if do_PLUMout_gridlist_adjust
                 aevap.list_to_map = PLUMout_gridlist.list_to_map ;
                 aevap.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(aevap.varNames) 1])) = NaN ;
             end
@@ -621,7 +632,7 @@ for d = 1:length(inDir_list)
         % Evapotranspiration (mm/yr)
         aaet = lpjgu_matlab_readTable_then2map([inDir 'aaet.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
         disp('   Saving aaet...')
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             aaet.list_to_map = PLUMout_gridlist.list_to_map ;
             aaet.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(aaet.varNames) 1])) = NaN ;
         end
@@ -643,7 +654,7 @@ for d = 1:length(inDir_list)
         % Runoff (mm/yr)
         tot_runoff = lpjgu_matlab_readTable_then2map([inDir 'tot_runoff.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
         disp('   Saving runoff...')
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             tot_runoff.list_to_map = PLUMout_gridlist.list_to_map ;
             tot_runoff.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(tot_runoff.varNames) 1])) = NaN ;
         end
@@ -673,7 +684,7 @@ for d = 1:length(inDir_list)
         this_area_YX = gcel_area_YX ; %land_gcel_fix
         cpool = lpjgu_matlab_readTable_then2map([inDir 'cpool.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
         disp('   Saving cpool...')
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             cpool.list_to_map = PLUMout_gridlist.list_to_map ;
             cpool.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(cpool.varNames) 1])) = NaN ;
         end
@@ -709,7 +720,7 @@ for d = 1:length(inDir_list)
     
     if do_save.mrunoff
         mon_runoff = lpjgu_matlab_readTable_then2map([inDir 'mrunoff.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             mon_runoff.list_to_map = PLUMout_gridlist.list_to_map ;
             mon_runoff.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(mon_runoff.varNames) 1])) = NaN ;
         end
@@ -765,7 +776,7 @@ for d = 1:length(inDir_list)
             isbad_YX1y = fpc_total_YX1y > 1 ;
         end
         clear fpc_total_YX1y isbad* i
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             list_to_map = PLUMout_gridlist.list_to_map ;
             fpc.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(fpc.varNames) 1])) = NaN ;
         end
@@ -799,7 +810,7 @@ for d = 1:length(inDir_list)
         end
         snowdepth = lpjgu_matlab_readTable_then2map([inDir 'msnowdepth.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
         disp('   Getting and saving albedo...') 
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             snowdepth.list_to_map = PLUMout_gridlist.list_to_map ;
             snowdepth.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(snowdepth.varNames) 1])) = NaN ;
         end
@@ -883,7 +894,7 @@ for d = 1:length(inDir_list)
             aiso = lpjgu_matlab_readTable_then2map([inDir 'aiso.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
         end
         disp('   Saving aiso...')
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             aiso.list_to_map = PLUMout_gridlist.list_to_map ;
             aiso.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(aiso.varNames) 1])) = NaN ;
         end
@@ -908,7 +919,7 @@ for d = 1:length(inDir_list)
             amon = lpjgu_matlab_readTable_then2map([inDir 'amon.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
         end
         disp('   Saving amon...')
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             amon.list_to_map = PLUMout_gridlist.list_to_map ;
             amon.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(amon.varNames) 1])) = NaN ;
         end
@@ -943,7 +954,7 @@ for d = 1:length(inDir_list)
         end
         nflux = lpjgu_matlab_readTable_then2map([inDir 'nflux.out'],'force_mat_save',true,'list_to_map_in',list_to_map) ;
         disp('   Saving nflux...')
-        if is_baseline
+        if do_PLUMout_gridlist_adjust
             nflux.list_to_map = PLUMout_gridlist.list_to_map ;
             nflux.maps_YXvy(~repmat(PLUMout_mask_YX1y,[1 1 length(nflux.varNames) 1])) = NaN ;
         end
