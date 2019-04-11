@@ -1212,7 +1212,9 @@ pop.Scenario = strrep(pop.Scenario,'_v9_130325','') ;
 [~,~,sortCols] = intersect({'Scenario','Country','Year'},pop.Properties.VariableNames,'stable') ;
 pop = sortrows(pop,sortCols) ; % Needed to produce _ycr dimensioned array
 
-yearList_pop = unique(pop.Year) ;
+yearList_pop_orig = unique(pop.Year) ;
+Nyears_pop_orig = length(yearList_pop_orig) ;
+yearList_pop = min(yearList_pop_orig):max(yearList_pop_orig) ;
 Nyears_pop = length(yearList_pop) ;
 countryList_pop = unique(pop.Country) ;
 Ncountries_pop = length(countryList_pop) ;
@@ -1220,15 +1222,14 @@ runList_pop = unique(pop.Scenario) ;
 Nruns_pop = length(runList_pop) ;
 
 % Get population array, interpolating and converting millions of people to people
-pop_ycr_preInterp = reshape(pop.population*1e6,[Nyears_pop Ncountries_pop Nruns_pop]) ;
-pop_ycr_interpd = nan(Nyears_PLUMout, Ncountries_pop, Nruns_pop) ;
+pop_ycr_preInterp = reshape(pop.population*1e6,[Nyears_pop_orig Ncountries_pop Nruns_pop]) ;
+pop_ycr_interpd = nan(Nyears_pop, Ncountries_pop, Nruns_pop) ;
 for c = 1:Ncountries_pop
     for r = 1:Nruns_pop
-        pop_ycr_interpd(:,c,r) = interp1(yearList_pop, pop_ycr_preInterp(:,c,r), yearList_PLUMout) ;
+        pop_ycr_interpd(:,c,r) = interp1(yearList_pop_orig, pop_ycr_preInterp(:,c,r), yearList_pop) ;
     end
 end
-yearList_pop = min(yearList_pop):max(yearList_pop) ;
-Nyears_pop = length(yearList_pop) ;
+
 clear pop_ycr_preInterp
 
 % Rearrange to correspond to runDirs_plum
