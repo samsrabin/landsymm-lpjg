@@ -113,8 +113,9 @@ if do_save.albedo
     clear baresoil_albedo
 end
 
-% Read PLUMout_gridlist
-if any(is_baseline_list) || contains(inDir_list{d},'LPJGPLUM_2011-2100_harm2_constLU_')
+% Read PLUMout_gridlist, if needed
+do_PLUMout_gridlist_adjust = any(is_baseline_list) || contains(inDir_list{d},'constLU') ;
+if do_PLUMout_gridlist_adjust
     PLUMout_gridlist = lpjgu_matlab_readTable_then2map(gridlist_file,'verbose',false,'force_mat_save',true) ;
 end
 
@@ -125,12 +126,12 @@ land_area_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
 %%%% Convert to half-degree
 tmp = land_area_YXqd(:,1:2:1440) + land_area_YXqd(:,2:2:1440) ;
 land_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-if any(is_baseline_list) || contains(inDir_list{d},'LPJGPLUM_2011-2100_harm2_constLU_')
+if do_PLUMout_gridlist_adjust
     land_area_YX(~PLUMout_gridlist.mask_YX) = NaN ;
 end
 tmp = gcel_area_YXqd(:,1:2:1440) + gcel_area_YXqd(:,2:2:1440) ;
 gcel_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-if any(is_baseline_list) || contains(inDir_list{d},'LPJGPLUM_2011-2100_harm2_constLU_')
+if do_PLUMout_gridlist_adjust
     gcel_area_YX(~PLUMout_gridlist.mask_YX) = NaN ;
 end
 % Convert to m2
@@ -610,6 +611,7 @@ for d = 1:length(inDir_list)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     if do_save.LU
+        disp('   Saving land use time series...')
 %         this_area_YX = land_area_YX ;
         this_area_YX = gcel_area_YX ; %land_gcel_fix
         LUarea_ts_ntrl = getTS(LU,'NATURAL',this_area_YX) ;
@@ -625,6 +627,7 @@ for d = 1:length(inDir_list)
         clear *_ts_*
     end
     if do_save.crops
+        disp('   Saving crop area time series...')
 %         this_area_YX = land_area_YX ;
         this_area_YX = gcel_area_YX ; %land_gcel_fix
         for c = 1:length(cropTypes)

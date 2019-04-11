@@ -23,7 +23,7 @@ calib_file = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/remap5e_v1
 % do_save.fpc             = false ;
 
 %%% All FALSE except selected
-do_save.LU              = false ;
+do_save.LU              = true ;
 do_save.crops           = false ;
 do_save.yield           = false ;
 do_save.yield_exp       = false ;
@@ -33,7 +33,7 @@ do_save.irrig           = false ;
 do_save.water           = false ;
 do_save.carbon          = false ;
 do_save.mrunoff         = false ;
-do_save.albedo          = true ;
+do_save.albedo          = false ;
 do_save.bvocs           = false ;
 do_save.Nflux           = false ;
 do_save.Nfert           = false ;
@@ -41,10 +41,11 @@ do_save.fpc             = false ;
 
 inDir_list = {...
 %     'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851'
-    'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914';
-    'LPJGPLUM_2011-2100_harm3_SSP3_RCP60/output-2019-02-27-093027';
-    'LPJGPLUM_2011-2100_harm3_SSP4_RCP60/output-2019-02-27-093259';
-    'LPJGPLUM_2011-2100_harm3_SSP5_RCP85/output-2019-02-27-104120';
+%     'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914';
+%     'LPJGPLUM_2011-2100_harm3_SSP3_RCP60/output-2019-02-27-093027';
+%     'LPJGPLUM_2011-2100_harm3_SSP4_RCP60/output-2019-02-27-093259';
+%     'LPJGPLUM_2011-2100_harm3_SSP5_RCP85/output-2019-02-27-104120';
+    'LPJGPLUM_2011-2100_harm3_constLU_RCP85/output-2019-03-07-164546';
     } ;
 
 
@@ -119,8 +120,9 @@ if do_save.albedo
     clear baresoil_albedo
 end
 
-% Read PLUMout_gridlist
-if any(is_baseline_list) || contains(inDir_list{d},'LPJGPLUM_2011-2100_harm2_constLU_')
+% Read PLUMout_gridlist, if needed
+do_PLUMout_gridlist_adjust = any(is_baseline_list) || contains(inDir_list{d},'constLU') ;
+if do_PLUMout_gridlist_adjust
     PLUMout_gridlist = lpjgu_matlab_readTable_then2map(gridlist_file,'verbose',false,'force_mat_save',true) ;
 end
 
@@ -131,12 +133,12 @@ land_area_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
 %%%% Convert to half-degree
 tmp = land_area_YXqd(:,1:2:1440) + land_area_YXqd(:,2:2:1440) ;
 land_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-if any(is_baseline_list) || contains(inDir_list{d},'LPJGPLUM_2011-2100_harm2_constLU_')
+if do_PLUMout_gridlist_adjust
     land_area_YX(~PLUMout_gridlist.mask_YX) = NaN ;
 end
 tmp = gcel_area_YXqd(:,1:2:1440) + gcel_area_YXqd(:,2:2:1440) ;
 gcel_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-if any(is_baseline_list) || contains(inDir_list{d},'LPJGPLUM_2011-2100_harm2_constLU_')
+if do_PLUMout_gridlist_adjust
     gcel_area_YX(~PLUMout_gridlist.mask_YX) = NaN ;
 end
 % Convert to m2
@@ -348,6 +350,7 @@ for d = 1:length(inDir_list)
             warning('RUN USED SOMEOFEACH LUFILE; IGNORING')
             LUfile = strrep(LUfile,'.someOfEachCrop','') ;
         end
+        fprintf('LUfile = %s\n', LUfile)
 
         LU = lpjgu_matlab_readTable_then2map(LUfile,'force_mat_save',true) ;
         if contains(LUfile,'LU_xtraCROPtoPAST')
@@ -455,6 +458,7 @@ for d = 1:length(inDir_list)
             warning('RUN USED SOMEOFEACH CROPFILE; IGNORING')
             cropfile = strrep(cropfile,'.someOfEachCrop','') ;
         end
+        fprintf('cropfile = %s\n', cropfile)
         
         cropfracs = lpjgu_matlab_readTable_then2map(cropfile,'force_mat_save',true) ;
         cropfracs = adjust_cropinput_yearLists(cropfracs, yearList) ;
@@ -612,6 +616,7 @@ for d = 1:length(inDir_list)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     if do_save.LU
+        disp('   Saving land use time series...')
 %         this_area_YX = land_area_YX ;
         this_area_YX = gcel_area_YX ; %land_gcel_fix
         LUarea_ts_ntrl = getTS(LU,'NATURAL',this_area_YX) ;
@@ -627,6 +632,7 @@ for d = 1:length(inDir_list)
         clear *_ts_*
     end
     if do_save.crops
+        disp('   Saving crop area time series...')
 %         this_area_YX = land_area_YX ;
         this_area_YX = gcel_area_YX ; %land_gcel_fix
         for c = 1:length(cropTypes)
@@ -1166,6 +1172,7 @@ for d = 1:length(inDir_list)
             NfertFile_tmp = regexprep(NfertFile_tmp,'[\n\r]+','') ; % Remove extraneous newline
             NfertFile = strrep(NfertFile_tmp,' ','') ; % Remove extraneous spaces
         end
+        fprintf('NfertFile = %s\n', NfertFile)
         Nfert = lpjgu_matlab_readTable_then2map(NfertFile,'force_mat_save',true) ;
         Nfert = adjust_cropinput_yearLists(Nfert, yearList) ;
         if isequal(sort(intersect(Nfert.varNames,{'CC3ann','CC3per','CC3nfx','CC4ann','CC4per'})),sort(Nfert.varNames))
