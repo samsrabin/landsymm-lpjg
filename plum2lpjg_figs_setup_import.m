@@ -1271,7 +1271,7 @@ for r = 1:Nruns
         ts_commodDemand_yvr = nan(Nyears_PLUMout, Ncommods, Nruns) ;
     end
     ts_commodDemand_yvr(:,:,r) = reshape(thisTable.Amount_Mt_,[Nyears_PLUMout Ncommods]) ;
-    clear this* sortCols
+    clear thisDir thisFile thisTable sortCols
 end
 warning('on','MATLAB:table:ModifiedAndSavedVarnames')
 
