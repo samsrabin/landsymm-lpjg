@@ -306,6 +306,9 @@ for d = 1:length(inDir_list)
         if contains(cropfile,'someOfEachCrop')
             warning('RUN USED SOMEOFEACH CROPFILE; IGNORING')
             cropfile = strrep(cropfile,'.someOfEachCrop','') ;
+        elseif contains(cropfile, 'harm.forLPJG') && ~contains(cropfile, 'noMinCropFrac')
+            warning('RUN USED SOMEOFEACH LUFILE; IGNORING')
+            cropfile = strrep(cropfile,'.txt','.noMinCropFrac.txt') ;
         end
         fprintf('cropfile = %s\n', cropfile)
         
