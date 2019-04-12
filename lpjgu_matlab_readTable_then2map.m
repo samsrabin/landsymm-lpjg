@@ -9,7 +9,7 @@ addOptional(p,'lat_orient','',@isstr) ;
 addOptional(p,'lon_orient','',@isstr) ;
 addOptional(p,'verbose',false,@islogical) ;
 addOptional(p,'verboseIfNoMat',true,@islogical) ;
-addOptional(p,'force_mat_save',false,@islogical) ;
+addOptional(p,'force_mat_save',true,@islogical) ;
 addOptional(p,'force_mat_nosave',false,@islogical) ;
 addOptional(p,'list_to_map_in',[]) ;
 addOptional(p,'dataType','double',@isstr) ;
