@@ -32,7 +32,7 @@ if false
 % thisVer = 'harm2.3_constClim' ;
 end
 
-thisVer = 'harm3' ;
+thisVer = 'harm3' ; 
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
