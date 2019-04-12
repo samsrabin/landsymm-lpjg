@@ -195,6 +195,9 @@ for d = 1:length(inDir_list)
         if contains(LUfile,'someOfEachCrop')
             warning('RUN USED SOMEOFEACH LUFILE; IGNORING')
             LUfile = strrep(LUfile,'.someOfEachCrop','') ;
+        elseif contains(LUfile, 'harm.forLPJG') && ~contains(LUfile, 'noMinCropFrac')
+            warning('RUN USED SOMEOFEACH LUFILE; IGNORING')
+            LUfile = strrep(LUfile,'.txt','.noMinCropFrac.txt') ;
         end
         fprintf('LUfile = %s\n', LUfile)
 
