@@ -165,7 +165,7 @@ rowInfo = { ...
            % "Lower is better"
            ['N loss (' en_dash ')'], 'nloss', cf_kg2Tg, '%.0f', '%.0f', 'TgN' ;
            % "Neutral"
-           'ET (  )', 'aevapaaet', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
+%            'ET (  )', 'aevapaaet', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            'Runoff (  )', 'tot_runoff', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            'BVOC emis. (  )', 'aiso+amon', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
            } ;
@@ -414,8 +414,6 @@ do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filena
 
 %% Map differences from end of historical to end of future: January albedo
 
-% warning('Skipping January albedo: pass per-year non-bare area as weighting!')
-
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'albedo_jan'] ;
 title_text = 'January albedo' ;
@@ -424,9 +422,9 @@ pct_clim = 100 ;
 equalize_cbars = true ;
 conv_fact_map = 1 ;   % unitless
 units_map = 'unitless' ;
-conv_fact_total = [] ;   % unitless
+conv_fact_total = 1 ;   % unitless
 units_total = '' ;
-this_land_area_map = land_area_YX ; % Set to [] if not needed to calculate total
+this_land_area_map = vegd_area_YXmean/nansum(nansum(vegd_area_YXmean)) ; % Set to [] if not needed to calculate total
 %%%%%%%%%%%%%%%%%%%
 textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
 thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
@@ -441,8 +439,6 @@ do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filen
 
 %% Map differences from end of historical to end of future: July albedo
 
-% warning('Skipping July albedo: pass per-year non-bare area as weighting!')
-
 % Options %%%%%%%%%
 filename_base = [outDir_maps 'albedo_jul'] ;
 title_text = 'July albedo' ;
@@ -450,10 +446,10 @@ sumvars = 'July' ;
 pct_clim = 100 ;
 equalize_cbars = true ;
 conv_fact_map = 1 ;   % unitless
-units_map = '' ;
-conv_fact_total = [] ;   % unitless
+units_map = 'unitless' ;
+conv_fact_total = 1 ;   % unitless
 units_total = '' ;
-this_land_area_map = land_area_YX ; % Set to [] if not needed to calculate total
+this_land_area_map = vegd_area_YXmean/nansum(nansum(vegd_area_YXmean)) ; % Set to [] if not needed to calculate total
 %%%%%%%%%%%%%%%%%%%
 textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
 thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
@@ -862,6 +858,38 @@ end
 
 
 %% Map changes in cropland and pasture area: End-historical to End-Future
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+spacing = [0.05 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+thisPos = [1 33 935 772] ;
+nx = 2 ;
+ny = 4 ;
+colorBarLoc = 'EastOutside' ;
+conv_fact_map = 1e-6 ;   % m2 to km2
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+units_map = 'km^2' ;
+units_total = 'Mkm^2' ;
+only1bl = false ;
+%%%%%%%%%%%%%%%%%%%
+
+thisY1 = yearList_baseline(end) ;
+thisYN = yearList_future(end) ;
+
+make_LUdiff_fig_v3(...
+    crop_area_YXBFr, past_area_YXBFr, ...
+    crop_diff_YXrF, past_diff_YXrF, ...
+    thisY1, thisYN, 'Cropland', runList, ...
+    spacing, fontSize, textX, textY_1, textY_2, ...
+    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+if do_save
+    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'],['-r' num2str(pngres)])
+    close
+end
 
 
 %% Map changes in cropland and pasture area: Begin-Future to End-Future

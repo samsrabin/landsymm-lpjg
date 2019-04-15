@@ -1507,5 +1507,12 @@ ts_temp_yr = nan(Nyears_fu,Nruns) ;
 [~,IA] = intersect(yearList_future,years_endf) ;
 ts_temp_yr(IA,:) = squeeze(nansum(nansum(temp_fu_YXyr.*repmat(land_area_weights_YX,[1 1 length(years_endf) Nruns]),1),2)) ;
 
+%% Non-bare land area
+
+bare_area_YXmean = mean(cat(3,bare_area_YXBH,bare_area_YXr),3) ;
+bare_frac_YXmean = bare_area_YXmean ./ gcel_area_YX ;
+vegd_frac_YXmean = 1 - bare_frac_YXmean ;
+vegd_area_YXmean = vegd_frac_YXmean .* gcel_area_YX ;
+
 disp('Done.')
 
