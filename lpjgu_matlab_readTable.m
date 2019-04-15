@@ -56,16 +56,16 @@ if exist(in_matfile,'file')
     end
     
 else
-    did_unzip = gunzip_if_needed(in_file, verbose) ;
+    did_unzip = gunzip_if_needed(in_file, verbose, verboseIfNoMat, dispPrefix) ;
     if verbose || verboseIfNoMat
         disp([dispPrefix '   Making table...'])
     end
-    out_table = import_this_to_table(in_file, verbose) ;
+    out_table = import_this_to_table(in_file, verbose, verboseIfNoMat, dispPrefix) ;
     if ~dont_save_MAT
         if do_save_MAT
             save(in_matfile,'out_table','-v7.3') ;
         else
-            prompt_to_save(in_matfile, verbose) ;
+            prompt_to_save(in_matfile, verbose, verboseIfNoMat, dispPrefix) ;
         end
     end
     if did_unzip
@@ -86,7 +86,7 @@ out_table = standardize_colnames(out_table) ;
 end
 
 
-function did_unzip = gunzip_if_needed(in_file, verbose)
+function did_unzip = gunzip_if_needed(in_file, verbose, verboseIfNoMat, dispPrefix)
 did_unzip = false ;
 if ~exist(in_file,'file')
     in_file_gz = [in_file '.gz'] ;
@@ -106,9 +106,9 @@ end
 end
 
 
-function out_table = import_this_to_table(in_file, verbose)
+function out_table = import_this_to_table(in_file, verbose, verboseIfNoMat, dispPrefix)
 % Read header to get field names
-in_header = read_header() ;
+in_header = read_header(in_file) ;
 
 % Read data
 %%% Based on http://de.mathworks.com/matlabcentral/answers/89374-importdata-fails-to-import-large-files
@@ -167,7 +167,7 @@ end
 end
 
 
-function prompt_to_save(in_matfile, verbose)
+function prompt_to_save(in_matfile, verbose, verboseIfNoMat, dispPrefix)
 ok = false ;
 while ~ok
     if exist(in_matfile,'file')
@@ -208,7 +208,12 @@ end
 
 
 function out_header = read_header(in_file)
-fid = fopen(in_file) ;
+try
+    fid = fopen(in_file) ;
+catch ME
+    keyboard
+end
+
 H = fgetl(fid) ;
 fclose(fid) ;
 in_header = regexp(H, '\s+', 'split') ;
