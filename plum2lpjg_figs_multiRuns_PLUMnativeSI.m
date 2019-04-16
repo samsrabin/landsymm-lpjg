@@ -198,15 +198,18 @@ end
 
 
 
-%% Table after Krause et al. (2017) Table 2 but without first fut. decade
+%% Big table
 
 disp('Making table...')
 
-years_endh = 2000:2009 ;
-years_endf = 2090:2099 ;
+years_endh = 2001:2010 ;
+years_endf = 2091:2100 ;
 
-% Name, code, conversion factor, formatSpec mean, formatSpec SEM
-rowInfo = {'Vegetation C (GtC)', 'cpool_VegC', cf_kg2Pg, '%d', '%d' ;
+% Name, code, conversion factor, formatSpec mean, formatSpec SD
+rowInfo = {'Area: Crop.', 'LUarea_crop', 1e-6*1e-6, '%0.1f', '%0.2f' ;
+           'Area: Past.', 'LUarea_past', 1e-6*1e-6, '%0.1f', '%0.2f' ;
+           'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%0.1f', '%0.2f' ;
+           'Vegetation C (GtC)', 'cpool_VegC', cf_kg2Pg, '%d', '%d' ;
            'Soil and litter C (GtC)', 'cpool_LitterSoilC', cf_kg2Pg, '%d', '%d' ;
 %            'Product C (GtC)', 'cpool_HarvSlowC', cf_kg2Pg, '%0.1f', '%0.1f' ;
            'Total C (GtC)', 'cpool_Total', cf_kg2Pg, '%d', '%d' ;
@@ -238,9 +241,9 @@ for c = 1:Nvars
     thisVar = rowInfo{c,2} ;
     thisConv = rowInfo{c,3} ;
     mean_endh_v(c) = thisConv*eval(['mean(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
-    errb_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh))) / length(years_endh)']) ;
+    errb_endh_v(c) = thisConv*eval(['std(ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)))']) ;
     mean_endf_vr(c,:) = thisConv*eval(['mean(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
-    errb_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:)) / length(years_endf)']) ;
+    errb_endf_vr(c,:) = thisConv*eval(['std(ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:))']) ;
     
     % Turn into strings
     if strcmp(rowInfo{c,4},'%d')
@@ -890,42 +893,6 @@ if do_save
     export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'],['-r' num2str(pngres)])
     close
 end
-
-
-%% Map changes in cropland and pasture area: Begin-Future to End-Future
-
-% Options %%%%%%%%%
-fontSize = 14 ;
-spacing = [0.05 0.05] ;   % [vert, horz]
-textX = 25 ;
-textY_1 = 50 ;
-textY_2 = 20 ;
-thisPos = [1 33 935 772] ;
-nx = 2 ;
-ny = 4 ;
-colorBarLoc = 'EastOutside' ;
-conv_fact_map = 1e-6 ;   % m2 to km2
-conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
-units_map = 'km^2' ;
-units_total = 'Mkm^2' ;
-only1bl = false ;
-%%%%%%%%%%%%%%%%%%%
-
-thisY1 = yearList_future(1) ;
-thisYN = yearList_future(end) ;
-
-make_LUdiff_fig_v3(...
-    crop_area_YXBFr, past_area_YXBFr, ...
-    crop_diff_YXrF, past_diff_YXrF, ...
-    thisY1, thisYN, 'Cropland', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'],['-r' num2str(pngres)])
-    close
-end
-
 
 
 %% Map changes in each crop area: End-Historical to End-Future
