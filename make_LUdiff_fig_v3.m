@@ -19,10 +19,10 @@ gcas_crop = {} ;
 gcas_past = {} ;
 colorlim = 0 ;
 for r = 1:Nruns
-    if only1bl && r>1
-        crop_area_YXB = [] ;
-        past_area_YXB = [] ;
-    end
+%     if only1bl && r>1
+%         crop_area_YXB = [] ;
+%         past_area_YXB = [] ;
+%     end
     runName2 = runList{r} ;
     i1 = (r-1)*2 + 1 ;
     i2 = i1 + 1 ;
@@ -83,18 +83,16 @@ colormap(gca,brighten(brewermap(64,'RdBu_ssr'),-0.3))
 set(gca,'XTick',[],'YTick',[])
 set(gca,'FontSize',fontSize)
 ht = title(['\Delta cropland area, ' num2str(yN) ': ' runName2 ' (' units_map ')']) ;
-total_yr = nansum(nansum(diff_crop_YX/conv_fact_map)) ;
-pctDiff = round(100*total_yr./total_crop_bl,1) ;
-pctDiff_str = num2str(pctDiff) ;
-if pctDiff>0
-    pctDiff_str = ['+' pctDiff_str] ;
-end
-text(textX,textY_1,[num2str(round(total_yr*conv_fact_total,1)) ' ' units_total],'FontSize',fontSize-2) ;
-text(textX,textY_2,['(' pctDiff_str ' %)'],'FontSize',fontSize-2) ;
-% if i2>3 && only1bl
-%     i2 = i2 - 1 ;
-% end
-letterlabel_align0(char(i1 + 64),ht,do_caps) ;
+add_totals_v1( ...
+    diff_crop_YX, total_crop_bl, ...
+    conv_fact_map, conv_fact_total, units_total, ...
+    textX, textY_1, textY_2, fontSize, ...
+    ht, i1, do_caps)
+% add_totals_v2( ...
+%     crop_area_YXB, diff_crop_YX, total_crop_bl, ...
+%     conv_fact_map, conv_fact_total, units_total, ...
+%     textX, textY_1, textY_2, fontSize, ...
+%     ht, i1, do_caps)
 
 % Set up for changing color axis limits
 hc = gca ;
@@ -111,21 +109,73 @@ colormap(gca,brighten(brewermap(64,'RdBu_ssr'),-0.3))
 set(gca,'XTick',[],'YTick',[])
 set(gca,'FontSize',fontSize)
 ht = title(['\Delta pasture area, ' num2str(yN) ': ' runName2 ' (' units_map ')']) ;
-total_yr = nansum(nansum(diff_past_YX/conv_fact_map)) ;
-pctDiff = round(100*total_yr./total_past_bl,1) ;
-pctDiff_str = num2str(pctDiff) ;
-if pctDiff>0
-    pctDiff_str = ['+' pctDiff_str] ;
-end
-text(textX,textY_1,[num2str(round(total_yr*conv_fact_total,1)) ' ' units_total],'FontSize',fontSize-2) ;
-text(textX,textY_2,['(' pctDiff_str ' %)'],'FontSize',fontSize-2) ;
-% if i2>3 && only1bl
-%     i2 = i2 - 1 ;
-% end
-letterlabel_align0(char(i2 + 64),ht,do_caps) ;
+add_totals_v1( ...
+    diff_past_YX, total_past_bl, ...
+    conv_fact_map, conv_fact_total, units_total, ...
+    textX, textY_1, textY_2, fontSize, ...
+    ht, i1, do_caps)
+% add_totals_v2( ...
+%     past_area_YXB, diff_past_YX, total_past_bl, ...
+%     conv_fact_map, conv_fact_total, units_total, ...
+%     textX, textY_1, textY_2, fontSize, ...
+%     ht, i1, do_caps)
 
 % Set up for changing color axis limits
 hp = gca ;
 caxis_max_past = max(abs(caxis)) ;
+
+end
+
+
+function add_totals_v1( ...
+    diff_this_YX, total_this_bl, ...
+    conv_fact_map, conv_fact_total, units_total, ...
+    textX, textY_1, textY_2, fontSize, ...
+    ht, i1, do_caps)
+
+total_yr = nansum(nansum(diff_this_YX/conv_fact_map)) ;
+pctDiff = round(100*total_yr./total_this_bl,1) ;
+pctDiff_str = num2str(pctDiff) ;
+diff_format = '%0.1f %s' ;
+if pctDiff>0
+    pctDiff_str = ['+' pctDiff_str] ;
+    diff_format = ['+' diff_format] ;
+end
+text(textX,textY_1,sprintf(diff_format, ...
+    total_yr*conv_fact_total,units_total),...
+    'FontSize',fontSize-2) ;
+text(textX,textY_2,['(' pctDiff_str '%)'],'FontSize',fontSize-2) ;
+letterlabel_align0(char(i1 + 64),ht,do_caps) ;
+
+
+end
+
+
+function add_totals_v2( ...
+    this_area_YXB, diff_this_YX, total_this_bl, ...
+    conv_fact_map, conv_fact_total, units_total, ...
+    textX, textY_1, textY_2, fontSize, ...
+    ht, i1, do_caps)
+
+% End-future total
+this_area_YXend = this_area_YXB + diff_this_YX ;
+total_yr = nansum(nansum(this_area_YXend/conv_fact_map)) ;
+text(textX,textY_1,sprintf('%0.1f %s', ...
+    total_yr*conv_fact_total,units_total),...
+    'FontSize',fontSize-2) ;
+
+% Pct. change
+total_yr = nansum(nansum(diff_this_YX/conv_fact_map)) ;
+pctDiff = 100*total_yr./total_this_bl ;
+if pctDiff>0
+    diff_format = '(+%0.1f%%)' ;
+else
+    diff_format = '(%0.1f%%)' ;
+end
+text(textX,textY_2, ...
+    sprintf(diff_format, pctDiff), ...
+    'FontSize',fontSize-2) ;
+letterlabel_align0(char(i1 + 64),ht,do_caps) ;
+
 
 end
