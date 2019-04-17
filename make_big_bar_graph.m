@@ -95,6 +95,9 @@ for c = 1:Nvars
         is_percapita = contains(thisVar,'PC') ;
         thisVar = strrep(thisVar, 'PC', '') ;
         
+        % Is this a BVOC variable?
+        is_bvoc = contains(thisVar,{'aiso','amon'}) ;
+        
         % Add multiple variables, if specified
         if contains(thisVar,'+')
             theseVars = strsplit(thisVar,'+') ;
@@ -146,6 +149,13 @@ for c = 1:Nvars
             errb_endf_vr(c,:) = thisConv*sem_ssr(ts_thisVarTMP_yr, years_endf) ;
         end
         clear ts_thisVar_yr % Does nothing if does not exist
+        
+        % Do not show bars for BVOC emissions with constant climate (daily
+        % temperature range is not detrended)
+        if is_bvoc && any(contains(runList,'constClim'))
+            mean_endf_vr(c,contains(runList,'constClim')) = NaN ;
+            errb_endf_vr(c,contains(runList,'constClim')) = NaN ;
+        end
     end
 end
 
