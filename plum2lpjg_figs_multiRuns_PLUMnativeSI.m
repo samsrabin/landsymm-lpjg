@@ -3,6 +3,8 @@
 %%% PLUM-style native %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+all_figs = false ;
+
 if false
     % % thisVer = '20180424agmip7' ;
     % % thisVer = '20180424agmip7_asPLUMout2011-2015' ;
@@ -534,10 +536,12 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs_fromEndHist(do_save, maps_awater_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
+if all_figs
+    do_map_run_diffs_fromEndHist(do_save, maps_awater_d9, sumvars, title_text, filename_base, ...
+        equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+        thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+        conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
+end
 
 
 %% Map differences from end of historical to end of future: Annual runoff
@@ -584,10 +588,12 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs_fromEndHist(do_save, maps_pk_runoff_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
+if all_figs
+    do_map_run_diffs_fromEndHist(do_save, maps_pk_runoff_d9, sumvars, title_text, filename_base, ...
+        equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+        thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+        conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
+end
 
 
 %% Map changes in LU area: End-Historical to End-Future
@@ -609,184 +615,192 @@ units_total = 'Mkm^2' ;
 only1bl = true ;
 %%%%%%%%%%%%%%%%%%%
 
-thisY1 = yearList_baseline(end) ;
-thisYN = yearList_future(end) ;
-
-% Natural area
-make_LUdiff_fig_v2(...
-    ntrl_area_YXBH, ntrl_diff_YXrH, ...
-    thisY1, thisYN, '"Natural"', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_ntrl.png'],['-r' num2str(pngres)])
-    close
-end
-
-% Cropland area
-make_LUdiff_fig_v2(...
-    crop_area_YXBH, crop_diff_YXrH, ...
-    thisY1, thisYN, 'Cropland', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop.png'],['-r' num2str(pngres)])
-    close
-end
-
-% "Pasture" area
-make_LUdiff_fig_v2(...
-    past_area_YXBH, past_diff_YXrH, ...
-    thisY1, thisYN, '"Pasture"', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past.png'],['-r' num2str(pngres)])
-    close
-end
-
-% Agricultural area
-make_LUdiff_fig_v2(...
-    agri_area_YXBH, agri_diff_YXrH, ...
-    thisY1, thisYN, 'Agricultural', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
-    close
-end
-
-% Cropland0 area
-if exist('crop0_area_YXBH','var')
+if all_figs
+    
+    thisY1 = yearList_baseline(end) ;
+    thisYN = yearList_future(end) ;
+    
+    % Natural area
     make_LUdiff_fig_v2(...
-        crop0_area_YXBH, crop0_diff_YXrH, ...
-        thisY1, thisYN, 'Cropland0', runList, ...
+        ntrl_area_YXBH, ntrl_diff_YXrH, ...
+        thisY1, thisYN, '"Natural"', runList, ...
         spacing, fontSize, textX, textY_1, textY_2, ...
         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
     if do_save
-        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop0.png'],['-r' num2str(pngres)])
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_ntrl.png'],['-r' num2str(pngres)])
         close
     end
-end
-
-% "Pasture0" area
-if exist('past0_area_YXBH','var')
+    
+    % Cropland area
     make_LUdiff_fig_v2(...
-        past0_area_YXBH, past0_diff_YXrH, ...
-        thisY1, thisYN, '"Pasture0"', runList, ...
+        crop_area_YXBH, crop_diff_YXrH, ...
+        thisY1, thisYN, 'Cropland', runList, ...
         spacing, fontSize, textX, textY_1, textY_2, ...
         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
     if do_save
-        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past0.png'],['-r' num2str(pngres)])
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop.png'],['-r' num2str(pngres)])
         close
     end
+    
+    % "Pasture" area
+    make_LUdiff_fig_v2(...
+        past_area_YXBH, past_diff_YXrH, ...
+        thisY1, thisYN, '"Pasture"', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Agricultural area
+    make_LUdiff_fig_v2(...
+        agri_area_YXBH, agri_diff_YXrH, ...
+        thisY1, thisYN, 'Agricultural', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    %
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Cropland0 area
+    if exist('crop0_area_YXBH','var')
+        make_LUdiff_fig_v2(...
+            crop0_area_YXBH, crop0_diff_YXrH, ...
+            thisY1, thisYN, 'Cropland0', runList, ...
+            spacing, fontSize, textX, textY_1, textY_2, ...
+            nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+            Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+        if do_save
+            export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop0.png'],['-r' num2str(pngres)])
+            close
+        end
+    end
+    
+    % "Pasture0" area
+    if exist('past0_area_YXBH','var')
+        make_LUdiff_fig_v2(...
+            past0_area_YXBH, past0_diff_YXrH, ...
+            thisY1, thisYN, '"Pasture0"', runList, ...
+            spacing, fontSize, textX, textY_1, textY_2, ...
+            nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+            Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+        if do_save
+            export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past0.png'],['-r' num2str(pngres)])
+            close
+        end
+    end
+    
 end
 
 
 %% Map changes in LU area: End-Historical to Begin-Future
 
-% % Options %%%%%%%%%
-% fontSize = 14 ;
-% spacing = [0.1 0.05] ;   % [vert, horz]
-% textX = 25 ;
-% textY_1 = 50 ;
-% textY_2 = 20 ;
-% thisPos = figurePos ;
-% nx = 3 ;
-% ny = 2 ;
-% colorBarLoc = 'SouthOutside' ;
-% conv_fact_map = 1e-6 ;   % m2 to km2
-% conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
-% units_map = 'km^2' ;
-% units_total = 'Mkm^2' ;
-% only1bl = true ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% thisY1 = yearList_baseline(end) ;
-% thisYN = yearList_future(1) ;
-% 
-% % Natural area
-% make_LUdiff_fig_v2(...
-%     ntrl_area_YXBH, ntrl_area_YXBFr - repmat(ntrl_area_YXBH,[1 1 Nruns]), ...
-%     thisY1, thisYN, '"Natural"', runList, ...
-%     spacing, fontSize, textX, textY_1, textY_2, ...
-%     nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-% if do_save
-%     export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_ntrl.png'],['-r' num2str(pngres)])
-%     close
-% end
-% 
-% % Cropland area
-% make_LUdiff_fig_v2(...
-%     crop_area_YXBH, crop_area_YXBFr - repmat(crop_area_YXBH,[1 1 Nruns]), ...
-%     thisY1, thisYN, 'Cropland', runList, ...
-%     spacing, fontSize, textX, textY_1, textY_2, ...
-%     nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-% if do_save
-%     export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop.png'],['-r' num2str(pngres)])
-%     close
-% end
-% 
-% % "Pasture" area
-% make_LUdiff_fig_v2(...
-%     past_area_YXBH, past_area_YXBFr - repmat(past_area_YXBH,[1 1 Nruns]), ...
-%     thisY1, thisYN, '"Pasture"', runList, ...
-%     spacing, fontSize, textX, textY_1, textY_2, ...
-%     nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-% if do_save
-%     export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past.png'],['-r' num2str(pngres)])
-%     close
-% end
-% 
-% % Agricultural area
-% make_LUdiff_fig_v2(...
-%     agri_area_YXBH, agri_area_YXBFr - repmat(agri_area_YXBH,[1 1 Nruns]), ...
-%     thisY1, thisYN, 'Agricultural', runList, ...
-%     spacing, fontSize, textX, textY_1, textY_2, ...
-%     nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-% if do_save
-%     export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
-%     close
-% end
-% 
-% % Cropland0 area
-% if exist('crop0_area_YXBH','var')
-%     make_LUdiff_fig_v2(...
-%         crop0_area_YXBH, crop_area_YXBFr - repmat(crop0_area_YXBH,[1 1 Nruns]), ...
-%         thisY1, thisYN, 'Cropland0', runList, ...
-%         spacing, fontSize, textX, textY_1, textY_2, ...
-%         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%     if do_save
-%         export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop0.png'],['-r' num2str(pngres)])
-%         close
-%     end
-% end
-% 
-% % "Pasture0" area
-% if exist('past0_area_YXBH','var')
-%     make_LUdiff_fig_v2(...
-%         past0_area_YXBH, past_area_YXBFr - repmat(past0_area_YXBH,[1 1 Nruns]), ...
-%         thisY1, thisYN, '"Pasture0"', runList, ...
-%         spacing, fontSize, textX, textY_1, textY_2, ...
-%         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%     if do_save
-%         export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past0.png'],['-r' num2str(pngres)])
-%         close
-%     end
-% end
+% Options %%%%%%%%%
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+thisPos = figurePos ;
+nx = 3 ;
+ny = 2 ;
+colorBarLoc = 'SouthOutside' ;
+conv_fact_map = 1e-6 ;   % m2 to km2
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+units_map = 'km^2' ;
+units_total = 'Mkm^2' ;
+only1bl = true ;
+%%%%%%%%%%%%%%%%%%%
+
+if all_figs
+    
+    thisY1 = yearList_baseline(end) ;
+    thisYN = yearList_future(1) ;
+    
+    % Natural area
+    make_LUdiff_fig_v2(...
+        ntrl_area_YXBH, ntrl_area_YXBFr - repmat(ntrl_area_YXBH,[1 1 Nruns]), ...
+        thisY1, thisYN, '"Natural"', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_ntrl.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Cropland area
+    make_LUdiff_fig_v2(...
+        crop_area_YXBH, crop_area_YXBFr - repmat(crop_area_YXBH,[1 1 Nruns]), ...
+        thisY1, thisYN, 'Cropland', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % "Pasture" area
+    make_LUdiff_fig_v2(...
+        past_area_YXBH, past_area_YXBFr - repmat(past_area_YXBH,[1 1 Nruns]), ...
+        thisY1, thisYN, '"Pasture"', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Agricultural area
+    make_LUdiff_fig_v2(...
+        agri_area_YXBH, agri_area_YXBFr - repmat(agri_area_YXBH,[1 1 Nruns]), ...
+        thisY1, thisYN, 'Agricultural', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Cropland0 area
+    if exist('crop0_area_YXBH','var')
+        make_LUdiff_fig_v2(...
+            crop0_area_YXBH, crop_area_YXBFr - repmat(crop0_area_YXBH,[1 1 Nruns]), ...
+            thisY1, thisYN, 'Cropland0', runList, ...
+            spacing, fontSize, textX, textY_1, textY_2, ...
+            nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+            Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+        if do_save
+            export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop0.png'],['-r' num2str(pngres)])
+            close
+        end
+    end
+    
+    % "Pasture0" area
+    if exist('past0_area_YXBH','var')
+        make_LUdiff_fig_v2(...
+            past0_area_YXBH, past_area_YXBFr - repmat(past0_area_YXBH,[1 1 Nruns]), ...
+            thisY1, thisYN, '"Pasture0"', runList, ...
+            spacing, fontSize, textX, textY_1, textY_2, ...
+            nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+            Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+        if do_save
+            export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past0.png'],['-r' num2str(pngres)])
+            close
+        end
+    end
+    
+end
 
 
 %% Map changes in LU area: Begin-Future to End-Future
@@ -808,55 +822,59 @@ units_total = 'Mkm^2' ;
 only1bl = false ;
 %%%%%%%%%%%%%%%%%%%
 
-thisY1 = yearList_future(1) ;
-thisYN = yearList_future(end) ;
+if all_figs
+    
+    thisY1 = yearList_future(1) ;
+    thisYN = yearList_future(end) ;
+    
+    % Natural area
+    make_LUdiff_fig_v2(...
+        ntrl_area_YXBFr, ntrl_diff_YXrF, ...
+        thisY1, thisYN, '"Natural"', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_ntrl.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Cropland area
+    make_LUdiff_fig_v2(...
+        crop_area_YXBFr, crop_diff_YXrF, ...
+        thisY1, thisYN, 'Cropland', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % "Pasture" area
+    make_LUdiff_fig_v2(...
+        past_area_YXBFr, past_diff_YXrF, ...
+        thisY1, thisYN, '"Pasture"', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Agricultural area
+    make_LUdiff_fig_v2(...
+        agri_area_YXBFr, agri_diff_YXrF, ...
+        thisY1, thisYN, 'Agricultural', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
+        close
+    end
 
-% Natural area
-make_LUdiff_fig_v2(...
-    ntrl_area_YXBFr, ntrl_diff_YXrF, ...
-    thisY1, thisYN, '"Natural"', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_ntrl.png'],['-r' num2str(pngres)])
-    close
-end
-
-% Cropland area
-make_LUdiff_fig_v2(...
-    crop_area_YXBFr, crop_diff_YXrF, ...
-    thisY1, thisYN, 'Cropland', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop.png'],['-r' num2str(pngres)])
-    close
-end
-
-% "Pasture" area
-make_LUdiff_fig_v2(...
-    past_area_YXBFr, past_diff_YXrF, ...
-    thisY1, thisYN, '"Pasture"', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past.png'],['-r' num2str(pngres)])
-    close
-end
-
-% Agricultural area
-make_LUdiff_fig_v2(...
-    agri_area_YXBFr, agri_diff_YXrF, ...
-    thisY1, thisYN, 'Agricultural', runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
-    close
 end
 
 
@@ -955,42 +973,6 @@ end
 % for c = 1:Ncrops
 %     make_LUdiff_fig_v2(...
 %         maps_cropareas_YXvBH(:,:,c), squeeze(maps_cropareas_YXvBFr(:,:,c,:))-maps_cropareas_YXvBH(:,:,c), ...
-%         thisY1, thisYN, CFTnames_maps{c}, runList, ...
-%         spacing, fontSize, textX, textY_1, textY_2, ...
-%         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%     if do_save
-%         export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_' CFTnames_maps{c} '.png'],['-r' num2str(pngres)])
-%         close
-%     end
-% end
-
-
-%% Map changes in each crop area: Begin-Future to End-Future
-
-% % Options %%%%%%%%%
-% fontSize = 14 ;
-% spacing = [0.05 0.05] ;   % [vert, horz]
-% textX = 25 ;
-% textY_1 = 50 ;
-% textY_2 = 20 ;
-% thisPos = [1 33 935 772] ;
-% nx = 2 ;
-% ny = 4 ;
-% colorBarLoc = 'EastOutside' ;
-% conv_fact_map = 1e-6 ;   % m2 to km2
-% conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
-% units_map = 'km^2' ;
-% units_total = 'Mkm^2' ;
-% only1bl = false ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% thisY1 = yearList_future(1) ;
-% thisYN = yearList_future(end) ;
-% 
-% for c = 1:Ncrops
-%     make_LUdiff_fig_v2(...
-%         squeeze(maps_cropareas_YXvBFr(:,:,c,:)), squeeze(maps_cropareasDiffs_YXvrF(:,:,c,:)), ...
 %         thisY1, thisYN, CFTnames_maps{c}, runList, ...
 %         spacing, fontSize, textX, textY_1, textY_2, ...
 %         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
@@ -1506,83 +1488,90 @@ end
 
 %% Plot timeseries: Production of each crop, EXPECTED
 
-% % Options %%%%%%%%%
-% % plum_area_adjustment = 1 ;
-% % plum_area_adjustment = 1-0.28 ;
-% plum_area_adjustment = 1 - unhCropFrac ;
-% lpjg_area_adjustment = 1 ;
-% % lpjg_area_adjustment = ts_LUarea_crop0_bl ./ ts_LUarea_crop_bl ;
-% thisVar = 'cropprodExp' ;
-% title_prefix = 'Production (exp.)' ;
-% lineWidth = 2 ;
-% fontSize = 14 ;
-% spacing = [0.1 0.05] ;   % [vert, horz]
-% ignYrs = 0 ;
-% Nsmth = 1 ;
-% conv_fact = cf_kg2Mt ;
-% units = 'Mt DM' ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% theseCFTnames = CFTnames ;
-% thisLegend = stdLegend_plusFAO ;
-% 
-% clear cell_bl cell_yr
-% cmds = get_cell_forPlot(whos, strrep(thisVar,'Exp',''), 'bl', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% cmds = get_cell_forPlot(whos, thisVar, 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% cmds = get_cell_forPlot(whos, strrep(thisVar,'Exp',''), 'fao', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% 
-% file_suffix = CFT_timeseries_plot(...
-%     cell_bl, cell_yr, cell_fao, yearList_baseline, yearList_future, fao.tmp_fao_yearList, rebase, ...
-%     theseCFTnames, units, title_prefix, thisLegend, do_caps, skip3rdColor, ...
-%     'lineWidth',lineWidth, ...
-%     'fontSize',fontSize, ...
-%     'spacing',spacing, ...
-%     'ignYrs',ignYrs, ...
-%     'Nsmth',Nsmth, ...
-%     'conv_fact',conv_fact, ...
-%     'plum_area_adjustment', plum_area_adjustment, ...
-%     'lpjg_area_adjustment', lpjg_area_adjustment) ;
-% 
-% if do_save
-%     export_fig([outDir_ts thisVar file_suffix '.pdf'])
-%     close
-% end
+% Options %%%%%%%%%
+% plum_area_adjustment = 1 ;
+% plum_area_adjustment = 1-0.28 ;
+plum_area_adjustment = 1 - unhCropFrac ;
+lpjg_area_adjustment = 1 ;
+% lpjg_area_adjustment = ts_LUarea_crop0_bl ./ ts_LUarea_crop_bl ;
+thisVar = 'cropprodExp' ;
+title_prefix = 'Production (exp.)' ;
+lineWidth = 2 ;
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+ignYrs = 0 ;
+Nsmth = 1 ;
+conv_fact = cf_kg2Mt ;
+units = 'Mt DM' ;
+%%%%%%%%%%%%%%%%%%%
+
+if all_figs && false
+    
+    theseCFTnames = CFTnames ;
+    thisLegend = stdLegend_plusFAO ;
+    
+    clear cell_bl cell_yr
+    cmds = get_cell_forPlot(whos, strrep(thisVar,'Exp',''), 'bl', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    cmds = get_cell_forPlot(whos, thisVar, 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    cmds = get_cell_forPlot(whos, strrep(thisVar,'Exp',''), 'fao', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    
+    file_suffix = CFT_timeseries_plot(...
+        cell_bl, cell_yr, cell_fao, yearList_baseline, yearList_future, fao.tmp_fao_yearList, rebase, ...
+        theseCFTnames, units, title_prefix, thisLegend, do_caps, skip3rdColor, ...
+        'lineWidth',lineWidth, ...
+        'fontSize',fontSize, ...
+        'spacing',spacing, ...
+        'ignYrs',ignYrs, ...
+        'Nsmth',Nsmth, ...
+        'conv_fact',conv_fact, ...
+        'plum_area_adjustment', plum_area_adjustment, ...
+        'lpjg_area_adjustment', lpjg_area_adjustment) ;
+    
+    if do_save
+        export_fig([outDir_ts thisVar file_suffix '.pdf'])
+        close
+    end
+    
+end
 
 
 %% Plot timeseries: Production of each crop, ACTUAL/EXPECTED
 
-% % Options %%%%%%%%%
-% % title_prefix = 'Prod. diff: (Act.-Exp./Exp.)' ;
-% title_prefix = 'Prod. diff' ;
-% lineWidth = 2 ;
-% fontSize = 14 ;
-% spacing = [0.1 0.05] ;   % [vert, horz]
-% Nsmth = 1 ;
-% units = '%' ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% theseCFTnames = CFTnames ;
-% thisLegend = stdLegend(2:end) ;
-% 
-% clear cell_yr cell_yr_act cell_yr_exp
-% cmds = get_cell_forPlot(whos, 'cropprod', 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% cell_yr_act = cell_yr ; clear cell_yr
-% cell_yr_act = adj_yield_tech(cell_yr_act, yearList_future) ;
-% cmds = get_cell_forPlot(whos, 'cropprodExp', 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% cell_yr_exp = cell_yr ; clear cell_yr
-% CFT_ActVsExp_plot(...
-%     cell_yr_act, cell_yr_exp, yearList_future, ...
-%     theseCFTnames, units, title_prefix, thisLegend, do_caps, ...
-%     'lineWidth',lineWidth, ...
-%     'fontSize',fontSize, ...
-%     'spacing',spacing, ...
-%     'Nsmth',Nsmth) ;
-% 
-% if do_save
-%     export_fig([outDir_ts 'cropProdDiffFromExp.pdf'])
-%     close
-% end
+% Options %%%%%%%%%
+% title_prefix = 'Prod. diff: (Act.-Exp./Exp.)' ;
+title_prefix = 'Prod. diff' ;
+lineWidth = 2 ;
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+Nsmth = 1 ;
+units = '%' ;
+%%%%%%%%%%%%%%%%%%%
 
+if all_figs && false
+    
+    theseCFTnames = CFTnames ;
+    thisLegend = stdLegend(2:end) ;
+    
+    clear cell_yr cell_yr_act cell_yr_exp
+    cmds = get_cell_forPlot(whos, 'cropprod', 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    cell_yr_act = cell_yr ; clear cell_yr
+    cell_yr_act = adj_yield_tech(cell_yr_act, yearList_future) ;
+    cmds = get_cell_forPlot(whos, 'cropprodExp', 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    cell_yr_exp = cell_yr ; clear cell_yr
+    CFT_ActVsExp_plot(...
+        cell_yr_act, cell_yr_exp, yearList_future, ...
+        theseCFTnames, units, title_prefix, thisLegend, do_caps, ...
+        'lineWidth',lineWidth, ...
+        'fontSize',fontSize, ...
+        'spacing',spacing, ...
+        'Nsmth',Nsmth) ;
+    
+    if do_save
+        export_fig([outDir_ts 'cropProdDiffFromExp.pdf'])
+        close
+    end
+    
+end
 
 
 %% Plot timeseries: Area of each crop
@@ -1638,7 +1627,6 @@ if do_save
 end
 
 
-
 %% Plot timeseries: Yield of each crop
 
 % Options %%%%%%%%%
@@ -1653,148 +1641,144 @@ conv_fact = cf_kgPm2_to_tonsPha ;
 units = 't ha^{-1}' ;
 %%%%%%%%%%%%%%%%%%%
 
-theseCFTnames = CFTnames ;
-if include_fao
-    thisLegend = stdLegend_plusFAO ;
-else
-    thisLegend = stdLegend ;
-end
-
-clear cell_bl cell_yr
-cmds = get_cell_forPlot(whos, thisVar, 'bl', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-cmds = get_cell_forPlot(whos, thisVar, 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-if include_fao
-    cmds = get_cell_forPlot(whos, thisVar, 'fao', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-else
-    cell_fao = {} ;
-    fao.tmp_fao_yearList = [] ;
-end
-
-% Adjust for "technology" increase (do not include FAO!)
-if do_adjYieldTech
-    title_prefix = [title_prefix ' (techAdj)'] ;
-end
-
-file_suffix = CFT_timeseries_plot(...
-    cell_bl, cell_yr, cell_fao, yearList_baseline, yearList_future, fao.tmp_fao_yearList, rebase, ...
-    theseCFTnames, units, title_prefix, thisLegend, do_caps, skip3rdColor, ...
-    'lineWidth',lineWidth, ...
-    'fontSize',fontSize, ...
-    'spacing',spacing, ...
-    'ignYrs',ignYrs, ...
-    'Nsmth',Nsmth, ...
-    'conv_fact',conv_fact) ;
-
-if do_adjYieldTech
-    file_suffix = [file_suffix '_techAdj'] ;
-end
-
-if do_save
-    export_fig([outDir_ts thisVar file_suffix '.pdf'])
-    close
+if all_figs
+    
+    theseCFTnames = CFTnames ;
+    if include_fao
+        thisLegend = stdLegend_plusFAO ;
+    else
+        thisLegend = stdLegend ;
+    end
+    
+    clear cell_bl cell_yr
+    cmds = get_cell_forPlot(whos, thisVar, 'bl', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    cmds = get_cell_forPlot(whos, thisVar, 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    if include_fao
+        cmds = get_cell_forPlot(whos, thisVar, 'fao', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    else
+        cell_fao = {} ;
+        fao.tmp_fao_yearList = [] ;
+    end
+    
+    % Adjust for "technology" increase (do not include FAO!)
+    if do_adjYieldTech
+        title_prefix = [title_prefix ' (techAdj)'] ;
+    end
+    
+    file_suffix = CFT_timeseries_plot(...
+        cell_bl, cell_yr, cell_fao, yearList_baseline, yearList_future, fao.tmp_fao_yearList, rebase, ...
+        theseCFTnames, units, title_prefix, thisLegend, do_caps, skip3rdColor, ...
+        'lineWidth',lineWidth, ...
+        'fontSize',fontSize, ...
+        'spacing',spacing, ...
+        'ignYrs',ignYrs, ...
+        'Nsmth',Nsmth, ...
+        'conv_fact',conv_fact) ;
+    
+    if do_adjYieldTech
+        file_suffix = [file_suffix '_techAdj'] ;
+    end
+    
+    if do_save
+        export_fig([outDir_ts thisVar file_suffix '.pdf'])
+        close
+    end
+    
 end
 
 
 %% Plot timeseries: Yield of each crop (EXPECTED)
 
-% % Options %%%%%%%%%
-% thisVar = 'yieldExp' ;
-% title_prefix = 'Yield (PLUM-exp)' ;
-% lineWidth = 2 ;
-% fontSize = 14 ;
-% spacing = [0.1 0.05] ;   % [vert, horz]
-% ignYrs = 0 ;
-% Nsmth = 1 ;
-% conv_fact = cf_kgPm2_to_tonsPha ;
-% units = 't ha^{-1}' ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% theseCFTnames = CFTnames ;
-% if include_fao
-%     thisLegend = stdLegend_plusFAO ;
-% else
-%     thisLegend = stdLegend ;
-% end
-% 
-% clear cell_bl cell_yr
-% cmds = get_cell_forPlot(whos, strrep(thisVar,'Exp',''), 'bl', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% cmds = get_cell_forPlot(whos, thisVar, 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% if include_fao
-%     cmds = get_cell_forPlot(whos, strrep(thisVar,'Exp',''), 'fao', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% else
-%     cell_fao = {} ;
-%     fao.tmp_fao_yearList = [] ;
-% end
-% 
-% file_suffix = CFT_timeseries_plot(...
-%     cell_bl, cell_yr, cell_fao, yearList_baseline, yearList_future, fao.tmp_fao_yearList, rebase, ...
-%     theseCFTnames, units, title_prefix, thisLegend, do_caps, skip3rdColor, ...
-%     'lineWidth',lineWidth, ...
-%     'fontSize',fontSize, ...
-%     'spacing',spacing, ...
-%     'ignYrs',ignYrs, ...
-%     'Nsmth',Nsmth, ...
-%     'conv_fact',conv_fact) ;
-% 
-% if do_save
-%     export_fig([outDir_ts thisVar file_suffix '.pdf'])
-%     close
-% end
+% Options %%%%%%%%%
+thisVar = 'yieldExp' ;
+title_prefix = 'Yield (PLUM-exp)' ;
+lineWidth = 2 ;
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+ignYrs = 0 ;
+Nsmth = 1 ;
+conv_fact = cf_kgPm2_to_tonsPha ;
+units = 't ha^{-1}' ;
+%%%%%%%%%%%%%%%%%%%
+
+if all_figs && false
+    
+    theseCFTnames = CFTnames ;
+    if include_fao
+        thisLegend = stdLegend_plusFAO ;
+    else
+        thisLegend = stdLegend ;
+    end
+    
+    clear cell_bl cell_yr
+    cmds = get_cell_forPlot(whos, strrep(thisVar,'Exp',''), 'bl', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    cmds = get_cell_forPlot(whos, thisVar, 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    if include_fao
+        cmds = get_cell_forPlot(whos, strrep(thisVar,'Exp',''), 'fao', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    else
+        cell_fao = {} ;
+        fao.tmp_fao_yearList = [] ;
+    end
+    
+    file_suffix = CFT_timeseries_plot(...
+        cell_bl, cell_yr, cell_fao, yearList_baseline, yearList_future, fao.tmp_fao_yearList, rebase, ...
+        theseCFTnames, units, title_prefix, thisLegend, do_caps, skip3rdColor, ...
+        'lineWidth',lineWidth, ...
+        'fontSize',fontSize, ...
+        'spacing',spacing, ...
+        'ignYrs',ignYrs, ...
+        'Nsmth',Nsmth, ...
+        'conv_fact',conv_fact) ;
+    
+    if do_save
+        export_fig([outDir_ts thisVar file_suffix '.pdf'])
+        close
+    end
+
+end
 
 
 %% Plot timeseries: Yield of each crop, ACTUAL/EXPECTED
 
-% % Options %%%%%%%%%
-% title_prefix = 'Yield diff' ;
-% lineWidth = 2 ;
-% fontSize = 14 ;
-% spacing = [0.1 0.05] ;   % [vert, horz]
-% Nsmth = 1 ;
-% units = '%' ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% theseCFTnames = CFTnames ;
-% thisLegend = stdLegend(2:end) ;
-% 
-% clear cell_yr cell_yr_act cell_yr_exp
-% cmds = get_cell_forPlot(whos, 'yield', 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% cell_yr_act = cell_yr ; clear cell_yr
-% cmds = get_cell_forPlot(whos, 'yieldExp', 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
-% cell_yr_exp = cell_yr ; clear cell_yr
-% 
-% % Adjust for technology change, if doing so
-% if do_adjYieldTech
-%     file_suffix = [file_suffix '_techAdj'] ;
-% end
-% 
-% CFT_ActVsExp_plot(...
-%     cell_yr_act, cell_yr_exp, yearList_future, ...
-%     theseCFTnames, units, title_prefix, thisLegend, do_caps, ...
-%     'lineWidth',lineWidth, ...
-%     'fontSize',fontSize, ...
-%     'spacing',spacing, ...
-%     'Nsmth',Nsmth) ;
-% 
-% if do_save
-%     export_fig([outDir_ts 'yieldDiffFromExp' file_suffix '.pdf'])
-%     close
-% end
+% Options %%%%%%%%%
+title_prefix = 'Yield diff' ;
+lineWidth = 2 ;
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+Nsmth = 1 ;
+units = '%' ;
+%%%%%%%%%%%%%%%%%%%
 
+if all_figs && false
+    
+    theseCFTnames = CFTnames ;
+    thisLegend = stdLegend(2:end) ;
+    
+    clear cell_yr cell_yr_act cell_yr_exp
+    cmds = get_cell_forPlot(whos, 'yield', 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    cell_yr_act = cell_yr ; clear cell_yr
+    cmds = get_cell_forPlot(whos, 'yieldExp', 'yr', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+    cell_yr_exp = cell_yr ; clear cell_yr
+    
+    % Adjust for technology change, if doing so
+    if do_adjYieldTech
+        file_suffix = [file_suffix '_techAdj'] ;
+    end
+    
+    CFT_ActVsExp_plot(...
+        cell_yr_act, cell_yr_exp, yearList_future, ...
+        theseCFTnames, units, title_prefix, thisLegend, do_caps, ...
+        'lineWidth',lineWidth, ...
+        'fontSize',fontSize, ...
+        'spacing',spacing, ...
+        'Nsmth',Nsmth) ;
+    
+    if do_save
+        export_fig([outDir_ts 'yieldDiffFromExp' file_suffix '.pdf'])
+        close
+    end
 
-%% Plot timeseries: total area (FOR TROUBLESHOOTING)
-
-% error('Make this work with SI units!')
-% figure ;
-% plot(yearList_baseline,movmean(ts_LUarea_crop_bl+ts_LUarea_past_bl+ts_LUarea_ntrl_bl+ts_LUarea_bare_bl,Nsmth),'-k','LineWidth',lineWidth)
-% hold on
-% plot(yearList_future,ts_LUarea_crop_yr+ts_LUarea_past_yr+ts_LUarea_ntrl_yr+ts_LUarea_bare_yr,'LineWidth',lineWidth)
-% hold off
-% legend(stdLegend, ...
-%        'Location','NorthEastOutside') ;
-% set(gca,'FontSize',fontSize)
-% xlabel('Year')
-% ylabel('Million km^2')
-% title('All land area')
+end
 
 
 %% Plot timeseries: N loss, total gaseous+dissolved
@@ -1834,50 +1818,54 @@ end
 
 %% Plot timeseries: N loss, separate gaseous and dissolved
 
-% % Options %%%%%%%%%
-% lineWidth = 3 ;
-% fontSize = 24 ;
-% ignYrs = 0 ;
-% Nsmth = 5 ;
-% spacing = [0.1 0.1] ;   % [vert, horz]
-% %%%%%%%%%%%%%%%%%%%
-% 
-% % % ts_nloss_bl = ts_nflux_flux_bl + ts_nflux_harvest_bl + ts_nflux_leach_bl + ts_nflux_LUch_bl ;
-% % % ts_nloss_yr = ts_nflux_flux_yr + ts_nflux_harvest_yr + ts_nflux_leach_yr + ts_nflux_LUch_yr ;
-% % ts_nloss_bl = ts_nflux_flux_bl + ts_nflux_leach_bl ;
-% % ts_nloss_yr = ts_nflux_flux_yr + ts_nflux_leach_yr ;
-% % 
-% [tmp_ts_nflux_flux_yr, title_suffix, file_suffix] = ...
-%     rebase_future2baseline(rebase, Nsmth, ts_nflux_flux_bl, ts_nflux_flux_yr, ignYrs, yearList_future) ;
-% [tmp_ts_nflux_leach_yr, ~, ~] = ...
-%     rebase_future2baseline(rebase, Nsmth, ts_nflux_leach_bl, ts_nflux_leach_yr, ignYrs, yearList_future) ;
-% 
-% figure('Position',figurePos,'Color','w') ;
-% 
-% subplot_tight(1,2,1,spacing)
-% ht = plot_timeseries(...
-%     yearList_baseline, [], yearList_future, ...
-%     ts_nflux_flux_bl, [], tmp_ts_nflux_flux_yr, ...
-%     cf_kg2Tg, Nsmth, ...
-%     'TgN', stdLegend, 'N loss: Gaseous', '', lineWidth, fontSize, ...
-%     skip3rdColor) ;
-% letterlabel_align0('A',ht,do_caps) ;
-% 
-% subplot_tight(1,2,2,spacing)
-% ht = plot_timeseries(...
-%     yearList_baseline, [], yearList_future, ...
-%     ts_nflux_leach_bl, [], tmp_ts_nflux_leach_yr, ...
-%     cf_kg2Tg, Nsmth, ...
-%     'TgN', stdLegend, 'N loss: Dissolved', '', lineWidth, fontSize, ...
-%     skip3rdColor) ;
-% letterlabel_align0('B',ht,do_caps) ;
-% 
-% clear tmp_*
-% 
-% if do_save
-%     export_fig([outDir_ts 'Nloss' file_suffix '.pdf'])
-%     close
-% end
+% Options %%%%%%%%%
+lineWidth = 3 ;
+fontSize = 24 ;
+ignYrs = 0 ;
+Nsmth = 5 ;
+spacing = [0.1 0.1] ;   % [vert, horz]
+%%%%%%%%%%%%%%%%%%%
+
+if all_figs
+    
+    % % ts_nloss_bl = ts_nflux_flux_bl + ts_nflux_harvest_bl + ts_nflux_leach_bl + ts_nflux_LUch_bl ;
+    % % ts_nloss_yr = ts_nflux_flux_yr + ts_nflux_harvest_yr + ts_nflux_leach_yr + ts_nflux_LUch_yr ;
+    % ts_nloss_bl = ts_nflux_flux_bl + ts_nflux_leach_bl ;
+    % ts_nloss_yr = ts_nflux_flux_yr + ts_nflux_leach_yr ;
+    %
+    [tmp_ts_nflux_flux_yr, title_suffix, file_suffix] = ...
+        rebase_future2baseline(rebase, Nsmth, ts_nflux_flux_bl, ts_nflux_flux_yr, ignYrs, yearList_future) ;
+    [tmp_ts_nflux_leach_yr, ~, ~] = ...
+        rebase_future2baseline(rebase, Nsmth, ts_nflux_leach_bl, ts_nflux_leach_yr, ignYrs, yearList_future) ;
+    
+    figure('Position',figurePos,'Color','w') ;
+    
+    subplot_tight(1,2,1,spacing)
+    ht = plot_timeseries(...
+        yearList_baseline, [], yearList_future, ...
+        ts_nflux_flux_bl, [], tmp_ts_nflux_flux_yr, ...
+        cf_kg2Tg, Nsmth, ...
+        'TgN', stdLegend, 'N loss: Gaseous', '', lineWidth, fontSize, ...
+        skip3rdColor) ;
+    letterlabel_align0('A',ht,do_caps) ;
+    
+    subplot_tight(1,2,2,spacing)
+    ht = plot_timeseries(...
+        yearList_baseline, [], yearList_future, ...
+        ts_nflux_leach_bl, [], tmp_ts_nflux_leach_yr, ...
+        cf_kg2Tg, Nsmth, ...
+        'TgN', stdLegend, 'N loss: Dissolved', '', lineWidth, fontSize, ...
+        skip3rdColor) ;
+    letterlabel_align0('B',ht,do_caps) ;
+    
+    clear tmp_*
+    
+    if do_save
+        export_fig([outDir_ts 'Nloss' file_suffix '.pdf'])
+        close
+    end
+
+end
 
 
 %% Bar graph: N loss
@@ -2253,100 +2241,108 @@ end
 
 %% Plot timeseries: Calories, EXPECTED
 
-% % Options %%%%%%%%%
-% % 
-% plum_area_adjustment = 1 ;
-% % plum_area_adjustment = 1-0.28 ;
-% 
-% % lpjg_area_adjustment = 1 ;
-% lpjg_area_adjustment = ts_LUarea_crop0_bl ./ ts_LUarea_crop_bl ;
-% 
-% lineWidth = 2 ;
-% fontSize = 14 ;
-% spacing = [0.1 0.05] ;   % [vert, horz]
-% ignYrs = 0 ;
-% Nsmth = 1 ;
-% figurePosition = [1 376 1440 429] ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% [tmp_ts_kcalExp_yr, title_suffix, file_suffix] = ...
-%     rebase_future2baseline(rebase, Nsmth, ts_kcal_bl, ts_kcalExp_yr, ignYrs, yearList_future) ;
-% 
-% % Adjust for technology change, if doing so (do not include FAO!)
-% tmp_ts_kcal_bl = ts_kcal_bl ;
-% if do_adjYieldTech
-%     file_suffix = [file_suffix '_techAdj'] ;
-%     title_suffix = [title_suffix ' (techAdj)'] ;
-% end
-% 
-% % Adjust for unhandled crops, if doing so (DO include FAO)
-% tmp_ts_kcal_fao = ts_kcal_fao ;
-% if lpjg_area_adjustment ~= 1
-%     tmp_ts_kcal_bl = tmp_ts_kcal_bl .* lpjg_area_adjustment ;
-%     [~,IA] = intersect(yearList_baseline,fao.tmp_fao_yearList) ;
-%     tmp_ts_kcal_fao = tmp_ts_kcal_fao .* lpjg_area_adjustment(IA) ;
-%     title_suffix = [title_suffix ' (blAdj)'] ;
-%     file_suffix = [file_suffix '_blAdj'] ;
-% end
-% if plum_area_adjustment ~= 1
-%     tmp_ts_kcalExp_yr = tmp_ts_kcalExp_yr * plum_area_adjustment ;
-%     title_suffix = [title_suffix ' (PLUM\times' num2str(plum_area_adjustment) ')'] ;
-%     file_suffix = [file_suffix '_plumAdj' num2str(plum_area_adjustment)] ;
-% end
-% 
-% figure('Position',figurePosition,'Color','w') ;
-% plot(yearList_baseline,cf_kcalEcal*movmean(tmp_ts_kcal_bl,Nsmth),'-k','LineWidth',lineWidth)
-% hold on
-% plot(fao.tmp_fao_yearList,cf_kcalEcal*tmp_ts_kcal_fao,'--k','LineWidth',lineWidth)
-% plot(yearList_future,cf_kcalEcal*tmp_ts_kcalExp_yr,'LineWidth',lineWidth)
-% hold off
-% legend(stdLegend_plusFAO, ...
-%        'Location','NorthWest') ;
-% set(gca,'FontSize',fontSize)
-% xlabel('Year')
-% ylabel('Ecal')
-% ht = title(['Caloric production (PLUM-exp)' title_suffix]) ;
-% clear tmp_*
-% 
-% if do_save
-%     export_fig([outDir_ts 'caloriesExp' file_suffix '.pdf'])
-%     close
-% end
+if all_figs && false
+    
+    % Options %%%%%%%%%
+    %
+    plum_area_adjustment = 1 ;
+    % plum_area_adjustment = 1-0.28 ;
+    
+    % lpjg_area_adjustment = 1 ;
+    lpjg_area_adjustment = ts_LUarea_crop0_bl ./ ts_LUarea_crop_bl ;
+    
+    lineWidth = 2 ;
+    fontSize = 14 ;
+    spacing = [0.1 0.05] ;   % [vert, horz]
+    ignYrs = 0 ;
+    Nsmth = 1 ;
+    figurePosition = [1 376 1440 429] ;
+    %%%%%%%%%%%%%%%%%%%
+    
+    [tmp_ts_kcalExp_yr, title_suffix, file_suffix] = ...
+        rebase_future2baseline(rebase, Nsmth, ts_kcal_bl, ts_kcalExp_yr, ignYrs, yearList_future) ;
+    
+    % Adjust for technology change, if doing so (do not include FAO!)
+    tmp_ts_kcal_bl = ts_kcal_bl ;
+    if do_adjYieldTech
+        file_suffix = [file_suffix '_techAdj'] ;
+        title_suffix = [title_suffix ' (techAdj)'] ;
+    end
+    
+    % Adjust for unhandled crops, if doing so (DO include FAO)
+    tmp_ts_kcal_fao = ts_kcal_fao ;
+    if lpjg_area_adjustment ~= 1
+        tmp_ts_kcal_bl = tmp_ts_kcal_bl .* lpjg_area_adjustment ;
+        [~,IA] = intersect(yearList_baseline,fao.tmp_fao_yearList) ;
+        tmp_ts_kcal_fao = tmp_ts_kcal_fao .* lpjg_area_adjustment(IA) ;
+        title_suffix = [title_suffix ' (blAdj)'] ;
+        file_suffix = [file_suffix '_blAdj'] ;
+    end
+    if plum_area_adjustment ~= 1
+        tmp_ts_kcalExp_yr = tmp_ts_kcalExp_yr * plum_area_adjustment ;
+        title_suffix = [title_suffix ' (PLUM\times' num2str(plum_area_adjustment) ')'] ;
+        file_suffix = [file_suffix '_plumAdj' num2str(plum_area_adjustment)] ;
+    end
+    
+    figure('Position',figurePosition,'Color','w') ;
+    plot(yearList_baseline,cf_kcalEcal*movmean(tmp_ts_kcal_bl,Nsmth),'-k','LineWidth',lineWidth)
+    hold on
+    plot(fao.tmp_fao_yearList,cf_kcalEcal*tmp_ts_kcal_fao,'--k','LineWidth',lineWidth)
+    plot(yearList_future,cf_kcalEcal*tmp_ts_kcalExp_yr,'LineWidth',lineWidth)
+    hold off
+    legend(stdLegend_plusFAO, ...
+        'Location','NorthWest') ;
+    set(gca,'FontSize',fontSize)
+    xlabel('Year')
+    ylabel('Ecal')
+    ht = title(['Caloric production (PLUM-exp)' title_suffix]) ;
+    clear tmp_*
+    
+    if do_save
+        export_fig([outDir_ts 'caloriesExp' file_suffix '.pdf'])
+        close
+    end
+    
+end
 
 
 %% Plot timeseries: Calories, ACTUAL/EXPECTED
 
-% % Options %%%%%%%%%
-% lineWidth = 2 ;
-% fontSize = 14 ;
-% Nsmth = 1 ;
-% figurePosition = [1 376 1440 429] ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% file_suffix = '' ;
-% title_suffix = '' ;
-% if do_adjYieldTech
-%     file_suffix = [file_suffix '_techAdj'] ;
-%     title_suffix = [title_suffix ' (techAdj)'] ;
-% end
-% 
-% figure('Position',figurePosition,'Color','w') ;
-% tmp_ts_kcal_yr = ts_kcal_yr ;
-% plot(yearList_future,movmean((tmp_ts_kcal_yr - ts_kcalExp_yr)./ts_kcalExp_yr*100,Nsmth,1),'-','LineWidth',lineWidth)
-% hold on
-% plot(get(gca,'XLim'),[0 0],'--k')
-% hold off
-% legend(stdLegend(2:end),'Location','SouthWest') ;
-% set(gca,'FontSize',fontSize)
-% xlabel('Year')
-% ylabel('Ecal')
-% title(['Calories diff.' title_suffix]) ;
-% clear tmp_*
-% 
-% if do_save
-%     export_fig([outDir_ts 'caloriesDiffFromExp' file_suffix '.pdf'])
-%     close
-% end
+% Options %%%%%%%%%
+lineWidth = 2 ;
+fontSize = 14 ;
+Nsmth = 1 ;
+figurePosition = [1 376 1440 429] ;
+%%%%%%%%%%%%%%%%%%%
+
+if all_figs
+    
+    file_suffix = '' ;
+    title_suffix = '' ;
+    if do_adjYieldTech
+        file_suffix = [file_suffix '_techAdj'] ;
+        title_suffix = [title_suffix ' (techAdj)'] ;
+    end
+    
+    figure('Position',figurePosition,'Color','w') ;
+    tmp_ts_kcal_yr = ts_kcal_yr ;
+    plot(yearList_future,movmean((tmp_ts_kcal_yr - ts_kcalExp_yr)./ts_kcalExp_yr*100,Nsmth,1),'-','LineWidth',lineWidth)
+    hold on
+    plot(get(gca,'XLim'),[0 0],'--k')
+    hold off
+    legend(stdLegend(2:end),'Location','SouthWest') ;
+    set(gca,'FontSize',fontSize)
+    xlabel('Year')
+    ylabel('Ecal')
+    title(['Calories diff.' title_suffix]) ;
+    clear tmp_*
+    
+    if do_save
+        export_fig([outDir_ts 'caloriesDiffFromExp' file_suffix '.pdf'])
+        close
+    end
+
+end
 
 
 
