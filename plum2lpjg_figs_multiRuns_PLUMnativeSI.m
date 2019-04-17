@@ -1002,6 +1002,51 @@ end
 % end
 
 
+%% Map areas with changing drought/flood risk
+% Based on Asadieh & Krakauer (2017). Their DROUGHT RISK indicator was the
+% 5th percentile of ANNUAL streamflow, whereas their FLOODING indicator was
+% the 95th percentile of DAILY streamflow. I don't have daily runoff data,
+% so I'll have to use MONTHLY for FLOOD RISK.
+
+spacing = [0.03, 0.03] ;   % v, h
+norm_ticks = [1.5 2 3 5 10 Inf] ; % Tick marks: Multiply q20 by this to get q21
+fontSize = 14 ;
+fontSize_text = 14 ;
+Ystart = 69 ;
+
+do_norm = false ;
+make_runoffFigs_Asadieh( ...
+    maps_mon_runoff_d9, maps_awater_d9, runList, 'drought', ...
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+if do_save
+    export_fig([outDir_maps 'pkRunoff_drought_2010s-2090s.png'],['-r' num2str(pngres)])
+    close
+end
+make_runoffFigs_Asadieh( ...
+    maps_mon_runoff_d9, maps_awater_d9, runList, 'flood', ...
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+if do_save
+    export_fig([outDir_maps 'pkRunoff_flood_2010s-2090s.png'],['-r' num2str(pngres)])
+    close
+end
+
+do_norm = true ;
+make_runoffFigs_Asadieh( ...
+    maps_mon_runoff_d9, maps_awater_d9, runList, 'drought', ...
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+if do_save
+    export_fig([outDir_maps 'pkRunoff_drought_2010s-2090s.norm.png'],['-r' num2str(pngres)])
+    close
+end
+make_runoffFigs_Asadieh( ...
+    maps_mon_runoff_d9, maps_awater_d9, runList, 'flood', ...
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+if do_save
+    export_fig([outDir_maps 'pkRunoff_flood_2010s-2090s.norm.png'],['-r' num2str(pngres)])
+    close
+end
+
+
 %% Plot timeseries: Land uses
 
 rebase = false ;
