@@ -9,7 +9,8 @@ end
 
 size_YX = [size(maps_mon_runoff_d9.maps_YXvyB,1) size(maps_mon_runoff_d9.maps_YXvyB,2)] ;
 Nruns = length(runList) ;
-BoverA_to_dq = @(x) (x-1)./(x+1) ;
+BoverA_to_dq = @(BoverA) (BoverA-1)./(BoverA+1) ;
+dq_to_BoverA = @(dq) -(dq+1)./(dq-1) ;
 this_colormap = brighten(brewermap(64,'RdBu_ssr'),-0.3) ;
 Ncolors = size(this_colormap,1) ;
 
@@ -96,19 +97,23 @@ for r = 1:Nruns
     
     % Add stats
     pct_inc = 100*length(find(pctDiff_YX>0)) ./ length(find(~isnan(pctDiff_YX))) ;
-    median_inc = median(pctDiff_YX(pctDiff_YX>0)) ;
     pct_dec = 100*length(find(pctDiff_YX<0)) ./ length(find(~isnan(pctDiff_YX))) ;
+    median_inc = median(pctDiff_YX(pctDiff_YX>0)) ;
     median_dec = median(pctDiff_YX(pctDiff_YX<0)) ;
+    pXX_dq_YX = pXX_dq_YXr(:,:,r) ;
+    mean_inc = 100*(dq_to_BoverA(mean(pXX_dq_YX(pctDiff_YX>0)))-1) ;
+    mean_dec = 100*(dq_to_BoverA(mean(pXX_dq_YX(pctDiff_YX<0)))-1) ;
+    
     xlims = get(gca,'XLim') ;
     ylims = get(gca,'YLim') ;
     xrange = xlims(2) - xlims(1) ;
     yrange = ylims(2) - ylims(1) ;
     x = 0.05*xrange ;
-    text(x, 0.3*yrange, ...
-        sprintf('%0.0f%% increasing\n(median +%0.0f%%)', pct_inc, median_inc), ...
+    text(x, 0.35*yrange, ...
+        sprintf('%0.0f%% increasing\n(median +%0.0f%%,\nmean +%0.0f%%)', pct_inc, median_inc, mean_inc), ...
         'FontSize', fontSize_text, 'Color', this_colormap(round(0.85*Ncolors),:)) ;
     text(x, 0.1*yrange, ...
-        sprintf('%0.0f%% decreasing\n(median %0.0f%%)', pct_dec, median_dec), ...
+        sprintf('%0.0f%% decreasing\n(median %0.0f%%,\nmean %0.0f%%)', pct_dec, median_dec, mean_dec), ...
         'FontSize', fontSize_text, 'Color', this_colormap(round(0.15*Ncolors),:)) ;
 end
 sgtitle(thisTitle,'FontSize',fontSize*1.5,'FontWeight','bold')
