@@ -146,6 +146,8 @@ sd_or_sem = 'st. dev.' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
 fontSize = 12 ;
+figure_position = [1    33   720   772] ;
+% figure_position = [1    33   846   772] ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -2406,54 +2408,55 @@ end
 % clear theseMaps Ncrops Nmaps Nx Ny
 % 
 % 
-% %% Map changes in BD hotspot area: CI
-% 
-% % Options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% edgecolor = 0.6*ones(3,1) ;
-% latlim = [-60,80];
-% fontSize = 14 ;
-% spacing = [0.1 0.05] ;   % [vert, horz]
-% textX = 25 ;
-% textY_1 = 50 ;
-% textY_2 = 20 ;
-% cbarOrient = 'SouthOutside' ;
-% lineWidth = 0.25 ;
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% error('Make this work with SI units!')
-% 
-% if strcmp(version('-release'),'2014b')
-%     
-%     % Biodiversity hotspots
-%     hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/hotspots_clipByGridlist.shp' ;
-%     hotspot_YX = dlmread('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/hotspots_raster.txt',...
-%         ' ', 6, 0) ;
-%     hotspot_YX(hotspot_YX==-9999) = NaN ;
-%     hotspot_YX(:,721) = [] ;
-%     hotspot_YX = flipud(hotspot_YX) ;
-%     hotspot_YX(nanmask) = NaN ;
-%     hotspot_YX(~nanmask & isnan(hotspot_YX)) = 0 ;
-%     hotspot_area_YX = hotspot_YX.*land_area_YX ;
-%     hotspot_area_YXB = hotspot_area_YX .* maps_LU.maps_YXvyB(:,:,strcmp(maps_LU.varNames,'NATURAL'),end) ;
-%     % hotspot_area_YXB = hotspot_area_YX ;
-%     hotspot_area_YXr = repmat(hotspot_area_YX,[1 1 Nruns]) .* squeeze(maps_LU.maps_YXvyr(:,:,strcmp(maps_LU.varNames,'NATURAL'),end,:)) ;
-%     
-%     hotspot_diff_YXr = hotspot_area_YXr - repmat(hotspot_area_YXB,[1 1 Nruns]) ;
-%     
-%     map_hotspot_diffs(...
-%         hotspot_area_YXB, hotspot_diff_YXr, hotspot_YX, hotspot_shp, ...
-%         spacing, latlim, edgecolor, cbarOrient, fontSize, ...
-%         textX, textY_1, textY_2, ssp_plot_index, lineWidth, ...
-%         yearList_baseline, yearList_future, runList)
-%     
-%     if do_save
-%         export_fig([outDir_maps 'areaDiff_BDhotspots_CI.png'],['-r' num2str(pngres)])
-%         close
-%     end
-%     
-% else
-%     warning('Skipping hotspots')
-% end
+%% Map changes in BD hotspot area: CI
+
+% Options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+edgecolor = 0.6*ones(3,1) ;
+latlim = [-60,80];
+fontSize = 14 ;
+spacing = [0.07 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+cbarOrient = 'SouthOutside' ;
+lineWidth = 0.25 ;
+conv_fact_map = 1e-6 ;   % m2 to km2
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+units_map = 'km^2' ;
+units_total = 'Mkm^2' ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    
+% Biodiversity hotspots
+hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
+hotspot_YX = dlmread('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_raster.txt',...
+    ' ', 6, 0) ;
+hotspot_YX(hotspot_YX==-9999) = NaN ;
+hotspot_YX(:,721) = [] ;
+hotspot_YX = flipud(hotspot_YX) ;
+hotspot_YX(nanmask) = NaN ;
+hotspot_YX(~nanmask & isnan(hotspot_YX)) = 0 ;
+hotspot_area_YX = hotspot_YX.*land_area_YX ;
+hotspot_area_YXB = hotspot_area_YX .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),end) ;
+% hotspot_area_YXB = hotspot_area_YX ;
+hotspot_area_YXr = repmat(hotspot_area_YX,[1 1 Nruns]) .* squeeze(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),end,:)) ;
+
+hotspot_diff_YXr = hotspot_area_YXr - repmat(hotspot_area_YXB,[1 1 Nruns]) ;
+
+map_hotspot_diffs(...
+    hotspot_area_YXB, hotspot_diff_YXr, hotspot_YX, hotspot_shp, ...
+    spacing, latlim, edgecolor, cbarOrient, fontSize, ...
+    textX, textY_1, textY_2, ssp_plot_index, lineWidth, ...
+    yearList_baseline, yearList_future, runList, ...
+    conv_fact_map, conv_fact_total, units_map, units_total)
+
+if do_save
+    export_fig( ...
+        sprintf('%s/areaDiff_BDhotspots_CI.%d-%d.png',removeslashifneeded(outDir_maps),yearList_baseline(end),yearList_future(end)), ...
+        ['-r' num2str(pngres)])
+    close
+end
+    
 
 
 %% Map changes in BD hotspot area: glob200
