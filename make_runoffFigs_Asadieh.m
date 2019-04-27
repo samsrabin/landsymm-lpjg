@@ -1,4 +1,4 @@
-function make_runoffFigs_Asadieh( ...
+function pctDiff_YXr = make_runoffFigs_Asadieh( ...
     maps_mon_runoff_d9, maps_awater_d9, runList, ...
     droughtOrFlood, ...
     do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
@@ -39,6 +39,7 @@ else
     thisTitle = '10-year highest monthly runoff' ;
 end
 
+pctDiff_YXr = nan(size(pXX_q21c_YXr)) ;
 figure('Color','w','Position',figurePos) ;
 for r = 1:Nruns
     subplot_tight(2,2,r,spacing)
@@ -46,6 +47,7 @@ for r = 1:Nruns
     % Get percent difference
     pctDiff_YX = 100*(pXX_q21c_YXr(:,:,r) - pXX_q20c_YX) ./ pXX_q20c_YX ;
     pctDiff_YX(pXX_q20c_YX==0 & pXX_q21c_YXr(:,:,r)==0) = 0 ;
+    pctDiff_YXr(:,:,r) = pctDiff_YX ;
     
     % Make map
     if do_norm

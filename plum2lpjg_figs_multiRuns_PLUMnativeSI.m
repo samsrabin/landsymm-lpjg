@@ -94,8 +94,8 @@ rowInfo = { ...
            '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
            'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
            % PLUM demand calculations
-           'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
-           'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+%            'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
+%            'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
            'Crop demand', 'demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
            'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
 %            'Ruminant demand', 'demandPC.ruminants', 1, ' %.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
@@ -999,32 +999,84 @@ fontSize_text = 14 ;
 Ystart = 69 ;
 
 do_norm = false ;
-make_runoffFigs_Asadieh( ...
+
+% Change in 10-year lowest annual runoff
+pctDiff_YXr = make_runoffFigs_Asadieh( ...
     maps_mon_runoff_d9, maps_awater_d9, runList, 'drought', ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
 if do_save
     export_fig([outDir_maps 'pkRunoff_drought_2010s-2090s.png'],['-r' num2str(pngres)])
     close
 end
-make_runoffFigs_Asadieh( ...
+
+% Map land use contribution to 10-year lowest annual runoff (percentage points)
+%%% Calculated as fully-varying minus constLU. This means that LU legacy
+%%% effects are NOT included in these numbers---only NEW land use changes.
+if contains(thisVer, 'attr')
+    map_contribution(pctDiff_YXr, continents_shp, ...
+        {runList{1}, 'constLU'}, runList, ...
+        'thisTitle', 'LUC contribution to declining 10-year lowest annual runoff', ...
+        'units_map', 'Percentage points', ...
+        'nanmask_YX', pctDiff_YXr(:,:,1)>0, ...
+        'latlim', [-60 80], ...
+        'thisColormap', 'rdbu_ssr', ...
+        'fontSize', 14, ...
+        'edgeColor', 0.6*ones(3,1), ...
+        'lineWidth', 1, ...
+        'cbarOrient', 'SouthOutside', ...
+        'caxis_lims', 100*[-1 1])
+    if do_save
+        export_fig([outDir_maps 'pkRunoff_drought_2010s-2090s.LUCcont.png'],['-r' num2str(pngres)])
+        close
+    end
+end
+
+% Change in 10-year highest monthly runoff
+pctDiff_YXr = make_runoffFigs_Asadieh( ...
     maps_mon_runoff_d9, maps_awater_d9, runList, 'flood', ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
 if do_save
     export_fig([outDir_maps 'pkRunoff_flood_2010s-2090s.png'],['-r' num2str(pngres)])
     close
 end
 
+% Map land use contribution to 10-year highest monthly runoff (percentage points)
+%%% Calculated as fully-varying minus constLU. This means that LU legacy
+%%% effects are NOT included in these numbers---only NEW land use changes.
+if contains(thisVer, 'attr')
+    map_contribution(pctDiff_YXr, continents_shp, ...
+        {runList{1}, 'constLU'}, runList, ...
+        'thisTitle', 'LUC contribution to increasing 10-year highest monthly runoff', ...
+        'units_map', 'Percentage points', ...
+        'nanmask_YX', pctDiff_YXr(:,:,1)<0, ...
+        'latlim', [-60 80], ...
+        'thisColormap', 'rdbu_ssr', ...
+        'fontSize', 14, ...
+        'edgeColor', 0.6*ones(3,1), ...
+        'lineWidth', 1, ...
+        'cbarOrient', 'SouthOutside', ...
+        'caxis_lims', 100*[-1 1])
+    if do_save
+        export_fig([outDir_maps 'pkRunoff_flood_2010s-2090s.LUCcont.png'],['-r' num2str(pngres)])
+        close
+    end
+end
+
 do_norm = true ;
+
+% Normalized change in 10-year lowest annual runoff
 make_runoffFigs_Asadieh( ...
     maps_mon_runoff_d9, maps_awater_d9, runList, 'drought', ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
 if do_save
     export_fig([outDir_maps 'pkRunoff_drought_2010s-2090s.norm.png'],['-r' num2str(pngres)])
     close
 end
+
+% Normalized change in 10-year highest monthly runoff
 make_runoffFigs_Asadieh( ...
     maps_mon_runoff_d9, maps_awater_d9, runList, 'flood', ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
 if do_save
     export_fig([outDir_maps 'pkRunoff_flood_2010s-2090s.norm.png'],['-r' num2str(pngres)])
     close
@@ -1304,6 +1356,8 @@ plot_timeseries(...
 
 clear tmp_*
 
+set(gca,'XLim',[1950 2100])
+
 %%%%%%%%%%%%%%%%%%%
 % Plot timeseries: Irrigation
 % Options %%%%%%%%%
@@ -1325,12 +1379,14 @@ plot_timeseries(...
 
 clear tmp_*
 
+set(gca,'XLim',[1950 2100])
+
 if perArea
     file_suffix = [file_suffix '_perArea'] ;
 end
 
 if do_save
-    export_fig([outDir_ts 'mgmt_inputs' file_suffix '.pdf'])
+    export_fig([outDir_ts 'mgmt_inputs' file_suffix '.1950-2100.pdf'])
     close
 end
 

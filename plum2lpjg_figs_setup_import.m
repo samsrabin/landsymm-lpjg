@@ -16,6 +16,8 @@ end
 addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 addpath(genpath('~/Documents/Dropbox/Dissertation/MATLAB work'))
 
+continents_shp = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
+
 trimFirstFuture = 0 ;
 if strcmp(thisVer,'20180424agmip7')
     runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
