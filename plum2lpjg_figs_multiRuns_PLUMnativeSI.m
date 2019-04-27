@@ -34,13 +34,13 @@ if false
 % thisVer = 'harm2.3_constClim' ;
 end
 
-thisVer = 'harm3' ; 
+% thisVer = 'harm3' ; 
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
 % thisVer = 'harm3_constClimCO2' ;
 % thisVer = 'harm3_S1R4.5_attr' ;
-% thisVer = 'harm3_S3R6.0_attr' ;
+thisVer = 'harm3_S3R6.0_attr' ;
 % thisVer = 'harm3_S4R6.0_attr' ;
 % thisVer = 'harm3_S5R8.5_attr' ;
 
@@ -443,6 +443,29 @@ do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filen
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
 
+% Map land use contribution to albedo change
+%%% Calculated as fully-varying minus constLU. This means that LU legacy
+%%% effects are NOT included in these numbers---only NEW land use changes.
+if contains(thisVer, 'attr')
+    tmp_YXr = squeeze(mean(maps_albedo_d9.maps_YXvyr(:,:,1,:,:),4)) - repmat(mean(maps_albedo_d9.maps_YXvyB(:,:,1,:),4),[1 1 Nruns]) ;
+    map_contribution(tmp_YXr, continents_shp, ...
+        {runList{1}, 'constLU'}, runList, ...
+        'thisTitle', 'Post-2010 LUC contribution to January albedo change', ...
+        'units_map', '(unitless)', ...
+        'latlim', [-60 80], ...
+        'thisColormap', 'rdbu_ssr', ...
+        'fontSize', 14, ...
+        'edgeColor', 0.6*ones(3,1), ...
+        'lineWidth', 1, ...
+        'cbarOrient', 'SouthOutside')
+    clear tmp_YXr
+    if do_save
+        export_fig([outDir_maps 'albedo_jan_diff_2000s-2090s.LUCcont.png'],['-r' num2str(pngres)])
+        close
+    end
+end
+
+
 
 %% Map differences from end of historical to end of future: July albedo
 
@@ -467,6 +490,29 @@ do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filen
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim) ;
+
+% Map land use contribution to albedo change
+%%% Calculated as fully-varying minus constLU. This means that LU legacy
+%%% effects are NOT included in these numbers---only NEW land use changes.
+if contains(thisVer, 'attr')
+    tmp_YXr = squeeze(mean(maps_albedo_d9.maps_YXvyr(:,:,2,:,:),4)) - repmat(mean(maps_albedo_d9.maps_YXvyB(:,:,1,:),4),[1 1 Nruns]) ;
+    map_contribution(tmp_YXr, continents_shp, ...
+        {runList{1}, 'constLU'}, runList, ...
+        'thisTitle', 'Post-2010 LUC contribution to July albedo change', ...
+        'units_map', '(unitless)', ...
+        'latlim', [-60 80], ...
+        'thisColormap', 'rdbu_ssr', ...
+        'fontSize', 14, ...
+        'edgeColor', 0.6*ones(3,1), ...
+        'lineWidth', 1, ...
+        'cbarOrient', 'SouthOutside')
+    clear tmp_YXr
+    if do_save
+        export_fig([outDir_maps 'albedo_jul_diff_2000s-2090s.LUCcont.png'],['-r' num2str(pngres)])
+        close
+    end
+end
+
 
 
 %% Map differences from end of historical to end of future: Vegetation C
@@ -1005,7 +1051,7 @@ pctDiff_YXr = make_runoffFigs_Asadieh( ...
     maps_mon_runoff_d9, maps_awater_d9, runList, 'drought', ...
     do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
 if do_save
-    export_fig([outDir_maps 'pkRunoff_drought_2010s-2090s.png'],['-r' num2str(pngres)])
+    export_fig([outDir_maps 'pkRunoff_drought_2000s-2090s.png'],['-r' num2str(pngres)])
     close
 end
 
@@ -1026,7 +1072,7 @@ if contains(thisVer, 'attr')
         'cbarOrient', 'SouthOutside', ...
         'caxis_lims', 100*[-1 1])
     if do_save
-        export_fig([outDir_maps 'pkRunoff_drought_2010s-2090s.LUCcont.png'],['-r' num2str(pngres)])
+        export_fig([outDir_maps 'pkRunoff_drought_2000s-2090s.LUCcont.png'],['-r' num2str(pngres)])
         close
     end
 end
