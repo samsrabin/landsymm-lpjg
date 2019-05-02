@@ -32,16 +32,16 @@ do_save.yield_exp_map   = false ;
 do_save.irrig           = false ;
 do_save.water           = true ;
 do_save.carbon          = false ;
-do_save.mrunoff         = false ;
+do_save.mrunoff         = true ;
 do_save.albedo          = false ;
 do_save.bvocs           = false ;
-do_save.Nflux           = false ;
+do_save.Nflux           = true ;
 do_save.Nfert           = false ;
 do_save.fpc             = false ;
 
 inDir_list = {...
-    'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851'
-%     'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914';
+%     'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851'
+    'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914';
 %     'LPJGPLUM_2011-2100_harm3_SSP3_RCP60/output-2019-02-27-093027';
 %     'LPJGPLUM_2011-2100_harm3_SSP4_RCP60/output-2019-02-27-093259';
 %     'LPJGPLUM_2011-2100_harm3_SSP5_RCP85/output-2019-02-27-104120';
@@ -157,6 +157,21 @@ cf_cpool = 1 ;   % LPJ-GUESS outputs kgC/m2
 cf_water = 1e-3 ; % LPJ-GUESS outputs mm (will be multiplied by land_area_m2 --> m3)
 cf_nflux = 1e-4 ;   % LPJ-GUESS outputs kgN/ha
 cf_bvoc = 1e-6 ;   % LPJ-GUESS outputs mgC/m2
+
+% Set up for "last 30 years of century" stats
+last30_statList = {'last30_mean','last30_median','last30_std','last30_prctile25','last30_prctile75','last30_min','last30_max'} ;
+Nstats = length(last30_statList) ;
+last30_mean = @(array_YXvy) mean(array_YXvy,4) ;
+last30_median = @(array_YXvy) median(array_YXvy,4) ;
+last30_std = @(array_YXvy) std(array_YXvy,1,4) ;
+last30_prctile25 = @(array_YXvy) prctile(array_YXvy,25,4) ;
+last30_prctile75 = @(array_YXvy) prctile(array_YXvy,75,4) ;
+last30_min = @(array_YXvy) min(array_YXvy,[],4) ;
+last30_max = @(array_YXvy) max(array_YXvy,[],4) ;
+last30_statHandles = cell(Nstats,1) ;
+for s = 1:Nstats
+    last30_statHandles{s} = eval(last30_statList{s}) ;
+end; clear s
 
 
 %% Loop through inDir_list

@@ -27,15 +27,17 @@ for d = 1:length(inDir_list)
     timeseries_PLUMexp_out = [inDir 'timeseries_PLUMexp.mat'] ;
     firstdecade_out = [inDir 'first_decade.mat'] ;
     lastdecade_out = [inDir 'last_decade.mat'] ;
-    last41yrs_out = [inDir 'last_41yrs.mat'] ;
+    last30_out = [inDir 'last_30yrs.mat'] ;
     
     disp(inDir)
     
     % Get baseline/not info
     if is_baseline
         yearList = 1850:2010 ;
+        last30_yearList = 1971:2000 ;
     else
         yearList = 2011:2100 ;
+        last30_yearList = 2071:2100 ;
     end
     land_area_YX = land_area_YX_orig ;
     gcel_area_YX = gcel_area_YX_orig ;
@@ -596,11 +598,21 @@ for d = 1:length(inDir_list)
         awater_d9.yearList = awater_d9.yearList(end-9:end) ;
         save(lastdecade_out,'awater_d9',v73_or_append(lastdecade_out)) ;
         clear awater_d9
-        awater_last41 = awater ;
-        awater_last41.maps_YXvy = awater_last41.maps_YXvy(:,:,:,end-40:end) ;
-        awater_last41.yearList = awater_last41.yearList(end-40:end) ;
-        save(last41yrs_out,'awater_last41',v73_or_append(last41yrs_out)) ;
-        clear awater_last41
+        awater_last30.list_to_map = awater.list_to_map ;
+        awater_last30.years_incl = last30_yearList ;
+        [~,IA] = intersect(awater.yearList, last30_yearList) ;
+        if length(IA) ~= length(last30_yearList)
+            error('length(IA) ~= length(last30_yearList)')
+        end
+        awater_last30.varNames = awater.varNames ;
+        awater_last30.statHandles = last30_statHandles ;
+        awater_last30.statList = last30_statList ;
+        awater_last30.maps_YXvs = nan([size(land_area_YX) length(awater.varNames) Nstats],'single') ;
+        for s = 1:Nstats
+            awater_last30.maps_YXvs(:,:,:,s) = eval(sprintf('%s(awater.maps_YXvy(:,:,:,IA)) ;', last30_statList{s})) ;
+        end; clear s
+        save(last30_out,'awater_last30',v73_or_append(last30_out)) ;
+        clear awater_last30
         clear awater
     elseif do_save.water
 %         this_area_YX = land_area_YX ;
@@ -759,11 +771,22 @@ for d = 1:length(inDir_list)
         mon_runoff_d9.yearList = mon_runoff_d9.yearList(end-9:end) ;
         save(lastdecade_out,'mon_runoff_d9',v73_or_append(lastdecade_out)) ;
         clear mon_runoff_d9
-        mon_runoff_last41 = mon_runoff ;
-        mon_runoff_last41.maps_YXvy = mon_runoff_last41.maps_YXvy(:,:,:,end-40:end) ;
-        mon_runoff_last41.yearList = mon_runoff_last41.yearList(end-40:end) ;
-        save(last41yrs_out,'mon_runoff_last41',v73_or_append(last41yrs_out)) ;
-        clear mon_runoff_last41
+        mon_runoff_last30.list_to_map = mon_runoff.list_to_map ;
+        mon_runoff_last30.years_incl = last30_yearList ;
+        [~,IA] = intersect(mon_runoff.yearList, last30_yearList) ;
+        if length(IA) ~= length(last30_yearList)
+            error('length(IA) ~= length(last30_yearList)')
+        end
+        mon_runoff_last30.varNames = 'allmonths' ;
+        mon_runoff_last30.statList = last30_statList ;
+        mon_runoff_last30.statHandles = last30_statHandles ;
+        mon_runoff_last30.maps_YXvs = nan([size(land_area_YX) 1 Nstats],'single') ;
+        mon_runoff_maps_YX1y = reshape(mon_runoff.maps_YXvy(:,:,:,IA), [size(land_area_YX) 1 length(mon_runoff_last30.years_incl)*length(mon_runoff.varNames)]) ;
+        for s = 1:Nstats
+            mon_runoff_last30.maps_YXvs(:,:,:,s) = eval(sprintf('%s(mon_runoff_maps_YX1y) ;', last30_statList{s})) ;
+        end; clear s
+        save(last30_out,'mon_runoff_last30',v73_or_append(last30_out)) ;
+        clear mon_runoff_last30
         clear mon_runoff
     end
     
@@ -996,11 +1019,21 @@ for d = 1:length(inDir_list)
         nflux_d9.yearList = nflux_d9.yearList(end-9:end) ;
         save(lastdecade_out,'nflux_d9',v73_or_append(lastdecade_out))
         clear nflux_d9
-        nflux_last41 = nflux ;
-        nflux_last41.maps_YXvy = nflux_last41.maps_YXvy(:,:,:,end-40:end) ;
-        nflux_last41.yearList = nflux_last41.yearList(end-40:end) ;
-        save(last41yrs_out,'nflux_last41',v73_or_append(last41yrs_out)) ;
-        clear nflux_last41
+        nflux_last30.list_to_map = nflux.list_to_map ;
+        nflux_last30.years_incl = last30_yearList ;
+        [~,IA] = intersect(nflux.yearList, last30_yearList) ;
+        if length(IA) ~= length(last30_yearList)
+            error('length(IA) ~= length(last30_yearList)')
+        end
+        nflux_last30.varNames = nflux.varNames ;
+        nflux_last30.statList = last30_statList ;
+        nflux_last30.statHandles = last30_statHandles ;
+        nflux_last30.maps_YXvs = nan([size(land_area_YX) length(nflux.varNames) Nstats],'single') ;
+        for s = 1:Nstats
+            nflux_last30.maps_YXvs(:,:,:,s) = eval(sprintf('%s(nflux.maps_YXvy(:,:,:,IA)) ;', last30_statList{s})) ;
+        end; clear s
+        save(last30_out,'nflux_last30',v73_or_append(last30_out)) ;
+        clear nflux_last30
         clear nflux
     end
     
