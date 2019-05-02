@@ -27,6 +27,7 @@ for d = 1:length(inDir_list)
     timeseries_PLUMexp_out = [inDir 'timeseries_PLUMexp.mat'] ;
     firstdecade_out = [inDir 'first_decade.mat'] ;
     lastdecade_out = [inDir 'last_decade.mat'] ;
+    last41yrs_out = [inDir 'last_41yrs.mat'] ;
     
     disp(inDir)
     
@@ -595,6 +596,11 @@ for d = 1:length(inDir_list)
         awater_d9.yearList = awater_d9.yearList(end-9:end) ;
         save(lastdecade_out,'awater_d9',v73_or_append(lastdecade_out)) ;
         clear awater_d9
+        awater_last41 = awater ;
+        awater_last41.maps_YXvy = awater_last41.maps_YXvy(:,:,:,end-40:end) ;
+        awater_last41.yearList = awater_last41.yearList(end-40:end) ;
+        save(last41yrs_out,'awater_last41',v73_or_append(last41yrs_out)) ;
+        clear awater_last41
         clear awater
     elseif do_save.water
 %         this_area_YX = land_area_YX ;
@@ -753,6 +759,11 @@ for d = 1:length(inDir_list)
         mon_runoff_d9.yearList = mon_runoff_d9.yearList(end-9:end) ;
         save(lastdecade_out,'mon_runoff_d9',v73_or_append(lastdecade_out)) ;
         clear mon_runoff_d9
+        mon_runoff_last41 = mon_runoff ;
+        mon_runoff_last41.maps_YXvy = mon_runoff_last41.maps_YXvy(:,:,:,end-40:end) ;
+        mon_runoff_last41.yearList = mon_runoff_last41.yearList(end-40:end) ;
+        save(last41yrs_out,'mon_runoff_last41',v73_or_append(last41yrs_out)) ;
+        clear mon_runoff_last41
         clear mon_runoff
     end
     
@@ -985,6 +996,11 @@ for d = 1:length(inDir_list)
         nflux_d9.yearList = nflux_d9.yearList(end-9:end) ;
         save(lastdecade_out,'nflux_d9',v73_or_append(lastdecade_out))
         clear nflux_d9
+        nflux_last41 = nflux ;
+        nflux_last41.maps_YXvy = nflux_last41.maps_YXvy(:,:,:,end-40:end) ;
+        nflux_last41.yearList = nflux_last41.yearList(end-40:end) ;
+        save(last41yrs_out,'nflux_last41',v73_or_append(last41yrs_out)) ;
+        clear nflux_last41
         clear nflux
     end
     

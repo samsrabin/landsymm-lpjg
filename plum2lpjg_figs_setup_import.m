@@ -512,6 +512,23 @@ elseif strcmp(thisVer,'harm3_S5R8.5_attr')
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
+elseif strcmp(thisVer,'test')
+    runList = {'SSP1-45','SSP1-45','SSP1-45'} ;
+    runColNames = {'Full1','Full2','Full3'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914' ;
+        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914' ;
+        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914' ;
+        } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
 else
     error(['thisVer (' thisVer ') not recognized!'])
 end
@@ -591,7 +608,8 @@ if include_fao
     || strcmp(thisVer,'v6s1_v20180703') ...
     || strcmp(thisVer,'v10s1_v20180801') ...
     || contains(thisVer,'harm2') ...
-    || contains(thisVer,'harm3')
+    || contains(thisVer,'harm3') ...
+    || strcmp(thisVer,'test')
         fao = load('/Users/Shared/PLUM/crop_calib_data/fao/FAOdata_1961-2010_calibVer16_Production.mat') ;
     else
         error('thisVer not recognized while loading FAO data')
@@ -727,6 +745,12 @@ for f = 1:length(bl_map_fields)
     thisField = bl_map_fields{f} ;
     eval(['maps_' thisField ' = renameStructField(lastdec_tmp.' thisField ',''maps_YXvy'',''maps_YXvyB'') ;']) ;
 end
+last41yrs_tmp = load([baselineDir 'last_41yrs.mat']) ;
+bl_map_fields = fieldnames(last41yrs_tmp) ;
+for f = 1:length(bl_map_fields)
+    thisField = bl_map_fields{f} ;
+    eval(['maps_' thisField ' = renameStructField(last41yrs_tmp.' thisField ',''maps_YXvy'',''maps_YXvyB'') ;']) ;
+end
 
 % Get variable names
 tmp = whos('ts_*_bl') ;
@@ -760,6 +784,7 @@ for r = 1:Nruns
     have_expYields = any(is_expYields) ;
     firstdec_tmp = load([runDirs{r} 'first_decade.mat']) ;
     lastdec_tmp = load([runDirs{r} 'last_decade.mat']) ;
+    last41yrs_tmp = load([runDirs{r} 'last_41yrs.mat']) ;
     if r == 1
         if length(ts_tmp.LUarea_ts_bare) > Nyears_fu
             Nyears_2trim = length(ts_tmp.LUarea_ts_bare) - Nyears_fu ;
@@ -797,7 +822,7 @@ for r = 1:Nruns
             thisVar_out = strrep(thisVar_in,'maps_','') ;
             
             % If not present in future run, remove from analysis
-            if ~(isfield(firstdec_tmp,thisVar_out) || isfield(lastdec_tmp,thisVar_out))
+            if ~(isfield(firstdec_tmp,thisVar_out) || isfield(lastdec_tmp,thisVar_out) || isfield(last41yrs_tmp,thisVar_out))
                 warning([thisVar_out ' not found in future run ' num2str(r) '. Removing.']) ;
                 clear(thisVar_in)
                 continue
@@ -807,6 +832,8 @@ for r = 1:Nruns
                 eval([thisVar_in '.maps_YXvyr = nan([size(firstdec_tmp.' thisVar_out '.maps_YXvy) Nruns],''single'') ;']) ;
             elseif contains(thisVar_in,'_d9')
                 eval([thisVar_in '.maps_YXvyr = nan([size(lastdec_tmp.' thisVar_out '.maps_YXvy) Nruns],''single'') ;']) ;
+            elseif contains(thisVar_in,'_last41')
+                eval([thisVar_in '.maps_YXvyr = nan([size(last41yrs_tmp.' thisVar_out '.maps_YXvy) Nruns],''single'') ;']) ;
             else
                 error('How did this happen?')
             end
@@ -902,6 +929,25 @@ for r = 1:Nruns
             else
                 eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = lastdec_tmp.' thisVar_out '.maps_YXvy ;']) ;
             end
+        elseif contains(thisVar_in,'last41')
+            if ~isfield(last41yrs_tmp,thisVar_out)
+                warning([thisVar_in ' not found in future run ' num2str(r) '. Removing.']) ;
+                vars_maps_bl_toRemove(v) = true ;
+                eval(['clear ' thisVar_in]) ;
+                continue
+            end
+            eval(['isequal_varNames = isequal(' thisVar_in '.varNames, last41yrs_tmp.' thisVar_out '.varNames) ; ']) ;
+            if ~isequal_varNames
+                eval(['isequal_varNames_afterSort = isequal(sort(' thisVar_in '.varNames), sort(last41yrs_tmp.' thisVar_out '.varNames)) ; ']) ;
+                if ~isequal_varNames_afterSort
+                    error(['~isequal_varNames (' thisVar_in '). Not fixable.'])
+                end
+                warning(['~isequal_varNames (' thisVar_in '). Fixing.'])
+                eval(['[~,~,IB] = intersect(' thisVar_in '.varNames,last41yrs_tmp.' thisVar_out '.varNames,''stable'') ;']) ;
+                eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = last41yrs_tmp.' thisVar_out '.maps_YXvy(:,:,IB,:) ;']) ;
+            else
+                eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = last41yrs_tmp.' thisVar_out '.maps_YXvy ;']) ;
+            end
         else
             error('How did this happen?')
         end
@@ -922,6 +968,13 @@ for r = 1:Nruns
             maps_yieldExp_d9 = renameStructField(lastdec_tmp.expyield_d9,'maps_YXvy','maps_YXvyr') ;
         else
             maps_yieldExp_d9.maps_YXvyr(:,:,:,:,r) = lastdec_tmp.expyield_d9.maps_YXvy ;
+        end
+    end
+    if isfield(last41yrs_tmp,'expyield_last41')
+        if r == 1
+            maps_yieldExp_last41 = renameStructField(last41yrs_tmp.expyield_last41,'maps_YXvy','maps_YXvyr') ;
+        else
+            maps_yieldExp_last41.maps_YXvyr(:,:,:,:,r) = last41yrs_tmp.expyield_last41.maps_YXvy ;
         end
     end
     
@@ -1508,6 +1561,7 @@ ts_temp_bl(IA) = squeeze(nansum(nansum(temp_bl_YXy.*repmat(land_area_weights_YX,
 ts_temp_yr = nan(Nyears_fu,Nruns) ;
 [~,IA] = intersect(yearList_future,years_endf) ;
 ts_temp_yr(IA,:) = squeeze(nansum(nansum(temp_fu_YXyr.*repmat(land_area_weights_YX,[1 1 length(years_endf) Nruns]),1),2)) ;
+
 
 %% Non-bare land area
 

@@ -42,7 +42,8 @@ end
 % thisVer = 'harm3_S1R4.5_attr' ;
 % thisVer = 'harm3_S3R6.0_attr' ;
 % thisVer = 'harm3_S4R6.0_attr' ;
-thisVer = 'harm3_S5R8.5_attr' ;
+% thisVer = 'harm3_S5R8.5_attr' ;
+thisVer = 'test' ;
 
 do_adjYieldTech = true ; % Apply annual tech. change increase to yields?
 
