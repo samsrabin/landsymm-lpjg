@@ -40,8 +40,6 @@ for f = 1:Nfields
 end ; clear f
 clear p
 
-% nanmask_YX = maps_YXr(:,:,1)>0 ;
-
 % Get map to plot
 if length(theseRuns)==2
     run1 = find(contains(runList, theseRuns{1})) ;

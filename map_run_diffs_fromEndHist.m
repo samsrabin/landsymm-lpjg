@@ -2,7 +2,7 @@ function map_run_diffs_fromEndHist( ...
     maps_d9, title_text, sumvars, ...
     do_pct, equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, land_area_YX, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim)
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim)
 
 % Get missing info
 Nruns = length(runList) ;
@@ -21,6 +21,7 @@ endh_YXmean = mean(endh_YXy,3) ;
 
 clim_max = 0 ;
 hs = [] ;
+hcbs = [] ;
 for r = 1:Nruns
     hs(r) = subplot_tight(ny,nx,r,spacing) ;
     
@@ -31,23 +32,26 @@ for r = 1:Nruns
         map = (endf_YXmean - endh_YXmean) ./ endh_YXmean * 100;
         units_map = '%' ;
     else
-        map = (endf_YXmean - endh_YXmean) * conv_fact_map ;
+        map = (endf_YXmean - endh_YXmean) .* conv_fact_map ;
     end
     
     % Make plot
     pcolor(map(69:end,:)) ; shading flat ; axis equal tight off
-    this_clim_max = max(abs(caxis)) ;
     if do_pct
         if isempty(pct_clim)
             this_clim_max = min(this_clim_max,100) ;
         else
-            caxis(pct_clim*[-1 1])
+            this_clim_max = pct_clim ;
         end
+    elseif ~isempty(prctile_clim)
+        this_clim_max = prctile(abs(map(~isnan(map))), prctile_clim) ;
     else
-        caxis([-this_clim_max this_clim_max]) ;
+        this_clim_max = max(abs(caxis)) ;
     end
+    caxis(this_clim_max*[-1 1])
     clim_max = max(clim_max,this_clim_max) ;
-    hcb = colorbar(colorBarLoc) ;
+    hcbs(r) = colorbar(colorBarLoc) ;
+    hcb = hcbs(r) ;
     colormap(gca,brighten(brewermap(64,'RdBu_ssr'),-0.3)) ;
     
     % Add labels
@@ -85,9 +89,19 @@ for r = 1:Nruns
 end
 if equalize_cbars && (~do_pct || (do_pct && isempty(pct_clim)))
     for r = 1:Nruns
-        caxis(hs(r),[-this_clim_max this_clim_max]) ;
+%         caxis(hs(r),[-this_clim_max this_clim_max]) ;
+        caxis(hs(r),[-clim_max clim_max]) ;
+        if ~do_pct && ~isempty(prctile_clim)
+            hcb_ticks = get(hcbs(r),'Ticks') ;
+            hcb_limits = get(hcbs(r),'Limits') ;
+            hcb_ticklabels = get(hcbs(r),'TickLabels') ;
+            new_ticks = [hcb_limits(1) hcb_ticks hcb_limits(2)] ;
+            new_ticklabels = [{'<'};hcb_ticklabels;{'>'}] ;
+            set(hcbs(r), ...
+                'Ticks', new_ticks, ...
+                'TickLabels',  new_ticklabels)
+        end
     end
 end
-
 
 end
