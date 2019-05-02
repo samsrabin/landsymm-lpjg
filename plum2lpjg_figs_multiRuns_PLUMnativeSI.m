@@ -34,7 +34,7 @@ if false
 % thisVer = 'harm2.3_constClim' ;
 end
 
-% thisVer = 'harm3' ; 
+thisVer = 'harm3' ; 
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
@@ -43,7 +43,6 @@ end
 % thisVer = 'harm3_S3R6.0_attr' ;
 % thisVer = 'harm3_S4R6.0_attr' ;
 % thisVer = 'harm3_S5R8.5_attr' ;
-thisVer = 'test' ;
 
 do_adjYieldTech = true ; % Apply annual tech. change increase to yields?
 
@@ -260,7 +259,7 @@ title_text = 'vegetation C' ;
 sumvars = 'VegC' ;
 pct_clim = 100 ;
 equalize_cbars = true ;
-conv_fact_map = 1e-6*1e4 ;   % kgC/m2 to tonsC/ha
+conv_fact_map = 1e-3*1e4 ;   % kgC/m2 to tonsC/ha
 units_map = 'tons C ha^{-1}' ;
 conv_fact_total = cf_kg2Pg ;   % kgC to PgC
 units_total = 'PgC' ;
@@ -286,7 +285,7 @@ title_text = 'total C' ;
 sumvars = 'Total' ;
 pct_clim = 100 ;
 equalize_cbars = true ;
-conv_fact_map = 1e-6*1e4 ;   % kgC/m2 to tonsC/ha
+conv_fact_map = 1e-3*1e4 ;   % kgC/m2 to tonsC/ha
 units_map = 'tons C ha^{-1}' ;
 conv_fact_total = cf_kg2Pg ;   % kgC to PgC
 units_total = 'PgC' ;
@@ -384,8 +383,6 @@ if all_figs
         thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
         conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
 end
-
-stop
 
 
 %% Big bar graph: Drivers

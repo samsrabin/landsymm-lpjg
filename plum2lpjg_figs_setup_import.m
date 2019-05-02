@@ -512,23 +512,6 @@ elseif strcmp(thisVer,'harm3_S5R8.5_attr')
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
-elseif strcmp(thisVer,'test')
-    runList = {'SSP1-45','SSP1-45','SSP1-45'} ;
-    runColNames = {'Full1','Full2','Full3'} ;
-    runDirs = {
-        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914' ;
-        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914' ;
-        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914' ;
-        } ;
-    runDirs_plum = {
-        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
-        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
-        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
-        } ;
-    yearList_future = 2011:2100 ;
-    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
-    yearList_baseline = 1850:2010 ;
-    skip3rdColor = false ;
 else
     error(['thisVer (' thisVer ') not recognized!'])
 end
@@ -608,8 +591,7 @@ if include_fao
     || strcmp(thisVer,'v6s1_v20180703') ...
     || strcmp(thisVer,'v10s1_v20180801') ...
     || contains(thisVer,'harm2') ...
-    || contains(thisVer,'harm3') ...
-    || strcmp(thisVer,'test')
+    || contains(thisVer,'harm3')
         fao = load('/Users/Shared/PLUM/crop_calib_data/fao/FAOdata_1961-2010_calibVer16_Production.mat') ;
     else
         error('thisVer not recognized while loading FAO data')
