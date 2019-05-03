@@ -1,13 +1,12 @@
 function pctDiff_YXr = make_runoffFigs_Asadieh( ...
     maps_mon_runoff_last30, maps_awater_last30, runList, ...
-    droughtOrFlood, ...
+    droughtOrFlood, land_area_weights_YX, ...
     do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
 
 if ~strcmp(droughtOrFlood, 'drought') && ~strcmp(droughtOrFlood, 'flood')
     error('droughtOrFlood (%s) must be either ''drought'' or ''flood''', droughtOrFlood)
 end
 
-size_YX = [size(maps_mon_runoff_last30.maps_YXvsB,1) size(maps_mon_runoff_last30.maps_YXvsB,2)] ;
 Nruns = length(runList) ;
 BoverA_to_dq = @(BoverA) (BoverA-1)./(BoverA+1) ;
 dq_to_BoverA = @(dq) -(dq+1)./(dq-1) ;
@@ -42,6 +41,10 @@ else
     pXX_dq_YXr = (pXX_q21c_YXr - pXX_q20c_YXr) ./ (pXX_q21c_YXr + pXX_q20c_YXr) ;
     thisTitle = '10-year highest monthly runoff' ;
 end
+
+% Re-weight, including only included grid cells, as in Asadieh & Krakauer
+land_area_weights_YX(below_thresh_YX) = NaN ;
+land_area_weights_YX = land_area_weights_YX ./ nansum(nansum(land_area_weights_YX)) ;
 
 pctDiff_YXr = nan(size(pXX_q21c_YXr)) ;
 figure('Color','w','Position',figurePos) ;
@@ -102,8 +105,8 @@ for r = 1:Nruns
     
     
     % Add stats
-    pct_inc = 100*length(find(pctDiff_YX>0)) ./ length(find(~isnan(pctDiff_YX))) ;
-    pct_dec = 100*length(find(pctDiff_YX<0)) ./ length(find(~isnan(pctDiff_YX))) ;
+    pct_inc = 100*nansum(nansum(land_area_weights_YX(pctDiff_YX>0))) ;
+    pct_dec = 100*nansum(nansum(land_area_weights_YX(pctDiff_YX<0))) ;
     median_inc = median(pctDiff_YX(pctDiff_YX>0)) ;
     median_dec = median(pctDiff_YX(pctDiff_YX<0)) ;
     pXX_dq_YX = pXX_dq_YXr(:,:,r) ;
