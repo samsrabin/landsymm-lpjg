@@ -727,11 +727,11 @@ for f = 1:length(bl_map_fields)
     thisField = bl_map_fields{f} ;
     eval(['maps_' thisField ' = renameStructField(lastdec_tmp.' thisField ',''maps_YXvy'',''maps_YXvyB'') ;']) ;
 end
-last41yrs_tmp = load([baselineDir 'last_41yrs.mat']) ;
-bl_map_fields = fieldnames(last41yrs_tmp) ;
+last30yrs_tmp = load([baselineDir 'last_30yrs.mat']) ;
+bl_map_fields = fieldnames(last30yrs_tmp) ;
 for f = 1:length(bl_map_fields)
     thisField = bl_map_fields{f} ;
-    eval(['maps_' thisField ' = renameStructField(last41yrs_tmp.' thisField ',''maps_YXvy'',''maps_YXvyB'') ;']) ;
+    eval(['maps_' thisField ' = renameStructField(last30yrs_tmp.' thisField ',''maps_YXvs'',''maps_YXvsB'') ;']) ;
 end
 
 % Get variable names
@@ -766,7 +766,7 @@ for r = 1:Nruns
     have_expYields = any(is_expYields) ;
     firstdec_tmp = load([runDirs{r} 'first_decade.mat']) ;
     lastdec_tmp = load([runDirs{r} 'last_decade.mat']) ;
-    last41yrs_tmp = load([runDirs{r} 'last_41yrs.mat']) ;
+    last30yrs_tmp = load([runDirs{r} 'last_30yrs.mat']) ;
     if r == 1
         if length(ts_tmp.LUarea_ts_bare) > Nyears_fu
             Nyears_2trim = length(ts_tmp.LUarea_ts_bare) - Nyears_fu ;
@@ -804,7 +804,7 @@ for r = 1:Nruns
             thisVar_out = strrep(thisVar_in,'maps_','') ;
             
             % If not present in future run, remove from analysis
-            if ~(isfield(firstdec_tmp,thisVar_out) || isfield(lastdec_tmp,thisVar_out) || isfield(last41yrs_tmp,thisVar_out))
+            if ~(isfield(firstdec_tmp,thisVar_out) || isfield(lastdec_tmp,thisVar_out) || isfield(last30yrs_tmp,thisVar_out))
                 warning([thisVar_out ' not found in future run ' num2str(r) '. Removing.']) ;
                 clear(thisVar_in)
                 continue
@@ -814,8 +814,8 @@ for r = 1:Nruns
                 eval([thisVar_in '.maps_YXvyr = nan([size(firstdec_tmp.' thisVar_out '.maps_YXvy) Nruns],''single'') ;']) ;
             elseif contains(thisVar_in,'_d9')
                 eval([thisVar_in '.maps_YXvyr = nan([size(lastdec_tmp.' thisVar_out '.maps_YXvy) Nruns],''single'') ;']) ;
-            elseif contains(thisVar_in,'_last41')
-                eval([thisVar_in '.maps_YXvyr = nan([size(last41yrs_tmp.' thisVar_out '.maps_YXvy) Nruns],''single'') ;']) ;
+            elseif contains(thisVar_in,'_last30')
+                eval([thisVar_in '.maps_YXvsr = nan([size(last30yrs_tmp.' thisVar_out '.maps_YXvs) Nruns],''single'') ;']) ;
             else
                 error('How did this happen?')
             end
@@ -911,24 +911,36 @@ for r = 1:Nruns
             else
                 eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = lastdec_tmp.' thisVar_out '.maps_YXvy ;']) ;
             end
-        elseif contains(thisVar_in,'last41')
-            if ~isfield(last41yrs_tmp,thisVar_out)
+        elseif contains(thisVar_in,'last30')
+            if ~isfield(last30yrs_tmp,thisVar_out)
                 warning([thisVar_in ' not found in future run ' num2str(r) '. Removing.']) ;
                 vars_maps_bl_toRemove(v) = true ;
                 eval(['clear ' thisVar_in]) ;
                 continue
             end
-            eval(['isequal_varNames = isequal(' thisVar_in '.varNames, last41yrs_tmp.' thisVar_out '.varNames) ; ']) ;
+            eval(['isequal_varNames = isequal(' thisVar_in '.varNames, last30yrs_tmp.' thisVar_out '.varNames) ; ']) ;
             if ~isequal_varNames
-                eval(['isequal_varNames_afterSort = isequal(sort(' thisVar_in '.varNames), sort(last41yrs_tmp.' thisVar_out '.varNames)) ; ']) ;
+                eval(['isequal_varNames_afterSort = isequal(sort(' thisVar_in '.varNames), sort(last30yrs_tmp.' thisVar_out '.varNames)) ; ']) ;
                 if ~isequal_varNames_afterSort
                     error(['~isequal_varNames (' thisVar_in '). Not fixable.'])
                 end
                 warning(['~isequal_varNames (' thisVar_in '). Fixing.'])
-                eval(['[~,~,IB] = intersect(' thisVar_in '.varNames,last41yrs_tmp.' thisVar_out '.varNames,''stable'') ;']) ;
-                eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = last41yrs_tmp.' thisVar_out '.maps_YXvy(:,:,IB,:) ;']) ;
+                eval(['[~,~,IB] = intersect(' thisVar_in '.varNames,last30yrs_tmp.' thisVar_out '.varNames,''stable'') ;']) ;
+                eval([thisVar_in '.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_YXvs(:,:,IB,:) ;']) ;
             else
-                eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = last41yrs_tmp.' thisVar_out '.maps_YXvy ;']) ;
+                eval([thisVar_in '.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_YXvs ;']) ;
+            end
+            eval(['isequal_statList = isequal(' thisVar_in '.statList, last30yrs_tmp.' thisVar_out '.statList) ; ']) ;
+            if ~isequal_statList
+                eval(['isequal_varNames_afterSort = isequal(sort(' thisVar_in '.statList), sort(last30yrs_tmp.' thisVar_out '.statList)) ; ']) ;
+                if ~isequal_varNames_afterSort
+                    error(['~isequal_statList (' thisVar_in '). Not fixable.'])
+                end
+                warning(['~isequal_statList (' thisVar_in '). Fixing.'])
+                eval(['[~,~,IB] = intersect(' thisVar_in '.statList,last30yrs_tmp.' thisVar_out '.statList,''stable'') ;']) ;
+                eval([thisVar_in '.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_YXvs(:,:,:,IB) ;']) ;
+            else
+                eval([thisVar_in '.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_YXvs ;']) ;
             end
         else
             error('How did this happen?')
@@ -952,11 +964,11 @@ for r = 1:Nruns
             maps_yieldExp_d9.maps_YXvyr(:,:,:,:,r) = lastdec_tmp.expyield_d9.maps_YXvy ;
         end
     end
-    if isfield(last41yrs_tmp,'expyield_last41')
+    if isfield(last30yrs_tmp,'expyield_last30')
         if r == 1
-            maps_yieldExp_last41 = renameStructField(last41yrs_tmp.expyield_last41,'maps_YXvy','maps_YXvyr') ;
+            maps_yieldExp_last30 = renameStructField(last30yrs_tmp.expyield_last30,'maps_YXvs','maps_YXvsr') ;
         else
-            maps_yieldExp_last41.maps_YXvyr(:,:,:,:,r) = last41yrs_tmp.expyield_last41.maps_YXvy ;
+            maps_yieldExp_last30.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.expyield_last30.maps_YXvs ;
         end
     end
     
