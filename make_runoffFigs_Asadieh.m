@@ -42,9 +42,11 @@ else
     thisTitle = '10-year highest monthly runoff' ;
 end
 
-% Re-weight, including only included grid cells, as in Asadieh & Krakauer
+% Asadieh & Krakauer (2017) do not re-weight (their Table 1 sums to 75.9%
+% of land area)
 land_area_weights_YX(below_thresh_YX) = NaN ;
-land_area_weights_YX = land_area_weights_YX ./ nansum(nansum(land_area_weights_YX)) ;
+% land_area_weights_YX = land_area_weights_YX ./
+% nansum(nansum(land_area_weights_YX)) ; % Re-weight
 
 pctDiff_YXr = nan(size(pXX_q21c_YXr)) ;
 figure('Color','w','Position',figurePos) ;
