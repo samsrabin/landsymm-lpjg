@@ -90,6 +90,26 @@ for c = 1:Nvars
         rowInfo{c,1} = [rowInfo{c,1} '*'] ;
         clear thisVar_yr
         
+    elseif any(strcmp({'tot_runoff','aevapaaet'}, thisVar))
+        % Use last 30 years of each century
+        ts_thisVarTMP_bl = eval(['ts_' thisVar '_bl(yearList_baseline>=1971 & yearList_baseline<=2000) ;']) ;
+        ts_thisVarTMP_yr = eval(['ts_' thisVar '_yr(yearList_future>=2071 & yearList_future<=2100,:) ;']) ;
+        mean_endh_v(c) = thisConv*mean(ts_thisVarTMP_bl) ;
+        mean_endf_vr(c,:) = thisConv*mean(ts_thisVarTMP_yr,1) ;
+        clear tmp_endh_y tmp_endf_yr
+        if strcmp(sd_or_sem,'st. dev.')
+            errb_endh_v(c) = thisConv*std(ts_thisVarTMP_bl) ;
+            errb_endf_vr(c,:) = thisConv*std(ts_thisVarTMP_yr, 1) ;
+        else
+            errb_endh_v(c) = thisConv*sem_ssr(ts_thisVarTMP_bl) ;
+            errb_endf_vr(c,:) = thisConv*sem_ssr(ts_thisVarTMP_yr, years_endf) ;
+        end
+        % Add marker indicating difference is from last 3 decades, not
+        % years_endh and years_endf
+        if ~any_notFirstDecade
+            any_notFirstDecade = true ;
+        end
+        rowInfo{c,1} = [rowInfo{c,1} '^#'] ;
     else
         % Is this per-capita?
         is_percapita = contains(thisVar,'PC') ;
