@@ -1,5 +1,13 @@
 %% Setup
 
+% Define raster reference object and missing value
+R = georasterref('RasterSize', [360 720], ...
+    'RasterInterpretation', 'cells', ...
+    'ColumnsStartFrom', 'north', ...
+    'LatitudeLimits', [-90 90], ...
+    'LongitudeLimits', [-180 180]) ;
+gtif_missing = -1e20 ;
+
 % Define function to calculate sem
 sem_ssr = @(data,yrs) std(data,find(size(data)==length(yrs))) / sqrt(length(yrs)) ;
 
@@ -534,6 +542,7 @@ Nyears_fu = length(yearList_future) ;
 outDir_base = addslashifneeded(['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
                            'figures_' thisVer '_SI']) ;
 outDir_maps = addslashifneeded([outDir_base 'maps']) ;
+outDir_gtif = addslashifneeded([outDir_base 'gtif']) ;
 outDir_ts = [outDir_base 'TS'] ;
 if rebase
     outDir_ts = addslashifneeded([outDir_ts '_rebased']) ;
@@ -546,6 +555,9 @@ if ~exist(outDir_ts,'dir')
 end
 if ~exist(outDir_maps,'dir')
     mkdir(outDir_maps)
+end
+if ~exist(outDir_gtif,'dir')
+    mkdir(outDir_gtif)
 end
 
 % Conversion factors
@@ -989,6 +1001,7 @@ gcel_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 gcel_area_YX(nanmask) = NaN ;
 tmp = land_area_YXqd(:,1:2:1440) + land_area_YXqd(:,2:2:1440) ;
 land_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
+land_area_unmasked_YX = land_area_YX ;
 land_area_YX(nanmask) = NaN ;
 %%% Convert to m2
 land_area_YX = land_area_YX*1e6 ;
@@ -1547,6 +1560,10 @@ clear monLengths monWeights
 % Area-weighted time series
 land_area_weights_YX = land_area_YX ./ nansum(nansum(land_area_YX)) ;
 if abs(nansum(nansum(land_area_weights_YX)) - 1) > 1e-9
+    error('Problem with area weights!')
+end
+land_area_unmasked_weights_YX = land_area_unmasked_YX ./ nansum(nansum(land_area_unmasked_YX)) ;
+if abs(nansum(nansum(land_area_unmasked_weights_YX)) - 1) > 1e-9
     error('Problem with area weights!')
 end
 ts_temp_bl = nan(Nyears_bl,1) ;

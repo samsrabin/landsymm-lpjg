@@ -67,324 +67,6 @@ years_endf = 2091:2100 ;
 run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import.m') ;
 
 
-%% Map differences from end of historical to end of future: Total N loss
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'nloss'] ;
-title_text = 'total N loss' ;
-sumvars = {'flux','leach'} ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-% conv_fact_map = 1 ;   % kgN/m2
-% units_map = 'kgN m^{-2} yr ^{-1}' ;
-conv_fact_map = gcel_area_YX*cf_kg2Tg*1e3 ;   % kgN/m2 to GgN
-units_map = 'GgN yr ^{-1}' ;
-conv_fact_total = cf_kg2Tg ;   % kgN to TgN
-units_total = 'TgN yr ^{-1}' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = 99 ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: Gaseous N loss
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'nloss_gas'] ;
-title_text = 'gaseous N loss' ;
-sumvars = 'flux' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1 ;   % kgN/m2
-units_map = 'kgN m^{-2} yr ^{-1}' ;
-conv_fact_total = cf_kg2Tg ;   % kgN to TgN
-units_total = 'TgN yr ^{-1}' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = 99 ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: Dissolved N loss
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'nloss_liq'] ;
-title_text = 'dissolved N loss' ;
-sumvars = 'leach' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1 ;   % kgN/m2
-units_map = 'kgN m^{-2} yr ^{-1}' ;
-conv_fact_total = cf_kg2Tg ;   % kgN to TgN
-units_total = 'TgN yr ^{-1}' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = 99 ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: Isoprene emissions 
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'bvoc_iso'] ;
-title_text = 'isoprene emissions' ;
-sumvars = 'Total' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1e-3 ;   % mgC/m2 to gC/m2
-units_map = 'gC m^{-2} yr ^{-1}' ;
-conv_fact_total = 1e-6*cf_kg2Tg ;   % mgC to TgC
-units_total = 'TgC yr ^{-1}' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_aiso_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: Monoterpene emissions
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'bvoc_mon'] ;
-title_text = 'monoterpene emissions' ;
-sumvars = 'Total' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1e-3 ;   % mgC/m2 to gC/m2
-units_map = 'gC m^{-2} yr ^{-1}' ;
-conv_fact_total = 1e-6*cf_kg2Tg ;   % mgC to TgC
-units_total = 'TgC yr ^{-1}' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_amon_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: January albedo
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'albedo_jan'] ;
-title_text = 'January albedo' ;
-sumvars = 'January' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1 ;   % unitless
-units_map = 'unitless' ;
-conv_fact_total = 1 ;   % unitless
-units_total = '' ;
-this_land_area_map = vegd_area_YXmean/nansum(nansum(vegd_area_YXmean)) ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: July albedo
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'albedo_jul'] ;
-title_text = 'July albedo' ;
-sumvars = 'July' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1 ;   % unitless
-units_map = 'unitless' ;
-conv_fact_total = 1 ;   % unitless
-units_total = '' ;
-this_land_area_map = vegd_area_YXmean/nansum(nansum(vegd_area_YXmean)) ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: Vegetation C
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'cpool_veg'] ;
-title_text = 'vegetation C' ;
-sumvars = 'VegC' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1e-3*1e4 ;   % kgC/m2 to tonsC/ha
-units_map = 'tons C ha^{-1}' ;
-conv_fact_total = cf_kg2Pg ;   % kgC to PgC
-units_total = 'PgC' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: Total C
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'cpool_tot'] ;
-title_text = 'total C' ;
-sumvars = 'Total' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1e-3*1e4 ;   % kgC/m2 to tonsC/ha
-units_map = 'tons C ha^{-1}' ;
-conv_fact_total = cf_kg2Pg ;   % kgC to PgC
-units_total = 'PgC' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: Evapotranspiration
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'water_evapotransp'] ;
-title_text = 'evapotranspiration' ;
-sumvars = {'Evap','Transp'} ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1 ;   % mm
-units_map = 'mm yr^{-1}' ;
-conv_fact_total = 1e-3*cf_m3_to_km3*1e-3 ;   % mm to 1000 km3
-units_total = '1000 km^3 yr^{-1}' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-if all_figs
-    do_map_run_diffs_fromEndHist(do_save, maps_awater_d9, sumvars, title_text, filename_base, ...
-        equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-        thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-        conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-end
-
-
-%% Map differences from end of historical to end of future: Annual runoff
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'water_runoff'] ;
-title_text = 'annual runoff' ;
-sumvars = 'Runoff' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1 ;   % mm
-units_map = 'mm yr^{-1}' ;
-conv_fact_total = 1e-3*cf_m3_to_km3*1e-3 ;   % mm to 1000 km3
-units_total = '1000 km^3 yr^{-1}' ;
-this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-do_map_run_diffs_fromEndHist(do_save, maps_awater_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-
-
-%% Map differences from end of historical to end of future: Peak runoff
-
-% Options %%%%%%%%%
-filename_base = [outDir_maps 'water_runoff_peak'] ;
-title_text = 'peak monthly runoff' ;
-sumvars = 'Max' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
-conv_fact_map = 1 ;   % mm
-units_map = 'mm mon^{-1}' ;
-conv_fact_total = [] ;   % Left empty to avoid calculation of total
-units_total = '' ;
-this_land_area_map = [] ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
-%%%%%%%%%%%%%%%%%%%
-
-if all_figs
-    do_map_run_diffs_fromEndHist(do_save, maps_pk_runoff_d9, sumvars, title_text, filename_base, ...
-        equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-        thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-        conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim) ;
-end
-
-
 %% Big bar graph: Drivers
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -609,6 +291,443 @@ if do_save
     writetable(table_out,[outDir_base 'summary_table_nobegf.xlsx'],'Sheet',1) ;
 end
 disp('Done making table.')
+
+
+%% Map areas with changing drought/flood risk
+% Based on Asadieh & Krakauer (2017). Their DROUGHT RISK indicator was the
+% 5th percentile of ANNUAL streamflow, whereas their FLOODING indicator was
+% the 95th percentile of DAILY streamflow. I don't have daily runoff data,
+% so I'll have to use MONTHLY for FLOOD RISK.
+
+spacing = [0.03, 0.03] ;   % v, h
+norm_ticks = [1.5 2 3 5 10 Inf] ; % Tick marks: Multiply q20 by this to get q21
+fontSize = 14 ;
+fontSize_text = 14 ;
+Ystart = 69 ;
+
+do_norm = false ;
+
+% Change in 10-year lowest annual runoff
+pctDiff_YXr = make_runoffFigs_Asadieh( ...
+    maps_mon_runoff_last30, maps_awater_last30, runList, 'drought', land_area_unmasked_weights_YX, ...
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
+if do_save
+    export_fig([outDir_maps 'pkRunoff_drought_last3decs_20th-21st.png'],['-r' num2str(pngres)])
+    for r = 1:Nruns
+        thisYX = pctDiff_YXr(:,:,r) ;
+        thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.%s.tif', ...
+            outDir_gtif, runList{r}) ;
+        geotiffwrite_ssr(thisFile, thisYX, R, gtif_missing) ;
+    end
+    close
+end
+
+% Map land use contribution to 10-year lowest annual runoff (percentage points)
+%%% Calculated as fully-varying minus constLU. This means that LU legacy
+%%% effects are NOT included in these numbers---only NEW land use changes.
+if contains(thisVer, 'attr')
+     LUCcont_drought_YX = ...
+        map_contribution(pctDiff_YXr, continents_shp, ...
+        {runList{1}, 'constLU'}, runList, ...
+        'thisTitle', 'LUC contribution to declining 10-year lowest annual runoff', ...
+        'units_map', 'Percentage points', ...
+        'nanmask_YX', pctDiff_YXr(:,:,1)>0, ...
+        'latlim', [-60 80], ...
+        'thisColormap', 'rdbu_ssr', ...
+        'fontSize', 14, ...
+        'edgeColor', 0.6*ones(3,1), ...
+        'lineWidth', 1, ...
+        'cbarOrient', 'SouthOutside', ...
+        'caxis_lims', 100*[-1 1]) ;
+    if do_save
+        export_fig([outDir_maps 'pkRunoff_drought_last3decs_20th-21st.LUCcont.png'],['-r' num2str(pngres)])
+        thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.LUCcont.tif', ...
+            outDir_gtif) ;
+        geotiffwrite_ssr(thisFile, LUCcont_drought_YX, R, gtif_missing) ;
+        close
+    end
+end
+
+% Change in 10-year highest monthly runoff
+pctDiff_YXr = make_runoffFigs_Asadieh( ...
+    maps_mon_runoff_last30, maps_awater_last30, runList, 'flood', land_area_unmasked_weights_YX, ...
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
+if do_save
+    export_fig([outDir_maps 'pkRunoff_flood_last3decs_20th-21st.png'],['-r' num2str(pngres)])
+    for r = 1:Nruns
+        thisYX = pctDiff_YXr(:,:,r) ;
+        thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st.%s.tif', ...
+            outDir_gtif, runList{r}) ;
+        geotiffwrite_ssr(thisFile, thisYX, R, gtif_missing) ;
+    end
+    close
+end
+
+% Map land use contribution to 10-year highest monthly runoff (percentage points)
+%%% Calculated as fully-varying minus constLU. This means that LU legacy
+%%% effects are NOT included in these numbers---only NEW land use changes.
+if contains(thisVer, 'attr')
+    LUCcont_flood_YX = ...
+        map_contribution(pctDiff_YXr, continents_shp, ...
+        {runList{1}, 'constLU'}, runList, ...
+        'thisTitle', 'LUC contribution to increasing 10-year highest monthly runoff', ...
+        'units_map', 'Percentage points', ...
+        'nanmask_YX', pctDiff_YXr(:,:,1)<0, ...
+        'latlim', [-60 80], ...
+        'thisColormap', 'rdbu_ssr', ...
+        'fontSize', 14, ...
+        'edgeColor', 0.6*ones(3,1), ...
+        'lineWidth', 1, ...
+        'cbarOrient', 'SouthOutside', ...
+        'caxis_lims', 100*[-1 1]) ;
+    if do_save
+        export_fig([outDir_maps 'pkRunoff_flood_last3decs_20th-21st.LUCcont.png'],['-r' num2str(pngres)])
+        thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st.LUCcont.tif', ...
+            outDir_gtif) ;
+        geotiffwrite_ssr(thisFile, LUCcont_flood_YX, R, gtif_missing) ;
+        close
+    end
+end
+
+do_norm = true ;
+
+% Normalized change in 10-year lowest annual runoff
+make_runoffFigs_Asadieh( ...
+    maps_mon_runoff_last30, maps_awater_last30, runList, 'drought', land_area_unmasked_weights_YX, ...
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
+if do_save
+    export_fig([outDir_maps 'pkRunoff_drought_last3decs_20th-21st.norm.png'],['-r' num2str(pngres)])
+    close
+end
+
+% Normalized change in 10-year highest monthly runoff
+make_runoffFigs_Asadieh( ...
+    maps_mon_runoff_last30, maps_awater_last30, runList, 'flood', land_area_unmasked_weights_YX, ...
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
+if do_save
+    export_fig([outDir_maps 'pkRunoff_flood_last3decs_20th-21st.norm.png'],['-r' num2str(pngres)])
+    close
+end
+
+stop
+
+
+%% Map differences from end of historical to end of future: Total N loss
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'nloss'] ;
+title_text = 'total N loss' ;
+sumvars = {'flux','leach'} ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+% conv_fact_map = 1 ;   % kgN/m2
+% units_map = 'kgN m^{-2} yr ^{-1}' ;
+conv_fact_map = gcel_area_YX*cf_kg2Tg*1e3 ;   % kgN/m2 to GgN
+units_map = 'GgN yr ^{-1}' ;
+conv_fact_total = cf_kg2Tg ;   % kgN to TgN
+units_total = 'TgN yr ^{-1}' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = 99 ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: Gaseous N loss
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'nloss_gas'] ;
+title_text = 'gaseous N loss' ;
+sumvars = 'flux' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1 ;   % kgN/m2
+units_map = 'kgN m^{-2} yr ^{-1}' ;
+conv_fact_total = cf_kg2Tg ;   % kgN to TgN
+units_total = 'TgN yr ^{-1}' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = 99 ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: Dissolved N loss
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'nloss_liq'] ;
+title_text = 'dissolved N loss' ;
+sumvars = 'leach' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1 ;   % kgN/m2
+units_map = 'kgN m^{-2} yr ^{-1}' ;
+conv_fact_total = cf_kg2Tg ;   % kgN to TgN
+units_total = 'TgN yr ^{-1}' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = 99 ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_nflux_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: Isoprene emissions 
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'bvoc_iso'] ;
+title_text = 'isoprene emissions' ;
+sumvars = 'Total' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1e-3 ;   % mgC/m2 to gC/m2
+units_map = 'gC m^{-2} yr ^{-1}' ;
+conv_fact_total = 1e-6*cf_kg2Tg ;   % mgC to TgC
+units_total = 'TgC yr ^{-1}' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_aiso_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: Monoterpene emissions
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'bvoc_mon'] ;
+title_text = 'monoterpene emissions' ;
+sumvars = 'Total' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1e-3 ;   % mgC/m2 to gC/m2
+units_map = 'gC m^{-2} yr ^{-1}' ;
+conv_fact_total = 1e-6*cf_kg2Tg ;   % mgC to TgC
+units_total = 'TgC yr ^{-1}' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_amon_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: January albedo
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'albedo_jan'] ;
+title_text = 'January albedo' ;
+sumvars = 'January' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1 ;   % unitless
+units_map = 'unitless' ;
+conv_fact_total = 1 ;   % unitless
+units_total = '' ;
+this_land_area_map = vegd_area_YXmean/nansum(nansum(vegd_area_YXmean)) ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: July albedo
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'albedo_jul'] ;
+title_text = 'July albedo' ;
+sumvars = 'July' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1 ;   % unitless
+units_map = 'unitless' ;
+conv_fact_total = 1 ;   % unitless
+units_total = '' ;
+this_land_area_map = vegd_area_YXmean/nansum(nansum(vegd_area_YXmean)) ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_albedo_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: Vegetation C
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'cpool_veg'] ;
+title_text = 'vegetation C' ;
+sumvars = 'VegC' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1e-3*1e4 ;   % kgC/m2 to tonsC/ha
+units_map = 'tons C ha^{-1}' ;
+conv_fact_total = cf_kg2Pg ;   % kgC to PgC
+units_total = 'PgC' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: Total C
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'cpool_tot'] ;
+title_text = 'total C' ;
+sumvars = 'Total' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1e-3*1e4 ;   % kgC/m2 to tonsC/ha
+units_map = 'tons C ha^{-1}' ;
+conv_fact_total = cf_kg2Pg ;   % kgC to PgC
+units_total = 'PgC' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: Evapotranspiration
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'water_evapotransp'] ;
+title_text = 'evapotranspiration' ;
+sumvars = {'Evap','Transp'} ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1 ;   % mm
+units_map = 'mm yr^{-1}' ;
+conv_fact_total = 1e-3*cf_m3_to_km3*1e-3 ;   % mm to 1000 km3
+units_total = '1000 km^3 yr^{-1}' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+if all_figs
+    do_map_run_diffs_fromEndHist(do_save, maps_awater_d9, sumvars, title_text, filename_base, ...
+        equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+        thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+        conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+end
+
+
+%% Map differences from end of historical to end of future: Annual runoff
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'water_runoff'] ;
+title_text = 'annual runoff' ;
+sumvars = 'Runoff' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1 ;   % mm
+units_map = 'mm yr^{-1}' ;
+conv_fact_total = 1e-3*cf_m3_to_km3*1e-3 ;   % mm to 1000 km3
+units_total = '1000 km^3 yr^{-1}' ;
+this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+do_map_run_diffs_fromEndHist(do_save, maps_awater_d9, sumvars, title_text, filename_base, ...
+    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+
+
+%% Map differences from end of historical to end of future: Peak runoff
+
+% Options %%%%%%%%%
+filename_base = [outDir_maps 'water_runoff_peak'] ;
+title_text = 'peak monthly runoff' ;
+sumvars = 'Max' ;
+pct_clim = 100 ;
+equalize_cbars = true ;
+conv_fact_map = 1 ;   % mm
+units_map = 'mm mon^{-1}' ;
+conv_fact_total = [] ;   % Left empty to avoid calculation of total
+units_total = '' ;
+this_land_area_map = [] ; % Set to [] if not needed to calculate total
+prctile_clim = [] ;
+%%%%%%%%%%%%%%%%%%%
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
+thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.05] ;% [v h]
+%%%%%%%%%%%%%%%%%%%
+
+if all_figs
+    do_map_run_diffs_fromEndHist(do_save, maps_pk_runoff_d9, sumvars, title_text, filename_base, ...
+        equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+        thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+        conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+end
 
 
 %% Map changes in LU area: End-Historical to End-Future
@@ -997,103 +1116,6 @@ end
 %         close
 %     end
 % end
-
-
-%% Map areas with changing drought/flood risk
-% Based on Asadieh & Krakauer (2017). Their DROUGHT RISK indicator was the
-% 5th percentile of ANNUAL streamflow, whereas their FLOODING indicator was
-% the 95th percentile of DAILY streamflow. I don't have daily runoff data,
-% so I'll have to use MONTHLY for FLOOD RISK.
-
-spacing = [0.03, 0.03] ;   % v, h
-norm_ticks = [1.5 2 3 5 10 Inf] ; % Tick marks: Multiply q20 by this to get q21
-fontSize = 14 ;
-fontSize_text = 14 ;
-Ystart = 69 ;
-
-do_norm = false ;
-
-% Change in 10-year lowest annual runoff
-pctDiff_YXr = make_runoffFigs_Asadieh( ...
-    maps_mon_runoff_last30, maps_awater_last30, runList, 'drought', land_area_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
-if do_save
-    export_fig([outDir_maps 'pkRunoff_drought_2000s-2090s.png'],['-r' num2str(pngres)])
-    close
-end
-
-% Map land use contribution to 10-year lowest annual runoff (percentage points)
-%%% Calculated as fully-varying minus constLU. This means that LU legacy
-%%% effects are NOT included in these numbers---only NEW land use changes.
-if contains(thisVer, 'attr')
-    map_contribution(pctDiff_YXr, continents_shp, ...
-        {runList{1}, 'constLU'}, runList, ...
-        'thisTitle', 'LUC contribution to declining 10-year lowest annual runoff', ...
-        'units_map', 'Percentage points', ...
-        'nanmask_YX', pctDiff_YXr(:,:,1)>0, ...
-        'latlim', [-60 80], ...
-        'thisColormap', 'rdbu_ssr', ...
-        'fontSize', 14, ...
-        'edgeColor', 0.6*ones(3,1), ...
-        'lineWidth', 1, ...
-        'cbarOrient', 'SouthOutside', ...
-        'caxis_lims', 100*[-1 1])
-    if do_save
-        export_fig([outDir_maps 'pkRunoff_drought_2000s-2090s.LUCcont.png'],['-r' num2str(pngres)])
-        close
-    end
-end
-
-% Change in 10-year highest monthly runoff
-pctDiff_YXr = make_runoffFigs_Asadieh( ...
-    maps_mon_runoff_last30, maps_awater_last30, runList, 'flood', land_area_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
-if do_save
-    export_fig([outDir_maps 'pkRunoff_flood_2010s-2090s.png'],['-r' num2str(pngres)])
-    close
-end
-
-% Map land use contribution to 10-year highest monthly runoff (percentage points)
-%%% Calculated as fully-varying minus constLU. This means that LU legacy
-%%% effects are NOT included in these numbers---only NEW land use changes.
-if contains(thisVer, 'attr')
-    map_contribution(pctDiff_YXr, continents_shp, ...
-        {runList{1}, 'constLU'}, runList, ...
-        'thisTitle', 'LUC contribution to increasing 10-year highest monthly runoff', ...
-        'units_map', 'Percentage points', ...
-        'nanmask_YX', pctDiff_YXr(:,:,1)<0, ...
-        'latlim', [-60 80], ...
-        'thisColormap', 'rdbu_ssr', ...
-        'fontSize', 14, ...
-        'edgeColor', 0.6*ones(3,1), ...
-        'lineWidth', 1, ...
-        'cbarOrient', 'SouthOutside', ...
-        'caxis_lims', 100*[-1 1])
-    if do_save
-        export_fig([outDir_maps 'pkRunoff_flood_2010s-2090s.LUCcont.png'],['-r' num2str(pngres)])
-        close
-    end
-end
-
-do_norm = true ;
-
-% Normalized change in 10-year lowest annual runoff
-make_runoffFigs_Asadieh( ...
-    maps_mon_runoff_last30, maps_awater_last30, runList, 'drought', land_area_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
-if do_save
-    export_fig([outDir_maps 'pkRunoff_drought_2010s-2090s.norm.png'],['-r' num2str(pngres)])
-    close
-end
-
-% Normalized change in 10-year highest monthly runoff
-make_runoffFigs_Asadieh( ...
-    maps_mon_runoff_last30, maps_awater_last30, runList, 'flood', land_area_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
-if do_save
-    export_fig([outDir_maps 'pkRunoff_flood_2010s-2090s.norm.png'],['-r' num2str(pngres)])
-    close
-end
 
 
 %% Plot timeseries: Land uses

@@ -2,10 +2,10 @@ function do_map_run_diffs_fromEndHist(do_save, maps_d9, sumvars, title_text, fil
     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, ...
-    pct_clim, prctile_clim)
+    pct_clim, prctile_clim, R, gtif_missing)
 
 do_pct = false ;
-map_run_diffs_fromEndHist(maps_d9, title_text, sumvars, ...
+maps_YXr = map_run_diffs_fromEndHist(maps_d9, title_text, sumvars, ...
     do_pct, equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, ...
@@ -23,11 +23,12 @@ if do_save
     end
     filename = [filename '_2000s-2090s.png'] ;
     export_fig(filename,['-r' num2str(pngres)])
+    save_geotiffs(maps_YXr, filename, runList, R, gtif_missing)
     close
 end
 
 do_pct = true ;
-map_run_diffs_fromEndHist(maps_d9, title_text, sumvars, ...
+maps_YXr = map_run_diffs_fromEndHist(maps_d9, title_text, sumvars, ...
     do_pct, equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, ...
@@ -45,8 +46,22 @@ if do_save
     end
     filename = [filename '_2000s-2090s.png'] ;
     export_fig(filename,['-r' num2str(pngres)])
+    save_geotiffs(maps_YXr, filename, runList, R, gtif_missing)
     close
 end
 
 
 end
+
+
+function save_geotiffs(maps_YXr, filename, runList, R, gtif_missing)
+
+for r = 1:length(runList)
+    thisYX = maps_YXr(:,:,r) ;
+    thisFile = strrep(filename,'.png',['.' runList{r} '.tif']) ;
+    thisFile = strrep(thisFile, '/maps/', '/gtif/') ;
+    geotiffwrite_ssr(thisFile, thisYX, R, gtif_missing) ;
+end
+
+end
+

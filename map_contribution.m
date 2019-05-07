@@ -1,4 +1,4 @@
-function map_contribution(maps_YXr, shapefile_path, theseRuns, runList, varargin)
+function thisMap_YX = map_contribution(maps_YXr, shapefile_path, theseRuns, runList, varargin)
 
 % Set up & parse input arguments
 p = inputParser ;

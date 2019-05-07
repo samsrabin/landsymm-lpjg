@@ -1,4 +1,4 @@
-function map_run_diffs_fromEndHist( ...
+function maps_YXr = map_run_diffs_fromEndHist( ...
     maps_d9, title_text, sumvars, ...
     do_pct, equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, land_area_YX, ...
@@ -22,6 +22,7 @@ endh_YXmean = mean(endh_YXy,3) ;
 clim_max = 0 ;
 hs = [] ;
 hcbs = [] ;
+maps_YXr = nan([size(land_area_YX) Nruns]) ;
 for r = 1:Nruns
     hs(r) = subplot_tight(ny,nx,r,spacing) ;
     
@@ -34,6 +35,7 @@ for r = 1:Nruns
     else
         map = (endf_YXmean - endh_YXmean) .* conv_fact_map ;
     end
+    maps_YXr(:,:,r) = map ;
     
     % Make plot
     pcolor(map(69:end,:)) ; shading flat ; axis equal tight off
