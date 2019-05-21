@@ -82,31 +82,33 @@ figure_position = [1    33   720   772] ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [0.5 3.5 7.5] ;
+where2sep = [0.5 3.5 6.5] ;
 sep_labels = {...
     'Exogenous forcing'; ...
-    'Agricultural commodity demand'; ...
-    'Projected land management';
+    'Land use & management'; ...
+    'Crop demand and production';
     } ;
 rowInfo = { ...
            % Exogenous inputs
            'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'billion' ;
            '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
            'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
-           % PLUM demand calculations
-%            'Ruminant demand', 'demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
-%            'Monogastric demand', 'demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-           'Crop demand', 'demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-           'Crop prod.', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
-%            'Ruminant demand', 'demandPC.ruminants', 1, ' %.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
-%            'Monogastric demand', 'demandPC.monogastrics', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
-%            'Crop demand', 'demandPC.crops', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
-%            'Crop prod.', 'kcalPC', 1/365, '%.0f', '%.0f', 'kcal person^{-1} day^{-1}' ;
-           % PLUM management outputs
+           % Land use & management
            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
 %            'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
            'Fertilizer', 'nflux_fert', -1e-9, '%.0f', '%.0f', 'TgN' ;
            'Irrigation', 'irrig', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
+           % Demand and production
+%            'Ruminant demand', 'Demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
+%            'Monogastric demand', 'Demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Crop demand (wt.)', 'Demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Crop prod. (wt.)', 'cropprod', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+%            'Crop demand (kcal)', 'Demand_kcal.crops', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
+%            'Crop prod. (cal)', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
+%            'Ruminant demand', 'DemandPC.ruminants', 1, ' %.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
+%            'Monogastric demand', 'DemandPC.monogastrics', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
+%            'Crop demand', 'DemandPC.crops', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
+%            'Crop prod.', 'kcalPC', 1/365, '%.0f', '%.0f', 'kcal person^{-1} day^{-1}' ;
            } ;
 
        
@@ -2275,6 +2277,64 @@ if do_save
 end
 
 
+%% Plot timeseries: Production (weight)
+
+% Options %%%%%%%%%
+plum_area_adjustment = 1 ;
+% plum_area_adjustment = 1-0.28 ;
+
+lpjg_area_adjustment = 1 ;
+% lpjg_area_adjustment = ts_LUarea_crop0_bl ./ ts_LUarea_crop_bl ;
+
+lineWidth = 2 ;
+fontSize = 22 ;
+ignYrs = 0 ;
+Nsmth = 1 ;
+figurePosition = [1 376 1440 429] ;
+%%%%%%%%%%%%%%%%%%%
+
+[tmp_ts_cropprod_yr, title_suffix, file_suffix] = ...
+    rebase_future2baseline(rebase, Nsmth, ts_cropprod_bl, ts_cropprod_yr, ignYrs, yearList_future) ;
+
+% Adjust for technology change, if doing so (do not include FAO!)
+tmp_ts_cropprod_bl = ts_cropprod_bl ;
+if do_adjYieldTech
+    file_suffix = [file_suffix '_techAdj'] ;
+%     title_suffix = [title_suffix ' (techAdj)'] ;
+end
+
+% Adjust for unhandled crops, if doing so (DO include FAO)
+tmp_ts_cropprod_fao = ts_cropprod_fao ;
+if ~isequal(lpjg_area_adjustment,1)
+    tmp_ts_cropprod_bl = tmp_ts_cropprod_bl .* lpjg_area_adjustment ;
+    [~,IA] = intersect(yearList_baseline,fao.tmp_fao_yearList) ;
+    tmp_ts_cropprod_fao = tmp_ts_cropprod_fao .* lpjg_area_adjustment(IA) ;
+    title_suffix = [title_suffix ' (blAdj)'] ;
+    file_suffix = [file_suffix '_blAdj'] ;
+end
+if plum_area_adjustment ~= 1
+    tmp_ts_cropprod_yr = tmp_ts_cropprod_yr * plum_area_adjustment ;
+    title_suffix = [title_suffix ' (PLUM\times' num2str(plum_area_adjustment) ')'] ;
+    file_suffix = [file_suffix '_plumAdj' num2str(plum_area_adjustment)] ;
+end
+
+figure('Position',figurePosition,'Color','w') ;
+
+plot_timeseries(...
+    yearList_baseline, fao.tmp_fao_yearList, yearList_future, ...
+    tmp_ts_cropprod_bl, tmp_ts_cropprod_fao, tmp_ts_cropprod_yr, ...
+    cf_kg2Pg, Nsmth, ...
+    'Dry matter (Gt)', stdLegend_plusFAO, 'Crop production', ...
+    title_suffix, lineWidth, fontSize, skip3rdColor) ;
+clear tmp_*
+
+if do_save
+    export_fig([outDir_ts 'cropprod_total' file_suffix '.pdf'])
+    close
+end
+
+
+
 %% Plot timeseries: Calories
 
 % Options %%%%%%%%%
@@ -2285,7 +2345,7 @@ lpjg_area_adjustment = 1 ;
 % lpjg_area_adjustment = ts_LUarea_crop0_bl ./ ts_LUarea_crop_bl ;
 
 lineWidth = 2 ;
-fontSize = 14 ;
+fontSize = 22 ;
 ignYrs = 0 ;
 Nsmth = 1 ;
 figurePosition = [1 376 1440 429] ;
@@ -2298,7 +2358,7 @@ figurePosition = [1 376 1440 429] ;
 tmp_ts_kcal_bl = ts_kcal_bl ;
 if do_adjYieldTech
     file_suffix = [file_suffix '_techAdj'] ;
-    title_suffix = [title_suffix ' (techAdj)'] ;
+%     title_suffix = [title_suffix ' (techAdj)'] ;
 end
 
 % Adjust for unhandled crops, if doing so (DO include FAO)

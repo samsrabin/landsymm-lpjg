@@ -1250,6 +1250,22 @@ maps_pk_runoff_d1.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
 maps_pk_runoff_d9.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
 maps_pk_runoff_d9.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
 
+% Total crop production
+tmp = whos('ts_cropprod_*') ;
+tmp_name = {tmp.name}' ;
+ts_cropprod_bl = zeros(size(Nyears_bl,1)) ;
+ts_cropprod_fao = zeros(size(Nyears_bl,1)) ;
+ts_cropprod_yr = zeros(size(Nyears_bl,Nruns)) ;
+for i = 1:length(tmp_name)
+    thisCrop = strrep(strrep(strrep(strrep(tmp_name{i},'ts_cropprod_',''),'_bl',''),'_yr',''),'_fao','') ;
+    if strcmp(thisCrop,'Miscanthus')
+        continue
+    end
+    thisSuffix = strrep(tmp_name{i},['ts_cropprod_' thisCrop '_'],'') ;
+    eval(sprintf('ts_cropprod_%s = ts_cropprod_%s + %s ;', ...
+        thisSuffix, thisSuffix, tmp_name{i})) ;
+end ; clear i
+
 disp('Done performing secondary calculations.')
 
 
@@ -1314,7 +1330,7 @@ clear pop_ycr_interpd rearranged
 pop_yr = squeeze(sum(pop_ycr,2)) ;
 
 
-%% Import global demand (Mt)
+%% Import global demand (Mt to kg, kcal)
 
 disp('Importing global demand...')
 
@@ -1349,6 +1365,17 @@ Ncommods = length(commods) ;
 
 % Convert Mt to kg
 ts_commodDemand_yvr = ts_commodDemand_yvr * 1e6*1e3 ;
+
+% Get calories (crops only)
+ts_commodDemand_kcal_yvr = nan(Nyears_PLUMout, Ncommods, Nruns) ;
+for ii = 1:length(i_crop)
+    thisCrop = commods{i_crop(ii)} ;
+    disp(thisCrop)
+    kcal_per_g = get_kcalDensity2(thisCrop) ;
+    kcal_per_kg = 1e3 * kcal_per_g ;
+    ts_commodDemand_kcal_yvr(:,ii,:) = kcal_per_kg*ts_commodDemand_yvr(:,ii,:) ;
+end
+ts_commodDemand_kcal_yvr(:,strcmp(commods,'crops'),:) = nansum(ts_commodDemand_kcal_yvr,2) ;
 
 % Get per-capita demand (kg/person)
 if ~isequal(shiftdim(yearList_pop), shiftdim(yearList_PLUMout))

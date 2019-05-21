@@ -31,23 +31,29 @@ for c = 1:Nvars
             errb_endf_vr(c,:) = sem_ssr(area_endf_yr, years_endf) ;
         end
         
-    elseif contains(thisVar,'demand')
+    elseif contains(thisVar,'emand')
         % Which commodity
-        thisCommod = strsplit(thisVar,'.') ;
-        thisCommod = thisCommod{2} ;
+        thisVar_spl = strsplit(thisVar,'.') ;
+        thisDemand = thisVar_spl{1} ;
+        thisCommod = thisVar_spl{2} ;
+        clear thisVar_spl
         i = find(strcmp(commods,thisCommod)) ;
         % Get difference from first year to last decade
-        if contains(thisVar,'demandPC')
-            ts_commodDemandTMP_1ir = ts_commodDemandPC_yvr(1,i,:) ;
-            ts_commodDemandTMP_Fir = ts_commodDemandPC_yvr(ok_years,i,:) ;
-        else
-            ts_commodDemandTMP_1ir = ts_commodDemand_yvr(1,i,:) ;
-            ts_commodDemandTMP_Fir = ts_commodDemand_yvr(ok_years,i,:) ;
-        end
+        eval(sprintf(...
+            'ts_commodDemandTMP_1ir = ts_commod%s_yvr(1,i,:) ;', ...
+            thisDemand)) ;
+        eval(sprintf(...
+            'ts_commodDemandTMP_Fir = ts_commod%s_yvr(ok_years,i,:) ;', ...
+            thisDemand)) ;
         if length(unique(ts_commodDemandTMP_1ir)) > 1
             error('This code assumes all runs have identical 2010 demand!')
         end
-        mean_endh_v(c) = thisConv*ts_commodDemandTMP_1ir(:,:,1) ;
+        try
+            mean_endh_v(c) = thisConv*ts_commodDemandTMP_1ir(:,:,1) ;
+        catch ME
+            keyboard
+        end
+        
         clear ts_commodDemandTMP_1ir
         errb_endh_v(c) = 0 ;
         ok_years = yearList_PLUMout>=min(years_endf) & yearList_PLUMout<=max(years_endf) ;
@@ -133,7 +139,12 @@ for c = 1:Nvars
         end
         
         % Get means and variation
-        ts_thisVarTMP_bl = eval(['ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)) ;']) ;
+        try
+            ts_thisVarTMP_bl = eval(['ts_' thisVar '_bl(yearList_baseline>=min(years_endh) & yearList_baseline<=max(years_endh)) ;']) ;
+        catch ME
+            keyboard
+        end
+
         ts_thisVarTMP_yr = eval(['ts_' thisVar '_yr(yearList_future>=min(years_endf) & yearList_future<=max(years_endf),:) ;']) ;
         if is_percapita
             [~,IA] = intersect(yearList_pop, years_endh) ;
