@@ -1278,6 +1278,8 @@ hotspot_YX(nanmask) = NaN ;
 hotspot_YX = 1==hotspot_YX ;
 hotspot_area_YX = hotspot_YX.*gcel_area_YX ;
 
+hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
+
 
 %% Import population
 

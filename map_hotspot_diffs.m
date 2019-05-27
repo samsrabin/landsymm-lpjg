@@ -3,7 +3,7 @@ function map_hotspot_diffs(...
     spacing, latlim, edgecolor, cbarOrient, fontSize, ...
     textX, textY_1, textY_2, ssp_plot_index, lineWidth, ...
     yearList_baseline, yearList_future, runList, ...
-    conv_fact_map, conv_fact_total, units_map, units_total)
+    conv_fact_map, conv_fact_total, units_map, units_total, do_caps)
 
 bground = nan(size(hotspot_diff_YXr(:,:,1))) ;
 bground(~isnan(mean(hotspot_diff_YXr,3))) = 1 ;
@@ -32,7 +32,8 @@ total_bl = conv_fact_total*nansum(nansum(hotspot_area_YXB)) ;
 t0 = text(textX,textY_1,sprintf('%0.1f %s', total_bl, units_total),'FontSize',fontSize+2) ;
 set(t0,'Position',[textX/720 textY_1/360 0],'Units','normalized')
 set(t0,'Position',[textX/720 textY_1/360 0],'Units','normalized')
-title(['BD hotspot area, ' num2str(yearList_baseline(end)) ' (km^2)'])
+ht = title(['BD hotspot area, ' num2str(yearList_baseline(end)) ' (km^2)']) ;
+letterlabel_align0(char(1 + 64),ht,do_caps) ;
 colorlim = 0 ;
 
 caxis_lims = max(max(max(conv_fact_map*abs(hotspot_diff_YXr)))) ;
@@ -53,9 +54,14 @@ for r = 1:Nruns
                 'caxis_lims', caxis_lims, ...
                 'units_map', units_map) ;
 %     title(['\Delta BD hotspot area, ' num2str(yearList_future(end)) ': ' runList{r} ' (km^2)'])
-    title(runList{r})
+    ht = title(runList{r}) ;
+    letterlabel_align0(char(ssp_plot_index(r) + 64),ht,do_caps) ;
     total_yr = conv_fact_total*nansum(nansum(hotspot_diff_YXr(:,:,r))) ;
-    t1 = text(textX,textY_1,sprintf('%0.1f %s', total_yr, units_total),'FontSize',fontSize+2) ;
+    if total_yr>0
+        t1 = text(textX,textY_1,sprintf('+%0.1f %s', total_yr, units_total),'FontSize',fontSize+2) ;
+    else
+        t1 = text(textX,textY_1,sprintf('%0.1f %s', total_yr, units_total),'FontSize',fontSize+2) ;
+    end
     set(t1,'Position',[textX/720 textY_1/360 0],'Units','normalized')
     set(t1,'Position',[textX/720 textY_1/360 0],'Units','normalized')
     pctDiff = round(100*total_yr./total_bl,1) ;

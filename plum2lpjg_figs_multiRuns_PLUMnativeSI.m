@@ -2577,29 +2577,18 @@ units_map = 'km^2' ;
 units_total = 'Mkm^2' ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    
 % Biodiversity hotspots
-hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
-hotspot_YX = dlmread('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_raster.txt',...
-    ' ', 6, 0) ;
-hotspot_YX(hotspot_YX==-9999) = NaN ;
-hotspot_YX(:,721) = [] ;
-hotspot_YX = flipud(hotspot_YX) ;
-hotspot_YX(nanmask) = NaN ;
-hotspot_YX(~nanmask & isnan(hotspot_YX)) = 0 ;
-hotspot_area_YX = hotspot_YX.*land_area_YX ;
-hotspot_area_YXB = hotspot_area_YX .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),end) ;
-% hotspot_area_YXB = hotspot_area_YX ;
-hotspot_area_YXr = repmat(hotspot_area_YX,[1 1 Nruns]) .* squeeze(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),end,:)) ;
-
-hotspot_diff_YXr = hotspot_area_YXr - repmat(hotspot_area_YXB,[1 1 Nruns]) ;
+hotspot_area_YXy = repmat(hotspot_area_YX, [1 1 length(years_endh)]) ;
+hotspot_area_YXB = mean(hotspot_area_YXy .* permute(maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:),[1 2 4 3]),3) ;
+hotspot_area_YXyr = repmat(hotspot_area_YXy,[1 1 1 Nruns]) .* permute(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:,:),[1 2 4 5 3]) ;
+hotspot_diff_YXr = squeeze(mean(hotspot_area_YXyr,3) - repmat(hotspot_area_YXB,[1 1 1 Nruns])) ;
 
 map_hotspot_diffs(...
     hotspot_area_YXB, hotspot_diff_YXr, hotspot_YX, hotspot_shp, ...
     spacing, latlim, edgecolor, cbarOrient, fontSize, ...
     textX, textY_1, textY_2, ssp_plot_index, lineWidth, ...
     yearList_baseline, yearList_future, runList, ...
-    conv_fact_map, conv_fact_total, units_map, units_total)
+    conv_fact_map, conv_fact_total, units_map, units_total, do_caps)
 
 if do_save
     export_fig( ...
