@@ -6,6 +6,10 @@ function [h, caxis_max] = make_LUdiff_fig_v3(...
     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, ...
     do_caps)
 
+% this_colormap_name = 'RdBu_ssr' ;
+% this_colormap_name = '-PRGn_ssr' ;
+this_colormap_name = '-PiYG_ssr' ;
+
 total_crop_bl = nansum(nansum(crop_area_YXB)) ;
 total_past_bl = nansum(nansum(past_area_YXB)) ;
 
@@ -47,7 +51,7 @@ for r = 1:Nruns
         spacing, fontSize, textX, textY_1, textY_2, ...
         nx, ny, i1, i2, colorBarLoc, ...
         conv_fact_map, conv_fact_total, units_map, units_total, ...
-        do_caps, only1bl) ;
+        do_caps, only1bl, this_colormap_name) ;
     caxis(hc,[-max(abs(caxis(hc))) max(abs(caxis(hc)))])
     caxis(hp,[-max(abs(caxis(hp))) max(abs(caxis(hp)))])
     gcas_crop = [gcas_crop hc] ;
@@ -70,7 +74,17 @@ function [hc, hp, caxis_max_crop, caxis_max_past, ht] = actually_make_fig(...
     spacing, fontSize, textX, textY_1, textY_2, ...
     nx, ny, i1, i2, colorBarLoc, ...
     conv_fact_map, conv_fact_total, units_map, units_total, ...
-    do_caps, only1bl)
+    do_caps, only1bl, this_colormap_name)
+
+flip_colormap = false ;
+if strcmp(this_colormap_name(1),'-')
+    flip_colormap = true ;
+    this_colormap_name = this_colormap_name(2:end) ;
+end
+this_colormap = brighten(brewermap(64,this_colormap_name),-0.3) ;
+if flip_colormap
+    this_colormap = flipud(this_colormap) ;
+end
 
 % Cropland
 if ~isempty(crop_area_YXB) && isempty(total_crop_bl)
@@ -79,7 +93,7 @@ end
 subplot_tight(ny,nx,i1,spacing) ;
 pcolor(diff_crop_YX(69:end,:)) ; shading flat ; axis equal tight off
 colorbar(colorBarLoc)
-colormap(gca,brighten(brewermap(64,'RdBu_ssr'),-0.3))
+colormap(gca,this_colormap)
 set(gca,'XTick',[],'YTick',[])
 set(gca,'FontSize',fontSize)
 ht = title(['\Delta cropland area, ' num2str(yN) ': ' runName2 ' (' units_map ')']) ;
@@ -105,7 +119,7 @@ end
 subplot_tight(ny,nx,i2,spacing) ;
 pcolor(diff_past_YX(69:end,:)) ; shading flat ; axis equal tight off
 colorbar(colorBarLoc)
-colormap(gca,brighten(brewermap(64,'RdBu_ssr'),-0.3))
+colormap(gca,this_colormap)
 set(gca,'XTick',[],'YTick',[])
 set(gca,'FontSize',fontSize)
 ht = title(['\Delta pasture area, ' num2str(yN) ': ' runName2 ' (' units_map ')']) ;
