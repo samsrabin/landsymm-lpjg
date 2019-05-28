@@ -1372,7 +1372,6 @@ ts_commodDemand_yvr = ts_commodDemand_yvr * 1e6*1e3 ;
 ts_commodDemand_kcal_yvr = nan(Nyears_PLUMout, Ncommods, Nruns) ;
 for ii = 1:length(i_crop)
     thisCrop = commods{i_crop(ii)} ;
-    disp(thisCrop)
     kcal_per_g = get_kcalDensity2(thisCrop) ;
     kcal_per_kg = 1e3 * kcal_per_g ;
     ts_commodDemand_kcal_yvr(:,ii,:) = kcal_per_kg*ts_commodDemand_yvr(:,ii,:) ;
@@ -1386,6 +1385,142 @@ end
 pop_yvr = repmat(permute(pop_yr,[1 3 2]), [1 size(ts_commodDemand_yvr,2) 1]) ;
 ts_commodDemandPC_yvr = ts_commodDemand_yvr ./ pop_yvr ;
 clear pop_yvr
+
+
+%% Import per-country demand/production/imports (Mt to kg, kcal)
+
+disp('Importing per-country demand/production/imports...')
+
+warning('off','MATLAB:table:ModifiedAndSavedVarnames')
+combine_cereals_dom = false ;
+for r = 1:Nruns
+    thisDir = runDirs_plum{r} ;
+    thisTable_dem = readtable(sprintf('%s/countryDemand.txt', thisDir)) ;
+    [~,~,sortCols] = intersect({'Country','Commodity','Year'},thisTable_dem.Properties.VariableNames, 'stable') ;
+    thisTable_dem = sortrows(thisTable_dem,sortCols) ; % Needed to produce _ymur dimensioned array
+    thisTable_dom = readtable(sprintf('%s/domestic.txt', thisDir)) ;
+    [~,~,sortCols] = intersect({'Country','Crop','Year'},thisTable_dom.Properties.VariableNames, 'stable') ;
+    thisTable_dom = sortrows(thisTable_dom,sortCols) ; % Needed to produce _ymur dimensioned array
+    thisTable_dom(contains(thisTable_dom.Crop,{'energycrops','setaside','pasture'}),:) = [] ;
+    thisTable_dom.Net_imports = cellfun(@str2num,thisTable_dom.Net_imports) ;
+    if r==1
+        commods_dem = commods(~strcmp(commods,'crops') & ~strcmp(commods,'livestock')) ;
+        Ncommods_dem = length(commods_dem) ;
+        if ~isequal(commods_dem,unique(thisTable_dem.Commodity))
+            error('Mismatch in commodity list between countryDemand.txt and countryDemand.txt') ;
+        elseif ~isequal(yearList_PLUMout,unique(thisTable_dem.Year))
+            error('Mismatch in year list between countryDemand.txt and countryDemand.txt') ;
+        end
+        commods_dom = unique(thisTable_dom.Crop) ;
+        Ncommods_dom = length(commods_dom) ;
+        if ~isequal(commods_dem,commods_dom)
+            commods_dom_tmp = commods_dom ;
+            commods_dom_tmp(contains(commods_dom,{'rice','wheat'})) = [] ;
+            commods_dom_tmp(strcmp(commods_dom,'maize')) = {'cereals'} ;
+            if ~isequal(commods_dem, commods_dom_tmp)
+                error('Mismatch in commodity list between domestic.txt and countryDemand.txt; can''t be fixed by combining cereals (at least with current method)')
+            end
+            clear commods_dom_tmp
+            warning('Mismatch in commodity list between domestic.txt and countryDemand.txt. Fixing by combining cereals.') ;
+            combine_cereals_dom = true ;
+        elseif ~isequal(yearList_PLUMout,unique(thisTable_dom.Year))
+            error('Mismatch in year list between domestic.txt and countryDemand.txt') ;
+        end
+        countryList_dem = unique(thisTable_dem.Country) ;
+        Ncountries_dem = length(countryList_dem) ;
+        ts_countryDemand_ymur = nan(Nyears_PLUMout, Ncommods_dem, Ncountries_dem, Nruns) ;
+        ts_countryProd_ymur = nan(Nyears_PLUMout, Ncommods_dom, Ncountries_dem, Nruns) ;
+        ts_countryImps_ymur = nan(Nyears_PLUMout, Ncommods_dom, Ncountries_dem, Nruns) ;
+        ts_countryFrum_ymur = nan(Nyears_PLUMout, Ncommods_dom, Ncountries_dem, Nruns) ;
+        ts_countryFmon_ymur = nan(Nyears_PLUMout, Ncommods_dom, Ncountries_dem, Nruns) ;
+    end
+    ts_countryDemand_ymur(:,:,:,r) = reshape(thisTable_dem.Demand,[Nyears_PLUMout Ncommods_dem Ncountries_dem]) ;
+    ts_countryProd_ymur(:,:,:,r) = reshape(thisTable_dom.Production,[Nyears_PLUMout Ncommods_dom Ncountries_dem]) ;
+    ts_countryImps_ymur(:,:,:,r) = reshape(thisTable_dom.Net_imports,[Nyears_PLUMout Ncommods_dom Ncountries_dem]) ;
+    ts_countryFrum_ymur(:,:,:,r) = reshape(thisTable_dom.Rum_feed_amount,[Nyears_PLUMout Ncommods_dom Ncountries_dem]) ;
+    ts_countryFmon_ymur(:,:,:,r) = reshape(thisTable_dom.Mon_feed_amount,[Nyears_PLUMout Ncommods_dom Ncountries_dem]) ;
+    clear thisDir thisTable* sortCols
+end
+warning('on','MATLAB:table:ModifiedAndSavedVarnames')
+
+if combine_cereals_dom
+    ts_countryProd_ymur(:,strcmp(commods_dom,'maize'),:,:) = ...
+        sum(ts_countryProd_ymur(:,contains(commods_dom,{'maize','rice','wheat'}),:,:),2) ;
+    ts_countryProd_ymur(:,contains(commods_dom,{'rice','wheat'}),:,:) = [] ;
+    ts_countryImps_ymur(:,strcmp(commods_dom,'maize'),:,:) = ...
+        sum(ts_countryImps_ymur(:,contains(commods_dom,{'maize','rice','wheat'}),:,:),2) ;
+    ts_countryImps_ymur(:,contains(commods_dom,{'rice','wheat'}),:,:) = [] ;
+    ts_countryFrum_ymur(:,strcmp(commods_dom,'maize'),:,:) = ...
+        sum(ts_countryFrum_ymur(:,contains(commods_dom,{'maize','rice','wheat'}),:,:),2) ;
+    ts_countryFrum_ymur(:,contains(commods_dom,{'rice','wheat'}),:,:) = [] ;
+    ts_countryFmon_ymur(:,strcmp(commods_dom,'maize'),:,:) = ...
+        sum(ts_countryFmon_ymur(:,contains(commods_dom,{'maize','rice','wheat'}),:,:),2) ;
+    ts_countryFmon_ymur(:,contains(commods_dom,{'rice','wheat'}),:,:) = [] ;
+end
+clear *commods_dom
+
+% Add total crop and livestock demand/production/imports
+commods_livestock = {'ruminants','monogastrics'} ;
+[~, i_crop] = setdiff(commods_dem, commods_livestock) ;
+ts_countryDemand_ymur(:,end+1,:,:) = sum(ts_countryDemand_ymur(:,i_crop,:,:),2) ;
+ts_countryProd_ymur(:,end+1,:,:) = sum(ts_countryProd_ymur(:,i_crop,:,:),2) ;
+ts_countryImps_ymur(:,end+1,:,:) = sum(ts_countryImps_ymur(:,i_crop,:,:),2) ;
+ts_countryFrum_ymur(:,end+1,:,:) = sum(ts_countryFrum_ymur(:,i_crop,:,:),2) ;
+ts_countryFmon_ymur(:,end+1,:,:) = sum(ts_countryFmon_ymur(:,i_crop,:,:),2) ;
+[~, i_livestock] = intersect(commods_dem, commods_livestock) ;
+ts_countryDemand_ymur(:,end+1,:,:) = sum(ts_countryDemand_ymur(:,i_livestock,:,:),2) ;
+ts_countryProd_ymur(:,end+1,:,:) = sum(ts_countryProd_ymur(:,i_livestock,:,:),2) ;
+ts_countryImps_ymur(:,end+1,:,:) = sum(ts_countryImps_ymur(:,i_livestock,:,:),2) ;
+ts_countryFrum_ymur(:,end+1,:,:) = sum(ts_countryFrum_ymur(:,i_livestock,:,:),2) ;
+ts_countryFmon_ymur(:,end+1,:,:) = sum(ts_countryFmon_ymur(:,i_livestock,:,:),2) ;
+
+% Convert Mt to kg
+ts_countryDemand_ymur = ts_countryDemand_ymur * 1e6*1e3 ;
+ts_countryProd_ymur = ts_countryProd_ymur * 1e6*1e3 ;
+ts_countryImps_ymur = ts_countryImps_ymur * 1e6*1e3 ;
+ts_countryFrum_ymur = ts_countryFrum_ymur * 1e6*1e3 ;
+ts_countryFmon_ymur = ts_countryFmon_ymur * 1e6*1e3 ;
+
+% Get seed/waste rate (Swrt), domestic production net of seed/waste losses
+% (Prodnet), and fraction of true demand satisfied by domestic production
+% (Self)
+ts_countryDemandWithFeed_ymur = ts_countryDemand_ymur + ts_countryFrum_ymur + ts_countryFmon_ymur ;
+ts_countrySwrt_ymur = 1 - (ts_countryDemandWithFeed_ymur - ts_countryImps_ymur) ./ ts_countryProd_ymur ;
+ts_countrySwrt_ymur(ts_countryProd_ymur==0) = 0 ;
+if min(min(min(min(ts_countrySwrt_ymur)))) < 0
+    warning('Minimum value of ts_countrySwrt_ymur < 0 in %d cells (min %0.1f); setting to NaN', length(find(ts_countrySwrt_ymur<0)), min(min(min(min(ts_countrySwrt_ymur)))))
+    ts_countrySwrt_ymur(ts_countrySwrt_ymur<0) = NaN ;
+elseif max(max(max(max(ts_countrySwrt_ymur)))) > 1
+    error('Maximum value of ts_countrySwrt_ymur > 1 (%0.1f)', max(max(max(max(ts_countrySwrt_ymur)))))
+end
+ts_countryProdnet_ymur = ts_countryProd_ymur .* (1 - ts_countrySwrt_ymur) ;
+ts_countrySelf_ymur = ts_countryProdnet_ymur ./ ts_countryDemandWithFeed_ymur ;
+ts_countrySelf_ymur(ts_countryDemandWithFeed_ymur==0) = NaN ;
+ts_countrySelf_ymur(ts_countrySelf_ymur>1) = 1 ;
+% Sanity checks
+if min(min(min(min(ts_countrySelf_ymur)))) < 0
+    error('Minimum value of ts_countrySelf_ymur < 0 (%0.1f)', min(min(min(min(ts_countrySelf_ymur)))))
+elseif max(max(max(max(ts_countrySelf_ymur)))) > 1
+    error('Maximum value of ts_countrySelf_ymur > 1 (%0.1f)', max(max(max(max(ts_countrySelf_ymur)))))
+end
+
+% Get calories (crops only)
+ts_countryDemand_kcal_ymur = nan(Nyears_PLUMout, Ncommods, Ncountries_dem, Nruns) ;
+% ts_countryProd_kcal_ymur = nan(Nyears_PLUMout, Ncommods, Ncountries_dem, Nruns) ;
+% ts_countryImps_kcal_ymur = nan(Nyears_PLUMout, Ncommods, Ncountries_dem, Nruns) ;
+for ii = 1:length(i_crop)
+    thisCrop = commods{i_crop(ii)} ;
+    kcal_per_g = get_kcalDensity2(thisCrop) ;
+    kcal_per_kg = 1e3 * kcal_per_g ;
+    ts_countryDemand_kcal_ymur(:,ii,:,:) = kcal_per_kg*ts_countryDemand_ymur(:,ii,:,:) ;
+%     ts_countryProd_kcal_ymur(:,ii,:,:) = kcal_per_kg*ts_countryProd_ymur(:,ii,:,:) ;
+%     ts_countryImps_kcal_ymur(:,ii,:,:) = kcal_per_kg*ts_countryImps_ymur(:,ii,:,:) ;
+end
+ts_countryDemand_kcal_ymur(:,strcmp(commods,'crops'),:,:) = nansum(ts_countryDemand_kcal_ymur,2) ;
+% ts_countryProd_kcal_ymur(:,strcmp(commods,'crops'),:,:) = nansum(ts_countryProd_kcal_ymur,2) ;
+% ts_countryImps_kcal_ymur(:,strcmp(commods,'crops'),:,:) = nansum(ts_countryImps_kcal_ymur,2) ;
+
+clear *commods_dem
 
 
 %% Get CO2
