@@ -1036,7 +1036,7 @@ only1bl = true ;
 thisY1 = yearList_baseline(end) ;
 thisYN = yearList_future(end) ;
 
-make_LUdiff_fig_v3(...
+[diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v3(...
     crop_area_YXBH, past_area_YXBH, ...
     crop_diff_YXrF, past_diff_YXrF, ...
     thisY1, thisYN, 'Cropland', runList, ...
@@ -1044,9 +1044,19 @@ make_LUdiff_fig_v3(...
     nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
 if do_save
-    export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'],['-r' num2str(pngres)])
+    filename = [outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'] ;
+%     export_fig(filename,['-r' num2str(pngres)])
+    diff_agri_YXr = diff_crop_YXr + diff_past_YXr ;
+    filename_crop = strrep(filename,'croppast','crop') ;
+    filename_past = strrep(filename,'croppast','past') ;
+    filename_agri = strrep(filename,'croppast','agri') ;
+    save_geotiffs(diff_crop_YXr, filename_crop, runList, R, gtif_missing) ;
+    save_geotiffs(diff_past_YXr, filename_past, runList, R, gtif_missing) ;
+    save_geotiffs(diff_agri_YXr, filename_agri, runList, R, gtif_missing) ;
+    clear diff_agri_YXr filename*
     close
 end
+clear diff_crop_YXr diff_past_YXr
 
 
 %% Map changes in each crop area: End-Historical to End-Future
