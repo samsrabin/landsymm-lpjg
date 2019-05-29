@@ -905,13 +905,18 @@ if do_save
 end
 
 
-%% Plot timeseries: Per-country (or group) demand and expected production
+%% Plot timeseries: Per-country (or group) production and exports
 
 %%%%%%%%%%%%%%%
 % Options
 % thisCountry = {'United States of America','Canada'} ;
 % thisCountry = {'United States of America'} ;
-thisCountry = {'Germany Austria & Switzerland'} ;
+% thisCountry = {'Germany Austria & Switzerland'} ;
+thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
+    'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
+    'Southern Africa other', 'Sudan', 'Uganda', ...
+    'United Republic of Tanzania', 'West Africa'} ;
+% thisCountry = 'Russian Federation' ;
 thisPos = figurePos ;
 lineWidth = 2 ;
 spacing = [0.1 0.05] ; % [v h]
@@ -922,32 +927,52 @@ if ~exist('countryList_dem','var')
     import_country_demandEtc
 end
 
+if ischar(thisCountry)
+    thisCountry = {thisCountry} ;
+end
+
 [~,IA] = intersect(countryList_dem,thisCountry) ;
 if isempty(IA)
     error('No country match(es) found!')
 elseif length(IA) < length(thisCountry)
     error('Only %d of %d countries found!', length(IA), length(thisCountry))
 end
-ts_tmp_dmnd_ymr = squeeze(sum(ts_countryDemandWithFeed_ymur(:,:,IA,:),3)) ;
-ts_tmp_prod_ymr = squeeze(sum(ts_countryProd_ymur(:,:,IA,:),3)) ;
-ts_tmp_imps_ymr = squeeze(sum(ts_countryImps_ymur(:,:,IA,:),3)) ;
+ts_tmp_prod_ymr = squeeze(sum(ts_countryProdnet_ymur(:,:,IA,:),3)) ;
+ts_tmp_expt_ymr = squeeze(sum(-ts_countryImps_ymur(:,:,IA,:),3)) ;
+ts_tmp_expt_ymr(ts_tmp_expt_ymr<0) = 0 ;
 
-figure('Color','w','Position',thisPos) ;
+hf1 = figure('Color','w','Position',thisPos) ;
+hf2 = figure('Color','w','Position',thisPos) ;
 for m = 1:Ncommods
-    h = subplot_tight(2,4,m,spacing) ;
-    ts_tmp_dmnd_yr = squeeze(ts_tmp_dmnd_ymr(:,m,:)) ;
+    % Production (net of seed/other waste) and export numbers
+    set(0,'CurrentFigure',hf1) ;
     ts_tmp_prod_yr = squeeze(ts_tmp_prod_ymr(:,m,:)) ;
-    ts_tmp_imps_yr = squeeze(ts_tmp_imps_ymr(:,m,:)) ;
-    plot(yearList_PLUMout,ts_tmp_dmnd_yr,'-','LineWidth',lineWidth) ;
+    ts_tmp_expt_yr = squeeze(ts_tmp_expt_ymr(:,m,:)) ;
+    h = subplot_tight(2,4,m,spacing) ;
+    plot(yearList_PLUMout,ts_tmp_prod_yr,'-','LineWidth',lineWidth) ;
     hold on
     h.ColorOrderIndex = 1 ;
-    plot(yearList_PLUMout,ts_tmp_prod_yr,'--','LineWidth',lineWidth) ;
-    h.ColorOrderIndex = 1 ;
-    plot(yearList_PLUMout,ts_tmp_imps_yr,':','LineWidth',lineWidth) ;
-    if min(h.YLim)<0 && max(h.YLim)>0
-        plot(h.XLim,[0 0],':k')
-    end
+    plot(yearList_PLUMout,ts_tmp_expt_yr,':','LineWidth',lineWidth) ;
     hold off
+    if m==1
+        sgtitle(strjoin(thisCountry,' + '), ...
+            'FontSize', fontSize+6, ...
+            'FontWeight', 'Bold') ;
+    end
+    ylabel('Production (dotted = to exports)')
+    title(commods{m})
+    h.FontSize = fontSize ;
+    
+    % Fraction of net production going to (net) exports
+    set(0,'CurrentFigure',hf2) ;
+    h = subplot_tight(2,4,m,spacing) ;
+    plot(yearList_PLUMout,ts_tmp_expt_yr./ts_tmp_prod_yr,'-','LineWidth',lineWidth) ;
+    if m==1
+        sgtitle(strjoin(thisCountry,' + '), ...
+            'FontSize', fontSize+6, ...
+            'FontWeight', 'Bold') ;
+    end
+    ylabel('Fraction of demand to exports')
     title(commods{m})
     h.FontSize = fontSize ;
 end
@@ -960,7 +985,16 @@ end
 % thisCountry = {'United States of America','Canada'} ;
 % thisCountry = {'United States of America'} ;
 % thisCountry = {'Germany Austria & Switzerland'} ;
-thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan','Bangladesh'} ;
+% thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan','Bangladesh'} ;
+% thisCountry = {'Eastern Europe','France Netherlands & Benlex','Italy', ...
+%     'Germany Austria & Switzerland', 'Other former USSR', 'Poland', ...
+%     'Spain & Portugal', 'Ukraine', 'United Kingdom', 'ex-Yugoslavia'} ;
+% thisCountry = 'Russian Federation' ;
+% thisCountry = 'China' ;
+thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
+    'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
+    'Southern Africa other', 'Sudan', 'Uganda', ...
+    'United Republic of Tanzania', 'West Africa'} ;
 thisPos = figurePos ;
 lineWidth = 2 ;
 spacing = [0.1 0.05] ; % [v h]
@@ -973,32 +1007,43 @@ if ~exist('countryList_dem','var')
     import_country_demandEtc
 end
 
+if ischar(thisCountry)
+    thisCountry = {thisCountry} ;
+end
+
 [~,IA] = intersect(countryList_dem,thisCountry) ;
 if isempty(IA)
     error('No country match(es) found!')
 elseif length(IA) < length(thisCountry)
     error('Only %d of %d countries found!', length(IA), length(thisCountry))
 end
-ts_tmp_dmnd_ymr = squeeze(sum(ts_countryDemandWithFeed_ymur(:,:,IA,:),3)) ;
+ts_tmp_dmnd_ymr = squeeze(sum(ts_countryDemand_ymur(:,:,IA,:),3)) ;
+ts_tmp_dmndF_ymr = squeeze(sum(ts_countryDemandWithFeed_ymur(:,:,IA,:),3)) ;
 ts_tmp_self_ymr = squeeze(sum(ts_countryProdnet_ymur(:,:,IA,:),3) ./ sum(ts_countryDemandWithFeed_ymur(:,:,IA,:),3)) ;
 ts_tmp_self_ymr(ts_tmp_dmnd_ymr==0) = NaN ;
+ts_tmp_self_ymr(ts_tmp_dmndF_ymr==0) = NaN ;
 ts_tmp_self_ymr(ts_tmp_self_ymr>1) = 1 ;
 
 hf1 = figure('Color','w','Position',thisPos) ;
 hf2 = figure('Color','w','Position',thisPos) ;
 for m = 1:Ncommods
     % Demand
+    ts_tmp_dmnd_yr = squeeze(ts_tmp_dmnd_ymr(:,m,:)) ;
+    ts_tmp_dmndF_yr = squeeze(ts_tmp_dmndF_ymr(:,m,:)) ;
     set(0,'CurrentFigure',hf1) ;
     h = subplot_tight(2,4,m,spacing) ;
-    ts_tmp_dmnd_yr = squeeze(ts_tmp_dmnd_ymr(:,m,:)) ;
-    plot(yearList_PLUMout,ts_tmp_dmnd_yr,'-','LineWidth',lineWidth) ;
+    plot(yearList_PLUMout,ts_tmp_dmndF_yr,'-','LineWidth',lineWidth) ;
+    hold on
+    h.ColorOrderIndex = 1 ;
+    plot(yearList_PLUMout,ts_tmp_dmnd_yr,':','LineWidth',lineWidth) ;
+    hold off
     if m==1
         sgtitle(strjoin(thisCountry,' + '), ...
             'FontSize', fontSize+6, ...
             'FontWeight', 'Bold') ;
     end
     title(commods{m})
-    ylabel('DemandWithFeed')
+    ylabel('Demand (dotted = without feed)')
     legend(runList,'Location','Best')
     h.FontSize = fontSize ;
     

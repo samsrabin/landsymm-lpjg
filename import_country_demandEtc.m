@@ -101,11 +101,24 @@ ts_countryDemandWithFeed_ymur = ts_countryDemand_ymur + ts_countryFrum_ymur + ts
 ts_countrySwrt_ymur = 1 - (ts_countryDemandWithFeed_ymur - ts_countryImps_ymur) ./ ts_countryProd_ymur ;
 ts_countrySwrt_ymur(ts_countryProd_ymur==0) = 0 ;
 if min(min(min(min(ts_countrySwrt_ymur)))) < 0
-    warning('Minimum value of ts_countrySwrt_ymur < 0 in %d cells (min %0.1f); setting to NaN', length(find(ts_countrySwrt_ymur<0)), min(min(min(min(ts_countrySwrt_ymur)))))
+    bad_cells = find(ts_countrySwrt_ymur<0) ;
+    Nbad = length(bad_cells) ;
+    warning('Minimum value of ts_countrySwrt_ymur < 0 in %d cells (min %0.1f); setting to NaN', Nbad, min(min(min(min(ts_countrySwrt_ymur)))))
+    for ii = 1:min(Nbad,20)
+        [y, m, u, r] = ind2sub(size(ts_countrySwrt_ymur), bad_cells(ii)) ;
+        thisCtry = pad(countryList_dem{u}, max(cellfun(@length,countryList_dem)), 'left') ;
+        thisComm = pad(commods{m}, max(cellfun(@length,commods)), 'left') ;
+        fprintf('%s %d (%s) %s \t SWrate = %0.3g\n', ...
+            thisCtry, yearList_PLUMout(y), runList{r}, thisComm, ts_countrySwrt_ymur(bad_cells(ii))) ;
+    end
+    if Nbad > 20
+        fprintf('... and %d more\n', Nbad-20)
+    end
     ts_countrySwrt_ymur(ts_countrySwrt_ymur<0) = NaN ;
 elseif max(max(max(max(ts_countrySwrt_ymur)))) > 1
     error('Maximum value of ts_countrySwrt_ymur > 1 (%0.1f)', max(max(max(max(ts_countrySwrt_ymur)))))
 end
+
 ts_countryProdnet_ymur = ts_countryProd_ymur .* (1 - ts_countrySwrt_ymur) ;
 ts_countrySelf_ymur = ts_countryProdnet_ymur ./ ts_countryDemandWithFeed_ymur ;
 ts_countrySelf_ymur(ts_countryDemandWithFeed_ymur==0) = NaN ;
