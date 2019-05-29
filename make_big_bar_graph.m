@@ -1,3 +1,18 @@
+%% Import things if needed
+
+if any(any(strcmp(rowInfo,'co2'))) && ~exist('ts_co2_yr','var')
+    import_co2
+end
+
+if any(any(strcmp(rowInfo,'temp'))) && ~exist('ts_temp_yr','var')
+    import_temperature
+end
+
+
+%% Start bar graph
+
+disp('Making bar graph...')
+
 Nvars = size(rowInfo,1) ;
 mean_endh_v = nan(Nvars,1) ;
 mean_endf_vr = nan(Nvars,Nruns) ;
@@ -394,3 +409,5 @@ for x = 1:length(h_barLabels)
         thisH.Position = newPosition ;
     end
 end
+
+disp('Done.')

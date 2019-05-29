@@ -918,6 +918,10 @@ spacing = [0.1 0.05] ; % [v h]
 fontSize = 14 ;
 %%%%%%%%%%%%%%%
 
+if ~exist('countryList_dem','var')
+    import_country_demandEtc
+end
+
 [~,IA] = intersect(countryList_dem,thisCountry) ;
 if isempty(IA)
     error('No country match(es) found!')
@@ -964,6 +968,10 @@ fontSize = 14 ;
 units = 'kg' ;
 conv_fact = 1 ;
 %%%%%%%%%%%%%%%
+
+if ~exist('countryList_dem','var')
+    import_country_demandEtc
+end
 
 [~,IA] = intersect(countryList_dem,thisCountry) ;
 if isempty(IA)
