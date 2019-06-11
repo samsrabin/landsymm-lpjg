@@ -449,14 +449,16 @@ elseif strcmp(thisVer,'harm3_constClimCO2')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm3_S1R4.5_attr')
-    runList = {'SSP1-45','constLU','constClimCO2'} ;
-    runColNames = {'Full','constLU','constClimCO2'} ;
+    runList = {'SSP1-45','constLU','constClimCO2','constClim'} ;
+    runColNames = {'Full','constLU','constClimCO2','constClim'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm3_SSP1_RCP45/output-2019-02-27-103914' ;
         'LPJGPLUM_2011-2100_harm3_constLU_RCP45/output-2019-03-07-164549' ;
         'LPJGPLUM_2011-2100_harm3_SSP1_constCO2_constClim/output-2019-03-12-091426' ;
+        'LPJGPLUM_2011-2100_harm3_SSP1_RCP45co2_constClim/output-2019-03-07-164547' ;
         } ;
     runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
@@ -466,14 +468,16 @@ elseif strcmp(thisVer,'harm3_S1R4.5_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm3_S3R6.0_attr')
-    runList = {'SSP3-60','constLU','constClimCO2'} ;
-    runColNames = {'Full','constLU','constClimCO2'} ;
+    runList = {'SSP3-60','constLU','constClimCO2','constClim'} ;
+    runColNames = {'Full','constLU','constClimCO2','constClim'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm3_SSP3_RCP60/output-2019-02-27-093027' ;
         'LPJGPLUM_2011-2100_harm3_constLU_RCP60/output-2019-03-07-164546' ;
         'LPJGPLUM_2011-2100_harm3_SSP3_constCO2_constClim/output-2019-03-12-080759' ;
+        'LPJGPLUM_2011-2100_harm3_SSP3_RCP60co2_constClim/output-2019-03-07-164547' ;
         } ;
     runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
@@ -483,14 +487,16 @@ elseif strcmp(thisVer,'harm3_S3R6.0_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'harm3_S4R6.0_attr')
-    runList = {'SSP4-60','constLU','constClimCO2'} ;
-    runColNames = {'Full','constLU','constClimCO2'} ;
+    runList = {'SSP4-60','constLU','constClimCO2','constClim'} ;
+    runColNames = {'Full','constLU','constClimCO2','constClim'} ;
     runDirs = {
         'LPJGPLUM_2011-2100_harm3_SSP4_RCP60/output-2019-02-27-093259' ;
         'LPJGPLUM_2011-2100_harm3_constLU_RCP60/output-2019-03-07-164546' ;
         'LPJGPLUM_2011-2100_harm3_SSP4_constCO2_constClim/output-2019-03-12-083131' ;
+        'LPJGPLUM_2011-2100_harm3_SSP4_RCP60co2_constClim/output-2019-03-07-170847' ;
         } ;
     runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
         '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';

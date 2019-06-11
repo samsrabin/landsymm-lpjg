@@ -82,33 +82,36 @@ figure_position = [1    33   720   772] ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [0.5 3.5 6.5] ;
+where2sep = [0.5 3.5 5.5] ;
 sep_labels = {...
     'Exogenous forcing'; ...
-    'Land use & management'; ...
     'Crop demand and production';
+    'Land use & management'; ...
     } ;
 rowInfo = { ...
            % Exogenous inputs
            'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'billion' ;
            '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
            'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
-           % Land use & management
-           'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
-%            'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
-           'Fertilizer', 'nflux_fert', -1e-9, '%.0f', '%.0f', 'TgN' ;
-           'Irrigation', 'irrig', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
-           % Demand and production
-%            'Ruminant demand', 'Demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
+% Demand and production
+           'Crop demand', 'Demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Ruminant demand (feed-eq.)', 'Demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
 %            'Monogastric demand', 'Demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-           'Crop demand (wt.)', 'Demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-           'Crop prod. (wt.)', 'cropprod', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+%            'Crop prod. (wt.)', 'cropprod', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
 %            'Crop demand (kcal)', 'Demand_kcal.crops', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
 %            'Crop prod. (cal)', 'kcal', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
 %            'Ruminant demand', 'DemandPC.ruminants', 1, ' %.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
 %            'Monogastric demand', 'DemandPC.monogastrics', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
 %            'Crop demand', 'DemandPC.crops', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
 %            'Crop prod.', 'kcalPC', 1/365, '%.0f', '%.0f', 'kcal person^{-1} day^{-1}' ;
+
+           % Land use & management
+           'Area: Cropland', 'LUarea_crop', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+           'Area: Pasture', 'LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+%            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+%            'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
+           'Fertilizer', 'nflux_fert', -1e-9, '%.0f', '%.0f', 'TgN' ;
+           'Irrigation', 'irrig', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            } ;
 
        
@@ -293,6 +296,153 @@ if do_save
     writetable(table_out,[outDir_base 'summary_table_nobegf.xlsx'],'Sheet',1) ;
 end
 disp('Done making table.')
+
+
+%% Map changes in each crop yield: End-Historical to End-Future
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+thisPos = figurePos ;
+nx = 3 ;
+ny = 2 ;
+colorBarLoc = 'SouthOutside' ;
+conv_fact_map = cf_kgPm2_to_tonsPha ;   % m2 to km2
+conv_fact_total = [] ;   % Do not show total
+units_map = 'tons ha^{-1}' ;
+units_total = '' ;
+only1bl = true ;
+thisStat = 'yield' ;
+as_pct_change = true ;
+%%%%%%%%%%%%%%%%%%%
+
+thisY1 = yearList_baseline(end) ;
+thisYN = yearList_future(end) ;
+for c = 1:Ncrops
+    make_LUdiff_fig_v2p1(...
+        mean(maps_yield_d9.maps_YXvyB(:,:,c,:),4), squeeze(mean(maps_yield_d9.maps_YXvyr(:,:,c,:,:),4)), ...
+        thisY1, thisYN, maps_yield_d9.varNames{c}, runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps, ...
+        thisStat, as_pct_change) ;
+    
+    if do_save
+        if as_pct_change
+            thisForm = '%s/yieldPctDiff_%ds-%ds_%s.png' ;
+        else
+            thisForm = '%s/yieldDiff_%ds-%ds_%s.png' ;
+        end
+        this_filename = sprintf(thisForm, ...
+                removeslashifneeded(outDir_maps), thisY1, thisYN, maps_yield_d9.varNames{c}) ;
+        export_fig(this_filename, ['-r' num2str(pngres)])
+        close
+    end
+end
+
+
+%% Map changes in each crop fertilizer application: End-Historical to End-Future
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+thisPos = figurePos ;
+nx = 3 ;
+ny = 2 ;
+colorBarLoc = 'SouthOutside' ;
+conv_fact_map = 1e4 ;
+conv_fact_total = [] ;   % Do not show total
+units_map = 'kg N ha^{-1}' ;
+units_total = '' ;
+only1bl = true ;
+thisStat = 'fert. appl.' ;
+as_pct_change = true ;
+%%%%%%%%%%%%%%%%%%%
+
+maps_tmp_d9_YXvyB = maps_Nfert_d9.maps_YXvyB .* maps_cropareas_d9.maps_YXvyB ;
+maps_tmp_d9_YXvyr = maps_Nfert_d9.maps_YXvyr .* maps_cropareas_d9.maps_YXvyr ;
+
+thisY1 = yearList_baseline(end) ;
+thisYN = yearList_future(end) ;
+for c = 1:Ncrops
+    make_LUdiff_fig_v2p1(...
+        mean(maps_tmp_d9_YXvyB(:,:,c,:),4), squeeze(mean(maps_tmp_d9_YXvyr(:,:,c,:,:),4)), ...
+        thisY1, thisYN, maps_Nfert_d9.varNames{c}, runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps, ...
+        thisStat, as_pct_change) ;
+    
+    if do_save
+        if as_pct_change
+            thisForm = '%s/NfertTotalPctDiff_%ds-%ds_%s.png' ;
+        else
+            thisForm = '%s/NfertTotalDiff_%ds-%ds_%s.png' ;
+        end
+        this_filename = sprintf(thisForm, ...
+                removeslashifneeded(outDir_maps), thisY1, thisYN, maps_Nfert_d9.varNames{c}) ;
+        export_fig(this_filename, ['-r' num2str(pngres)])
+        close
+    end
+end
+
+
+%% Map changes in each crop irrigation use: End-Historical to End-Future
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+thisPos = figurePos ;
+nx = 3 ;
+ny = 2 ;
+colorBarLoc = 'SouthOutside' ;
+conv_fact_map = cf_m3_to_km3 ;
+conv_fact_total = [] ;   % Do not show total
+units_map = 'km^{-3}' ;
+units_total = '' ;
+only1bl = true ;
+thisStat = 'irrig.' ;
+as_pct_change = false ;
+%%%%%%%%%%%%%%%%%%%
+
+error('There''s something wrong with gsirr maps! No baseline rice irrigation, for example')
+
+[~,IA] = intersect(maps_cropareas_d9.varNames,maps_gsirrig_d9.varNames,'stable') ;
+maps_tmp_d9_YXvyB = maps_gsirrig_d9.maps_YXvyB(:,:,IA,:) .* maps_cropareas_d9.maps_YXvyB ;
+maps_tmp_d9_YXvyr = maps_gsirrig_d9.maps_YXvyr(:,:,IA,:,:) .* maps_cropareas_d9.maps_YXvyr ;
+
+thisY1 = yearList_baseline(end) ;
+thisYN = yearList_future(end) ;
+for c = 1:Ncrops
+    make_LUdiff_fig_v2p1(...
+        mean(maps_tmp_d9_YXvyB(:,:,c,:),4), squeeze(mean(maps_tmp_d9_YXvyr(:,:,c,:,:),4)), ...
+        thisY1, thisYN, maps_gsirrig_d9.varNames{c}, runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps, ...
+        thisStat, as_pct_change) ;
+    
+    if do_save
+        if as_pct_change
+            thisForm = '%s/IrrigTotalPctDiff_%ds-%ds_%s.png' ;
+        else
+            thisForm = '%s/IrrigTotalDiff_%ds-%ds_%s.png' ;
+        end
+        this_filename = sprintf(thisForm, ...
+                removeslashifneeded(outDir_maps), thisY1, thisYN, maps_Nfert_d9.varNames{c}) ;
+        export_fig(this_filename, ['-r' num2str(pngres)])
+        close
+    end
+end
 
 
 %% Map areas with changing drought/flood risk
@@ -639,9 +789,9 @@ units_total = 'PgC' ;
 this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
 prctile_clim = [] ;
 %%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 16 ;
+thisPos = [233 33 1208 772] ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
+spacing = [0.1 0.025] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
 do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filename_base, ...
@@ -907,16 +1057,20 @@ end
 
 %% Plot timeseries: Per-country (or group) production and exports
 
+thisCountry_short = '' ;
+
 %%%%%%%%%%%%%%%
 % Options
+thisYear = 2010 ;
 % thisCountry = {'United States of America','Canada'} ;
 % thisCountry = {'United States of America'} ;
 % thisCountry = {'Germany Austria & Switzerland'} ;
 thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
     'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
     'Southern Africa other', 'Sudan', 'Uganda', ...
-    'United Republic of Tanzania', 'West Africa'} ;
+    'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
 % thisCountry = 'Russian Federation' ;
+% thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan','Bangladesh'} ;
 thisPos = figurePos ;
 lineWidth = 2 ;
 spacing = [0.1 0.05] ; % [v h]
@@ -943,46 +1097,72 @@ ts_tmp_expt_ymr(ts_tmp_expt_ymr<0) = 0 ;
 
 hf1 = figure('Color','w','Position',thisPos) ;
 hf2 = figure('Color','w','Position',thisPos) ;
+hf3 = figure('Color','w','Position',thisPos) ;
 for m = 1:Ncommods
-    % Production (net of seed/other waste) and export numbers
-    set(0,'CurrentFigure',hf1) ;
+    
     ts_tmp_prod_yr = squeeze(ts_tmp_prod_ymr(:,m,:)) ;
     ts_tmp_expt_yr = squeeze(ts_tmp_expt_ymr(:,m,:)) ;
+
+    % Production (net of seed/other waste) and export numbers
+    set(0,'CurrentFigure',hf1) ;
     h = subplot_tight(2,4,m,spacing) ;
     plot(yearList_PLUMout,ts_tmp_prod_yr,'-','LineWidth',lineWidth) ;
     hold on
     h.ColorOrderIndex = 1 ;
     plot(yearList_PLUMout,ts_tmp_expt_yr,':','LineWidth',lineWidth) ;
     hold off
-    if m==1
-        sgtitle(strjoin(thisCountry,' + '), ...
-            'FontSize', fontSize+6, ...
-            'FontWeight', 'Bold') ;
-    end
-    ylabel('Production (dotted = to exports)')
+    ylabel('Prod. (dots=exports)')
+    title(commods{m})
+    h.FontSize = fontSize ;
+    
+    % Same, but as % change from thisYear
+    ts_tmp_prod_yr_pct = 100*(-1 + ts_tmp_prod_yr / ts_tmp_prod_yr(yearList_PLUMout==thisYear)) ;
+    ts_tmp_expt_yr_pct = 100*(-1 + ts_tmp_expt_yr / ts_tmp_expt_yr(yearList_PLUMout==thisYear)) ;
+    set(0,'CurrentFigure',hf2) ;
+    h = subplot_tight(2,4,m,spacing) ;
+    plot(yearList_PLUMout,ts_tmp_prod_yr_pct,'-','LineWidth',lineWidth) ;
+    hold on
+    h.ColorOrderIndex = 1 ;
+    plot(yearList_PLUMout,ts_tmp_expt_yr_pct,':','LineWidth',lineWidth) ;
+    plot(h.XLim, [0 0], ':k')
+    hold off
+    ylabel(sprintf('Prod. %s from %d (%%, dots=exports)', '\Delta', thisYear))
     title(commods{m})
     h.FontSize = fontSize ;
     
     % Fraction of net production going to (net) exports
-    set(0,'CurrentFigure',hf2) ;
+    set(0,'CurrentFigure',hf3) ;
     h = subplot_tight(2,4,m,spacing) ;
     plot(yearList_PLUMout,ts_tmp_expt_yr./ts_tmp_prod_yr,'-','LineWidth',lineWidth) ;
-    if m==1
-        sgtitle(strjoin(thisCountry,' + '), ...
-            'FontSize', fontSize+6, ...
-            'FontWeight', 'Bold') ;
-    end
     ylabel('Fraction of demand to exports')
     title(commods{m})
     h.FontSize = fontSize ;
+    
+    clear h
+end; clear m
+
+% Add figure titles
+if ~isempty(thisCountry_short)
+    thisSGtitle = thisCountry_short ;
+else
+    thisSGtitle = strjoin(thisCountry,' + ') ;
 end
+for hf = {hf1 hf2 hf3}
+    sgtitle(hf{:}, thisSGtitle, ...
+        'FontSize', fontSize+6, ...
+        'FontWeight', 'Bold') ;
+end
+clear hf* ts_tmp*
 
 
 %% Plot timeseries: Per-country (or group) demand and domestic supply frac.
 
+thisCountry_short = '' ;
+
 %%%%%%%%%%%%%%%
 % Options
-% thisCountry = {'United States of America','Canada'} ;
+thisYear = 2010 ;
+thisCountry = {'United States of America','Canada'} ;
 % thisCountry = {'United States of America'} ;
 % thisCountry = {'Germany Austria & Switzerland'} ;
 % thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan','Bangladesh'} ;
@@ -991,10 +1171,10 @@ end
 %     'Spain & Portugal', 'Ukraine', 'United Kingdom', 'ex-Yugoslavia'} ;
 % thisCountry = 'Russian Federation' ;
 % thisCountry = 'China' ;
-thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
-    'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
-    'Southern Africa other', 'Sudan', 'Uganda', ...
-    'United Republic of Tanzania', 'West Africa'} ;
+% thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
+%     'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
+%     'Southern Africa other', 'Sudan', 'Uganda', ...
+%     'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
 thisPos = figurePos ;
 lineWidth = 2 ;
 spacing = [0.1 0.05] ; % [v h]
@@ -1026,10 +1206,13 @@ ts_tmp_self_ymr(ts_tmp_self_ymr>1) = 1 ;
 
 hf1 = figure('Color','w','Position',thisPos) ;
 hf2 = figure('Color','w','Position',thisPos) ;
+hf3 = figure('Color','w','Position',thisPos) ;
 for m = 1:Ncommods
-    % Demand
-    ts_tmp_dmnd_yr = squeeze(ts_tmp_dmnd_ymr(:,m,:)) ;
+    
     ts_tmp_dmndF_yr = squeeze(ts_tmp_dmndF_ymr(:,m,:)) ;
+    ts_tmp_dmnd_yr = squeeze(ts_tmp_dmnd_ymr(:,m,:)) ;
+    
+    % Demand
     set(0,'CurrentFigure',hf1) ;
     h = subplot_tight(2,4,m,spacing) ;
     plot(yearList_PLUMout,ts_tmp_dmndF_yr,'-','LineWidth',lineWidth) ;
@@ -1037,36 +1220,55 @@ for m = 1:Ncommods
     h.ColorOrderIndex = 1 ;
     plot(yearList_PLUMout,ts_tmp_dmnd_yr,':','LineWidth',lineWidth) ;
     hold off
-    if m==1
-        sgtitle(strjoin(thisCountry,' + '), ...
-            'FontSize', fontSize+6, ...
-            'FontWeight', 'Bold') ;
-    end
     title(commods{m})
-    ylabel('Demand (dotted = without feed)')
+    ylabel('Demand (dots=w/o feed)')
     legend(runList,'Location','Best')
     h.FontSize = fontSize ;
     
-    % Fraction of demand satisfied by domestic production
+    % Same, but as % change from thisYear
+    ts_tmp_dmndF_yr_pct = 100*(-1 + ts_tmp_dmndF_yr / ts_tmp_dmndF_yr(yearList_PLUMout==thisYear)) ;
+    ts_tmp_dmnd_yr_pct = 100*(-1 + ts_tmp_dmnd_yr / ts_tmp_dmnd_yr(yearList_PLUMout==thisYear)) ;
     set(0,'CurrentFigure',hf2) ;
+    h = subplot_tight(2,4,m,spacing) ;
+    plot(yearList_PLUMout,ts_tmp_dmndF_yr_pct,'-','LineWidth',lineWidth) ;
+    hold on
+    h.ColorOrderIndex = 1 ;
+    plot(yearList_PLUMout,ts_tmp_dmnd_yr_pct,':','LineWidth',lineWidth) ;
+    plot(h.XLim, [0 0], ':k')
+    hold off
+    ylabel(sprintf('Demand %s from %d (%%, dots=w/o feed)', '\Delta', thisYear))
+    title(commods{m})
+    h.FontSize = fontSize ;
+    
+    % Fraction of demand satisfied by domestic production
+    set(0,'CurrentFigure',hf3) ;
     h = subplot_tight(2,4,m,spacing) ;
     ts_tmp_self_yr = squeeze(ts_tmp_self_ymr(:,m,:)) ;
     plot(yearList_PLUMout,ts_tmp_self_yr,'-','LineWidth',lineWidth) ;
-    if m==1
-        sgtitle(strjoin(thisCountry,' + '), ...
-            'FontSize', fontSize+6, ...
-            'FontWeight', 'Bold') ;
-    end
     title(commods{m})
     legend(runList,'Location','Best')
-    ylabel('min(1, ProdNet / DemandWithFeed)')
+    ylabel('"Self-sufficiency"')
     h.FontSize = fontSize ;
     if max(h.YLim) - min(h.YLim) < 1e-9
         for y = 1:length(h.YTick)
             h.YTickLabel{y} = sprintf('%0.1f...',h.YTick(y)) ;
         end
     end
+    clear h
+end; clear m
+
+% Add figure titles
+if ~isempty(thisCountry_short)
+    thisSGtitle = thisCountry_short ;
+else
+    thisSGtitle = strjoin(thisCountry,' + ') ;
 end
+for hf = {hf1 hf2 hf3}
+    sgtitle(hf{:}, thisSGtitle, ...
+        'FontSize', fontSize+6, ...
+        'FontWeight', 'Bold') ;
+end
+clear hf* ts_tmp*
 
 
 %% Plot timeseries: Land uses
@@ -1428,6 +1630,43 @@ if exist('crop0_area_YXBH','var')
         close
     end
 end
+
+
+%% Plot timeseries: Irrigation on each crop
+
+% Options %%%%%%%%%
+thisVar = 'gsirrig' ;
+title_prefix = 'Irrigation' ;
+lineWidth = 2 ;
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+ignYrs = 0 ;
+Nsmth = 1 ;
+conv_fact = 1e-3*1e-6 ;   % kg to Mt
+units = 'units?' ;
+%%%%%%%%%%%%%%%%%%%
+
+theseCFTnames = CFTnames ;
+thisLegend = stdLegend ;
+
+clear cell_bl cell_yr
+cmds = get_cell_forPlot(whos, thisVar, 'bl', theseCFTnames); for c = 1:length(cmds); eval(cmds{c}); end
+cmds = get_cell_forPlot(whos, thisVar, 'yr', theseCFTnames);for c = 1:length(cmds); eval(cmds{c}); end
+
+file_suffix = CFT_timeseries_plot(...
+    cell_bl, cell_yr, {}, yearList_baseline, yearList_future, fao.tmp_fao_yearList, rebase, ...
+    theseCFTnames, units, title_prefix, thisLegend, do_caps, skip3rdColor, ...
+    'lineWidth',lineWidth, ...
+    'fontSize',fontSize, ...
+    'spacing',spacing, ...
+    'ignYrs',ignYrs, ...
+    'Nsmth',Nsmth, ...
+    'conv_fact',conv_fact) ;
+if do_save
+    export_fig([outDir_ts thisVar file_suffix '.pdf'])
+    close
+end
+
 
 
 %% Plot timeseries: N fertilizer PER HECTARE on each crop
