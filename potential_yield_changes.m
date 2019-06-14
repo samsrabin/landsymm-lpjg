@@ -5,7 +5,7 @@
 
 thisVer = 'remapv6p7' ;
 
-incl_N = {'1000'} ;
+incl_N = {'0'} ;
 
 
 %% Setup
@@ -45,7 +45,10 @@ for r = 1:Nrcp
         yearDirs_orig = yearDirs ;
         tmp = strsplit(yearDirs(1).name,'-') ;
         pdLength = str2double(tmp{2}) - str2double(tmp{1}) + 1 ;
-        clear tmp
+        tmp2 = str2double(strsplit(strjoin({yearDirs_orig.name},'-'),'-')) ;
+        yearList_1 = tmp2(1:2:end) ;
+        yearList_N = tmp2(2:2:end) ;
+        clear tmp*
     else
         if ~isequal({yearDirs.name}, {yearDirs_orig.name})
             error('Mismatch between this directory''s year list and original')
@@ -64,7 +67,7 @@ for r = 1:Nrcp
             Ncrops_all = length(crop_list_all) ;
             
             % Get crop names
-            crop_list = crop_list(cellfun(@isempty,regexp(crop_list,sprintf('.*i%s', incl_N{1})))) ;
+            crop_list = crop_list_all(cellfun(@isempty,regexp(crop_list_all,sprintf('.*i%s', incl_N{1})))) ;
             crop_list = strrep(crop_list, incl_N{1}, '') ;
             Ncrops = length(crop_list) ;
             
@@ -77,9 +80,75 @@ for r = 1:Nrcp
         
         clear struct_in
     end
+    clear yearDirs
 
 end
 disp('Done.')
+
+
+%% Make figures: Potential yield in a given period
+
+% Options %%%%%%
+spacing = [0.05 0.05] ; % v h
+thisPos = [1    33   638   772] ;
+ylims = 69:360 ;
+fontSize = 14 ;
+this_colormap = 'jet' ;
+% yrs = 2041:2050 ; % What PLUM considers for 2046-2055
+yrs = 2086:2095 ; % What PLUM considers for 2091-2100
+%%%%%%%%%%%%%%%%
+
+% Check for valid year inputs
+y1 = yrs(1) ;
+yN = yrs(end) ;
+if ~any(yearList_1==y1)
+    error('Code can''t handle start year (%d) that''s not in yearList_1', y1)
+elseif ~any(yearList_N==yN)
+    error('Code can''t handle end year (%d) that''s not in yearList_N', yN)
+end
+yy1 = find(yearList_1==y1) ;
+yyN = find(yearList_N==yN) ;
+
+ir_list = {'','i'} ;
+for n = 1:length(incl_N)
+    thisN = incl_N{n} ;
+    for c = 1:Ncrops
+        thisCrop = crop_list{c} ;
+        
+        for i = 1:2
+            
+            % Get index of this CFT
+            thisCFT = [thisCrop ir_list{i} thisN] ;
+            ii = find(strcmp(crop_list_all, thisCFT)) ;
+            if isempty(ii)
+                error('%s not found in crop_list_all', thisCFT) ;
+            elseif length(ii) > 1
+                error('Multiple matches for %s found in crop_list_all', thisCFT) ;
+            end
+            
+            maps_YXr = 10*squeeze(mean(yield_YXcpr(:,:,ii,yy1:yyN,:),4)) ;
+            clims = [0 1] * max(max(max(abs(maps_YXr)))) ;
+            figure('Color','w','Position',thisPos) ;
+            for r = 1:Nrcp
+                thisRCP = rcp_list{r} ;
+                subplot_tight(Nrcp,1,r,spacing) ;
+                pcolor(maps_YXr(ylims,:,r)) ;
+                shading flat; axis equal tight off
+                caxis(clims) ;
+                colormap(this_colormap)
+                hcb = colorbar ;
+                title(hcb,'\Delta tons ha^{-1}') ;
+                title(sprintf('%s: %s (%d-%d)', thisCFT, thisRCP, y1, yN)) ;
+                set(gca,'FontSize',fontSize)
+            end
+            file_out = sprintf('%s/%s_yield_%d-%d.png', dir_out, thisCFT, y1, yN) ;
+            export_fig(file_out, '-r300') ;
+            close ;
+        end
+        
+    end
+end
+
 
 
 %% Make figures: Check differences in baseline yield
@@ -159,7 +228,7 @@ for n = 1:length(incl_N)
     for c = 1:Ncrops
         thisCrop = crop_list{c} ;
         
-        for i = 2
+        for i = 1:2
             
             thisCFT = [thisCrop ir_list{i} thisN] ;
             ii = find(strcmp(crop_list_all, thisCFT)) ;
@@ -183,7 +252,7 @@ for n = 1:length(incl_N)
                 title(sprintf('%s: %s', thisCFT, thisRCP)) ;
                 set(gca,'FontSize',fontSize)
             end
-            file_out = sprintf('%s/%s_%s_to_%s.png', dir_out, thisCFT, yearDirs(1).name, yearDirs(end).name) ;
+            file_out = sprintf('%s/%s_yieldDiff_%s_to_%s.png', dir_out, thisCFT, yearDirs(1).name, yearDirs(end).name) ;
             export_fig(file_out, '-r300') ;
             close ;
         end
