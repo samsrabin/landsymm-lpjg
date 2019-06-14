@@ -12,7 +12,7 @@ total_bl = nansum(nansum(maps_YXB)) ;
 maps_YXBr = repmat(maps_YXB,[1 1 Nruns]) ;
 this_diff_YXr = maps_YXr - maps_YXBr ;
 if as_pct_change
-    this_diff_YXr = 100*(-1 + this_diff_YXr ./ maps_YXBr) ;
+    this_diff_YXr = 100*(this_diff_YXr ./ maps_YXBr) ;
     this_diff_YXr(maps_YXBr==0) = NaN ;
 else
     this_diff_YXr = this_diff_YXr*conv_fact_map ;
@@ -64,12 +64,14 @@ for r = 1:Nruns
     colorlim = max(colorlim,caxis_max) ;
 end
 for r = 1:Nruns
-    caxis(gcas(r),[-colorlim colorlim])
-%     if as_pct_change
-%         caxis(gcas(r),[-100 100])
-%     else
+%     caxis(gcas(r),[-colorlim colorlim])
+    if as_pct_change
 %         caxis(gcas(r),[-colorlim colorlim])
-%     end
+%         caxis(gcas(r),100*[-1 1])
+        percentage_colormap(gcas, 'rdbu_ssr', colorlim)
+    else
+        caxis(gcas(r),[-colorlim colorlim])
+    end
 end
 
 end

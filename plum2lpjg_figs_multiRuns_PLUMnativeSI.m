@@ -316,30 +316,33 @@ units_map = 'tons ha^{-1}' ;
 units_total = '' ;
 only1bl = true ;
 thisStat = 'yield' ;
-as_pct_change = true ;
 %%%%%%%%%%%%%%%%%%%
 
 thisY1 = yearList_baseline(end) ;
 thisYN = yearList_future(end) ;
+tf = [true false] ;
 for c = 1:Ncrops
-    make_LUdiff_fig_v2p1(...
-        mean(maps_yield_d9.maps_YXvyB(:,:,c,:),4), squeeze(mean(maps_yield_d9.maps_YXvyr(:,:,c,:,:),4)), ...
-        thisY1, thisYN, maps_yield_d9.varNames{c}, runList, ...
-        spacing, fontSize, textX, textY_1, textY_2, ...
-        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps, ...
-        thisStat, as_pct_change) ;
-    
-    if do_save
-        if as_pct_change
-            thisForm = '%s/yieldPctDiff_%ds-%ds_%s.png' ;
-        else
-            thisForm = '%s/yieldDiff_%ds-%ds_%s.png' ;
-        end
-        this_filename = sprintf(thisForm, ...
+    for as_pct_change = tf
+        
+        make_LUdiff_fig_v2p1(...
+            mean(maps_yield_d9.maps_YXvyB(:,:,c,:),4), squeeze(mean(maps_yield_d9.maps_YXvyr(:,:,c,:,:),4)), ...
+            thisY1, thisYN, maps_yield_d9.varNames{c}, runList, ...
+            spacing, fontSize, textX, textY_1, textY_2, ...
+            nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+            Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps, ...
+            thisStat, as_pct_change) ;
+                
+        if do_save
+            if as_pct_change
+                thisForm = '%s/yieldPctDiff_%ds-%ds_%s.png' ;
+            else
+                thisForm = '%s/yieldDiff_%ds-%ds_%s.png' ;
+            end
+            this_filename = sprintf(thisForm, ...
                 removeslashifneeded(outDir_maps), thisY1, thisYN, maps_yield_d9.varNames{c}) ;
-        export_fig(this_filename, ['-r' num2str(pngres)])
-        close
+            export_fig(this_filename, ['-r' num2str(pngres)])
+            close
+        end
     end
 end
 
@@ -1062,13 +1065,13 @@ thisCountry_short = '' ;
 %%%%%%%%%%%%%%%
 % Options
 thisYear = 2010 ;
-% thisCountry = {'United States of America','Canada'} ;
+thisCountry = {'United States of America','Canada'} ;
 % thisCountry = {'United States of America'} ;
 % thisCountry = {'Germany Austria & Switzerland'} ;
-thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
-    'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
-    'Southern Africa other', 'Sudan', 'Uganda', ...
-    'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
+% thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
+%     'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
+%     'Southern Africa other', 'Sudan', 'Uganda', ...
+%     'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
 % thisCountry = 'Russian Federation' ;
 % thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan','Bangladesh'} ;
 thisPos = figurePos ;
@@ -1162,10 +1165,10 @@ thisCountry_short = '' ;
 %%%%%%%%%%%%%%%
 % Options
 thisYear = 2010 ;
-thisCountry = {'United States of America','Canada'} ;
+% thisCountry = {'United States of America','Canada'} ;
 % thisCountry = {'United States of America'} ;
 % thisCountry = {'Germany Austria & Switzerland'} ;
-% thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan','Bangladesh'} ;
+thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan','Bangladesh'} ;
 % thisCountry = {'Eastern Europe','France Netherlands & Benlex','Italy', ...
 %     'Germany Austria & Switzerland', 'Other former USSR', 'Poland', ...
 %     'Spain & Portugal', 'Ukraine', 'United Kingdom', 'ex-Yugoslavia'} ;
