@@ -109,7 +109,7 @@ rowInfo = { ...
            'Area: Cropland', 'LUarea_crop', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
            'Area: Pasture', 'LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
 %            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
-%            'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
+           'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
            'Fertilizer', 'nflux_fert', -1e-9, '%.0f', '%.0f', 'TgN' ;
            'Irrigation', 'irrig', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            } ;
@@ -177,6 +177,8 @@ rowInfo = { ...
 %            'ET (  )', 'aevapaaet', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            'Runoff (  )', 'tot_runoff', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            'BVOC emis. (  )', 'aiso+amon', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
+           'Iso. emis. (  )', 'aiso', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
+           'Mon. emis. (  )', 'amon', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
            } ;
 
 %%%%%%%%%%%%%%%%%%%
