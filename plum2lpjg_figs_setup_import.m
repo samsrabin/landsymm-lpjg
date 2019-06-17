@@ -1010,6 +1010,7 @@ gcel_area_YX(nanmask) = NaN ;
 tmp = land_area_YXqd(:,1:2:1440) + land_area_YXqd(:,2:2:1440) ;
 land_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 land_area_unmasked_YX = land_area_YX ;
+land_area_unmasked_weights_YX = land_area_unmasked_YX ./ nansum(nansum(land_area_unmasked_YX)) ;
 land_area_YX(nanmask) = NaN ;
 %%% Convert to m2
 land_area_YX = land_area_YX*1e6 ;
@@ -1293,6 +1294,36 @@ hotspot_YX = 1==hotspot_YX ;
 hotspot_area_YX = hotspot_YX.*gcel_area_YX ;
 
 hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
+
+
+%% Import food production units and basins
+
+disp('Importing FPUs...')
+
+fpu_YX = flipud(dlmread('/Users/Shared/PLUM/food_production_units/FPU.asc',' ',6,0)) ;
+fpu_YX(fpu_YX==-9999) = NaN ;
+
+% Combine some FPUs to create the Amazon and Nile basins
+basins_YX = fpu_YX ;
+basin_groups = { ...
+    [70 72 74 146 149 150 203] ; % Nile
+    [9 10 12 13] ; % Amazon
+    } ;
+for b = 1:length(basin_groups)
+    thisGroup = basin_groups{b} ;
+    for ii = 2:length(thisGroup)
+        thisFPU = thisGroup(ii) ;
+        basins_YX(basins_YX==thisFPU) = thisGroup(1) ;
+    end ; clear ii
+    clear thisGroup thisFPU
+end ; clear b basin_groups
+
+% Mask
+basins_YX(nanmask) = NaN ;
+
+% Get basin numbers
+basin_list = unique(basins_YX(~isnan(basins_YX))) ;
+Nbasins = length(basin_list) ;
 
 
 %% Import population

@@ -456,24 +456,38 @@ end
 % the 95th percentile of DAILY streamflow. I don't have daily runoff data,
 % so I'll have to use MONTHLY for FLOOD RISK.
 
+% Options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+do_aggregate_basins = false ;
 spacing = [0.03, 0.03] ;   % v, h
 norm_ticks = [1.5 2 3 5 10 Inf] ; % Tick marks: Multiply q20 by this to get q21
 fontSize = 14 ;
 fontSize_text = 14 ;
 Ystart = 69 ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Setup
+file_suffix = '' ;
+if do_aggregate_basins
+    file_suffix = '.basins' ;
+end
+
 
 do_norm = false ;
 
 % Change in 10-year lowest annual runoff
 pctDiff_YXr = make_runoffFigs_Asadieh( ...
     maps_mon_runoff_last30, maps_awater_last30, runList, 'drought', land_area_unmasked_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart, ...
+    basins_YX, do_aggregate_basins) ;
 if do_save
-    export_fig([outDir_maps 'pkRunoff_drought_last3decs_20th-21st.png'],['-r' num2str(pngres)])
+    thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st%s.png', ...
+        outDir_maps, file_suffix) ;
+    export_fig(thisFile, ['-r' num2str(pngres)])
     for r = 1:Nruns
         thisYX = pctDiff_YXr(:,:,r) ;
-        thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.%s.tif', ...
-            outDir_gtif, runList{r}) ;
+        thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.%s%s.tif', ...
+            outDir_gtif, runList{r}, file_suffix) ;
         geotiffwrite_ssr(thisFile, thisYX, R, gtif_missing) ;
     end
     close
@@ -497,9 +511,11 @@ if contains(thisVer, 'attr')
         'cbarOrient', 'SouthOutside', ...
         'caxis_lims', 100*[-1 1]) ;
     if do_save
-        export_fig([outDir_maps 'pkRunoff_drought_last3decs_20th-21st.LUCcont.png'],['-r' num2str(pngres)])
-        thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.LUCcont.tif', ...
-            outDir_gtif) ;
+        thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.LUCcont%s.png', ...
+            outDir_maps, file_suffix) ;
+        export_fig(thisFile, ['-r' num2str(pngres)])
+        thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.LUCcont%s.tif', ...
+            outDir_gtif, file_suffix) ;
         geotiffwrite_ssr(thisFile, LUCcont_drought_YX, R, gtif_missing) ;
         close
     end
@@ -508,13 +524,16 @@ end
 % Change in 10-year highest monthly runoff
 pctDiff_YXr = make_runoffFigs_Asadieh( ...
     maps_mon_runoff_last30, maps_awater_last30, runList, 'flood', land_area_unmasked_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart, ...
+    basins_YX, do_aggregate_basins) ;
 if do_save
-    export_fig([outDir_maps 'pkRunoff_flood_last3decs_20th-21st.png'],['-r' num2str(pngres)])
+    thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st%s.png', ...
+        outDir_maps, file_suffix) ;
+    export_fig(thisFile,['-r' num2str(pngres)])
     for r = 1:Nruns
         thisYX = pctDiff_YXr(:,:,r) ;
-        thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st.%s.tif', ...
-            outDir_gtif, runList{r}) ;
+        thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st.%s%s.tif', ...
+            outDir_gtif, runList{r}, file_suffix) ;
         geotiffwrite_ssr(thisFile, thisYX, R, gtif_missing) ;
     end
     close
@@ -538,9 +557,11 @@ if contains(thisVer, 'attr')
         'cbarOrient', 'SouthOutside', ...
         'caxis_lims', 100*[-1 1]) ;
     if do_save
-        export_fig([outDir_maps 'pkRunoff_flood_last3decs_20th-21st.LUCcont.png'],['-r' num2str(pngres)])
-        thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st.LUCcont.tif', ...
-            outDir_gtif) ;
+        thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st.LUCcont%s.png', ...
+            outDir_maps, file_suffix) ;
+        export_fig(thisFile,['-r' num2str(pngres)])
+        thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st.LUCcont%s.tif', ...
+            outDir_gtif, file_suffix) ;
         geotiffwrite_ssr(thisFile, LUCcont_flood_YX, R, gtif_missing) ;
         close
     end
@@ -551,22 +572,26 @@ do_norm = true ;
 % Normalized change in 10-year lowest annual runoff
 make_runoffFigs_Asadieh( ...
     maps_mon_runoff_last30, maps_awater_last30, runList, 'drought', land_area_unmasked_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart, ...
+    basins_YX, do_aggregate_basins) ;
 if do_save
-    export_fig([outDir_maps 'pkRunoff_drought_last3decs_20th-21st.norm.png'],['-r' num2str(pngres)])
+    thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.norm%s.png', ...
+        outDir_maps, file_suffix) ;
+    export_fig(thisFile,['-r' num2str(pngres)])
     close
 end
 
 % Normalized change in 10-year highest monthly runoff
 make_runoffFigs_Asadieh( ...
     maps_mon_runoff_last30, maps_awater_last30, runList, 'flood', land_area_unmasked_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart) ;
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart, ...
+    basins_YX, do_aggregate_basins) ;
 if do_save
-    export_fig([outDir_maps 'pkRunoff_flood_last3decs_20th-21st.norm.png'],['-r' num2str(pngres)])
+    thisFile = sprintf('%s/pkRunoff_flood_last3decs_20th-21st.norm%s.png', ...
+        outDir_maps, file_suffix) ;
+    export_fig(thisFile,['-r' num2str(pngres)])
     close
 end
-
-stop
 
 
 %% Map differences from end of historical to end of future: Total N loss

@@ -1,7 +1,8 @@
 function pctDiff_YXr = make_runoffFigs_Asadieh( ...
     maps_mon_runoff_last30, maps_awater_last30, runList, ...
     droughtOrFlood, land_area_weights_YX, ...
-    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart)
+    do_norm, spacing, norm_ticks, fontSize, fontSize_text, Ystart, ...
+    basins_YX, do_aggregate_basins)
 
 if ~strcmp(droughtOrFlood, 'drought') && ~strcmp(droughtOrFlood, 'flood')
     error('droughtOrFlood (%s) must be either ''drought'' or ''flood''', droughtOrFlood)
@@ -12,6 +13,13 @@ BoverA_to_dq = @(BoverA) (BoverA-1)./(BoverA+1) ;
 dq_to_BoverA = @(dq) -(dq+1)./(dq-1) ;
 this_colormap = brighten(brewermap(64,'RdBu_ssr'),-0.3) ;
 Ncolors = size(this_colormap,1) ;
+
+if do_aggregate_basins
+    [maps_mon_runoff_last30, maps_awater_last30] = ...
+        aggregate_to_basins(...
+        maps_mon_runoff_last30, maps_awater_last30, ...
+        basins_YX) ;
+end
 
 % After Asadieh & Krakauer (2017): Ignore cells with runoff < 0.01mm/day in
 % last 10 years of baseline
@@ -131,6 +139,94 @@ end
 sgtitle(thisTitle,'FontSize',fontSize*1.5,'FontWeight','bold')
 
 
+end
+
+
+function [maps_mon_runoff_last30, maps_awater_last30] = ...
+    aggregate_to_basins(...
+    maps_mon_runoff_last30, maps_awater_last30, ...
+    basins_YX)
+
+basin_list = unique(basins_YX(~isnan(basins_YX))) ;
+Nbasins = length(basin_list) ;
+
+fprintf('Aggregating basins... ')
+pct_done = 0 ;
+dpf = 0.1 ;
+
+for b = 1:Nbasins
+    
+%     fprintf('Basin %d of %d\n', b, Nbasins)
+    if b>1 && rem(b/Nbasins,dpf) < rem((b-1)/Nbasins,dpf)
+        pct_done = pct_done + 100*dpf ;
+        fprintf('%d%%...', pct_done)
+    end
+    
+    isThisBasin = basins_YX==basin_list(b) ;
+    
+    % maps_mon_runoff_last30.maps_YXvsB
+    size_vsB = size(maps_mon_runoff_last30.maps_YXvsB) ;
+    size_vsB = size_vsB(3:4) ;
+    for v = 1:size_vsB(1)
+        for s = 1:size_vsB(2)
+            maps_mon_runoff_last30.maps_YXvsB(:,:,v,s) = ...
+                    average_this_basin(isThisBasin, ...
+                    maps_mon_runoff_last30.maps_YXvsB(:,:,v,s)) ;
+        end ; clear s
+    end ; clear v
+    
+    % maps_mon_runoff_last30.maps_YXvsr
+    size_vsr = size(maps_mon_runoff_last30.maps_YXvsr) ;
+    size_vsr = size_vsr(3:5) ;
+    for v = 1:size_vsr(1)
+        for s = 1:size_vsr(2)
+            for r = 1:size_vsr(3)
+                maps_mon_runoff_last30.maps_YXvsr(:,:,v,s,r) = ...
+                    average_this_basin(isThisBasin, ...
+                    maps_mon_runoff_last30.maps_YXvsr(:,:,v,s,r)) ;
+            end ; clear r
+        end ; clear s
+    end ; clear v
+    
+    % maps_awater_last30.maps_YXvsB
+    size_vsB = size(maps_awater_last30.maps_YXvsB) ;
+    size_vsB = size_vsB(3:4) ;
+    for v = 1:size_vsB(1)
+        for s = 1:size_vsB(2)
+            maps_awater_last30.maps_YXvsB(:,:,v,s) = ...
+                    average_this_basin(isThisBasin, ...
+                    maps_awater_last30.maps_YXvsB(:,:,v,s)) ;
+        end ; clear s
+    end ; clear v
+    
+    % maps_awater_last30.maps_YXvsr
+    size_vsr = size(maps_awater_last30.maps_YXvsr) ;
+    size_vsr = size_vsr(3:5) ;
+    for v = 1:size_vsr(1)
+        for s = 1:size_vsr(2)
+            for r = 1:size_vsr(3)
+                maps_awater_last30.maps_YXvsr(:,:,v,s,r) = ...
+                    average_this_basin(isThisBasin, ...
+                    maps_awater_last30.maps_YXvsr(:,:,v,s,r)) ;
+            end ; clear r
+        end ; clear s
+    end ; clear v
+    
+end
+fprintf('Done.\n')
+
+end
+
+
+function tmp_YX = average_this_basin(isThisBasin, tmp_YX)
+
+tmp = tmp_YX(isThisBasin) ;
+NinThisBasin = length(tmp(~isnan(tmp))) ;
+if NinThisBasin == 0
+    error('NinThisBasin == 0')
+end
+tmp_YX(isThisBasin) = nansum(tmp) / NinThisBasin ;
 
 
 end
+
