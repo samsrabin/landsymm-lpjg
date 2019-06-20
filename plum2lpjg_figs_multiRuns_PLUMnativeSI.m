@@ -950,7 +950,7 @@ thisYN = yearList_future(end) ;
     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
 if do_save
     filename = [outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'] ;
-%     export_fig(filename,['-r' num2str(pngres)])
+    export_fig(filename,['-r' num2str(pngres)])
     diff_agri_YXr = diff_crop_YXr + diff_past_YXr ;
     filename_crop = strrep(filename,'croppast','crop') ;
     filename_past = strrep(filename,'croppast','past') ;
