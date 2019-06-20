@@ -430,6 +430,40 @@ elseif strcmp(thisVer,'harm3_constLU')
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = true ;
+elseif strcmp(thisVer,'harm3_onlyCO2')
+    runList = {'RCP4.5','RCP6.0','RCP8.5'} ;
+    runColNames = {'RCP45','RCP60','RCP85'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP45CO2_constClim/output-2019-06-19-120106';
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP60CO2_constClim/output-2019-06-19-120946';
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP85CO2_constClim/output-2019-06-19-122314';
+        } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        } ; warning('constLU run, but will display regular PLUM outputs! (from SSP3 for RCP60)')
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = true ;
+elseif strcmp(thisVer,'harm3_onlyClim')
+    runList = {'RCP4.5','RCP6.0','RCP8.5'} ;
+    runColNames = {'RCP45','RCP60','RCP85'} ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP45clim_constCO2/output-2019-06-19-122601';
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP60clim_constCO2/output-2019-06-19-123448';
+        'LPJGPLUM_2011-2100_harm3_constLU_RCP85clim_constCO2/output-2019-06-19-124811';
+        } ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        } ; warning('constLU run, but will display regular PLUM outputs! (from SSP3 for RCP60)')
+    yearList_future = 2011:2100 ;
+    baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = true ;
 elseif strcmp(thisVer,'harm3_constClimCO2')
     runList = {'SSP1-45','SSP3-60','SSP4-60','SSP5-85'} ;
     runDirs = {
@@ -1237,27 +1271,29 @@ if exist('maps_mon_runoff_d1','var')
     maps_pk_runoff_d9.maps_YXvyB = max(maps_pk_runoff_d9.maps_YXvyB,[],3) ;
     maps_pk_runoff_d9.maps_YXvyr = max(maps_pk_runoff_d9.maps_YXvyr,[],3) ;
     maps_pk_runoff_d9.varNames = {'Max'} ;
+    
+    % Change in 5th and 95th percentile of peak monthly runoff
+    % After Asadieh & Krakauer (2017)
+    maps_pk_runoff_d1.maps_p05_YXB = prctile(maps_pk_runoff_d1.maps_YXvyB,5,4) ;
+    maps_pk_runoff_d1.maps_p95_YXB = prctile(maps_pk_runoff_d1.maps_YXvyB,95,4) ;
+    maps_pk_runoff_d9.maps_p05_YXB = prctile(maps_pk_runoff_d9.maps_YXvyB,5,4) ;
+    maps_pk_runoff_d9.maps_p95_YXB = prctile(maps_pk_runoff_d9.maps_YXvyB,95,4) ;
+    maps_pk_runoff_d1.maps_p05_YXr = squeeze(prctile(maps_pk_runoff_d1.maps_YXvyr(:,:,:,:,:),5,4)) ;
+    maps_pk_runoff_d1.maps_p95_YXr = squeeze(prctile(maps_pk_runoff_d1.maps_YXvyr(:,:,:,:,:),95,4)) ;
+    maps_pk_runoff_d9.maps_p05_YXr = squeeze(prctile(maps_pk_runoff_d9.maps_YXvyr(:,:,:,:,:),5,4)) ;
+    maps_pk_runoff_d9.maps_p95_YXr = squeeze(prctile(maps_pk_runoff_d9.maps_YXvyr(:,:,:,:,:),95,4)) ;
+    below_thresh_YX = mean(maps_awater_d1.maps_YXvyB(:,:,strcmp(maps_awater_d1.varNames,'Runoff'),:),4)/365 < 0.01 ;
+    maps_pk_runoff_d1.maps_p05_YXB(below_thresh_YX) = NaN ;
+    maps_pk_runoff_d1.maps_p95_YXB(below_thresh_YX) = NaN ;
+    maps_pk_runoff_d9.maps_p05_YXB(below_thresh_YX) = NaN ;
+    maps_pk_runoff_d9.maps_p95_YXB(below_thresh_YX) = NaN ;
+    maps_pk_runoff_d1.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+    maps_pk_runoff_d1.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+    maps_pk_runoff_d9.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+    maps_pk_runoff_d9.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+
 end
 
-% Change in 5th and 95th percentile of peak monthly runoff
-% After Asadieh & Krakauer (2017)
-maps_pk_runoff_d1.maps_p05_YXB = prctile(maps_pk_runoff_d1.maps_YXvyB,5,4) ;
-maps_pk_runoff_d1.maps_p95_YXB = prctile(maps_pk_runoff_d1.maps_YXvyB,95,4) ;
-maps_pk_runoff_d9.maps_p05_YXB = prctile(maps_pk_runoff_d9.maps_YXvyB,5,4) ;
-maps_pk_runoff_d9.maps_p95_YXB = prctile(maps_pk_runoff_d9.maps_YXvyB,95,4) ;
-maps_pk_runoff_d1.maps_p05_YXr = squeeze(prctile(maps_pk_runoff_d1.maps_YXvyr(:,:,:,:,:),5,4)) ;
-maps_pk_runoff_d1.maps_p95_YXr = squeeze(prctile(maps_pk_runoff_d1.maps_YXvyr(:,:,:,:,:),95,4)) ;
-maps_pk_runoff_d9.maps_p05_YXr = squeeze(prctile(maps_pk_runoff_d9.maps_YXvyr(:,:,:,:,:),5,4)) ;
-maps_pk_runoff_d9.maps_p95_YXr = squeeze(prctile(maps_pk_runoff_d9.maps_YXvyr(:,:,:,:,:),95,4)) ;
-below_thresh_YX = mean(maps_awater_d1.maps_YXvyB(:,:,strcmp(maps_awater_d1.varNames,'Runoff'),:),4)/365 < 0.01 ;
-maps_pk_runoff_d1.maps_p05_YXB(below_thresh_YX) = NaN ;
-maps_pk_runoff_d1.maps_p95_YXB(below_thresh_YX) = NaN ;
-maps_pk_runoff_d9.maps_p05_YXB(below_thresh_YX) = NaN ;
-maps_pk_runoff_d9.maps_p95_YXB(below_thresh_YX) = NaN ;
-maps_pk_runoff_d1.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
-maps_pk_runoff_d1.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
-maps_pk_runoff_d9.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
-maps_pk_runoff_d9.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
 
 % Total crop production
 tmp = whos('ts_cropprod_*') ;

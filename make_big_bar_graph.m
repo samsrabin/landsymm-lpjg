@@ -186,6 +186,10 @@ for c = 1:Nvars
         end
         mean_endh_v(c) = thisConv*mean(ts_thisVarTMP_bl) ;
         mean_endf_vr(c,:) = thisConv*mean(ts_thisVarTMP_yr,1) ;
+        if strcmp(thisVar,'temp') && strcmp(rowInfo{c,6},[char(176) 'C'])
+            mean_endh_v(c) = mean_endh_v(c) - 273.15 ;
+            mean_endf_vr(c,:) = mean_endf_vr(c,:) - 273.15 ;
+        end
         clear tmp_endh_y tmp_endf_yr
         if strcmp(sd_or_sem,'st. dev.')
             errb_endh_v(c) = thisConv*std(ts_thisVarTMP_bl) ;

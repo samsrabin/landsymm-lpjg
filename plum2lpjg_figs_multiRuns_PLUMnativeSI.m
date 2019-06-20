@@ -39,6 +39,8 @@ thisVer = 'harm3' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
 % thisVer = 'harm3_constClimCO2' ;
+% thisVer = 'harm3_onlyCO2' ;
+% thisVer = 'harm3_onlyClim' ;
 % thisVer = 'harm3_S1R4.5_attr' ;
 % thisVer = 'harm3_S3R6.0_attr' ;
 % thisVer = 'harm3_S4R6.0_attr' ;
@@ -85,14 +87,15 @@ figure_position = [1    33   720   772] ;
 where2sep = [0.5 3.5 5.5] ;
 sep_labels = {...
     'Exogenous forcing'; ...
-    'Crop demand and production';
+    'Commodity demand';
     'Land use & management'; ...
     } ;
 rowInfo = { ...
            % Exogenous inputs
            'Population', 'pop', 1e-9, '%0.1f', '%0.1f', 'billion' ;
            '[CO_2]', 'co2', 1, '%0.0f', '%0.0f', 'ppm' ;
-           'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
+%            'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
+           'Temperature', 'temp', 1, '%0.1f', '%0.1f', [char(176) 'C'] ;
 % Demand and production
            'Crop demand', 'Demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
            'Ruminant demand (feed-eq.)', 'Demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
@@ -904,11 +907,15 @@ thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
 spacing = [0.1 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-if all_figs
-    do_map_run_diffs_fromEndHist(do_save, maps_pk_runoff_d9, sumvars, title_text, filename_base, ...
-        equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-        thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-        conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+if all_figs 
+    if exist('maps_pk_runoff_d9', 'var')
+        do_map_run_diffs_fromEndHist(do_save, maps_pk_runoff_d9, sumvars, title_text, filename_base, ...
+            equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+            thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+            conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
+    else
+        warning('maps_pk_runoff_d9 does not exist (maybe just last30?, so skipping peak runoff maps')
+    end
 end
 
 
@@ -2960,106 +2967,106 @@ end
 
 %% Map changes in LU area: End-Historical to End-Future
 
-% % Options %%%%%%%%%
-% fontSize = 14 ;
-% spacing = [0.1 0.05] ;   % [vert, horz]
-% textX = 25 ;
-% textY_1 = 50 ;
-% textY_2 = 20 ;
-% thisPos = figurePos ;
-% nx = 3 ;
-% ny = 2 ;
-% colorBarLoc = 'SouthOutside' ;
-% conv_fact_map = 1e-6 ;   % m2 to km2
-% conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
-% units_map = 'km^2' ;
-% units_total = 'Mkm^2' ;
-% only1bl = true ;
-% %%%%%%%%%%%%%%%%%%%
-% 
-% if all_figs
-%     
-%     thisY1 = yearList_baseline(end) ;
-%     thisYN = yearList_future(end) ;
-%     
-%     % Natural area
-%     make_LUdiff_fig_v2(...
-%         ntrl_area_YXBH, ntrl_diff_YXrH, ...
-%         thisY1, thisYN, '"Natural"', runList, ...
-%         spacing, fontSize, textX, textY_1, textY_2, ...
-%         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%     if do_save
-%         export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_ntrl.png'],['-r' num2str(pngres)])
-%         close
-%     end
-%     
-%     % Cropland area
-%     make_LUdiff_fig_v2(...
-%         crop_area_YXBH, crop_diff_YXrH, ...
-%         thisY1, thisYN, 'Cropland', runList, ...
-%         spacing, fontSize, textX, textY_1, textY_2, ...
-%         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%     if do_save
-%         export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop.png'],['-r' num2str(pngres)])
-%         close
-%     end
-%     
-%     % "Pasture" area
-%     make_LUdiff_fig_v2(...
-%         past_area_YXBH, past_diff_YXrH, ...
-%         thisY1, thisYN, '"Pasture"', runList, ...
-%         spacing, fontSize, textX, textY_1, textY_2, ...
-%         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%     if do_save
-%         export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past.png'],['-r' num2str(pngres)])
-%         close
-%     end
-%     
-%     % Agricultural area
-%     make_LUdiff_fig_v2(...
-%         agri_area_YXBH, agri_diff_YXrH, ...
-%         thisY1, thisYN, 'Agricultural', runList, ...
-%         spacing, fontSize, textX, textY_1, textY_2, ...
-%         nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%     %
-%     if do_save
-%         export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
-%         close
-%     end
-%     
-%     % Cropland0 area
-%     if exist('crop0_area_YXBH','var')
-%         make_LUdiff_fig_v2(...
-%             crop0_area_YXBH, crop0_diff_YXrH, ...
-%             thisY1, thisYN, 'Cropland0', runList, ...
-%             spacing, fontSize, textX, textY_1, textY_2, ...
-%             nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%             Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%         if do_save
-%             export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop0.png'],['-r' num2str(pngres)])
-%             close
-%         end
-%     end
-%     
-%     % "Pasture0" area
-%     if exist('past0_area_YXBH','var')
-%         make_LUdiff_fig_v2(...
-%             past0_area_YXBH, past0_diff_YXrH, ...
-%             thisY1, thisYN, '"Pasture0"', runList, ...
-%             spacing, fontSize, textX, textY_1, textY_2, ...
-%             nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-%             Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
-%         if do_save
-%             export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past0.png'],['-r' num2str(pngres)])
-%             close
-%         end
-%     end
-%     
-% end
+% Options %%%%%%%%%
+fontSize = 14 ;
+spacing = [0.1 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+thisPos = figurePos ;
+nx = 3 ;
+ny = 2 ;
+colorBarLoc = 'SouthOutside' ;
+conv_fact_map = 1e-6 ;   % m2 to km2
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+units_map = 'km^2' ;
+units_total = 'Mkm^2' ;
+only1bl = true ;
+%%%%%%%%%%%%%%%%%%%
+
+if all_figs
+    
+    thisY1 = yearList_baseline(end) ;
+    thisYN = yearList_future(end) ;
+    
+    % Natural area
+    make_LUdiff_fig_v2(...
+        ntrl_area_YXBH, ntrl_diff_YXrH, ...
+        thisY1, thisYN, '"Natural"', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_ntrl.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Cropland area
+    make_LUdiff_fig_v2(...
+        crop_area_YXBH, crop_diff_YXrH, ...
+        thisY1, thisYN, 'Cropland', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % "Pasture" area
+    make_LUdiff_fig_v2(...
+        past_area_YXBH, past_diff_YXrH, ...
+        thisY1, thisYN, '"Pasture"', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Agricultural area
+    make_LUdiff_fig_v2(...
+        agri_area_YXBH, agri_diff_YXrH, ...
+        thisY1, thisYN, 'Agricultural', runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    %
+    if do_save
+        export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'],['-r' num2str(pngres)])
+        close
+    end
+    
+    % Cropland0 area
+    if exist('crop0_area_YXBH','var')
+        make_LUdiff_fig_v2(...
+            crop0_area_YXBH, crop0_diff_YXrH, ...
+            thisY1, thisYN, 'Cropland0', runList, ...
+            spacing, fontSize, textX, textY_1, textY_2, ...
+            nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+            Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+        if do_save
+            export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_crop0.png'],['-r' num2str(pngres)])
+            close
+        end
+    end
+    
+    % "Pasture0" area
+    if exist('past0_area_YXBH','var')
+        make_LUdiff_fig_v2(...
+            past0_area_YXBH, past0_diff_YXrH, ...
+            thisY1, thisYN, '"Pasture0"', runList, ...
+            spacing, fontSize, textX, textY_1, textY_2, ...
+            nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+            Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+        if do_save
+            export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_past0.png'],['-r' num2str(pngres)])
+            close
+        end
+    end
+    
+end
 
 
 %% Map changes in LU area: End-Historical to Begin-Future
