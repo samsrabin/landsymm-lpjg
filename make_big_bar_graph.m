@@ -24,19 +24,43 @@ for c = 1:Nvars
     % Get values
     thisVar = rowInfo{c,2} ;
     thisConv = rowInfo{c,3} ;
-    if strcmp(thisVar, 'hotspot_area')
+    if strcmp(thisVar, 'hotspot_area') ...
+            || strcmp(thisVar, 'hotspotCSLF_area') ...
+            || strcmp(thisVar, 'hotspotCSLF_area_nobioenergy')
         % End-hist
-        hotspot_area_YXy = repmat(hotspot_area_YX, [1 1 1 length(years_endh)]) ;
+        if strcmp(thisVar, 'hotspot_area')
+            hotspot_area_YXy = repmat(hotspot_area_YX, [1 1 1 length(years_endh)]) ;
+        else
+            hotspot_area_YXy = repmat(hotspotCSLF_area_YX, [1 1 1 length(years_endh)]) ;
+        end
+        tmpfrac_ntrl_YX1y = maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:) ;
+        if strcmp(thisVar, 'hotspotCSLF_area_nobioenergy')
+            tmpfrac_ntrl_YX1y = tmpfrac_ntrl_YX1y + ...
+                maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'CROPLAND'),:) ...
+                .* maps_cropfracs_d9.maps_YXvyB(:,:,strcmp(maps_cropfracs_d9.varNames,'Miscanthus'),:) ;
+        end
         area_endh_y = thisConv * squeeze(nansum(nansum( ...
-            hotspot_area_YXy .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:), ...
+            hotspot_area_YXy .* tmpfrac_ntrl_YX1y, ...
             1), 2)) ;
         mean_endh_v(c) = mean(area_endh_y) ;
+        clear tmpfrac_ntrl_YX1y
         % End-fut
-        hotspot_area_YXy = repmat(hotspot_area_YX, [1 1 1 length(years_endf)]) ;
+        if strcmp(thisVar, 'hotspot_area')
+            hotspot_area_YXy = repmat(hotspot_area_YX, [1 1 1 length(years_endf)]) ;
+        else
+            hotspot_area_YXy = repmat(hotspotCSLF_area_YX, [1 1 1 length(years_endf)]) ;
+        end
+        tmpfrac_ntrl_YX1yr = maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:,:) ;
+        if strcmp(thisVar, 'hotspotCSLF_area_nobioenergy')
+            tmpfrac_ntrl_YX1yr = tmpfrac_ntrl_YX1yr + ...
+                maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'CROPLAND'),:,:) ...
+                .* maps_cropfracs_d9.maps_YXvyr(:,:,strcmp(maps_cropfracs_d9.varNames,'Miscanthus'),:,:) ;
+        end
         area_endf_yr = thisConv * squeeze(nansum(nansum( ...
-            hotspot_area_YXy .* maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:,:), ...
+            hotspot_area_YXy .* tmpfrac_ntrl_YX1yr, ...
             1), 2)) ;
         mean_endf_vr(c,:) = mean(area_endf_yr,1) ;
+        clear tmpfrac_ntrl_YX1yr
         % Error bars
         if strcmp(sd_or_sem,'st. dev.')
             errb_endh_v(c) = std(area_endh_y) ;
@@ -354,16 +378,18 @@ end
 % Add legend, and labels
 if strcmp(orientation,'v')
     legend(runList, 'Location', 'Northwest')
-    hxl = xlabel('Indicator') ;
+%     hxl = xlabel('Indicator') ;
+%     hxl.FontWeight = 'bold' ;
     hyl = ylabel(['Change ' plusminus ' across-year ' sd_or_sem ' (%)']) ;
+    hyl.FontWeight = 'bold' ;
 else
     legend(runList, 'Location', 'Northeast')
-    hyl = ylabel('Indicator') ;
+%     hyl = ylabel('Indicator') ;
+%     hyl.FontWeight = 'bold' ;
     hxl = xlabel(['Change ' plusminus ' across-year ' sd_or_sem ' (%)']) ;
+    hxl.FontWeight = 'bold' ;
 end
 set(gca, 'FontSize', fontSize) ;
-hxl.FontWeight = 'bold' ;
-hyl.FontWeight = 'bold' ;
 
 % Reposition axes
 h = gca ;

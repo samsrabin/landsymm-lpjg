@@ -65,7 +65,7 @@ for r = 1:Nruns
 end
 for r = 1:Nruns
 %     caxis(gcas(r),[-colorlim colorlim])
-    if as_pct_change
+    if as_pct_change && colorlim>100
 %         caxis(gcas(r),[-colorlim colorlim])
 %         caxis(gcas(r),100*[-1 1])
         percentage_colormap(gcas, 'rdbu_ssr', colorlim)

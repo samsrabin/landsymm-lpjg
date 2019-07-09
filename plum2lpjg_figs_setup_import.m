@@ -1323,13 +1323,27 @@ disp('Done performing secondary calculations.')
 %% Import biodiversity hotspots
 
 disp('Importing biodiversity hotspots...')
-
 hotspot_YX = flipud(imread('/Users/sam/Geodata/BiodiversityHotspotsRevisited_ConservationInternational_2004/data/hotspots_revisited_2004.outerlimit.tif')) ;
 hotspot_YX(nanmask) = NaN ;
 hotspot_YX = 1==hotspot_YX ;
 hotspot_area_YX = hotspot_YX.*gcel_area_YX ;
-
 hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
+
+disp('Importing Congolian swamp and lowland forests...')
+ecoid_YX = flipud(imread('/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.ECO_ID.tif')) ;
+cslf_YX = false(size(ecoid_YX)) ;
+cslf_IDs = [ ...
+    30129 ; ... Western Congolian swamp forests
+    30126 ; ... Northwest Congolian lowland forests
+    30124 ; ... Northeast Congolian lowland forests
+    30110 ; ... Eastern Congolian swamp forests
+    30104 ; ... Central Congolian lowland forests
+    ] ;
+for j = 1:length(cslf_IDs)
+    cslf_YX(ecoid_YX==cslf_IDs(j)) = true ;
+end
+clear ecoid_YX
+hotspotCSLF_area_YX = (hotspot_YX | cslf_YX).*gcel_area_YX ;
 
 
 %% Import food production units and basins
