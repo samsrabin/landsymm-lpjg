@@ -56,6 +56,58 @@ for r = 1:Nruns
 end
 warning('on','MATLAB:table:ModifiedAndSavedVarnames')
 
+% Get seed & waste rate (Swrt)
+ts_countrySwrt_1m = nan(1,Ncommods_dom) ;
+for m = 1:Ncommods_dom
+    thisCommod = commods_dom{m} ;
+    switch thisCommod
+        case 'wheat'
+            ts_countrySwrt_1m(m) = 9.5;
+        case 'maize'
+            ts_countrySwrt_1m(m) = 5.1;
+        case 'rice'
+            ts_countrySwrt_1m(m) = 8.3;
+        case 'oilcrops'
+            ts_countrySwrt_1m(m) = 4.4;
+        case 'pulses'
+            ts_countrySwrt_1m(m) = 10.8;
+        case 'starchyRoots'
+            ts_countrySwrt_1m(m) = 14.3;
+        case 'energycrops'
+            ts_countrySwrt_1m(m) = 5;
+        case 'monogastrics'
+            ts_countrySwrt_1m(m) = 3.1;
+        case 'ruminants'
+            ts_countrySwrt_1m(m) = 2.2;
+        otherwise
+            error('thisCommod (%s) not recognized for seed/waste rate', thisCommod)
+    end
+end
+ts_countrySwrt_1m = ts_countrySwrt_1m * 0.01 ;
+if any(isnan(ts_countrySwrt_1m))
+    error('Some commodity is missing seed/waste rate')
+end
+ts_countrySwrt_ymur = repmat(ts_countrySwrt_1m,[Nyears_PLUMout 1 Ncountries_dem, Nruns]) ;
+if combine_cereals_dom
+    prod_maizeRiceWheat_ym1r = sum(ts_countryProd_ymur(:,contains(commods_dom,{'maize','rice','wheat'}),:,:),3) ;
+    cerealWeights_maizeRiceWheat_ym1r = prod_maizeRiceWheat_ym1r ...
+        ./ repmat(sum(prod_maizeRiceWheat_ym1r,2), [1 3 1 1]) ;
+    ts_countrySwrt_ymur(:,strcmp(commods_dom,'maize'),:,:) = ...
+        sum(ts_countrySwrt_ymur(:,contains(commods_dom,{'maize','rice','wheat'}),:,:) ...
+        .* repmat(cerealWeights_maizeRiceWheat_ym1r, [1 1 Ncountries_dem 1]), 2) ;
+    ts_countrySwrt_ymur(:,contains(commods_dom,{'rice','wheat'}),:,:) = [] ;
+    clear prod_maizeRiceWheat_ym1r cerealWeights_maizeRiceWheat_ym1r
+end
+[~, i_crop] = setdiff(commods_dem, commods_livestock) ;
+prod_ym1r = sum(ts_countryProd_ymur(:,i_crop,:,:),3) ;
+weights_ym1r = prod_ym1r ./ repmat(sum(prod_ym1r,2),[1 length(i_crop) 1 1]) ;
+ts_countrySwrt_ymur(:,end+1,:,:) = sum(ts_countrySwrt_ymur(:,i_crop,:,:) .* weights_ym1r, 2) ;
+[~, i_livestock] = intersect(commods_dem, commods_livestock) ;
+prod_ym1r = sum(ts_countryProd_ymur(:,i_livestock,:,:),3) ;
+weights_ym1r = prod_ym1r ./ repmat(sum(prod_ym1r,2),[1 length(i_livestock) 1 1]) ;
+ts_countrySwrt_ymur(:,end+1,:,:) = sum(ts_countrySwrt_ymur(:,i_livestock,:,:) .* weights_ym1r, 2) ;
+clear prod_ym1r weights_ym1r
+
 if combine_cereals_dom
     ts_countryProd_ymur(:,strcmp(commods_dom,'maize'),:,:) = ...
         sum(ts_countryProd_ymur(:,contains(commods_dom,{'maize','rice','wheat'}),:,:),2) ;
@@ -94,31 +146,9 @@ ts_countryImps_ymur = ts_countryImps_ymur * 1e6*1e3 ;
 ts_countryFrum_ymur = ts_countryFrum_ymur * 1e6*1e3 ;
 ts_countryFmon_ymur = ts_countryFmon_ymur * 1e6*1e3 ;
 
-% Get seed/waste rate (Swrt), domestic production net of seed/waste losses
-% (Prodnet), and fraction of true demand satisfied by domestic production
-% (Self)
+% Get domestic production net of seed/waste losses (Prodnet) and fraction
+% of true demand satisfied by domestic production (Self)
 ts_countryDemandWithFeed_ymur = ts_countryDemand_ymur + ts_countryFrum_ymur + ts_countryFmon_ymur ;
-ts_countrySwrt_ymur = 1 - (ts_countryDemandWithFeed_ymur - ts_countryImps_ymur) ./ ts_countryProd_ymur ;
-ts_countrySwrt_ymur(ts_countryProd_ymur==0) = 0 ;
-if min(min(min(min(ts_countrySwrt_ymur)))) < 0
-    bad_cells = find(ts_countrySwrt_ymur<0) ;
-    Nbad = length(bad_cells) ;
-    warning('Minimum value of ts_countrySwrt_ymur < 0 in %d cells (min %0.1f); setting to NaN', Nbad, min(min(min(min(ts_countrySwrt_ymur)))))
-    for ii = 1:min(Nbad,20)
-        [y, m, u, r] = ind2sub(size(ts_countrySwrt_ymur), bad_cells(ii)) ;
-        thisCtry = pad(countryList_dem{u}, max(cellfun(@length,countryList_dem)), 'left') ;
-        thisComm = pad(commods{m}, max(cellfun(@length,commods)), 'left') ;
-        fprintf('%s %d (%s) %s \t SWrate = %0.3g\n', ...
-            thisCtry, yearList_PLUMout(y), runList{r}, thisComm, ts_countrySwrt_ymur(bad_cells(ii))) ;
-    end
-    if Nbad > 20
-        fprintf('... and %d more\n', Nbad-20)
-    end
-    ts_countrySwrt_ymur(ts_countrySwrt_ymur<0) = NaN ;
-elseif max(max(max(max(ts_countrySwrt_ymur)))) > 1
-    error('Maximum value of ts_countrySwrt_ymur > 1 (%0.1f)', max(max(max(max(ts_countrySwrt_ymur)))))
-end
-
 ts_countryProdnet_ymur = ts_countryProd_ymur .* (1 - ts_countrySwrt_ymur) ;
 ts_countrySelf_ymur = ts_countryProdnet_ymur ./ ts_countryDemandWithFeed_ymur ;
 ts_countrySelf_ymur(ts_countryDemandWithFeed_ymur==0) = NaN ;

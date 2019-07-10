@@ -2565,7 +2565,7 @@ thisCountry_short = '' ;
 %%%%%%%%%%%%%%%
 % Options
 thisYear = 2010 ;
-thisCountry = {'United States of America','Canada'} ; thisCountry_short = 'USA + Canada' ;
+% thisCountry = {'United States of America','Canada'} ; thisCountry_short = 'USA + Canada' ;
 % thisCountry = {'United States of America'} ;
 % thisCountry = {'Germany Austria & Switzerland'} ;
 % thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan', 'Bangladesh', 'Nepal & Butan'} ; thisCountry_short = 'South Asia' ;
@@ -2574,10 +2574,10 @@ thisCountry = {'United States of America','Canada'} ; thisCountry_short = 'USA +
 %     'Spain & Portugal', 'Ukraine', 'United Kingdom', 'ex-Yugoslavia'} ;
 % thisCountry = 'Russian Federation' ;
 % thisCountry = 'China' ;
-% thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
-%     'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
-%     'Southern Africa other', 'Sudan', 'Uganda', ...
-%     'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
+thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
+    'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
+    'Southern Africa other', 'Sudan', 'Uganda', ...
+    'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
 thisPos = figurePos ;
 lineWidth = 2 ;
 spacing = [0.1 0.05] ; % [v h]
