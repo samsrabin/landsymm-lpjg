@@ -242,11 +242,15 @@ errb_diff_vr = sqrt(errb_endh_vr.^2 + errb_endf_vr.^2) ;
 % EQUIVALENT TO BELOW % errb_diffPct_vr = 100 * ((mean_endf_vr+errb_diff_vr-mean_endh_vr)./mean_endh_vr - (mean_endf_vr-mean_endh_vr)./mean_endh_vr) ;
 errb_diffPct_vr = 100 * (errb_diff_vr ./ mean_endh_vr) ;
 
-% Make figure
+
+%% Make figure
+
 groupnames = rowInfo(:,1) ;
 % unitnames = rowInfo(:,6) ;
 % groupnames = strcat(groupnames, strcat(strcat('\n(', unitnames), ')')) ;
+
 figure('Color','w','Position',figure_position) ;
+
 if strcmp(orientation,'v')
     subplot_tight(1,1,1,[0.2 0.04])
     bar(mean_diffPct_vr, 'grouped') ;
@@ -330,7 +334,7 @@ for i = 1:nbars
         if strcmp(orientation,'v')
             ht.Rotation = 90 ;
         else
-            ht.FontSize = 8 ;
+            ht.FontSize = 10 ;
         end
         if strcmp(orientation,'v')
             error('Write realignment code for vertical orientation')
@@ -364,6 +368,7 @@ if ~isempty(where2sep)
             ht = text(0, where2sep(i), sep_labels{i}) ;
             set(ht, ...
                 'HorizontalAlignment', 'center', ...
+                'FontSize', 12, ...
                 'FontWeight', 'bold', ...
                 'FontAngle', 'italic', ...
                 'BackgroundColor', 'w')
@@ -422,15 +427,21 @@ for x = 1:length(h_barLabels)
     thisH = h_barLabels{x} ;
     % Move bar labels that have fallen off the right edge
     if thisH.Extent(1)+thisH.Extent(3) > xlims(2)
-        newPosition = thisH.Position ;
-        if contains(thisH.String,'^')
-            newPosition(2) = newPosition(2) + 0.13*ngroups/9 ; % Not minus because we've flipped the Y axis
-        else
-            newPosition(2) = newPosition(2) + 0.15*ngroups/9 ; % Not minus because we've flipped the Y axis
+        tmp = strsplit(thisH.String,' ') ;
+        thisH.String = {tmp{1}, strjoin(tmp(2:end))} ;
+        clear tmp
+        if thisH.Extent(1)+thisH.Extent(3) > xlims(2)
+            thisH.String = strjoin(thisH.String) ;
+            newPosition = thisH.Position ;
+            if contains(thisH.String,'^')
+                newPosition(2) = newPosition(2) + 0.13*ngroups/9 ; % Not minus because we've flipped the Y axis
+            else
+                newPosition(2) = newPosition(2) + 0.15*ngroups/9 ; % Not minus because we've flipped the Y axis
+            end
+            excess = thisH.Extent(1)+thisH.Extent(3) - xlims(2) ;
+            newPosition(1) = newPosition(1) - excess ;
+            thisH.Position = newPosition ;
         end
-        excess = thisH.Extent(1)+thisH.Extent(3) - xlims(2) ;
-        newPosition(1) = newPosition(1) - excess ;
-        thisH.Position = newPosition ;
     end
     % Nudge up bar labels that were pushed down because of a superscript
     if contains(thisH.String,'^')

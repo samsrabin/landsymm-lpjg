@@ -78,7 +78,7 @@ sd_or_sem = 'st. dev.' ;
 % sd_or_sem = 'SEM' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
-fontSize = 12 ;
+fontSize = 14 ;
 figure_position = [1    33   720   772] ;
 % figure_position = [1    33   846   772] ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -98,7 +98,7 @@ rowInfo = { ...
            'Temperature', 'temp', 1, '%0.1f', '%0.1f', [char(176) 'C'] ;
 % Demand and production
            'Crop demand', 'Demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-           'Ruminant demand (feed-eq.)', 'Demand.ruminants', 1e-3*1e-6, ' %.0f', '%.0f', 'Mt' ;
+           'Ruminant demand (feed-eq.)', 'Demand.ruminants', 1e-6*1e-6, '%.1f', '%.1f', 'Gt' ;
 %            'Monogastric demand', 'Demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
 %            'Crop prod. (wt.)', 'cropprod', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
 %            'Crop demand (kcal)', 'Demand_kcal.crops', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
@@ -124,14 +124,9 @@ rowInfo = { ...
 
 run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph.m') ;
 
-if any_notFirstDecade
-    title_pattern = 'Change in land use and drivers, %d-%d* to %d-%d' ;
-else
-    title_pattern = 'Change in land use and drivers, %d-%d to %d-%d' ;
-end
-title(sprintf(title_pattern, ...
-    min(years_endh), max(years_endh), min(years_endf), max(years_endf)))
-clear title_pattern
+ht = title(sprintf('Change in land use and drivers, %d-%d to %d-%d', ...
+    min(years_endh), max(years_endh), min(years_endf), max(years_endf))) ;
+ht.Position = [100.0003 0.3 0] ;
 
 %%%%%%%%%%%%
 %%% Save %%%
@@ -177,7 +172,7 @@ rowInfo = { ...
            'Hotspot area: CI+CSLF', 'hotspotCSLF_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
            'Hotspot area: CI+CSLF (no Misc.)', 'hotspotCSLF_area_nobioenergy', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
 %            'ET', 'aevapaaet', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
-           'Runoff', 'tot_runoff', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
+           'Runoff', 'tot_runoff', cf_m3_to_km3*1e-3, '%.0f', '%.1f', 'Kkm^3' ;
            'N loss', 'nloss', cf_kg2Tg, '%.0f', '%.0f', 'TgN' ;
            'BVOC emis.', 'aiso+amon', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
 %            'Iso. emis.', 'aiso', cf_kg2Tg, '%.0f', '%.0f', 'TgC' ;
@@ -191,14 +186,8 @@ rowInfo = { ...
 run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph.m') ;
 
 
-if any_notFirstDecade
-    title_pattern = 'Change in ecosystem service indicators, %d-%d* to %d-%d' ;
-else
-    title_pattern = 'Change in ecosystem service indicators, %d-%d to %d-%d' ;
-end
-title(sprintf(title_pattern, ...
+title(sprintf('Change in ecosystem service indicators, %d-%d to %d-%d', ...
     min(years_endh), max(years_endh), min(years_endf), max(years_endf)))
-clear title_pattern
 
 
 %%%%%%%%%%%%
