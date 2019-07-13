@@ -921,11 +921,12 @@ end
 
 % Options %%%%%%%%%
 fontSize = 14 ;
-spacing = [0.05 0.05] ;   % [vert, horz]
+spacing = [0.062 0.05] ;   % [vert, horz]
 textX = 25 ;
 textY_1 = 50 ;
 textY_2 = 20 ;
-thisPos = [1 33 935 772] ;
+shiftup = 15 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
+thisPos = [1    33   770   772] ;
 nx = 2 ;
 ny = 4 ;
 colorBarLoc = 'EastOutside' ;

@@ -63,6 +63,8 @@ for r = 1:Nruns
     caxis(gcas_crop(r),[-colorlim_crop colorlim_crop])
     caxis(gcas_past(r),[-colorlim_past colorlim_past])
 end
+add_big_colorbar(gcas_crop(Nruns), fontSize, units_map) ;
+add_big_colorbar(gcas_past(Nruns), fontSize, units_map) ;
 
 end
 
@@ -76,6 +78,7 @@ function [hc, hp, caxis_max_crop, caxis_max_past, ht] = actually_make_fig(...
     conv_fact_map, conv_fact_total, units_map, units_total, ...
     do_caps, only1bl, this_colormap_name)
 
+en_dash = char(8211) ;
 flip_colormap = false ;
 if strcmp(this_colormap_name(1),'-')
     flip_colormap = true ;
@@ -85,18 +88,33 @@ this_colormap = brighten(brewermap(64,this_colormap_name),-0.3) ;
 if flip_colormap
     this_colormap = flipud(this_colormap) ;
 end
+if ny ~= 4
+    error('Code for one big colorbar (per column) only tested with ny==4')
+end
+
+% Set up for single colorbar and overarching title for each column
+shiftup = 0.01*(i2/2 - 1) ;
+if i1 > 2
+    shiftup = shiftup * 2 ;
+end
+colTitle_yPos = 1.3 ;
+colTitle_fontSize = fontSize + 4 ;
 
 % Cropland
 if ~isempty(crop_area_YXB) && isempty(total_crop_bl)
     total_crop_bl = nansum(nansum(crop_area_YXB)) ;
 end
 subplot_tight(ny,nx,i1,spacing) ;
+if i1 > 1
+    set(gca,'Position', get(gca,'Position') + [0 shiftup 0 0])
+end
 pcolor(diff_crop_YX(69:end,:)) ; shading flat ; axis equal tight off
-colorbar(colorBarLoc)
+% colorbar(colorBarLoc)
 colormap(gca,this_colormap)
 set(gca,'XTick',[],'YTick',[])
 set(gca,'FontSize',fontSize)
-ht = title(['\Delta cropland area, ' num2str(yN) ': ' runName2 ' (' units_map ')']) ;
+% ht = title(['\Delta cropland area, ' num2str(yN) ': ' runName2 ' (' units_map ')']) ;
+ht = title(runName2) ;
 add_totals_v1( ...
     diff_crop_YX, total_crop_bl, ...
     conv_fact_map, conv_fact_total, units_total, ...
@@ -112,17 +130,27 @@ add_totals_v1( ...
 hc = gca ;
 caxis_max_crop = max(abs(caxis)) ;
 
+if i1==1
+    htmp = text(0, 0, sprintf('%s cropland area, %d%s%d','\Delta',y1,en_dash,yN), ...
+        'FontSize', colTitle_fontSize, 'FontWeight', 'bold', ...
+        'HorizontalAlignment', 'center') ;
+    htmp.Units = 'normalized' ;
+    htmp.Position = [0.5 colTitle_yPos 0] ;
+end
+
 % Pasture
 if ~isempty(past_area_YXB) && isempty(total_past_bl)
     total_past_bl = nansum(nansum(past_area_YXB)) ;
 end
 subplot_tight(ny,nx,i2,spacing) ;
+if i1 > 1
+    set(gca,'Position', get(gca,'Position') + [0 shiftup 0 0])
+end
 pcolor(diff_past_YX(69:end,:)) ; shading flat ; axis equal tight off
-colorbar(colorBarLoc)
 colormap(gca,this_colormap)
 set(gca,'XTick',[],'YTick',[])
 set(gca,'FontSize',fontSize)
-ht = title(['\Delta pasture area, ' num2str(yN) ': ' runName2 ' (' units_map ')']) ;
+ht = title(runName2) ;
 add_totals_v1( ...
     diff_past_YX, total_past_bl, ...
     conv_fact_map, conv_fact_total, units_total, ...
@@ -138,6 +166,14 @@ add_totals_v1( ...
 hp = gca ;
 caxis_max_past = max(abs(caxis)) ;
 
+if i1==1
+    htmp = text(0, 0, sprintf('%s pasture area, %d%s%d','\Delta',y1,en_dash,yN), ...
+        'FontSize', colTitle_fontSize, 'FontWeight', 'bold', ...
+        'HorizontalAlignment', 'center') ;
+    htmp.Units = 'normalized' ;
+    htmp.Position = [0.5 colTitle_yPos 0] ;
+end
+
 end
 
 
@@ -146,6 +182,9 @@ function add_totals_v1( ...
     conv_fact_map, conv_fact_total, units_total, ...
     textX, textY_1, textY_2, fontSize, ...
     ht, i1, do_caps)
+
+% this_fontSize = fontSize - 2 ;
+this_fontSize = fontSize ;
 
 total_yr = nansum(nansum(diff_this_YX/conv_fact_map)) ;
 pctDiff = round(100*total_yr./total_this_bl,1) ;
@@ -157,8 +196,8 @@ if pctDiff>0
 end
 text(textX,textY_1,sprintf(diff_format, ...
     total_yr*conv_fact_total,units_total),...
-    'FontSize',fontSize-2) ;
-text(textX,textY_2,['(' pctDiff_str '%)'],'FontSize',fontSize-2) ;
+    'FontSize',this_fontSize) ;
+text(textX,textY_2,['(' pctDiff_str '%)'],'FontSize',this_fontSize) ;
 letterlabel_align0(char(i1 + 64),ht,do_caps) ;
 
 
@@ -190,6 +229,20 @@ text(textX,textY_2, ...
     sprintf(diff_format, pctDiff), ...
     'FontSize',fontSize-2) ;
 letterlabel_align0(char(i1 + 64),ht,do_caps) ;
+
+
+end
+
+
+function add_big_colorbar(h, fontSize, units_map)
+
+thisPos = get(h,'Position') ;
+hcb = colorbar(h,'Location','SouthOutside') ;
+set(h,'Position',thisPos)
+hcb.Position(2) = 0.075 ;
+ylabel(hcb, units_map)
+hcb.FontSize = fontSize ;
+hcb.TickDirection = 'out' ;
 
 
 end
