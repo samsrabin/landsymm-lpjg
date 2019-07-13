@@ -1344,6 +1344,7 @@ for j = 1:length(cslf_IDs)
 end
 clear ecoid_YX
 hotspotCSLF_area_YX = (hotspot_YX | cslf_YX).*gcel_area_YX ;
+cslf_shp = '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.CSLF.shp' ;
 
 
 %% Import food production units and basins

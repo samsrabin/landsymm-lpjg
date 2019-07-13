@@ -148,7 +148,7 @@ sd_or_sem = 'st. dev.' ;
 % sd_or_sem = 'SEM' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
-fontSize = 12 ;
+fontSize = 14 ;
 figure_position = [1    33   720   772] ;
 % figure_position = [1    33   846   772] ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -170,7 +170,7 @@ rowInfo = { ...
 %            'Jan. albedo, borfor+tundra', 'albedo1_borfor+albedo1_tundra', 1, '%0.3f', '%0.3f', '' ;
            'Hotspot area: CI', 'hotspot_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
            'Hotspot area: CI+CSLF', 'hotspotCSLF_area', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
-           'Hotspot area: CI+CSLF (no Misc.)', 'hotspotCSLF_area_nobioenergy', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+%            'Hotspot area: CI+CSLF (no Misc.)', 'hotspotCSLF_area_nobioenergy', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
 %            'ET', 'aevapaaet', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            'Runoff', 'tot_runoff', cf_m3_to_km3*1e-3, '%.0f', '%.1f', 'Kkm^3' ;
            'N loss', 'nloss', cf_kg2Tg, '%.0f', '%.0f', 'TgN' ;
@@ -783,9 +783,17 @@ units_total = 'PgC' ;
 this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
 prctile_clim = [] ;
 %%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; fontSize = 14 ;
-thisPos = figurePos ; colorBarLoc = 'SouthOutside' ; nx = 2 ; ny = 2 ;
-spacing = [0.1 0.05] ;% [v h]
+textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; 
+shiftup = 10 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup ; 
+% fontSize = 14 ;
+fontSize = 16 ;
+colorBarLoc = 'SouthOutside' ; 
+nx = 2 ; ny = 2 ;
+% nx = 1 ; ny = 4 ;
+% thisPos = figurePos ;
+thisPos = [1         130        1320         675] ;
+% spacing = [0.1 0.05] ;% [v h]
+spacing = [0.05 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
 do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filename_base, ...
@@ -2880,7 +2888,7 @@ hotspot_area_YXyr = repmat(hotspot_area_YXy,[1 1 1 Nruns]) .* permute(maps_LU_d9
 hotspot_diff_YXr = squeeze(mean(hotspot_area_YXyr,3) - repmat(hotspot_area_YXB,[1 1 1 Nruns])) ;
 
 map_hotspot_diffs(...
-    hotspot_area_YXB, hotspot_diff_YXr, hotspot_YX, hotspot_shp, ...
+    hotspot_area_YXB, hotspot_diff_YXr, hotspot_YX, hotspot_shp, [], ...
     spacing, latlim, edgecolor, cbarOrient, fontSize, ...
     textX, textY_1, textY_2, ssp_plot_index, lineWidth, ...
     yearList_baseline, yearList_future, runList, ...
@@ -2890,6 +2898,47 @@ if do_save
     export_fig( ...
         sprintf('%s/areaDiff_BDhotspots_CI.%d-%d.png',removeslashifneeded(outDir_maps),yearList_baseline(end),yearList_future(end)), ...
         ['-r' num2str(pngres)])
+    close
+end
+
+
+%% Map changes in BD hotspot area: CI + CSLF
+
+% Options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+edgecolor = 0.6*ones(3,1) ;
+% latlim = [-60,80];
+latlim = [-60,50];
+fontSize = 14 ;
+% spacing = [0.07 0.05] ;   % [vert, horz]
+spacing = [0.03 0.05] ;   % [vert, horz]
+textX = 25 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+cbarOrient = 'SouthOutside' ;
+lineWidth = 0.5 ;
+conv_fact_map = 1e-6 ;   % m2 to km2
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+units_map = 'km^2' ;
+units_total = 'Mkm^2' ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Biodiversity hotspots
+hotspotCSLF_area_YXy = repmat(hotspotCSLF_area_YX, [1 1 length(years_endh)]) ;
+hotspotCSLF_area_YXB = mean(hotspotCSLF_area_YXy .* permute(maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:),[1 2 4 3]),3) ;
+hotspotCSLF_area_YXyr = repmat(hotspotCSLF_area_YXy,[1 1 1 Nruns]) .* permute(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),:,:),[1 2 4 5 3]) ;
+hotspotCSLF_diff_YXr = squeeze(mean(hotspotCSLF_area_YXyr,3) - repmat(hotspotCSLF_area_YXB,[1 1 1 Nruns])) ;
+
+map_hotspot_diffs(...
+    hotspotCSLF_area_YXB, hotspotCSLF_diff_YXr, (hotspot_YX | cslf_YX), hotspot_shp, cslf_shp, ...
+    spacing, latlim, edgecolor, cbarOrient, fontSize, ...
+    textX, textY_1, textY_2, ssp_plot_index, lineWidth, ...
+    yearList_baseline, yearList_future, runList, ...
+    conv_fact_map, conv_fact_total, units_map, units_total, do_caps)
+
+if do_save
+    export_fig( ...
+        sprintf('%s/areaDiff_BDhotspots_CI_CSLF.%d-%d.png',removeslashifneeded(outDir_maps),yearList_baseline(end),yearList_future(end)), ...
+        ['-r' num2str(pngres*2)])
     close
 end
     
@@ -2925,7 +2974,7 @@ end
 %     hotspot_diff_YXr = hotspot_area_YXr - repmat(hotspot_area_YXB,[1 1 Nruns]) ;
 %     
 %     map_hotspot_diffs(...
-%         hotspot_area_YXB, hotspot_diff_YXr, hotspot_YX, hotspot_shp, ...
+%         hotspot_area_YXB, hotspot_diff_YXr, hotspot_YX, hotspot_shp, [], ...
 %         spacing, latlim, edgecolor, cbarOrient, fontSize, ...
 %         textX, textY_1, textY_2, ssp_plot_index, lineWidth, ...
 %         yearList_baseline, yearList_future, runList)

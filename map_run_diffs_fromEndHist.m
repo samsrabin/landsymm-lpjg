@@ -9,7 +9,10 @@ Nruns = length(runList) ;
 if isempty(land_area_YX)
     land_area_YX = ones(size(maps_d9.maps_YXvyr,1),size(maps_d9.maps_YXvyr,2)) ;
 end
-
+one_big_colorbar = equalize_cbars && (~do_pct || (do_pct && isempty(pct_clim))) && nx==2 && ny==2 ;
+if ~one_big_colorbar
+    thisPos = figurePos ;
+end
 figure('Color','w','Position',thisPos) ;
 
 [~,IA] = intersect(maps_d9.varNames,sumvars) ;
@@ -52,13 +55,25 @@ for r = 1:Nruns
     end
     caxis(this_clim_max*[-1 1])
     clim_max = max(clim_max,this_clim_max) ;
-    hcbs(r) = colorbar(colorBarLoc) ;
-    hcb = hcbs(r) ;
+    if ~one_big_colorbar
+        hcbs(r) = colorbar(colorBarLoc) ;
+        hcb = hcbs(r) ;
+    end
     colormap(gca,brighten(brewermap(64,'RdBu_ssr'),-0.3)) ;
-    
+        
     % Add labels
-    set(get(hcb,'XLabel'),'String',['2090s minus 2000s (' units_map ')'])
-    ht = title(['Diff. in ' title_text ', 2001-2010 to 2091-2100 (' runList{r} ')']) ;
+    if one_big_colorbar && r==1
+        hsgt = sgtitle(sprintf('Diff. in %s, 2000s to 2090s', title_text)) ;
+        set(hsgt, 'FontSize', fontSize+4, 'FontWeight', 'bold')
+    end
+    if ~one_big_colorbar
+        set(get(hcb,'XLabel'),'String',['2090s minus 2000s (' units_map ')'], ...
+            'FontSize', fontSize)
+        set(hcb, 'FontSize', fontSize)
+        ht = title(['Diff. in ' title_text ', 2001-2010 to 2091-2100 (' runList{r} ')']) ;
+    else
+        ht = title(runList{r}) ;
+    end
     set(gca,'FontSize',fontSize)
     letterlabel_align0(char(r + 64),ht,do_caps) ;
     
@@ -70,40 +85,56 @@ for r = 1:Nruns
         mean_endf = conv_fact_total * nansum(nansum(endf_YXmean .* land_area_YX)) ;
         sd_endf = std(nansum(nansum(endf_YXy .* repmat(land_area_YX,[1 1 10]),1),2),...
             0,3) * conv_fact_total ;
-%         text(textX,textY_1,['2000s: ' num2str(round(mean_endh)) '±' num2str(round(sd_endh)) ' ' units_total],'FontSize',fontSize-2) ;
-%         text(textX,textY_2,['2090s: ' num2str(round(mean_endf)) '±' num2str(round(sd_endf)) ' ' units_total],'FontSize',fontSize-2) ;
+        data_fontSize = fontSize ;
         if contains(title_text, 'albedo')
             text(textX,textY_1, ...
                 sprintf('2000s: %0.3f±%0.3f %s', mean_endh, sd_endh, units_total), ...
-                'FontSize',fontSize-2) ;
+                'FontSize',data_fontSize) ;
             text(textX,textY_2, ...
                 sprintf('2090s: %0.3f±%0.3f %s', mean_endf, sd_endf, units_total), ...
-                'FontSize',fontSize-2) ;
+                'FontSize',data_fontSize) ;
         else
             text(textX,textY_1, ...
                 sprintf('2000s: %d±%d %s', round(mean_endh), round(sd_endh), units_total), ...
-                'FontSize',fontSize-2) ;
+                'FontSize',data_fontSize) ;
             text(textX,textY_2, ...
                 sprintf('2090s: %d±%d %s', round(mean_endf), round(sd_endf), units_total), ...
-                'FontSize',fontSize-2) ;
+                'FontSize',data_fontSize) ;
         end
     end
 end
-if equalize_cbars && (~do_pct || (do_pct && isempty(pct_clim)))
+
+if one_big_colorbar
+    
+    % Equalize color axes
     for r = 1:Nruns
-%         caxis(hs(r),[-this_clim_max this_clim_max]) ;
         caxis(hs(r),[-clim_max clim_max]) ;
-        if ~do_pct && ~isempty(prctile_clim)
-            hcb_ticks = get(hcbs(r),'Ticks') ;
-            hcb_limits = get(hcbs(r),'Limits') ;
-            hcb_ticklabels = get(hcbs(r),'TickLabels') ;
-            new_ticks = [hcb_limits(1) hcb_ticks hcb_limits(2)] ;
-            new_ticklabels = [{'<'};hcb_ticklabels;{'>'}] ;
-            set(hcbs(r), ...
-                'Ticks', new_ticks, ...
-                'TickLabels',  new_ticklabels)
-        end
+    end
+    
+    % Move subplots up and down
+    shiftdown = -0.025 ;
+    set(hs(1),'Position', get(hs(1),'Position') + [0 shiftdown 0 0])
+    set(hs(2),'Position', get(hs(2),'Position') + [0 shiftdown 0 0])
+    shiftup = 0.03 ;
+    set(hs(3),'Position', get(hs(3),'Position') + [0 shiftup 0 0])
+    set(hs(4),'Position', get(hs(4),'Position') + [0 shiftup 0 0])
+    
+    % Add big colorbar at bottom
+    hcb = colorbar('Location','SouthOutside','Position',[0.25 0.075 0.5 0.025]);
+    set(get(hcb,'XLabel'),'String',['2090s minus 2000s (' units_map ')'])
+    set(hcb, 'FontSize', fontSize)
+    if ~do_pct && ~isempty(prctile_clim)
+        hcb_ticks = get(hcb,'Ticks') ;
+        hcb_limits = get(hcb,'Limits') ;
+        hcb_ticklabels = get(hcb,'TickLabels') ;
+        new_ticks = [hcb_limits(1) hcb_ticks hcb_limits(2)] ;
+        new_ticklabels = [{'<'};hcb_ticklabels;{'>'}] ;
+        set(hcb, ...
+            'Ticks', new_ticks, ...
+            'TickLabels',  new_ticklabels)
     end
 end
+
+
 
 end

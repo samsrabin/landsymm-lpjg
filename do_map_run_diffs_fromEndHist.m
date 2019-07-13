@@ -10,6 +10,7 @@ maps_YXr = map_run_diffs_fromEndHist(maps_d9, title_text, sumvars, ...
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, ...
     pct_clim, prctile_clim) ;
+
 if do_save
     filename = [filename_base '_diff'] ;
     if do_pct 
@@ -26,6 +27,7 @@ if do_save
     save_geotiffs(maps_YXr, filename, runList, R, gtif_missing)
     close
 end
+
 
 do_pct = true ;
 maps_YXr = map_run_diffs_fromEndHist(maps_d9, title_text, sumvars, ...
