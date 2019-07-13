@@ -423,14 +423,21 @@ set(gca,'YLim',[0.4 max(ylims)])
 
 % Tweak bar label locations
 xlims = get(gca,'XLim') ;
+hf = gcf ;
+hf.Units = 'pixels' ;
+ha = gca ;
+ha.Units = 'pixels' ;
 for x = 1:length(h_barLabels)
     thisH = h_barLabels{x} ;
+    thisH_units_orig = thisH.Units ;
+    thisH.Units = 'pixels' ;
     % Move bar labels that have fallen off the right edge
-    if thisH.Extent(1)+thisH.Extent(3) > xlims(2)
+    if ha.Position(1) + thisH.Extent(1) + thisH.Extent(3) > hf.Position(3)
         tmp = strsplit(thisH.String,' ') ;
         thisH.String = {tmp{1}, strjoin(tmp(2:end))} ;
         clear tmp
-        if thisH.Extent(1)+thisH.Extent(3) > xlims(2)
+        if ha.Position(1) + thisH.Extent(1) + thisH.Extent(3) > hf.Position(3)
+            thisH.Units = thisH_units_orig ;
             thisH.String = strjoin(thisH.String) ;
             newPosition = thisH.Position ;
             if contains(thisH.String,'^')
@@ -443,6 +450,7 @@ for x = 1:length(h_barLabels)
             thisH.Position = newPosition ;
         end
     end
+    thisH.Units = thisH_units_orig ;
     % Nudge up bar labels that were pushed down because of a superscript
     if contains(thisH.String,'^')
         newPosition = thisH.Position ;
