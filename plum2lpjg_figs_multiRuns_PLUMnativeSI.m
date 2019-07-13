@@ -804,6 +804,30 @@ do_map_run_diffs_fromEndHist(do_save, maps_cpool_d9, sumvars, title_text, filena
     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim, R, gtif_missing) ;
 
+thisPos = [1    33   407   772] ;
+spacing = [0.05 0.05] ;% [v h]
+fontSize = 11 ;
+textX = 0 ;
+map_run_diffs_fromEndHist_oneCol(maps_cpool_d9, title_text, sumvars, ...
+    fontSize, spacing, textX, textY_1, textY_2, ...
+    thisPos, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    conv_fact_map, units_map, conv_fact_total, units_total, ...
+    pct_clim, prctile_clim) ;
+if do_save
+    filename = [filename_base '_diff'] ;
+    if ~isempty(prctile_clim)
+        if isint(prctile_clim)
+            filename = sprintf('%s_limPrctile%df', filename, prctile_clim) ;
+        else
+            filename = sprintf('%s_limPrctile%0.1f', filename, prctile_clim) ;
+        end
+    end
+    filename = [filename '_2000s-2090s_1col.png'] ;
+    export_fig(filename,['-r' num2str(pngres)])
+    close
+end
+clear tmp_maps_YXr
+
 
 %% Map differences from end of historical to end of future: Total C
 
