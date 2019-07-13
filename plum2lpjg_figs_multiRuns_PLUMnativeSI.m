@@ -84,11 +84,12 @@ figure_position = [1    33   720   772] ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Name, code, conversion factor, formatSpec mean, formatSpec SEM, units
-where2sep = [0.5 3.5 5.5] ;
+where2sep = [0.5 3.5 5.5 8.5] ;
 sep_labels = {...
-    'Exogenous forcing'; ...
-    'Commodity demand';
-    'Land use & management'; ...
+    'Exogenous forcing' ;
+    'Commodity demand' ;
+    'Land use areas' ;
+    'Management inputs' ;
     } ;
 rowInfo = { ...
            % Exogenous inputs
@@ -97,8 +98,8 @@ rowInfo = { ...
 %            'Temperature', 'temp', 1, '%0.1f', '%0.1f', 'K' ;
            'Temperature', 'temp', 1, '%0.1f', '%0.1f', [char(176) 'C'] ;
 % Demand and production
-           'Crop demand', 'Demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
-           'Ruminant demand (feed-eq.)', 'Demand.ruminants', 1e-6*1e-6, '%.1f', '%.1f', 'Gt' ;
+           'Crops', 'Demand.crops', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
+           'Ruminants', 'Demand.ruminants', 1e-6*1e-6, '%.1f', '%.1f', 'Gt' ;
 %            'Monogastric demand', 'Demand.monogastrics', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
 %            'Crop prod. (wt.)', 'cropprod', 1e-3*1e-6, '%.0f', '%.0f', 'Mt' ;
 %            'Crop demand (kcal)', 'Demand_kcal.crops', cf_kcalEcal, '%.0f', '%.0f', 'Ecal' ;
@@ -108,11 +109,13 @@ rowInfo = { ...
 %            'Crop demand', 'DemandPC.crops', 1, '%.0f', '%.0f', 'kg person^{-1} yr^{-1}' ;
 %            'Crop prod.', 'kcalPC', 1/365, '%.0f', '%.0f', 'kcal person^{-1} day^{-1}' ;
 
-           % Land use & management
-           'Area: Cropland', 'LUarea_crop', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
-           'Area: Pasture', 'LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
-%            'Area: Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
-           'Area: Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
+           % Land use areas
+           'Cropland', 'LUarea_crop', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+           'Pasture', 'LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+%            'Agriculture', 'LUarea_crop+LUarea_past', 1e-6*1e-6, '%0.1f', '%0.1f', 'Mkm^2' ;
+           'Non-agri.', 'LUarea_ntrl', 1e-6*1e-6, '%.0f', '%.0f', 'Mkm^2' ;
+           
+           % Management inputs
            'Fertilizer', 'nflux_fert', -1e-9, '%.0f', '%.0f', 'TgN' ;
            'Irrigation', 'irrig', cf_m3_to_km3, '%.0f', '%.0f', 'km^3' ;
            } ;
