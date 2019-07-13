@@ -20,7 +20,7 @@ figure('Color','w','Position',[1   211   720   594]) ;
 h1 = subplot_tight(3,1,1,spacing.*[1 6]) ;
 hotspot_BL_2map = conv_fact_map*hotspot_area_YXB ;
 hotspot_BL_2map(hotspot_YX==0) = NaN ;
-map_with_SHPoverlay_v2(hotspot_BL_2map,hotspot_shp,...[], ...
+[~,hcb_bl] = map_with_SHPoverlay_v2(hotspot_BL_2map,hotspot_shp,...[], ...
                         'bground',bground, ...
                         'lonlim', lonlim, ...
                         'latlim', latlim, ...
@@ -46,7 +46,8 @@ caxis_lims = [-caxis_lims caxis_lims] ;
 for r = 1:Nruns
 %     subplot_tight(2,3,ssp_plot_index(r),spacing) ;
     subplot_tight(3,2,r+2,spacing) ;
-    map_with_SHPoverlay_v2(conv_fact_map*hotspot_diff_YXr(:,:,r),hotspot_shp, ...
+    shiftup = -0.05 + (ceil(r/2)-1)*0.1 ;
+    [h, cb_lims] = map_with_SHPoverlay_v2(conv_fact_map*hotspot_diff_YXr(:,:,r),hotspot_shp, ...
                 'bground',bground,...
                 'lonlim', lonlim, ...
                 'latlim', latlim, ...
@@ -58,7 +59,8 @@ for r = 1:Nruns
                 'flip', true, ...
                 'caxis_lims', caxis_lims, ...
                 'units_map', units_map, ...
-                'shapedata2', cslf_shp) ;
+                'shapedata2', cslf_shp, ...
+                'shiftup', shiftup) ;
 %     title(['\Delta BD hotspot area, ' num2str(yearList_future(end)) ': ' runList{r} ' (km^2)'])
     ht = title(runList{r}) ;
 %     letterlabel_align0(char(ssp_plot_index(r) + 64),ht,do_caps) ;
@@ -90,6 +92,20 @@ end
 for r = 1:Nruns
     caxis(gcas{r},[-colorlim colorlim])
 end
+
+thisPos = get(h,'Position') ;
+hcb = colorbar(h,'Location','SouthOutside') ;
+set(hcb,'XLim',cb_lims) ;
+set(h,'Position',thisPos)
+hcb.Position(2) = 0.075 ;
+ylabel(hcb, units_map)
+hcb.FontSize = fontSize ;
+hcb.TickDirection = 'out' ;
+x=1 ;
+thisPos = hcb_bl.Position ;
+thisPos(2) = 0.15 ;
+hcb.Position = thisPos ;
+
 
 % colormap(h1,'parula')
 
