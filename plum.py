@@ -178,7 +178,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 			tI = t
 		else: 
 			tI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_ir.npy'%(rcp, GCM, crop))
-		w  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
+		w  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/pr_%s_%s_rf.npy'%(rcp, GCM, crop))
 
 		# CO2 vars
 		if rcp == 85: co2 = [402.552, 432.3075, 469.135, 514.989, 572.0315, 640.299, 717.63, 801.4935, 890.3395]
