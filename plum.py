@@ -134,32 +134,18 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 
     # Define matching to GGCMI crops
     PLUM2GGCMI_dict={
-    #"CerealsC3":    "max_wheat",
-    "CerealsC3":    "winter_wheat",
+    "CerealsC3":    "THIS SHOULDN'T MATTER",
     "CerealsC4":    "maize",
-    "Rice":        "rice",
-    "Oilcrops":    "soy",
-    "Pulses":    "soy",
+    "Rice":         "rice",
+    "Oilcrops":     "soy",
+    "Pulses":       "soy",
     "StarchyRoots": "spring_wheat"
     }
     if GGCM == "LPJ-GUESS":
         PLUM2GGCMI_dict["Rice"] = "spring_wheat"
         PLUM2GGCMI_dict["Oilcrops"] = "spring_wheat"
+        PLUM2GGCMI_dict["Pulses"] = "spring_wheat"
         PLUM2GGCMI_dict["StarchyRoots"] = "spring_wheat"
-
-#    # Define crop name list and dictionary for output crop names
-#    if GGCM == "LPJ-GUESS":
-#        crops = ["maize", "winter_wheat", "spring_wheat"]
-#    else:
-#        crops = ["maize" , "rice", "soy", "winter_wheat", "spring_wheat"]
-#    
-#    PLUMcrop_dict={
-#        "maize":    "maiz",
-#        "rice":        "rice",
-#        "soy":        "soya",
-#        "winter_wheat": "wwhe",
-#        "spring_wheat": "swhe",
-#    }
 
     for PLUMcrop in PLUMcrops:
 
@@ -181,37 +167,49 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
             KI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, crop))
 
         # Load climate files
-        t  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
-        if ((crop == 'winter_wheat') | (crop == 'spring_wheat')):
-            tI = t
+        if PLUMcrop == "CerealsC3":
+            tmp = "winter_wheat"
+            tw = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, tmp))
+            ww = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/pr_%s_%s_rf.npy'%(rcp, GCM, tmp))
+            tmp = "spring_wheat"
+            ts = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, tmp))
+            ws = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/pr_%s_%s_rf.npy'%(rcp, GCM, tmp))
+        else:
+            w  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/pr_%s_%s_rf.npy'%(rcp, GCM, crop))
+            t  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
+        if ((PLUMcrop == "CerealsC3") | (crop == 'winter_wheat') | (crop == 'spring_wheat')):
+            if PLUMcrop == "CerealsC3":
+                tIw = tw
+                tIs = ts
+            else:
+                tI = t
         else:
             tI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_ir.npy'%(rcp, GCM, crop))
-        w  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/pr_%s_%s_rf.npy'%(rcp, GCM, crop))
 
         # CO2 vars
-        if rcp == 85: co2 = [402.552, 432.3075, 469.135, 514.989, 572.0315, 640.299, 717.63, 801.4935, 890.3395]
-        elif rcp == 45: co2 =[400.1285, 423.0875, 447.9455, 473.69, 497.703, 516.5865, 527.72, 532.4395, 536.0495]
+        if rcp == 45: co2 =[400.1285, 423.0875, 447.9455, 473.69, 497.703, 516.5865, 527.72, 532.4395, 536.0495]
+        elif rcp == 85: co2 = [402.552, 432.3075, 469.135, 514.989, 572.0315, 640.299, 717.63, 801.4935, 890.3395]
 
         # Emulate the six management cases. If CerealsC3, emulate both winter and spring wheat,
         # then find the maximum at each treatment.
         if PLUMcrop == "CerealsC3":
-            rf_10w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
-            rf_10s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+            rf_10w  = emulate(Kw,  co2[decade], tw[decade,:,:],  ww[decade,:,:], 10,  'N')
+            rf_10s  = emulate(Ks,  co2[decade], ts[decade,:,:],  ws[decade,:,:], 10,  'N')
             rf_10   = np.maximum(rf_10w, rf_10s)
-            rf_60w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
-            rf_60s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+            rf_60w  = emulate(Kw,  co2[decade], tw[decade,:,:],  ww[decade,:,:], 60,  'N')
+            rf_60s  = emulate(Ks,  co2[decade], ts[decade,:,:],  ws[decade,:,:], 60,  'N')
             rf_60   = np.maximum(rf_60w, rf_60s)
-            rf_200w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 200,  'N')
-            rf_200s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 200,  'N')
+            rf_200w  = emulate(Kw,  co2[decade], tw[decade,:,:],  ww[decade,:,:], 200,  'N')
+            rf_200s  = emulate(Ks,  co2[decade], ts[decade,:,:],  ws[decade,:,:], 200,  'N')
             rf_200   = np.maximum(rf_200w, rf_200s)
-            ir_10w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
-            ir_10s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+            ir_10w  = emulate(Kw,  co2[decade], tIw[decade,:,:],  1, 10,  'N')
+            ir_10s  = emulate(Ks,  co2[decade], tIs[decade,:,:],  1, 10,  'N')
             ir_10   = np.maximum(ir_10w, ir_10s)
-            ir_60w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
-            ir_60s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+            ir_60w  = emulate(Kw,  co2[decade], tIw[decade,:,:],  1, 60,  'N')
+            ir_60s  = emulate(Ks,  co2[decade], tIs[decade,:,:],  1, 60,  'N')
             ir_60   = np.maximum(ir_60w, ir_60s)
-            ir_200w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 200,  'N')
-            ir_200s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 200,  'N')
+            ir_200w  = emulate(Kw,  co2[decade], tIw[decade,:,:],  1, 200,  'N')
+            ir_200s  = emulate(Ks,  co2[decade], tIs[decade,:,:],  1, 200,  'N')
             ir_200   = np.maximum(ir_200w, ir_200s)
         else:
             rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
@@ -220,6 +218,10 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
             ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1, 10,  'NI')
             ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1, 60,  'NI')
             ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1, 200, 'NI')
+
+        # outarray comes in as (crop,cell) because vstack is the only stack that works with one-d
+        # arrays like rf_10 etc., apparently. outarray will be transposed for write so that each
+        # row is a gridcell.
         outarray = np.vstack((outarray, rf_10[mask_YX==1]))
         outarray = np.vstack((outarray, rf_60[mask_YX==1]))
         outarray = np.vstack((outarray, rf_200[mask_YX==1]))
