@@ -238,16 +238,6 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
         else:
             t,missing_climate = try_load_climate(climate_dir, "tas", GGCM, GGCMIcrop, rcp, missing_climate)
             w,missing_climate = try_load_climate(climate_dir, "pr", GGCM, GGCMIcrop, rcp, missing_climate)
-        if ((GGCMIcrop == 'winter_wheat') | (GGCMIcrop == 'spring_wheat') | (GGCMIcrop == 'max_wheat')):
-            if GGCMIcrop == 'max_wheat':
-                tIw = tw
-                tIs = ts
-            else:
-                tI = t
-        else:
-            # Is there actually supposed to be a separate temperature for irrigated?
-            #tI = np.load('%s/tas_%s_%s_ir_%s.npy'%(climate_dir, GCM, GGCMIcrop, rcp))
-            tI = t
 
         # If any climate files were missing, skip to the next crop.
         if missing_climate:
@@ -273,22 +263,22 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
             rf_200w  = emulate(Kw,  co2[decade], tw[decade,:,:],  ww[decade,:,:], 200,  'N')
             rf_200s  = emulate(Ks,  co2[decade], ts[decade,:,:],  ws[decade,:,:], 200,  'N')
             rf_200   = np.maximum(rf_200w, rf_200s)
-            ir_10w  = emulate(Kw,  co2[decade], tIw[decade,:,:],  1, 10,  'N')
-            ir_10s  = emulate(Ks,  co2[decade], tIs[decade,:,:],  1, 10,  'N')
+            ir_10w  = emulate(Kw,  co2[decade], tw[decade,:,:],  1, 10,  'N')
+            ir_10s  = emulate(Ks,  co2[decade], ts[decade,:,:],  1, 10,  'N')
             ir_10   = np.maximum(ir_10w, ir_10s)
-            ir_60w  = emulate(Kw,  co2[decade], tIw[decade,:,:],  1, 60,  'N')
-            ir_60s  = emulate(Ks,  co2[decade], tIs[decade,:,:],  1, 60,  'N')
+            ir_60w  = emulate(Kw,  co2[decade], tw[decade,:,:],  1, 60,  'N')
+            ir_60s  = emulate(Ks,  co2[decade], ts[decade,:,:],  1, 60,  'N')
             ir_60   = np.maximum(ir_60w, ir_60s)
-            ir_200w  = emulate(Kw,  co2[decade], tIw[decade,:,:],  1, 200,  'N')
-            ir_200s  = emulate(Ks,  co2[decade], tIs[decade,:,:],  1, 200,  'N')
+            ir_200w  = emulate(Kw,  co2[decade], tw[decade,:,:],  1, 200,  'N')
+            ir_200s  = emulate(Ks,  co2[decade], ts[decade,:,:],  1, 200,  'N')
             ir_200   = np.maximum(ir_200w, ir_200s)
         else:
             rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
             rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
             rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
-            ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1, 10,  'NI')
-            ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1, 60,  'NI')
-            ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1, 200, 'NI')
+            ir_10  = emulate(KI, co2[decade], t[decade,:,:], 1, 10,  'NI')
+            ir_60  = emulate(KI, co2[decade], t[decade,:,:], 1, 60,  'NI')
+            ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200, 'NI')
 
         # outarray comes in as (crop,cell) because vstack is the only stack that works with one-d
         # arrays like rf_10 etc., apparently. outarray will be transposed for write so that each
