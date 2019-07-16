@@ -169,8 +169,16 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
         # Could make this more efficient by not redoing emulation for two PLUMcrops that use the same GGCMI crop
 
         # Load Emulator params
-        K  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, crop))
-        KI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, crop))
+        if PLUMcrop == "CerealsC3":
+            tmp = "winter_wheat"
+            Kw  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, tmp))
+            KIw = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, tmp))
+            tmp = "spring_wheat"
+            Ks  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, tmp))
+            KIs = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, tmp))
+        else:
+            K  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s.npy'%(GGCM, crop))
+            KI = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop/%s_%s_I.npy'%(GGCM, crop))
 
         # Load climate files
         t  = np.load('/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate/rcp%s/tas_%s_%s_rf.npy'%(rcp, GCM, crop))
@@ -184,20 +192,40 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
         if rcp == 85: co2 = [402.552, 432.3075, 469.135, 514.989, 572.0315, 640.299, 717.63, 801.4935, 890.3395]
         elif rcp == 45: co2 =[400.1285, 423.0875, 447.9455, 473.69, 497.703, 516.5865, 527.72, 532.4395, 536.0495]
 
-        # Emulate the six management cases
-        rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+        # Emulate the six management cases. If CerealsC3, emulate both winter and spring wheat,
+        # then find the maximum at each treatment.
+        if PLUMcrop == "CerealsC3":
+            rf_10w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+            rf_10s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+            rf_10   = np.maximum(rf_10w, rf_10s)
+            rf_60w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+            rf_60s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+            rf_60   = np.maximum(rf_60w, rf_60s)
+            rf_200w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 200,  'N')
+            rf_200s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 200,  'N')
+            rf_200   = np.maximum(rf_200w, rf_200s)
+            ir_10w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+            ir_10s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+            ir_10   = np.maximum(ir_10w, ir_10s)
+            ir_60w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+            ir_60s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+            ir_60   = np.maximum(ir_60w, ir_60s)
+            ir_200w  = emulate(Kw,  co2[decade], t[decade,:,:],  w[decade,:,:], 200,  'N')
+            ir_200s  = emulate(Ks,  co2[decade], t[decade,:,:],  w[decade,:,:], 200,  'N')
+            ir_200   = np.maximum(ir_200w, ir_200s)
+        else:
+            rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
+            rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
+            rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
+            ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1, 10,  'NI')
+            ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1, 60,  'NI')
+            ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1, 200, 'NI')
         outarray = np.vstack((outarray, rf_10[mask_YX==1]))
-        rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
         outarray = np.vstack((outarray, rf_60[mask_YX==1]))
-        rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
         outarray = np.vstack((outarray, rf_200[mask_YX==1]))
-        ir_10  = emulate(KI, co2[decade], tI[decade,:,:], 1, 10,  'NI')
         outarray = np.vstack((outarray, ir_10[mask_YX==1]))
-        ir_60  = emulate(KI, co2[decade], tI[decade,:,:], 1, 60,  'NI')
         outarray = np.vstack((outarray, ir_60[mask_YX==1]))
-        ir_200 = emulate(KI, co2[decade], tI[decade,:,:], 1, 200, 'NI')
         outarray = np.vstack((outarray, ir_200[mask_YX==1]))
-        #ir_200 = ir_200[mask_YX==1]
 
         # Update header
 #        PLUMcrop = PLUMcrop_dict.get(crop)
