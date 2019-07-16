@@ -113,6 +113,40 @@ def emulate(K, c, t, w, n, case):
     Y[Y>30] = 30
     return(Y)
 
+
+def try_load_climate(climate_dir, var, GGCM, GGCMIcrop, rcp, missing_climate):
+    # If no previous climate file was missing, load climate file, if it exists.
+    # Otherwise, change missing_climate to True.
+    in_array = -1
+    if not missing_climate:
+        climate_file = '%s/%s_%s_%s_rf_%d.npy'%(climate_dir, var, GCM, GGCMIcrop, rcp)
+        try:
+            in_array = np.load(climate_file)
+        except FileNotFoundError:
+            print('    File not found: %s'%(climate_file))
+            missing_climate = True
+    return(in_array, missing_climate)
+
+
+def update_out_table(outarray, outheader, outfmt, PLUMcrop, rf_10, rf_60, rf_200, ir_10, ir_60, ir_200, mask_YX):
+    # outarray comes in as (crop,cell) because vstack is the only stack that works with one-d
+    # arrays like rf_10 etc., apparently. outarray will be transposed for write so that each
+    # row is a gridcell.
+    outarray = np.vstack((outarray, rf_10[mask_YX==1]))
+    outarray = np.vstack((outarray, rf_60[mask_YX==1]))
+    outarray = np.vstack((outarray, rf_200[mask_YX==1]))
+    outarray = np.vstack((outarray, ir_10[mask_YX==1]))
+    outarray = np.vstack((outarray, ir_60[mask_YX==1]))
+    outarray = np.vstack((outarray, ir_200[mask_YX==1]))
+    
+    # Update header
+    outheader = outheader + " " + PLUMcrop + "010 " + PLUMcrop + "060 " + PLUMcrop + "200 " + PLUMcrop + "i010 " + PLUMcrop + "i060 " + PLUMcrop + "i200"
+    outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
+
+    return(outarray, outheader, outfmt)
+
+
+
 def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
     # GCM: ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','FGOALS-g2',
     #      'GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','GISS-E2-H','GISS-E2-R','HadGEM2-AO','HadGEM2-CC','HadGEM2-ES','inmcm4','IPSL-CM5A-LR',
@@ -131,7 +165,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 
     # Define matching to GGCMI crops
     PLUM2GGCMI_dict={
-    "CerealsC3":    "THIS SHOULDN'T MATTER",
+    "CerealsC3":    "max_wheat", # Should not ever actually be used
     "CerealsC4":    "maize",
     "Rice":         "rice",
     "Oilcrops":     "soy",
@@ -144,40 +178,68 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
         PLUM2GGCMI_dict["Pulses"] = "spring_wheat"
         PLUM2GGCMI_dict["StarchyRoots"] = "spring_wheat"
 
+    # Set up for tracking of which crops were missing
+    missing_climate_dict = {
+    "max_wheat": False,
+    "maize": False,
+    "rice":  False,
+    "soy":   False,
+    "spring_wheat": False,
+    }
+
+    prev_GGCMIcrop = "nothing"
+    prev_PLUMcrop = "nothing"
     for PLUMcrop in PLUMcrops:
 
         GGCMIcrop = PLUM2GGCMI_dict[PLUMcrop]
         print("%s rcp%d dec%d %s %s %s"%(GCM, rcp, decade, GGCM, PLUMcrop, GGCMIcrop))
 
-        # Could make this more efficient by not redoing emulation for two PLUMcrops that use the same GGCMI crop
+        # Reuse data from previous PLUMcrop if it used the same GGCMIcrop.
+        # Could make this more efficient by making it so ANY previous PLUMcrop
+        # would work, but this will do for now. Just arrange dict to maximize
+        # consecutive GGCMIcrops.
+        if ((GGCMIcrop == prev_GGCMIcrop) and not (prev_PLUMcrop == "CerealsC3")):
+            print('    %s and %s both use emulator for %s.'%(prev_PLUMcrop, PLUMcrop, prev_GGCMIcrop))
+            if missing_climate_dict[prev_GGCMIcrop]:
+                print('    But %s climate is missing, so skipping %s.'%(GGCMIcrop, PLUMcrop))
+            else:
+                print('    Using results from %s for %s.'%(prev_PLUMcrop, PLUMcrop))
+                outarray,outheader,outfmt = update_out_table(outarray, outheader, outfmt, PLUMcrop, rf_10, rf_60, rf_200, ir_10, ir_60, ir_200, mask_YX)
+            prev_GGCMIcrop = GGCMIcrop
+            prev_PLUMcrop = PLUMcrop
+            continue
 
         # Load Emulator params
         emulator_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop"
         if PLUMcrop == "CerealsC3":
-            GGCMIcrop = "winter_wheat"
-            Kw  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop))
-            KIw = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop))
-            GGCMIcrop = "spring_wheat"
-            Ks  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop))
-            KIs = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop))
+            GGCMIcrop_tmp = "winter_wheat"
+            Kw  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop_tmp))
+            KIw = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop_tmp))
+            GGCMIcrop_tmp = "spring_wheat"
+            Ks  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop_tmp))
+            KIs = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop_tmp))
+            del GGCMIcrop_tmp
         else:
             K  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop))
             KI = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop))
 
         # Load climate files
-        climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/agmerra/cmip5"
+        #climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/agmerra/cmip5"
+        climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate"
+        missing_climate = False
         if PLUMcrop == "CerealsC3":
-            GGCMIcrop = "winter_wheat"
-            tw = np.load('%s/tas_%s_%s_rf_%s.npy'%(climate_dir, GCM, GGCMIcrop, rcp))
-            ww = np.load('%s/pr_%s_%s_rf_%s.npy'%(climate_dir, GCM, GGCMIcrop, rcp))
-            GGCMIcrop = "spring_wheat"
-            ts = np.load('%s/tas_%s_%s_rf_%s.npy'%(climate_dir, GCM, GGCMIcrop, rcp))
-            ws = np.load('%s/pr_%s_%s_rf_%s.npy'%(climate_dir, GCM, GGCMIcrop, rcp))
+            GGCMIcrop_tmp = "winter_wheat"
+            tw,missing_climate = try_load_climate(climate_dir, "tas", GGCM, GGCMIcrop_tmp, rcp, missing_climate)
+            ww,missing_climate = try_load_climate(climate_dir, "pr", GGCM, GGCMIcrop_tmp, rcp, missing_climate)
+            GGCMIcrop_tmp = "spring_wheat"
+            ts,missing_climate = try_load_climate(climate_dir, "tas", GGCM, GGCMIcrop_tmp, rcp, missing_climate)
+            ws,missing_climate = try_load_climate(climate_dir, "pr", GGCM, GGCMIcrop_tmp, rcp, missing_climate)
+            del GGCMIcrop_tmp
         else:
-            w  = np.load('%s/pr_%s_%s_rf_%s.npy'%(climate_dir, GCM, GGCMIcrop, rcp))
-            t  = np.load('%s/tas_%s_%s_rf_%s.npy'%(climate_dir, GCM, GGCMIcrop, rcp))
-        if ((GGCMIcrop == 'winter_wheat') | (GGCMIcrop == 'spring_wheat')):
-            if PLUMcrop == "CerealsC3":
+            t,missing_climate = try_load_climate(climate_dir, "tas", GGCM, GGCMIcrop, rcp, missing_climate)
+            w,missing_climate = try_load_climate(climate_dir, "pr", GGCM, GGCMIcrop, rcp, missing_climate)
+        if ((GGCMIcrop == 'winter_wheat') | (GGCMIcrop == 'spring_wheat') | (GGCMIcrop == 'max_wheat')):
+            if GGCMIcrop == 'max_wheat':
                 tIw = tw
                 tIs = ts
             else:
@@ -186,6 +248,14 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
             # Is there actually supposed to be a separate temperature for irrigated?
             #tI = np.load('%s/tas_%s_%s_ir_%s.npy'%(climate_dir, GCM, GGCMIcrop, rcp))
             tI = t
+
+        # If any climate files were missing, skip to the next crop.
+        if missing_climate:
+            missing_climate_dict[GGCMIcrop] = True
+            prev_GGCMIcrop = GGCMIcrop
+            prev_PLUMcrop = PLUMcrop
+            print("    Skipping.")
+            continue
 
         # CO2 vars
         if rcp == 45: co2 =[400.1285, 423.0875, 447.9455, 473.69, 497.703, 516.5865, 527.72, 532.4395, 536.0495]
@@ -234,6 +304,9 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
         outheader = outheader + " " + PLUMcrop + "010 " + PLUMcrop + "060 " + PLUMcrop + "200 " + PLUMcrop + "i010 " + PLUMcrop + "i060 " + PLUMcrop + "i200"
         outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
 
+        prev_GGCMIcrop = GGCMIcrop
+        prev_PLUMcrop = PLUMcrop
+
     return(outarray, outheader, outfmt)
 
 GCMs = ["IPSL-CM5A-MR"]
@@ -270,7 +343,7 @@ for decade in decades:
                     pass
 
                 # Emulate
-                outarray,outheader,outfmt = PLUMemulate(climate_files, GCM, rcp, decade, GGCM, mask_YX, lonlats)
+                outarray,outheader,outfmt = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats)
 
                 # Save in PLUM-readable format
                 np.savetxt(outfile, outarray.T,
