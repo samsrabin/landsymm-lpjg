@@ -2,6 +2,7 @@
 import numpy as np;
 import os
 import glob
+import datetime
 np.random.seed(1234)
 def emulate(K, c, t, w, n, case):
     #Case: NN- no nitrogen, NNI - No nitrogen irr, N- with nitrogen, NI- with nitrogen irr
@@ -224,8 +225,8 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
             KI = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop))
 
         # Load climate files
-        #climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/agmerra/cmip5"
-        climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate"
+        climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/agmerra/cmip5"
+        #climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate"
         missing_climate = False
         if PLUMcrop == "CerealsC3":
             GGCMIcrop_tmp = "winter_wheat"
@@ -319,10 +320,10 @@ for decade in decades:
             for GGCM in GGCMs:
 
                 # Set up info about this run
-                decade_str = str(2011+10*decade) + "-" + str(2020+10*decade)
+                decade_str = '%d-%d'%(2011+10*decade, 2020+10*decade)
                 print("%s rcp%d %s %s..."%(GCM, rcp, decade_str, GGCM))
-                outdir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields.nowheatIR/" + GCM + "/rcp" + str(rcp) + "/" + GGCM + "/" + decade_str + "/"
-                outfile = outdir + "yield.nowheatIR." + decade_str + ".out"
+                outdir = '/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields_%s/%s/rcp%d/%s/%s'%(datetime.datetime.now().strftime("%Y%m%d"), GCM, rcp, GGCM, decade_str)
+                outfile = '%s/yield.%s.out'%(outdir, decade_str)
 
                 # Make output directory, if needed
                 try:
