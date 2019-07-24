@@ -3,7 +3,7 @@
 %%% PLUM-style native %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-all_figs = true ;
+all_figs = false ;
 
 if false
     % % thisVer = '20180424agmip7' ;
@@ -1006,6 +1006,9 @@ units_total = 'Mkm^2' ;
 only1bl = true ;
 %%%%%%%%%%%%%%%%%%%
 
+% this_ssp_plot_index = ssp_plot_index ;
+this_ssp_plot_index = sort(ssp_plot_index) ;
+
 thisY1 = yearList_baseline(end) ;
 thisYN = yearList_future(end) ;
 for c = 1:Ncrops
@@ -1013,7 +1016,7 @@ for c = 1:Ncrops
         maps_cropareas_YXvBH(:,:,c), squeeze(maps_cropareasDiffs_YXvrH(:,:,c,:)), ...
         thisY1, thisYN, CFTnames_maps{c}, runList, ...
         spacing, fontSize, textX, textY_1, textY_2, ...
-        nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+        nx, ny, 1, colorBarLoc, this_ssp_plot_index, only1bl, ...
         Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
     if do_save
         export_fig([outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_' CFTnames_maps{c} '.png'],['-r' num2str(pngres)])
