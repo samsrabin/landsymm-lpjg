@@ -154,7 +154,7 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
         rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N', is_irrig)
 
         rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N', is_irrig)
-    return(ir_10, ir_60, ir_200, rf_10, rf_60, rf_200)
+    return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
 
 
 def do_emulation_wheats(emulator_dir, co2, ts, ws, tw, ww, is_irrig):
@@ -292,8 +292,8 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
         emulator_dir_yield = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/fits_yield"
         emulator_dir_irrig = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/fits_irrig"
         if PLUMcrop == "CerealsC3":
-            ir_10_yield,ir_60_yield,ir_200_yield,rf_10_yield,rf_60_yield,rf_200_yield = do_emulation_wheats(emulator_dir_yield, co2, ts, ws, tw, ww, False)
-            ir_10_irrig,ir_60_irrig,ir_200_irrig,rf_10_irrig,rf_60_irrig,rf_200_irrig = do_emulation_wheats(emulator_dir_irrig, co2, ts, ws, tw, ww, True)
+            rf_10_yield,rf_60_yield,rf_200_yield,ir_10_yield,ir_60_yield,ir_200_yield = do_emulation_wheats(emulator_dir_yield, co2, ts, ws, tw, ww, False)
+            rf_10_irrig,rf_60_irrig,rf_200_irrig,ir_10_irrig,ir_60_irrig,ir_200_irrig = do_emulation_wheats(emulator_dir_irrig, co2, ts, ws, tw, ww, True)
             del ts, ws, tw, ww
         else:
             rf_10_yield,rf_60_yield,rf_200_yield,ir_10_yield,ir_60_yield,ir_200_yield = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False)
