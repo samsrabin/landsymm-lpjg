@@ -215,7 +215,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
 
     # Define matching to GGCMI crops
     PLUM2GGCMI_dict={
-    "CerealsC3":    "max_wheat", # Should not ever actually be used
+    "CerealsC3":    "max_wheat",
     "CerealsC4":    "maize",
     "Rice":         "rice",
     "Oilcrops":     "soy",
@@ -263,7 +263,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
         climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/agmerra/cmip5"
         #climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate"
         missing_climate = False
-        if PLUMcrop == "CerealsC3":
+        if PLUM2GGCMI_dict[PLUMcrop] == "max_wheat":
             GGCMIcrop_tmp = "winter_wheat"
             tw,missing_climate = try_load_climate(climate_dir, "tas", GGCM, GGCMIcrop_tmp, rcp, missing_climate)
             ww,missing_climate = try_load_climate(climate_dir, "pr", GGCM, GGCMIcrop_tmp, rcp, missing_climate)
@@ -291,7 +291,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
         # then find the maximum at each treatment.
         emulator_dir_yield = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/fits_yield"
         emulator_dir_irrig = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/fits_irrig"
-        if PLUMcrop == "CerealsC3":
+        if PLUM2GGCMI_dict[PLUMcrop] == "max_wheat":
             rf_10_yield,rf_60_yield,rf_200_yield,ir_10_yield,ir_60_yield,ir_200_yield = do_emulation_wheats(emulator_dir_yield, co2, ts, ws, tw, ww, False)
             rf_10_irrig,rf_60_irrig,rf_200_irrig,ir_10_irrig,ir_60_irrig,ir_200_irrig = do_emulation_wheats(emulator_dir_irrig, co2, ts, ws, tw, ww, True)
             del ts, ws, tw, ww
