@@ -4,7 +4,7 @@ import os
 import glob
 import datetime
 np.random.seed(1234)
-def emulate(K, c, t, w, n, case):
+def emulate(K, c, t, w, n, case, is_irrig):
     #Case: NN- no nitrogen, NNI - No nitrogen irr, N- with nitrogen, NI- with nitrogen irr
     if (case == 'NN'):
         Y = (K[0,:,:]              +
@@ -110,8 +110,10 @@ def emulate(K, c, t, w, n, case):
         K[12,:,:] * n ** 3      )
 
     Y       = np.nan_to_num(Y)
+
+    # Limit output values
     Y[Y<0]  = 0
-    Y[Y>30] = 30
+    if not is_irrig: Y[Y>30] = 30
     return(Y)
 
 
@@ -129,6 +131,53 @@ def try_load_climate(climate_dir, var, GGCM, GGCMIcrop, rcp, missing_climate):
     return(in_array, missing_climate)
 
 
+def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
+
+    # Irrigated
+    if is_irrig:
+        KI = np.load('%s/%s_%s_irr.npy'%(emulator_dir, GGCM, GGCMIcrop))
+    else:
+        KI = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop))
+    ir_10  = emulate(KI, co2[decade], t[decade,:,:], 1, 10,  'NI', is_irrig)
+    ir_60  = emulate(KI, co2[decade], t[decade,:,:], 1, 60,  'NI', is_irrig)
+    ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200, 'NI', is_irrig)
+
+    # Rainfed
+    if is_irrig:
+        # No need to emulate irrigation for rainfed crops
+        rf_10 = np.zeros(ir_10.shape)
+        rf_60 = np.zeros(ir_10.shape)
+        rf_200 = np.zeros(ir_10.shape)
+    else:
+        K  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop))
+        rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N', is_irrig)
+        rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N', is_irrig)
+
+        rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N', is_irrig)
+    return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
+
+
+def do_emulation_wheats(emulator_dir, co2, ts, ws, tw, ww, is_irrig):
+    rf_10w,rf_60w,rf_200w,ir_10w,ir_60w,ir_200w = do_emulation(emulator_dir, "winter_wheat", co2, tw, ww, is_irrig)
+    rf_10s,rf_60s,rf_200s,ir_10s,ir_60s,ir_200s = do_emulation(emulator_dir, "spring_wheat", co2, ts, ws, is_irrig)
+
+    # Get maximum winter or spring
+    if is_irrig:
+        # No irrigation if rainfed
+        rf_10 = np.zeros(ir_10w.shape)
+        rf_60 = np.zeros(ir_10w.shape)
+        rf_200 = np.zeros(ir_10w.shape)
+    else:
+        rf_10   = np.maximum(rf_10w, rf_10s)
+        rf_60   = np.maximum(rf_60w, rf_60s)
+        rf_200   = np.maximum(rf_200w, rf_200s)
+    ir_10   = np.maximum(ir_10w, ir_10s)
+    ir_60   = np.maximum(ir_60w, ir_60s)
+    ir_200   = np.maximum(ir_200w, ir_200s)
+
+    return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
+
+
 def update_out_table(outarray, outheader, outfmt, PLUMcrop, rf_10, rf_60, rf_200, ir_10, ir_60, ir_200, mask_YX):
     # outarray comes in as (crop,cell) because vstack is the only stack that works with one-d
     # arrays like rf_10 etc., apparently. outarray will be transposed for write so that each
@@ -139,7 +188,7 @@ def update_out_table(outarray, outheader, outfmt, PLUMcrop, rf_10, rf_60, rf_200
     outarray = np.vstack((outarray, ir_10[mask_YX==1]))
     outarray = np.vstack((outarray, ir_60[mask_YX==1]))
     outarray = np.vstack((outarray, ir_200[mask_YX==1]))
-    
+
     # Update header
     outheader = outheader + " " + PLUMcrop + "010 " + PLUMcrop + "060 " + PLUMcrop + "200 " + PLUMcrop + "i010 " + PLUMcrop + "i060 " + PLUMcrop + "i200"
     outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
@@ -148,7 +197,7 @@ def update_out_table(outarray, outheader, outfmt, PLUMcrop, rf_10, rf_60, rf_200
 
 
 
-def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
+def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
     # GCM: ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','FGOALS-g2',
     #      'GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','GISS-E2-H','GISS-E2-R','HadGEM2-AO','HadGEM2-CC','HadGEM2-ES','inmcm4','IPSL-CM5A-LR',
     #      'IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M']
@@ -166,7 +215,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 
     # Define matching to GGCMI crops
     PLUM2GGCMI_dict={
-    "CerealsC3":    "max_wheat", # Should not ever actually be used
+    "CerealsC3":    "max_wheat",
     "CerealsC4":    "maize",
     "Rice":         "rice",
     "Oilcrops":     "soy",
@@ -177,7 +226,6 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
         PLUM2GGCMI_dict["Rice"] = "spring_wheat"
         PLUM2GGCMI_dict["Oilcrops"] = "spring_wheat"
         PLUM2GGCMI_dict["Pulses"] = "spring_wheat"
-        PLUM2GGCMI_dict["StarchyRoots"] = "spring_wheat"
 
     # Set up for tracking of which crops were missing
     missing_climate_dict = {
@@ -205,30 +253,17 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
                 print('    But %s climate is missing, so skipping %s.'%(GGCMIcrop, PLUMcrop))
             else:
                 print('    Using results from %s for %s.'%(prev_PLUMcrop, PLUMcrop))
-                outarray,outheader,outfmt = update_out_table(outarray, outheader, outfmt, PLUMcrop, rf_10, rf_60, rf_200, ir_10, ir_60, ir_200, mask_YX)
+                outarr_yield,outheader,outfmt = update_out_table(outarr_yield, outheader, outfmt, PLUMcrop, rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield, mask_YX)
+                outarr_irrig,x,y = update_out_table(outarr_irrig, outheader, outfmt, PLUMcrop, rf_10_irrig, rf_60_irrig, rf_200_irrig, ir_10_irrig, ir_60_irrig, ir_200_irrig, mask_YX)
             prev_GGCMIcrop = GGCMIcrop
             prev_PLUMcrop = PLUMcrop
             continue
-
-        # Load Emulator params
-        emulator_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/crop"
-        if PLUMcrop == "CerealsC3":
-            GGCMIcrop_tmp = "winter_wheat"
-            Kw  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop_tmp))
-            KIw = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop_tmp))
-            GGCMIcrop_tmp = "spring_wheat"
-            Ks  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop_tmp))
-            KIs = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop_tmp))
-            del GGCMIcrop_tmp
-        else:
-            K  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop))
-            KI = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop))
 
         # Load climate files
         climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/agmerra/cmip5"
         #climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate"
         missing_climate = False
-        if PLUMcrop == "CerealsC3":
+        if PLUM2GGCMI_dict[PLUMcrop] == "max_wheat":
             GGCMIcrop_tmp = "winter_wheat"
             tw,missing_climate = try_load_climate(climate_dir, "tas", GGCM, GGCMIcrop_tmp, rcp, missing_climate)
             ww,missing_climate = try_load_climate(climate_dir, "pr", GGCM, GGCMIcrop_tmp, rcp, missing_climate)
@@ -254,51 +289,25 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarray):
 
         # Emulate the six management cases. If CerealsC3, emulate both winter and spring wheat,
         # then find the maximum at each treatment.
-        if PLUMcrop == "CerealsC3":
-            rf_10w  = emulate(Kw,  co2[decade], tw[decade,:,:],  ww[decade,:,:], 10,  'N')
-            rf_10s  = emulate(Ks,  co2[decade], ts[decade,:,:],  ws[decade,:,:], 10,  'N')
-            rf_10   = np.maximum(rf_10w, rf_10s)
-            rf_60w  = emulate(Kw,  co2[decade], tw[decade,:,:],  ww[decade,:,:], 60,  'N')
-            rf_60s  = emulate(Ks,  co2[decade], ts[decade,:,:],  ws[decade,:,:], 60,  'N')
-            rf_60   = np.maximum(rf_60w, rf_60s)
-            rf_200w  = emulate(Kw,  co2[decade], tw[decade,:,:],  ww[decade,:,:], 200,  'N')
-            rf_200s  = emulate(Ks,  co2[decade], ts[decade,:,:],  ws[decade,:,:], 200,  'N')
-            rf_200   = np.maximum(rf_200w, rf_200s)
-            ir_10w  = emulate(Kw,  co2[decade], tw[decade,:,:],  1, 10,  'N')
-            ir_10s  = emulate(Ks,  co2[decade], ts[decade,:,:],  1, 10,  'N')
-            ir_10   = np.maximum(ir_10w, ir_10s)
-            ir_60w  = emulate(Kw,  co2[decade], tw[decade,:,:],  1, 60,  'N')
-            ir_60s  = emulate(Ks,  co2[decade], ts[decade,:,:],  1, 60,  'N')
-            ir_60   = np.maximum(ir_60w, ir_60s)
-            ir_200w  = emulate(Kw,  co2[decade], tw[decade,:,:],  1, 200,  'N')
-            ir_200s  = emulate(Ks,  co2[decade], ts[decade,:,:],  1, 200,  'N')
-            ir_200   = np.maximum(ir_200w, ir_200s)
+        emulator_dir_yield = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/fits_yield"
+        emulator_dir_irrig = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/fits_irrig"
+        if PLUM2GGCMI_dict[PLUMcrop] == "max_wheat":
+            rf_10_yield,rf_60_yield,rf_200_yield,ir_10_yield,ir_60_yield,ir_200_yield = do_emulation_wheats(emulator_dir_yield, co2, ts, ws, tw, ww, False)
+            rf_10_irrig,rf_60_irrig,rf_200_irrig,ir_10_irrig,ir_60_irrig,ir_200_irrig = do_emulation_wheats(emulator_dir_irrig, co2, ts, ws, tw, ww, True)
+            del ts, ws, tw, ww
         else:
-            rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N')
-            rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N')
-            rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N')
-            ir_10  = emulate(KI, co2[decade], t[decade,:,:], 1, 10,  'NI')
-            ir_60  = emulate(KI, co2[decade], t[decade,:,:], 1, 60,  'NI')
-            ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200, 'NI')
+            rf_10_yield,rf_60_yield,rf_200_yield,ir_10_yield,ir_60_yield,ir_200_yield = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False)
+            rf_10_irrig,rf_60_irrig,rf_200_irrig,ir_10_irrig,ir_60_irrig,ir_200_irrig = do_emulation(emulator_dir_irrig,GGCMIcrop, co2, t, w, True)
+            del t, w
 
-        # outarray comes in as (crop,cell) because vstack is the only stack that works with one-d
-        # arrays like rf_10 etc., apparently. outarray will be transposed for write so that each
-        # row is a gridcell.
-        outarray = np.vstack((outarray, rf_10[mask_YX==1]))
-        outarray = np.vstack((outarray, rf_60[mask_YX==1]))
-        outarray = np.vstack((outarray, rf_200[mask_YX==1]))
-        outarray = np.vstack((outarray, ir_10[mask_YX==1]))
-        outarray = np.vstack((outarray, ir_60[mask_YX==1]))
-        outarray = np.vstack((outarray, ir_200[mask_YX==1]))
-
-        # Update header
-        outheader = outheader + " " + PLUMcrop + "010 " + PLUMcrop + "060 " + PLUMcrop + "200 " + PLUMcrop + "i010 " + PLUMcrop + "i060 " + PLUMcrop + "i200"
-        outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
+        # Add values to output tables
+        outarr_yield,outheader,outfmt = update_out_table(outarr_yield, outheader, outfmt, PLUMcrop, rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield, mask_YX)
+        outarr_irrig,x,y = update_out_table(outarr_irrig, outheader, outfmt, PLUMcrop, rf_10_irrig, rf_60_irrig, rf_200_irrig, ir_10_irrig, ir_60_irrig, ir_200_irrig, mask_YX)
 
         prev_GGCMIcrop = GGCMIcrop
         prev_PLUMcrop = PLUMcrop
 
-    return(outarray, outheader, outfmt)
+    return(outarr_yield, outarr_irrig, outheader, outfmt)
 
 GCMs = ["IPSL-CM5A-MR"]
 rcps = [45, 85]
@@ -322,8 +331,9 @@ for decade in decades:
                 # Set up info about this run
                 decade_str = '%d-%d'%(2011+10*decade, 2020+10*decade)
                 print("%s rcp%d %s %s..."%(GCM, rcp, decade_str, GGCM))
-                outdir = '/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/yields_%s/%s/rcp%d/%s/%s'%(datetime.datetime.now().strftime("%Y%m%d"), GCM, rcp, GGCM, decade_str)
-                outfile = '%s/yield.%s.out'%(outdir, decade_str)
+                outdir = '/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/outputs_%s/%s/rcp%d/%s/%s'%(datetime.datetime.now().strftime("%Y%m%d"), GCM, rcp, GGCM, decade_str)
+                outfile_yield = '%s/yield.%s.out'%(outdir, decade_str)
+                outfile_irrig = '%s/irrig.%s.out'%(outdir, decade_str)
 
                 # Make output directory, if needed
                 try:
@@ -334,14 +344,11 @@ for decade in decades:
                     pass
 
                 # Emulate
-                outarray,outheader,outfmt = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats)
+                outarr_yield,outarr_irrig,outheader,outfmt = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats, lonlats)
 
                 # Save in PLUM-readable format
-                np.savetxt(outfile, outarray.T,
-                delimiter=" ",
-                fmt=outfmt,
-                header=outheader,
-                comments="")
+                np.savetxt(outfile_yield, outarr_yield.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
+                np.savetxt(outfile_irrig, outarr_irrig.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
 
 
 
