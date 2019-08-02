@@ -309,7 +309,9 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
 
     return(outarr_yield, outarr_irrig, outheader, outfmt)
 
-GCMs = ["IPSL-CM5A-MR"]
+#GCMs = ["IPSL-CM5A-MR"]
+GCMs = ["IPSL-CM5A-LR", "GFDL-ESM2M", "MIROC5", "HadGEM2-ES"] # ISIMIP2b selection
+#GCMs = ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','FGOALS-g2','GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','GISS-E2-H','GISS-E2-R','HadGEM2-AO','HadGEM2-CC','HadGEM2-ES','inmcm4','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M']
 rcps = [45, 85]
 decades = range(9)
 GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
@@ -331,9 +333,9 @@ for decade in decades:
                 # Set up info about this run
                 decade_str = '%d-%d'%(2011+10*decade, 2020+10*decade)
                 print("%s rcp%d %s %s..."%(GCM, rcp, decade_str, GGCM))
-                outdir = '/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/outputs_%s/%s/rcp%d/%s/%s'%(datetime.datetime.now().strftime("%Y%m%d"), GCM, rcp, GGCM, decade_str)
-                outfile_yield = '%s/yield.%s.out'%(outdir, decade_str)
-                outfile_irrig = '%s/irrig.%s.out'%(outdir, decade_str)
+                outdir = '/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/outputs_%s/%s/%s/rcp%d/%s'%(datetime.datetime.now().strftime("%Y%m%d"), GCM, GGCM, rcp, decade_str)
+                outfile_yield = '%s/yield.out'%(outdir)
+                outfile_irrig = '%s/gsirrigation.out'%(outdir)
 
                 # Make output directory, if needed
                 try:
@@ -349,6 +351,11 @@ for decade in decades:
                 # Save in PLUM-readable format
                 np.savetxt(outfile_yield, outarr_yield.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
                 np.savetxt(outfile_irrig, outarr_irrig.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
+
+                # Compress and add "done" file for PLUM
+                os.system('gzip %s'%(outfile_yield))
+                os.system('gzip %s'%(outfile_irrig))
+                os.system('touch %s/done'%(outdir))
 
 
 
