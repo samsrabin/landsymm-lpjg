@@ -26,10 +26,15 @@
 % outFile_lu = '/Users/Shared/PLUM/input/remaps_v7a/LU.remapv7a.someOfEachCrop.txt' ;
 % outFile_cf = '/Users/Shared/PLUM/input/remaps_v7a/cropfracs.remapv7a.someOfEachCrop.txt' ;
 
-inFile_lu = '/Users/Shared/PLUM/input/remaps_v7b/LU.remapv7b.txt' ;
-inFile_cf = '/Users/Shared/PLUM/input/remaps_v7b/cropfracs.remapv7b.txt' ;
-outFile_lu = '/Users/Shared/PLUM/input/remaps_v7b/LU.remapv7b.someOfEachCrop.txt' ;
-outFile_cf = '/Users/Shared/PLUM/input/remaps_v7b/cropfracs.remapv7b.someOfEachCrop.txt' ;
+% inFile_lu = '/Users/Shared/PLUM/input/remaps_v7b/LU.remapv7b.txt' ;
+% inFile_cf = '/Users/Shared/PLUM/input/remaps_v7b/cropfracs.remapv7b.txt' ;
+% outFile_lu = '/Users/Shared/PLUM/input/remaps_v7b/LU.remapv7b.someOfEachCrop.txt' ;
+% outFile_cf = '/Users/Shared/PLUM/input/remaps_v7b/cropfracs.remapv7b.someOfEachCrop.txt' ;
+
+inFile_lu = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.txt' ;
+inFile_cf = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.txt' ;
+outFile_lu = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.someOfEachCrop.txt' ;
+outFile_cf = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.someOfEachCrop.txt' ;
 
 
 %% Setup
@@ -79,13 +84,23 @@ disp('Done importing.')
 %% Convert
 
 if ~isequal(lu_in.Lon,cf_in.Lon) || ~isequal(lu_in.Lat,cf_in.Lat)
-    error('This code assumes equal gridlists for lu_in and cf_in!')
+    lonlat_lu = unique([lu_in.Lon lu_in.Lat], 'rows', 'stable') ;
+    lonlat_cf = unique([cf_in.Lon cf_in.Lat], 'rows', 'stable') ;
+    lu_years_cf_not = any(strcmp(lu_in.Properties.VariableNames,'Year')) ...
+        && ~any(strcmp(cf_in.Properties.VariableNames,'Year')) ...
+        &&  isequal(lonlat_lu, lonlat_cf) ;
+    if lu_years_cf_not
+        warning('lu_in has years but cf_in doesn''t. Shouldn''t be a problem.')
+    else
+        error('This code assumes equal gridlists for lu_in and cf_in!')
+    end
 end
 
 lu_out = table2array(lu_in) ;
 cf_out = table2array(cf_in) ;
 
-moved_area = zeros(size(landArea_x_allYrs)) ;
+moved_area_lu = zeros(size(landArea_x_allYrs)) ;
+moved_area_cf = zeros(size(cf_in.Lon)) ;
 
 if mincropfrac>0
     
@@ -94,12 +109,18 @@ if mincropfrac>0
     lu_tmp = lu_out(:,4:end) ;
     lu_tmp = round(lu_tmp,outPrec) ;
     [~,IA] = setdiff(cf_in_header,{'Lon','Lat','Year'},'stable') ;
+    list_crops = cf_in_header(IA) ;
+    Ncrops = length(IA) ;
     cf_tmp = cf_out(:,IA) ;
+    if any(sum(cf_tmp,2)==0)
+        error('This code assumes that no cell has sum(cropfracs)==0')
+    end
     cf_tmp = cf_tmp ./ repmat(sum(cf_tmp,2),[1 size(cf_tmp,2)]) ;
     
     % Some cropland everywhere
     no_cropland = lu_tmp(:,iCrop)<mincropfrac ;
     no_cropland_orig = no_cropland ;
+    
     i = 0 ;
     while(any(no_cropland))
         i = i+1 ;
@@ -113,20 +134,22 @@ if mincropfrac>0
             transfer_amt = mincropfrac-lu_tmp(involved,iCrop) ;
             transfer_amt_area = transfer_amt .* landArea_x_allYrs(involved) ;
             warning('Giving some from %s to CROPLAND (%d cells, %0.1f km2).', this_donor, length(find(involved)), sum(transfer_amt_area)); pause(0.1)
-            moved_area(involved) = moved_area(involved) + transfer_amt_area ;
+            moved_area_lu(involved) = moved_area_lu(involved) + transfer_amt_area ;
             lu_tmp(involved,iThis) = lu_tmp(involved,iThis) - transfer_amt ;
             lu_tmp(involved,iCrop) = lu_tmp(involved,iCrop) + transfer_amt ;
             no_cropland = lu_tmp(:,iCrop)==0 ;
         end
     end
     lu_out(:,4:end) = lu_tmp ;
+    clear lu_tmp
     
-    % Some of each type: Where there was no cropland
-    Ncrops = length(IA) ;
-    cf_tmp(repmat(no_cropland_orig,[1 Ncrops])) = 1/Ncrops ;
-    if max(sum(cf_tmp,2))>=1+2*10^(-outPrec)
-        error('max(round(sum_cf))>1')
-    end
+    % NOW JUST USING "EVERYWHERE ELSE" ALGORITHM HERE TO ALLOW FOR WHEN LU
+    % HAS YEARS BUT CF DOESN'T
+%     % Some of each type: Where there was no cropland
+%     cf_tmp(repmat(no_cropland_orig,[1 Ncrops])) = 1/Ncrops ;
+%     if max(sum(cf_tmp,2))>=1+2*10^(-outPrec)
+%         error('max(round(sum_cf))>1')
+%     end
     
     % Some of each type: Everywhere else
     for c = 1:Ncrops
@@ -147,14 +170,14 @@ if mincropfrac>0
             cf_tmp(ismaxcropfrac_Xv & iszerothiscrop) = cf_tmp(ismaxcropfrac_Xv & iszerothiscrop) - mincropfrac ;
             cf_tmp(iszerothiscrop,c) = cf_tmp(iszerothiscrop,c) + mincropfrac ;
             moved_tmp = mincropfrac*lu_tmp(iszerothiscrop,iCrop).*landArea_x_allYrs(iszerothiscrop) ;
-            moved_area(iszerothiscrop) = moved_area(iszerothiscrop) + moved_tmp ;
-            warning('Stealing some for %s (%0.1e km2)',cf_in_header{3+c},sum(moved_tmp)); pause(0.1)
+            moved_area_cf(iszerothiscrop) = moved_area_cf(iszerothiscrop) + moved_tmp ;
+            warning('Stealing some for %s (%0.1e km2)',list_crops{c},sum(moved_tmp)); pause(0.1)
         end
     end
     
     % Save
     cf_out(:,IA) = cf_tmp ;
-    %         clear cf_tmp Ncrops
+    clear cf_tmp
     
 end
 disp('Done')
@@ -163,6 +186,7 @@ disp('Done')
 
 %% Save
 
+disp('Saving LU...')
 lpjgu_matlab_saveTable(lu_in_header, lu_out, outFile_lu,...
     'outPrec', outPrec, ...
     'outWidth', outWidth, ...
@@ -170,13 +194,10 @@ lpjgu_matlab_saveTable(lu_in_header, lu_out, outFile_lu,...
     'overwrite', false, ...
     'fancy', fancy) ;
 
+disp('Saving cropfrac...')
 lpjgu_matlab_saveTable(cf_in_header, cf_out, outFile_cf,...
     'outPrec', outPrec, ...
     'outWidth', outWidth, ...
     'delimiter', delimiter, ...
     'overwrite', false, ...
     'fancy', fancy) ;
-
-
-
-
