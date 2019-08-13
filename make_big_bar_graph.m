@@ -459,4 +459,20 @@ for x = 1:length(h_barLabels)
     end
 end
 
+% Nudge legend into a good position
+nudge = [0 -0.05 0 0] ;
+[does_overlap, hlegend] = test_for_overlap(hf) ;
+ylims = get(gca,'YLim') ;
+while does_overlap
+    if hlegend.Position(2) + nudge(2) > ylims(1)
+        hlegend.Position = hlegend.Position + nudge ;
+    else
+        warning('Setting legend position to ''Best''')
+        hlegend.Location = 'Best' ;
+        break
+    end
+    [does_overlap, hlegend] = test_for_overlap(hf) ;
+end
+
+
 disp('Done.')
