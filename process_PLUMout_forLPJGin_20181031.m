@@ -9,10 +9,11 @@ exclude_nonlpjg_cells = true ;
 
 
 dirList = {...
-    'SSP1.v11.s1';
-    'SSP3.v11.s1';
-    'SSP4.v11.s1';
+%     'SSP1.v11.s1';
+%     'SSP3.v11.s1';
+%     'SSP4.v11.s1';
     'SSP5.v11.s1';
+%     'HE_ensemble/baseline/s1';
     };
 pastRun_prefix = 'LPJGPLUM_2011-2100_pastureOnly_cmip5ipsl_rcp' ;
 
@@ -29,7 +30,7 @@ save_yield = true ;
 
 % Trying to avoid new crop spinup time
 y1_pre = Inf ;    % Will repeat first PLUMout year for y1_pre:(y1-1)
-someofall = true ; % Make it so that each gridcell always has at least some tiny amount of every crop
+someofall = false ; % Make it so that each gridcell always has at least some tiny amount of every crop
 
 
 
@@ -60,7 +61,9 @@ PLUMcrops = {'wheat';
              'pulses';
              'starchyRoots';
              'energycrops';
-             'setaside'} ;
+             'setaside';
+             'fruitveg';
+             'sugar'} ;
 LPJGcrops = {'CerealsC3';
              'CerealsC4';
              'Rice';
@@ -68,7 +71,9 @@ LPJGcrops = {'CerealsC3';
              'Pulses';
              'StarchyRoots';
              'Miscanthus';
-             'ExtraCrop'} ;
+             'ExtraCrop';
+             'FruitAndVeg';
+             'Sugar'} ;
 LPJGcrops_mid = [strcat(LPJGcrops,'i') ; LPJGcrops] ;
 Ncfts_plum = length(PLUMcrops) ;
 Ncfts_lpjg = length(LPJGcrops) ;
@@ -81,6 +86,8 @@ PLUMtoLPJG{strcmp(LPJGcrops,'Pulses')} = {'pulses'} ;
 PLUMtoLPJG{strcmp(LPJGcrops,'StarchyRoots')} = {'starchyRoots'} ;
 PLUMtoLPJG{strcmp(LPJGcrops,'Miscanthus')} = {'energycrops'} ;
 PLUMtoLPJG{strcmp(LPJGcrops,'ExtraCrop')} = {'setaside'} ;
+PLUMtoLPJG{strcmp(LPJGcrops,'FruitAndVeg')} = {'fruitveg'} ;
+PLUMtoLPJG{strcmp(LPJGcrops,'Sugar')} = {'sugar'} ;
 
 % Set up anonymous functions
 getPi = @(x) find(strcmp(PLUMcrops,x)) ;
@@ -100,7 +107,8 @@ Nyears_xtra = length(yearList_xtra) ;
 % lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/input/gridlists/missing_climate_searchradius0.5.txt','dont_save_MAT',true,'verboseIfNoMat',false) ;
 
 % Get cells present in previous LPJ-GUESS output
-lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
+% lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz','dont_save_MAT',true,'verboseIfNoMat',false) ;
+lpjg_in = lpjgu_matlab_readTable('/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out','dont_save_MAT',true,'verboseIfNoMat',false) ;
 lons_lpjg = lpjg_in.Lon ;
 lats_lpjg = lpjg_in.Lat ;
 clear lpjg_in
@@ -187,29 +195,33 @@ for d = 1:length(dirList)
     unix(['cp ' thisScript ' ' outDir]) ;    
 
     % Import pasture-only simulation
-    disp('Importing pasture-only simulation...')
+    do_pasture = true ;
     switch dirList{d}(1:4)
         case 'SSP1' ; thisRCP = '45' ;
         case 'SSP3' ; thisRCP = '60' ;
         case 'SSP4' ; thisRCP = '60' ;
         case 'SSP5' ; thisRCP = '85' ;
-        otherwise ; error(['dirList{d} (' dirList{d} ') not correctly parsed for corresponding RCP.']) ;
+        otherwise
+            warning(['dirList{d} (' dirList{d} ') not correctly parsed for corresponding RCP. Skipping pasture stuff.']) ;
+            do_pasture = false ;
     end
-    pastDir = find_PLUM2LPJG_run([pastRun_prefix thisRCP]) ;
-    tmp = dir([pastDir 'out*']) ;
-    if length(tmp)>1
-        warning(['Using latest output (' tmp(end).name ') in ' pastDir])
+    if do_pasture
+        disp('Importing pasture-only simulation...')
+        pastDir = find_PLUM2LPJG_run([pastRun_prefix thisRCP]) ;
+        tmp = dir([pastDir 'out*']) ;
+        if length(tmp)>1
+            warning(['Using latest output (' tmp(end).name ') in ' pastDir])
+        end
+        pastDir = addslashifneeded([pastDir tmp(end).name]) ;
+        anppPast = lpjgu_matlab_readTable([pastDir 'anpp.out'],'do_save_MAT',true) ;
+        yearList_anppPast = unique(anppPast.Year) ;
+        if min(yearList_anppPast)>min(yearList) || max(yearList_anppPast)<max(yearList)
+            error(['anppPast only covers ' num2str(min(yearList_anppPast)) '-' num2str(max(yearList_anppPast)) ', whereas we need ' num2str(min(yearList_anppPast)) '-' num2str(max(yearList_anppPast))])
+        end
+        anppPast = anppPast(:,contains(anppPast.Properties.VariableNames,{'Lon','Lat','Year','PC3G','PC4G'})) ;
+        anppPast = anppPast(anppPast.Year>=min(yearList) & anppPast.Year<=max(yearList),:) ;
+        disp('Done importing pasture-only simulation.')
     end
-    pastDir = addslashifneeded([pastDir tmp(end).name]) ;
-    anppPast = lpjgu_matlab_readTable([pastDir 'anpp.out'],'do_save_MAT',true) ;
-    yearList_anppPast = unique(anppPast.Year) ;
-    if min(yearList_anppPast)>min(yearList) || max(yearList_anppPast)<max(yearList)
-        error(['anppPast only covers ' num2str(min(yearList_anppPast)) '-' num2str(max(yearList_anppPast)) ', whereas we need ' num2str(min(yearList_anppPast)) '-' num2str(max(yearList_anppPast))])
-    end
-    anppPast = anppPast(:,contains(anppPast.Properties.VariableNames,{'Lon','Lat','Year','PC3G','PC4G'})) ;
-    anppPast = anppPast(anppPast.Year>=min(yearList) & anppPast.Year<=max(yearList),:) ;
-    disp('Done importing pasture-only simulation.')
-    
 
     %%%%%%%%%%%%%%
     %%% Import %%%
@@ -218,8 +230,10 @@ for d = 1:length(dirList)
     for y = 1:Nyears
         thisYear = yearList(y) ;
         disp(['Reading ' num2str(thisYear) '...'])
-                
-        anppPast_thisYear = anppPast(anppPast.Year==thisYear,:) ;
+        
+        if do_pasture
+            anppPast_thisYear = anppPast(anppPast.Year==thisYear,:) ;
+        end
         
         landcover_in_tmp = lpjgu_matlab_readTable([inDir num2str(thisYear) ...
             '/LandCoverFract.txt'],'dont_save_MAT',true,'verboseIfNoMat',false) ;
@@ -312,6 +326,44 @@ for d = 1:length(dirList)
                 end
             end
             
+            % Remove extraneous crop types
+            PLUMcrops_toRemove = [] ;
+            for c = 1:length(PLUMcrops)
+                thisCrop = PLUMcrops{c} ;
+                if ~any(strcmp(cropfracs_cols2, thisCrop)) ...
+                && ~any(strcmp(cropfracs_cols2, [thisCrop 'i']))
+                    warning('%s not found in PLUMcrops; removing.', thisCrop)
+                    PLUMcrops_toRemove = [PLUMcrops_toRemove c] ;
+                    found = false ;
+                    for cc = 1:length(PLUMtoLPJG)
+                        thisCell = PLUMtoLPJG{cc} ;
+                        for ccc = 1:length(thisCell)
+                            thisCellCrop = thisCell{ccc} ;
+                            fprintf('%s = %s?\n', thisCellCrop, thisCrop)
+                            if strcmp(thisCellCrop, thisCrop)
+                                found = true ;
+                                thisCell(ccc) = [] ;
+                                if isempty(thisCell)
+                                    PLUMtoLPJG(cc) = [] ;
+                                    LPJGcrops(cc) = [] ;
+                                else
+                                    PLUMtoLPJG{cc} = thisCell ;
+                                end
+                                break
+                            end
+                        end
+                        if found; break; end
+                    end
+                    if ~found; error('???'); end
+                    LPJGcrops_mid = [strcat(LPJGcrops,'i') ; LPJGcrops] ;
+                    Ncfts_lpjg = length(LPJGcrops) ;
+                end
+            end
+            if ~isempty(PLUMcrops_toRemove)
+                PLUMcrops(PLUMcrops_toRemove) = [] ;
+                Ncfts_plum = length(PLUMcrops) ;
+            end
+            
             % Get # variables
             Nvar_landcover = length(landcover_cols) - 3 ;
             Nvar_cropfracs = length(cropfracs_cols) - 2 ;
@@ -332,23 +384,28 @@ for d = 1:length(dirList)
             lonlats_randomized = false ;
             
             % Harmonize gridlists of PLUM output and anppPast output
-            lons_anppPast = anppPast_thisYear.Lon ;
-            lats_anppPast = anppPast_thisYear.Lat ;
-            [~,i_plum,i_anpp2plum] = intersect([lons lats]+0.25,[lons_anppPast lats_anppPast],'rows','stable') ;
-            
-            if length(i_plum) < length(lons)
-                warning(['Losing ' num2str(length(lons)-length(i_plum)) ' gridcells (' num2str(length(lons)) '-->' num2str(length(i_plum)) ') from PLUM output because not included in anppPast outputs (' num2str(length(lons_anppPast)) ').']) ;
-                lons = lons(i_plum) ;
-                lats = lats(i_plum) ;
-                Ncells = length(lons) ;
+            if do_pasture
+                lons_anppPast = anppPast_thisYear.Lon ;
+                lats_anppPast = anppPast_thisYear.Lat ;
+                [~,i_plum,i_anpp2plum] = intersect([lons lats]+0.25,[lons_anppPast lats_anppPast],'rows','stable') ;            
+                if length(i_plum) < length(lons)
+                    warning(['Losing ' num2str(length(lons)-length(i_plum)) ' gridcells (' num2str(length(lons)) '-->' num2str(length(i_plum)) ') from PLUM output because not included in anppPast outputs (' num2str(length(lons_anppPast)) ').']) ;
+                    lons = lons(i_plum) ;
+                    lats = lats(i_plum) ;
+                    Ncells = length(lons) ;
+                end
+            else
+                i_plum = 1:Ncells ;
             end
         else
             % Check for consistent gridlist order this year in anppPast
-            lons_anppPast_thisYear = anppPast_thisYear.Lon ;
-            lats_anppPast_thisYear = anppPast_thisYear.Lat ;
-            if ~isequal(lons_anppPast,lons_anppPast_thisYear) ...
-            || ~isequal(lats_anppPast,lats_anppPast_thisYear)
-                error('Mismatch between gridlist order in anppPast between first year and this year.')
+            if do_pasture
+                lons_anppPast_thisYear = anppPast_thisYear.Lon ;
+                lats_anppPast_thisYear = anppPast_thisYear.Lat ;
+                if ~isequal(lons_anppPast,lons_anppPast_thisYear) ...
+                        || ~isequal(lats_anppPast,lats_anppPast_thisYear)
+                    error('Mismatch between gridlist order in anppPast between first year and this year.')
+                end
             end
             
             % Get temporary tables from detailed table
@@ -370,15 +427,17 @@ for d = 1:length(dirList)
         end
                 
         % Parse anppPast for this year
-        anppPast_thisYear = anppPast_thisYear(i_anpp2plum,:) ;
-        if ~isequal(anppPast_thisYear.Lon,lons+0.25) || ~isequal(anppPast_thisYear.Lat,lats+0.25)
-            error('Something went wrong in cropping of anppPast for this year.')
+        if do_pasture
+            anppPast_thisYear = anppPast_thisYear(i_anpp2plum,:) ;
+            if ~isequal(anppPast_thisYear.Lon,lons+0.25) || ~isequal(anppPast_thisYear.Lat,lats+0.25)
+                error('Something went wrong in cropping of anppPast for this year.')
+            end
+            anppPast_thisYear.PC3G(anppPast_thisYear.PC3G<0) = 0 ;
+            anppPast_thisYear.PC4G(anppPast_thisYear.PC4G<0) = 0 ;
+            assign_cc3g = anppPast_thisYear.PC3G > anppPast_thisYear.PC4G ;
+            assign_cc4g = anppPast_thisYear.PC3G < anppPast_thisYear.PC4G ;
+            assign_5050 = ~assign_cc3g & ~assign_cc4g ;
         end
-        anppPast_thisYear.PC3G(anppPast_thisYear.PC3G<0) = 0 ;
-        anppPast_thisYear.PC4G(anppPast_thisYear.PC4G<0) = 0 ;
-        assign_cc3g = anppPast_thisYear.PC3G > anppPast_thisYear.PC4G ;
-        assign_cc4g = anppPast_thisYear.PC3G < anppPast_thisYear.PC4G ;
-        assign_5050 = ~assign_cc3g & ~assign_cc4g ;
         
         % Crop to intersection of anppPast and PLUM gridlists
         landcover_in_tmp = landcover_in_tmp(i_plum,:) ;
@@ -402,13 +461,17 @@ for d = 1:length(dirList)
             lons(remove_these_cells) = [] ;
             lats(remove_these_cells) = [] ;
             Ncells = length(lons) ;
-            i_anpp2plum(remove_these_cells) = [] ;
             i_plum(remove_these_cells) = [] ;
+            if do_pasture
+                i_anpp2plum(remove_these_cells) = [] ;
+            end
             % After the first year, the following should be handled by the 
             % new i_anpp2plum and i_plum
-            assign_cc3g(remove_these_cells,:) = [] ;
-            assign_cc4g(remove_these_cells) = [] ;
-            assign_5050(remove_these_cells,:) = [] ;
+            if do_pasture
+                assign_cc3g(remove_these_cells,:) = [] ;
+                assign_cc4g(remove_these_cells) = [] ;
+                assign_5050(remove_these_cells,:) = [] ;
+            end
             landcover_in_tmp(remove_these_cells,:) = [] ;
             cropland_tmp(remove_these_cells) = [] ;
             cropfracs_in_tmp(remove_these_cells,:) = [] ;
@@ -457,8 +520,6 @@ for d = 1:length(dirList)
             landcover_in_tmp.CROPLAND(arebad) = 0 ;
             cropland_tmp = landcover_in_tmp.CROPLAND ;
             clear arebad nbad max_cropFrac_inBad
-%         else
-%             stop
         end
         
         
