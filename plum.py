@@ -309,12 +309,13 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
 
     return(outarr_yield, outarr_irrig, outheader, outfmt)
 
-#GCMs = ["IPSL-CM5A-MR"]
-GCMs = ["IPSL-CM5A-LR", "GFDL-ESM2M", "MIROC5", "HadGEM2-ES"] # ISIMIP2b selection
+GCMs = ["GFDL-ESM2M"]
+#GCMs = ["IPSL-CM5A-LR", "GFDL-ESM2M", "MIROC5", "HadGEM2-ES"] # ISIMIP2b selection
 #GCMs = ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','FGOALS-g2','GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','GISS-E2-H','GISS-E2-R','HadGEM2-AO','HadGEM2-CC','HadGEM2-ES','inmcm4','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M']
 rcps = [45, 85]
 decades = range(9)
-GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
+#GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
+GGCMs = ["LPJmL"]
 
 # Import PLUM mask and lon/lat
 plum_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/plum/"
@@ -347,6 +348,9 @@ for decade in decades:
 
                 # Emulate
                 outarr_yield,outarr_irrig,outheader,outfmt = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats, lonlats)
+
+                # Convert from tons/ha to kg/m2
+                outarr_yield[:][2:] = outarr_yield[:][2:] * 0.1
 
                 # Save in PLUM-readable format
                 np.savetxt(outfile_yield, outarr_yield.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
