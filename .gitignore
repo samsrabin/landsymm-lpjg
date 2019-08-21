@@ -6,5 +6,5 @@ crop/
 *.swp
 *.gz
 plum
-fits*/
+fits*
 outputs*/
