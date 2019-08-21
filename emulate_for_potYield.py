@@ -1,7 +1,7 @@
 #!/bin/env python
 import numpy as np
 import os
-import glob
+# import glob
 import datetime
 
 np.random.seed(1234)
@@ -348,7 +348,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
             continue
 
         # Load climate files
-        climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/agmerra/cmip5"
+        climate_dir = "climate/agmerra/cmip5"
         # climate_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/climate"
         missing_climate = False
         if PLUM2GGCMI_dict[PLUMcrop] == "max_wheat":
@@ -411,8 +411,8 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
 
         # Emulate the six management cases. If CerealsC3, emulate both winter and spring wheat,
         # then find the maximum at each treatment.
-        emulator_dir_yield = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/fits_yield"
-        emulator_dir_irrig = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/fits_irrig"
+        emulator_dir_yield = "../fits_yield"
+        emulator_dir_irrig = "../fits_irrig"
         if PLUM2GGCMI_dict[PLUMcrop] == "max_wheat":
             rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield = do_emulation_wheats(
                 emulator_dir_yield, co2, ts, ws, tw, ww, False
@@ -472,11 +472,18 @@ decades = range(9)
 # GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
 GGCMs = ["LPJ-GUESS", "LPJmL", "pDSSAT"]
 
+# Which system are we on?
+if os.getcwd()[0:6]=='/Users':
+    os.chdir("/Users/Shared/GGCMI2PLUM/emulator/Sam/")
+elif os.getcwd()[0:7]=='/project':
+    os.chdir("/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/")
+else:
+    self.fail('System not recognized')
+
 # Import PLUM mask and lon/lat
-plum_dir = "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/plum/"
-mask_YX = np.genfromtxt(plum_dir + "PLUM_mask.csv", delimiter=",")
-lons_YX = np.genfromtxt(plum_dir + "PLUM_map_lons.csv", delimiter=",")
-lats_YX = np.genfromtxt(plum_dir + "PLUM_map_lats.csv", delimiter=",")
+mask_YX = np.genfromtxt("plum/PLUM_mask.csv", delimiter=",")
+lons_YX = np.genfromtxt("plum/PLUM_map_lons.csv", delimiter=",")
+lats_YX = np.genfromtxt("plum/PLUM_map_lats.csv", delimiter=",")
 lons = lons_YX[mask_YX == 1]
 lats = lats_YX[mask_YX == 1]
 lonlats = np.vstack((lons, lats))
@@ -490,7 +497,7 @@ for decade in decades:
                 decade_str = "%d-%d" % (2011 + 10 * decade, 2020 + 10 * decade)
                 print("%s rcp%d %s %s..." % (GCM, rcp, decade_str, GGCM))
                 outdir = (
-                    "/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/outputs_%s/%s/%s/rcp%d/%s"
+                    "outputs_%s/%s/%s/rcp%d/%s"
                     % (
                         datetime.datetime.now().strftime("%Y%m%d"),
                         GCM,
