@@ -9,3 +9,4 @@ plum
 fits*
 outputs*/
 climate
+__pycache__
