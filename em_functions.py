@@ -1,7 +1,6 @@
 #!/bin/env python
 import numpy as np
 
-
 def emulate(K, c, t, w, n, case, is_irrig):
     '''
     Cases:
@@ -132,3 +131,78 @@ def emulate(K, c, t, w, n, case, is_irrig):
     if not is_irrig:
         Y[Y > 30] = 30
     return Y
+
+
+def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, GGCM, decade):
+    if is_irrig:
+        KI = np.load("%s/%s_%s_irr.npy" % (emulator_dir, GGCM, GGCMIcrop))
+    else:
+        KI = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, GGCMIcrop))
+    ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10, "NI", is_irrig)
+    ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60, "NI", is_irrig)
+    ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200, "NI", is_irrig)
+
+    # Rainfed
+    if is_irrig:
+        # No need to emulate irrigation for rainfed crops
+        rf_10 = np.zeros(ir_10.shape)
+        rf_60 = np.zeros(ir_10.shape)
+        rf_200 = np.zeros(ir_10.shape)
+    else:
+        K = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, GGCMIcrop))
+        rf_10 = emulate(
+            K, co2[decade], t[decade, :, :], w[decade, :, :], 10, "N", is_irrig
+        )
+        rf_60 = emulate(
+            K, co2[decade], t[decade, :, :], w[decade, :, :], 60, "N", is_irrig
+        )
+        rf_200 = emulate(
+            K, co2[decade], t[decade, :, :], w[decade, :, :], 200, "N", is_irrig
+        )
+    return (rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
+
+
+def update_out_table(
+    outarray,
+    outheader,
+    outfmt,
+    PLUMcrop,
+    rf_10,
+    rf_60,
+    rf_200,
+    ir_10,
+    ir_60,
+    ir_200,
+    mask_YX
+):
+    # outarray comes in as (crop,cell) because vstack is the only stack that works with one-d
+    # arrays like rf_10 etc., apparently. outarray will be transposed for write so that each
+    # row is a gridcell.
+    outarray = np.vstack((outarray, rf_10[mask_YX == 1]))
+    outarray = np.vstack((outarray, rf_60[mask_YX == 1]))
+    outarray = np.vstack((outarray, rf_200[mask_YX == 1]))
+    outarray = np.vstack((outarray, ir_10[mask_YX == 1]))
+    outarray = np.vstack((outarray, ir_60[mask_YX == 1]))
+    outarray = np.vstack((outarray, ir_200[mask_YX == 1]))
+
+    # Update header
+    outheader = (
+        outheader
+        + " "
+        + PLUMcrop
+        + "010 "
+        + PLUMcrop
+        + "060 "
+        + PLUMcrop
+        + "200 "
+        + PLUMcrop
+        + "i010 "
+        + PLUMcrop
+        + "i060 "
+        + PLUMcrop
+        + "i200"
+    )
+    outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
+
+    return (outarray, outheader, outfmt)
+

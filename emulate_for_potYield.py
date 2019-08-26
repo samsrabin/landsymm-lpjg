@@ -3,7 +3,7 @@ import numpy as np
 import os
 # import glob
 import datetime
-from em_functions import emulate
+from em_functions import do_emulation, update_out_table
 
 np.random.seed(1234)
 
@@ -22,44 +22,12 @@ def try_load_climate(climate_dir, var, GGCM, GGCMIcrop, rcp, missing_climate):
     return (in_array, missing_climate)
 
 
-def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
-
-    # Irrigated
-    if is_irrig:
-        KI = np.load("%s/%s_%s_irr.npy" % (emulator_dir, GGCM, GGCMIcrop))
-    else:
-        KI = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, GGCMIcrop))
-    ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10, "NI", is_irrig)
-    ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60, "NI", is_irrig)
-    ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200, "NI", is_irrig)
-
-    # Rainfed
-    if is_irrig:
-        # No need to emulate irrigation for rainfed crops
-        rf_10 = np.zeros(ir_10.shape)
-        rf_60 = np.zeros(ir_10.shape)
-        rf_200 = np.zeros(ir_10.shape)
-    else:
-        K = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, GGCMIcrop))
-        rf_10 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 10, "N", is_irrig
-        )
-        rf_60 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 60, "N", is_irrig
-        )
-
-        rf_200 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 200, "N", is_irrig
-        )
-    return (rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
-
-
-def do_emulation_wheats(emulator_dir, co2, ts, ws, tw, ww, is_irrig):
+def do_emulation_wheats(emulator_dir, co2, ts, ws, tw, ww, is_irrig, GGCM, decade):
     rf_10w, rf_60w, rf_200w, ir_10w, ir_60w, ir_200w = do_emulation(
-        emulator_dir, "winter_wheat", co2, tw, ww, is_irrig
+        emulator_dir, "winter_wheat", co2, tw, ww, is_irrig, GGCM, decade
     )
     rf_10s, rf_60s, rf_200s, ir_10s, ir_60s, ir_200s = do_emulation(
-        emulator_dir, "spring_wheat", co2, ts, ws, is_irrig
+        emulator_dir, "spring_wheat", co2, ts, ws, is_irrig, GGCM, decade
     )
 
     # Get maximum winter or spring
@@ -78,50 +46,6 @@ def do_emulation_wheats(emulator_dir, co2, ts, ws, tw, ww, is_irrig):
 
     return (rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
 
-
-def update_out_table(
-    outarray,
-    outheader,
-    outfmt,
-    PLUMcrop,
-    rf_10,
-    rf_60,
-    rf_200,
-    ir_10,
-    ir_60,
-    ir_200,
-    mask_YX,
-):
-    # outarray comes in as (crop,cell) because vstack is the only stack that works with one-d
-    # arrays like rf_10 etc., apparently. outarray will be transposed for write so that each
-    # row is a gridcell.
-    outarray = np.vstack((outarray, rf_10[mask_YX == 1]))
-    outarray = np.vstack((outarray, rf_60[mask_YX == 1]))
-    outarray = np.vstack((outarray, rf_200[mask_YX == 1]))
-    outarray = np.vstack((outarray, ir_10[mask_YX == 1]))
-    outarray = np.vstack((outarray, ir_60[mask_YX == 1]))
-    outarray = np.vstack((outarray, ir_200[mask_YX == 1]))
-
-    # Update header
-    outheader = (
-        outheader
-        + " "
-        + PLUMcrop
-        + "010 "
-        + PLUMcrop
-        + "060 "
-        + PLUMcrop
-        + "200 "
-        + PLUMcrop
-        + "i010 "
-        + PLUMcrop
-        + "i060 "
-        + PLUMcrop
-        + "i200"
-    )
-    outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
-
-    return (outarray, outheader, outfmt)
 
 
 def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
@@ -284,18 +208,18 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
         emulator_dir_irrig = "../fits_irrig"
         if PLUM2GGCMI_dict[PLUMcrop] == "max_wheat":
             rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield = do_emulation_wheats(
-                emulator_dir_yield, co2, ts, ws, tw, ww, False
+                emulator_dir_yield, co2, ts, ws, tw, ww, False, GGCM, decade
             )
             rf_10_irrig, rf_60_irrig, rf_200_irrig, ir_10_irrig, ir_60_irrig, ir_200_irrig = do_emulation_wheats(
-                emulator_dir_irrig, co2, ts, ws, tw, ww, True
+                emulator_dir_irrig, co2, ts, ws, tw, ww, True, GGCM, decade
             )
             del ts, ws, tw, ww
         else:
             rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield = do_emulation(
-                emulator_dir_yield, GGCMIcrop, co2, t, w, False
+                emulator_dir_yield, GGCMIcrop, co2, t, w, False, GGCM, decade
             )
             rf_10_irrig, rf_60_irrig, rf_200_irrig, ir_10_irrig, ir_60_irrig, ir_200_irrig = do_emulation(
-                emulator_dir_irrig, GGCMIcrop, co2, t, w, True
+                emulator_dir_irrig, GGCMIcrop, co2, t, w, True, GGCM, decade
             )
             del t, w
 
@@ -347,7 +271,7 @@ if os.getcwd()[0:6]=='/Users':
 elif os.getcwd()[0:7]=='/project':
     os.chdir("/project/ggcmi/AgMIP.output/Jim_Emulator/Sam/")
 else:
-    self.fail('System not recognized')
+    raise NameError('System not recognized')
 
 # Import PLUM mask and lon/lat
 mask_YX = np.genfromtxt("plum/PLUM_mask.csv", delimiter=",")
