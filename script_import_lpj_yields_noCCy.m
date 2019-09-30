@@ -1,76 +1,102 @@
-if ~is_ggcmi
-    if strcmp(version_name,'stijn_20180119')
-        if calib_ver~=11
-            error('When doing stijn_20180119, you must use calib_ver=11.')
-        end
-        listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi','TrSo','GlyM','FaBe'} ;
-    elseif calib_ver == 11
-        error('calib_ver 11 only works with stijn_20180119.')
-    elseif calib_ver == 12 || calib_ver == 15 || calib_ver == 16 || calib_ver == 18
-        listCrops_lpj_comb = {'CerealsC3','CerealsC4','Rice','Oilcrops','StarchyRoots','Pulses'} ;
-    elseif calib_ver == 19
-        listCrops_lpj_comb = ...
-            {'CerealsC3','CerealsC4','Rice','Oilcrops',...
-            'StarchyRoots','Pulses','Sugar','DateCitGrape'} ;
-    elseif calib_ver == 20
-        listCrops_lpj_comb = ...
-            {'CerealsC3','CerealsC4','Rice','Oilcrops',...
-            'StarchyRoots','Pulses','Sugar','FruitAndVeg'} ;
-    elseif calib_ver == 13
-        listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Pulses','Soybeans','Rice'} ;
-    elseif calib_ver == 14
-        listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Rice'} ;
-    elseif calib_ver <= 10 || calib_ver == 17
-        listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi'} ;
-    elseif contains(version_name,'jianyong_20190128')
-        if calib_ver~=21
-            error('When doing %s, you must use calib_ver= 21.', version_name)
-        end
-        listCrops_lpj_comb = {'FaBe','GlyM','TeCo','TeSW','TeWW','TrRi','TrSo'} ;
-    else
-        error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb (version_name '  ').']) ;
+if strcmp(version_name,'stijn_20180119')
+    if calib_ver~=11
+        error('When doing stijn_20180119, you must use calib_ver=11.')
     end
+    listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi','TrSo','GlyM','FaBe'} ;
+elseif calib_ver == 11
+    error('calib_ver 11 only works with stijn_20180119.')
+elseif calib_ver == 12 || calib_ver == 15 || calib_ver == 16 || calib_ver == 18
+    listCrops_lpj_comb = {'CerealsC3','CerealsC4','Rice','Oilcrops','StarchyRoots','Pulses'} ;
+elseif calib_ver == 19
+    listCrops_lpj_comb = ...
+        {'CerealsC3','CerealsC4','Rice','Oilcrops',...
+        'StarchyRoots','Pulses','Sugar','DateCitGrape'} ;
+elseif calib_ver == 20
+    listCrops_lpj_comb = ...
+        {'CerealsC3','CerealsC4','Rice','Oilcrops',...
+        'StarchyRoots','Pulses','Sugar','FruitAndVeg'} ;
+elseif calib_ver == 13
+    listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Pulses','Soybeans','Rice'} ;
+elseif calib_ver == 14
+    listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Rice'} ;
+elseif calib_ver <= 10 || calib_ver == 17
+    listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi'} ;
+elseif contains(version_name,'jianyong_20190128')
+    if calib_ver~=21
+        error('When doing %s, you must use calib_ver= 21.', version_name)
+    end
+    listCrops_lpj_comb = {'FaBe','GlyM','TeCo','TeSW','TeWW','TrRi','TrSo'} ;
+else
+    error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb (version_name '  ').']) ;
 end
 
 % Trim names
-if ~is_ggcmi && strcmp(filename_guess_yield(end-2:end),'.gz')
+if strcmp(filename_guess_yield(end-2:end),'.gz')
     filename_guess_yield = filename_guess_yield(1:end-3) ;
 end
 
 % Import yields and land uses
-if ~is_ggcmi
-    yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
-    cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
-    landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
-end
+yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
+cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
+landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
 
+% For GGCMI, we're not comparing individual years, so find means for years
+% of interest
+if is_ggcmi 
+    
+    % yield
+    if isfield(yield_lpj,'yearList') || isfield(yield_lpj,'maps_YXvy')
+        error('GGCMI yields have years??')
+    end
+    yield_lpj.maps_YXvy = yield_lpj.maps_YXv ;
+    yield_lpj = rmfield(yield_lpj, 'maps_YXv') ;
+    yield_lpj.yearList = -pi ;
+    
+    % landuse
+    if isfield(landuse_lpj,'maps_YXvy')
+        landuse_lpj.maps_YXvy = nanmean(landuse_lpj.maps_YXvy(:,:,:, ...
+            landuse_lpj.yearList>=year1 & landuse_lpj.yearList<=yearN), 4) ;
+    else
+        landuse_lpj.maps_YXvy = landuse_lpj.maps_YXv ;
+        landuse_lpj = rmfield(landuse_lpj, 'maps_YXv') ;
+    end
+    landuse_lpj.yearList = -pi ;
+    
+    % cropfrac
+    if isfield(cropfrac_lpj,'maps_YXvy')
+        cropfrac_lpj.maps_YXvy = nanmean(cropfrac_lpj.maps_YXvy(:,:,:, ...
+            cropfrac_lpj.yearList>=year1 & cropfrac_lpj.yearList<=yearN), 4) ;
+    else
+        cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXv ;
+        cropfrac_lpj = rmfield(cropfrac_lpj, 'maps_YXv') ;
+    end
+    cropfrac_lpj.yearList = -pi ;
+end
 
 % Trim out CC3G, CC4G, ExtraCrop, and OtHr from yield_lpj
 % toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic')) ;
-if ~is_ggcmi
-%     toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic') ...
-%         | strcmp(yield_lpj.varNames,'OtHr') | strcmp(yield_lpj.varNames,'OtHri')) ;
-    toRemove = find(contains(yield_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
-    if ~isempty(toRemove)
-        yield_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
-        yield_lpj.varNames(toRemove) = [] ;
-    end
-%     toRemove = find(strcmp(cropfrac_lpj.varNames,'CC3G_ic') | strcmp(cropfrac_lpj.varNames,'CC4G_ic') ...
-%         | strcmp(cropfrac_lpj.varNames,'OtHr') | strcmp(cropfrac_lpj.varNames,'OtHri')) ;
-    toRemove = find(contains(cropfrac_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
-    if ~isempty(toRemove)
-        if isfield(cropfrac_lpj,'maps_YXvy')
-            cropfrac_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
-        else
-            cropfrac_lpj.maps_YXv(:,:,toRemove) = [] ;
-        end
-        cropfrac_lpj.varNames(toRemove) = [] ;
-    end
-    clear toRemove
+% toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic') ...
+%     | strcmp(yield_lpj.varNames,'OtHr') | strcmp(yield_lpj.varNames,'OtHri')) ;
+toRemove = find(contains(yield_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
+if ~isempty(toRemove)
+    yield_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
+    yield_lpj.varNames(toRemove) = [] ;
 end
+% toRemove = find(strcmp(cropfrac_lpj.varNames,'CC3G_ic') | strcmp(cropfrac_lpj.varNames,'CC4G_ic') ...
+%     | strcmp(cropfrac_lpj.varNames,'OtHr') | strcmp(cropfrac_lpj.varNames,'OtHri')) ;
+toRemove = find(contains(cropfrac_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
+if ~isempty(toRemove)
+    if isfield(cropfrac_lpj,'maps_YXvy')
+        cropfrac_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
+    else
+        cropfrac_lpj.maps_YXv(:,:,toRemove) = [] ;
+    end
+    cropfrac_lpj.varNames(toRemove) = [] ;
+end
+clear toRemove
 
 % Create cropfrac_lpj.YXvy array from YXv, if necessary
-if ~isfield(cropfrac_lpj,'maps_YXvy')
+if ~is_ggcmi && ~isfield(cropfrac_lpj,'maps_YXvy')
     tmp = cropfrac_lpj.maps_YXv ;
     cropfrac_lpj = rmfield(cropfrac_lpj,'maps_YXv') ;
     cropfrac_lpj.yearList = yield_lpj.yearList ;
@@ -167,14 +193,22 @@ for v = 1:length(new_order)
     clear this_from_yield
 end ; clear v
 cropfrac_lpj.varNames = cropfrac_lpj.varNames(new_order) ;
-if ~isfield(cropfrac_lpj,'maps_YXvy')
-    tmp = cropfrac_lpj.maps_YXv ;
-    cropfrac_lpj = rmfield(cropfrac_lpj,'maps_YXv') ;
-    cropfrac_lpj.maps_YXvy = repmat(tmp,[1 1 1 size(yield_lpj.maps_YXvy,4)]) ;
-    clear tmp
-    cropfrac_lpj.yearList = yield_lpj.yearList ;
+if ~is_ggcmi
+    if ~isfield(cropfrac_lpj,'maps_YXvy')
+        tmp = cropfrac_lpj.maps_YXv ;
+        cropfrac_lpj = rmfield(cropfrac_lpj,'maps_YXv') ;
+        cropfrac_lpj.maps_YXvy = repmat(tmp,[1 1 1 size(yield_lpj.maps_YXvy,4)]) ;
+        clear tmp
+        cropfrac_lpj.yearList = yield_lpj.yearList ;
+    end
+    cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
+else
+    if ~isfield(cropfrac_lpj,'maps_YXvy')
+        cropfrac_lpj.maps_YXv = cropfrac_lpj.maps_YXv(:,:,new_order) ;
+    else
+        cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
+    end
 end
-cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
 
 % % % %%%%%%%
 % % % % landuse_lpj_orig = landuse_lpj ;
@@ -187,14 +221,26 @@ cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
 Nyears_lpj = length(landuse_lpj.yearList) ;
 
 % Convert yield from kgDM/m2 to tDM/ha
-if ~is_ggcmi
+if isfield(yield_lpj,'maps_YXvy')
     yield_lpj.maps_YXvy = yield_lpj.maps_YXvy * 1e4 * 1e-3 ;
+else
+    yield_lpj.maps_YXv = yield_lpj.maps_YXv * 1e4 * 1e-3 ;
 end
 
 % Convert cropfrac from fraction of CROPLAND to fraction of ALL LAND
-for v = 1:size(cropfrac_lpj.maps_YXvy,3)
-    cropfrac_lpj.maps_YXvy(:,:,v,:) = cropfrac_lpj.maps_YXvy(:,:,v,:) ...
-                                       .* landuse_lpj.maps_YXvy(:,:,exact_string_in_cellarray(landuse_lpj.varNames,'CROPLAND'),:) ;
+if isfield(cropfrac_lpj,'maps_YXvy')
+    for v = 1:size(cropfrac_lpj.maps_YXvy,3)
+        cropfrac_lpj.maps_YXvy(:,:,v,:) = ...
+            cropfrac_lpj.maps_YXvy(:,:,v,:) ...
+            .* landuse_lpj.maps_YXvy(:,:,strcmp(landuse_lpj.varNames,'CROPLAND'),:) ;
+    end
+else
+    ok_years = landuse_lpj.yearList>=year1 & landuse_lpj.yearList<=yearN ;
+    for v = 1:size(cropfrac_lpj.maps_YXvy,3)
+        cropfrac_lpj.maps_YXv(:,:,v) = ...
+            cropfrac_lpj.maps_YXv(:,:,v) ...
+            .* nanmean(landuse_lpj.maps_YXvy(:,:,strcmp(landuse_lpj.varNames,'CROPLAND'),ok_years),4) ;
+    end
 end
 
 % Create combined irrigated+rainfed yields

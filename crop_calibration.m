@@ -55,7 +55,7 @@ end
     calib_ver_used, twofiles] ...
     = get_fao_data(year1,yearN,calib_ver,...
     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
-    faoCommBalElement) ;
+    faoCommBalElement, is_ggcmi) ;
 
 verbose = false ;
 getPi = @(x) find(strcmp(listCrops_lpj_comb,x)) ;
@@ -93,8 +93,13 @@ end
 
 disp('Making LPJ _Ccy datasets... ')
 verbose = false ;
-total_lpj_YXcy_comb2 = total_lpj_YXcy_comb(:,:,:,yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN) ;
-croparea_lpj_YXcy_comb2 = croparea_lpj_YXcy_comb(:,:,:,yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN) ;
+if size(total_lpj_YXcy_comb,4) > 1
+    okyears = yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN ;
+else
+    okyears = 1 ;
+end
+total_lpj_YXcy_comb2 = total_lpj_YXcy_comb(:,:,:,okyears) ;
+croparea_lpj_YXcy_comb2 = croparea_lpj_YXcy_comb(:,:,:,okyears) ;
 [croparea_lpj_Ccy,total_lpj_Ccy,yield_lpj_Ccy] = ...
     YXcy_to_Ccy(total_lpj_YXcy_comb2,croparea_lpj_YXcy_comb2,...
     countries_YX,countries_key,listCountries_map_present_all,...
@@ -210,7 +215,11 @@ elseif (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20)
     end
 %     yield_lpj_4cal_Cyc = nan([size(yield_lpj_4cal_tmp.Rice_Cy) length(listCrops_4cal)]) ;
     tmp = size(total_lpj_Ccy) ;
-    yield_lpj_4cal_Cyc = nan(tmp([1 3 2])) ;
+    if size(total_lpj_Ccy,3) > 1
+        yield_lpj_4cal_Cyc = nan(tmp([1 3 2])) ;
+    else
+        yield_lpj_4cal_Cyc = nan([tmp(1) 1 tmp(2)]) ;
+    end
     for c = 1:length(listCrops_4cal)
         thisCrop = listCrops_4cal{c} ;
         eval(['yield_lpj_4cal_Cyc(:,:,c) = yield_lpj_4cal_tmp.' thisCrop '_Cy ;']) ;

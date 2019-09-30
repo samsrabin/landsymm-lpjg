@@ -7,7 +7,7 @@ function [total_fa2_Ccy, croparea_fa2_Ccy, yield_fa2_Ccy, ...
     yieldWasInf_fa2_Ccy] ...
     = get_fao_data(year1,yearN,calib_ver,...
     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
-    faoCommBalElement)
+    faoCommBalElement, is_ggcmi)
 
 % UNITS
 %    Area harvested: ha
@@ -32,8 +32,6 @@ end
     countries_YX, countries_key, listCountries_map_present, ...
     strip_fao_nans, fix_cotedivoire, combine_sudans, ...
     combine_subChinas, combine_serbmont) ;
-
-x=1;
 
 % Process FAO data into country-crop-year arrays
 %%%verbose = false ;
@@ -559,5 +557,11 @@ ignoreNoData = true ;
     calib_ver_used = calib_ver ;
 % end
 % 
+
+if is_ggcmi
+    total_fa2_Ccy = nanmean(total_fa2_Ccy,3) ;
+    croparea_fa2_Ccy = nanmean(croparea_fa2_Ccy,3) ;
+    yield_fa2_Ccy = nanmean(yield_fa2_Ccy,3) ;
+end
 
 end
