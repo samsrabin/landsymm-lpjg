@@ -14,7 +14,7 @@ elseif xres_in~=xres_out || yres_in~=yres_out
     xratio = xres_out / xres_in ;
     yratio = yres_out / yres_in ;
     if ~isint(xratio) || ~isint(yratio)
-        error(['xratio (' num2str(xratio) ') and yratio (' num2str(xratio) ') must both be integers!'])
+        error(['xratio (' num2str(xratio) ') and yratio (' num2str(yratio) ') must both be integers!'])
     end
     
     % Aggregate X

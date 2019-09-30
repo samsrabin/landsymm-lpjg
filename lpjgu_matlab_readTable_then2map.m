@@ -48,7 +48,8 @@ end
 clear p
 
 if force_mat_nosave && force_mat_save
-    error('force_mat_save and force_mat_nosave can''t both be true.')
+    warning('force_mat_save and force_mat_nosave can''t both be true. MATfile will not be saved.')
+    force_mat_save = false ;
 end
 if verboseIfNoMat && verbose
     %     warning('Because verboseIfNoMat==true, setting verbose=false.')
@@ -68,6 +69,23 @@ if s==0 && contains(w,'true') % is symlink
     [~,w] = unix(['stat -f "%Y" ' in_file]) ;
     in_file = regexprep(w,'[\n\r]+','') ; % Remove extraneous newline
 end
+
+% If in_file has wildcard, expand into full filename (fail if not exactly 1
+% match)
+if contains(in_file,'*')
+    filelist = dir(in_file) ;
+    if isempty(filelist) 
+        error('No match found for %s', in_file)
+    elseif length(filelist) > 1
+        keyboard
+        error('More than one match found for %s', in_file)
+    else
+        tmp = sprintf('%s/%s', filelist(1).folder, filelist(1).name) ;
+        fprintf('Resolving\n%s\ninto\n%s\n', in_file, tmp)
+        in_file =  tmp ;
+    end
+end
+
 
 % Display info
 [~,NAME,EXT] = fileparts(in_file) ;
@@ -152,7 +170,7 @@ else
     
     % Save to MAT-file
     if ~force_mat_nosave
-        save_to_matfile(out_struct,in_matfile_maps,force_mat_save,verboseIfNoMat,verbose) ;
+        lpjgu_matlab_save_to_matfile(out_struct,in_matfile_maps,force_mat_save,verboseIfNoMat,verbose) ;
     end
     if verboseIfNoMat || verbose
         disp('   Done.')
@@ -183,18 +201,18 @@ if multi_yrs
 end
 
 % Sort out map resolution
-[xres,yres] = process_resolution(xres,yres,in_lons,in_lats,verboseIfNoMat,verbose) ;
+[xres,yres] = lpjgu_process_resolution(xres,yres,in_lons,in_lats,verboseIfNoMat,verbose) ;
 
 % Get ready for mapping
-[lons_map,lats_map] = set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient,verboseIfNoMat,verbose) ;
+[lons_map,lats_map] = lpjgu_set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient,verboseIfNoMat,verbose) ;
 
 % Get indices for mapping
 if isempty(list_to_map_in)
-    [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose,in_prec) ;
+    [list_to_map,found] = lpjgu_get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose,in_prec) ;
 else
     if length(in_lons) ~= length(list_to_map_in)
         warning('length(in_lons) ~= length(list_to_map_in)! Ignoring list_to_map_in.')
-        [list_to_map,found] = get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose,in_prec) ;
+        [list_to_map,found] = lpjgu_get_map_indices(in_lons,in_lats,lons_map,lats_map,verboseIfNoMat,verbose,in_prec) ;
     else
         list_to_map = list_to_map_in ;
         found = true(size(list_to_map)) ;
@@ -225,145 +243,6 @@ if ~multi_yrs
     yearList = [] ;
 end
 
-end
-
-
-function [xres_out,yres_out] = process_resolution(xres_in,yres_in,...
-    in_lons,in_lats,verboseIfNoMat,verbose)
-
-if xres_in>0 && yres_in>0
-    xres_out = xres_in ;
-    yres_out = yres_in ;
-elseif xres_in>0 && ~(yres_in>0)
-    % If only xres provided, set yres to same value
-    xres_out = xres_in ;
-    yres_out = xres_in ;
-elseif ~(xres_in>0) && yres_in>0
-    % If only yres provided, set xres to same value
-    xres_out = yres_in ;
-    yres_out = yres_in ;
-else
-    % Determine X and Y resolution
-    if verboseIfNoMat || verbose
-        disp('      Determining X and Y resolution...')
-    end
-    if ~(xres_in>0)
-        unique_lats = unique(in_lats) ;
-        xres_out = min(abs(unique_lats(1:end-1)-unique_lats(2:end))) ;
-    end
-    if ~(yres_in>0)
-        unique_lons = unique(in_lons) ;
-        yres_out = min(abs(unique_lons(1:end-1)-unique_lons(2:end))) ;
-    end
-    if verboseIfNoMat || verbose
-        disp(['      Assuming X res. = ' num2str(xres_out) ', Y res. = ' num2str(yres_out)])
-    end
-end
-
-
-
-end
-
-
-function [out_lons_map,out_lats_map] = set_up_maps(xres,yres,in_lons,in_lats,lat_orient,lon_orient,verboseIfNoMat,verbose)
-
-% Determine orientation, if needed
-if isempty(lat_orient)
-    if any(in_lats==-90)
-        lat_orient = 'lower' ;
-    elseif any(in_lats==90)
-        lat_orient = 'upper' ;
-    elseif any(in_lats-yres/2==-90 | in_lats+yres/2==90)
-        lat_orient = 'center' ;
-    else
-        if any(rem(in_lats,yres)==0)
-            lat_orient = 'lower' ;
-        else
-            lat_orient = 'center' ;
-        end
-    end
-    if verboseIfNoMat || verbose
-        disp(['      Assuming lat_orient = ' lat_orient '.'])
-    end
-end
-if isempty(lon_orient)
-    if any(in_lons==-180)
-        lon_orient = 'left' ;
-    elseif any(in_lons==180)
-        lon_orient = 'right' ;
-    elseif any(in_lons-xres/2==-180 | in_lons+xres/2==180)
-        lon_orient = 'center' ;
-    else
-        if any(rem(in_lons,xres)==0)
-            lon_orient = 'left' ;
-        else
-            lon_orient = 'center' ;
-        end
-    end
-    if verboseIfNoMat || verbose
-        disp(['      Assuming lon_orient = ' lon_orient '.'])
-    end
-end
-
-% Set up maps
-if strcmp(lat_orient,'lower')
-    lat_min = -90 ;
-    lat_max = 90-yres ;
-elseif strcmp(lat_orient,'upper')
-    lat_min = -90+yres ;
-    lat_max = 90 ;
-elseif strcmp(lat_orient,'center')
-    lat_min = -90+yres/2 ;
-    lat_max = 90-yres/2 ;
-end
-if strcmp(lon_orient,'left')
-    lon_min = -180 ;
-    lon_max = 180-xres ;
-elseif strcmp(lon_orient,'right')
-    lon_min = -180+xres ;
-    lon_max = 180 ;
-elseif strcmp(lon_orient,'center')
-    lon_min = -180+xres/2 ;
-    lon_max = 180-xres/2 ;
-end
-lons = lon_min:xres:lon_max ;
-lats = lat_min:yres:lat_max ;
-out_lons_map = repmat(lons,[length(lats) 1]) ;
-out_lats_map = repmat(lats',[1 length(lons)]) ;
-end
-
-
-function [list_to_map,found] = get_map_indices(in_lons,in_lats,in_lonsMap,in_latsMap,verboseIfNoMat,verbose,in_prec)
-
-if verboseIfNoMat || verbose
-    disp('      Getting indices to convert list to map...')
-end
-Ncells = length(in_lons) ;
-lons_vec = in_lonsMap(1,:) ;
-lats_vec = in_latsMap(:,1) ;
-
-in_lons = round(in_lons,in_prec) ;
-in_lats = round(in_lats,in_prec) ;
-lons_vec = round(lons_vec,in_prec) ;
-lats_vec = round(lats_vec,in_prec) ;
-
-[~,lons_inds] = ismember(in_lons,lons_vec) ;
-[~,lats_inds] = ismember(in_lats,lats_vec) ;
-found = ~(lons_inds==0 | lats_inds==0) ;
-if any(~found)
-    warning([num2str(length(find(~found))) ' cells being ignored.'])
-    lons_inds(~found) = [] ;
-    lats_inds(~found) = [] ;
-end
-list_to_map = sub2ind(size(in_lonsMap),lats_inds,lons_inds) ;
-
-% Sanity checks
-if any(isnan(list_to_map))
-    error('Somehow list_to_map contains NaN.')
-end
-if length(list_to_map) ~= Ncells-length(find(~found))
-    error('length(list_to_map) ~= Ncells-length(find(~found))')
-end
 end
 
 
@@ -414,40 +293,5 @@ else
     end
 end
 
-end
-
-
-function save_to_matfile(out_struct,in_matfile_maps,force_mat_save,verboseIfNoMat,verbose)
-if ~isstruct(out_struct)
-    error('out_struct must be a struct.')
-end
-% Ask to save to MAT-file
-if force_mat_save
-    if verboseIfNoMat || verbose
-        disp('         Saving MAT-file...')
-    end
-    save(in_matfile_maps,'out_struct','-v7.3') ;
-else
-    ok = false ;
-    while ~ok
-        if exist(in_matfile_maps,'file')
-            disp('      Save, overwriting existing MAT-file? Y or [N]. 10 seconds...')
-            default_save = false ;
-        else
-            disp('      Save to MAT-file? [Y] or N. 10 seconds...')
-            default_save = true ;
-        end
-        dbl = getkeywait_ssr(10) ;
-        if (dbl==-1 && default_save) || strcmp(char(dbl),'y') || strcmp(char(dbl),'Y')
-            ok = true ;
-            disp('         Saving MAT-file...')
-            save(in_matfile_maps,'out_struct','-v7.3') ;
-        elseif (dbl==-1 && ~default_save) || strcmp(char(dbl),'n') || strcmp(char(dbl),'N')
-            ok = true ;
-        else
-            warning(['Input (' char(dbl) ') not recognized.'])
-        end
-    end ; clear ok
-end
 
 end

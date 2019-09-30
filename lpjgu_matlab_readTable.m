@@ -38,6 +38,22 @@ if s==0 && contains(w,'true') % is symlink
     in_file = regexprep(w,'[\n\r]+','') ; % Remove extraneous newline
 end
 
+% If in_file has wildcard, expand into full filename (fail if not exactly 1
+% match)
+if contains(in_file,'*')
+    filelist = dir(in_file) ;
+    if isempty(filelist) 
+        error('No match found for %s', in_file)
+    elseif length(filelist) > 1
+        keyboard
+        error('More than one match found for %s', in_file)
+    else
+        tmp = sprintf('%s/%s', filelist(1).folder, filelist(1).name) ;
+        fprintf('Resolving\n%s\ninto\n%s\n', in_file, tmp)
+        in_file =  tmp ;
+    end
+end
+
 if strcmp(in_file(end-2:end),'.gz')
     in_file = in_file(1:end-3) ;
 end
@@ -100,7 +116,7 @@ if ~exist(in_file,'file')
         end
         did_unzip = true ;
     else
-        error('in_file.mat, in_file, and in_file.gz not found.')
+        error('%s: in_file.mat, in_file, and in_file.gz not found.', in_file)
     end
 end
 end
