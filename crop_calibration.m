@@ -5,30 +5,6 @@
 
 %% Setup
 
-% Make sure directory names end with a slash
-if ~strcmp(dir_code(end),'/')
-    dir_code = [dir_code '/'] ;
-end
-if ~strcmp(dir_data(end),'/')
-    dir_data = [dir_data '/'] ;
-end
-if ~strcmp(dir_outfigs(end),'/')
-    dir_outfigs = [dir_outfigs '/'] ;
-end
-
-do_temp_vs_trop = false ;
-
-% Years for calibration
-listYears_fao = year1:yearN ;
-Nyears_fao = length(listYears_fao) ;
-
-% Add data files to path (just for this session)
-addpath(genpath(dir_data))
-
-[strip_fao_nans, fix_cotedivoire, combine_sudans,...
-    combine_subChinas, combine_subChinas_map, combine_serbmont] ...
-    = get_FAOread_options(calib_ver) ;
-
 script_setup_cropCalibration
 
 
