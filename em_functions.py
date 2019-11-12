@@ -1,5 +1,6 @@
 #!/bin/env python
 import numpy as np
+import os
 
 def emulate(K, c, t, w, n, case, is_irrig):
     '''
@@ -206,3 +207,23 @@ def update_out_table(
 
     return (outarray, outheader, outfmt)
 
+
+def save_out_table(
+        outdir,
+        outfile,
+        outfmt,
+        outheader,
+        outarr):
+    
+    # Make output directory, if needed
+    try:
+        os.makedirs(outdir)
+        print("mkdir -p " + outdir)
+    except FileExistsError:
+        # directory already exists
+        pass
+
+    # Save in PLUM-readable format; compress
+    np.savetxt(outfile, outarr.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
+    os.system('gzip %s'%(outfile))    
+    

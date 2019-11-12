@@ -4,118 +4,7 @@ import os
 import glob
 import datetime
 np.random.seed(1234)
-def emulate(K, c, t, w, n, case, is_irrig):
-    #Case: NN- no nitrogen, NNI - No nitrogen irr, N- with nitrogen, NI- with nitrogen irr
-    if (case == 'NN'):
-        Y = (K[0,:,:]              +
-        K[1,:,:]  * c          +
-        K[2,:,:]  * t          +
-        K[3,:,:]  * w          +
-        K[4,:,:]  * c ** 2     +
-        K[5,:,:]  * t ** 2     +
-        K[6,:,:]  * w ** 2     +
-        K[7,:,:]  * c *  w     +
-        K[8,:,:]  * t *  w     +
-        K[9,:,:]  * t ** 3     +
-        K[10,:,:] * w ** 3     +
-        K[11,:,:] * t ** 2 * w +
-        K[12,:,:] * w ** 2 * t  )
-
-    elif (case == 'NNI'):
-        Y = (K[0,:,:]              +
-        K[1,:,:]  * c          +
-        K[2,:,:]  * t          +
-        K[3,:,:]  * c ** 2     +
-        K[4,:,:]  * t ** 2     +
-        K[5,:,:]  * t ** 3      )
-
-    elif (case == 'N'):
-        Y = (K[0,:,:]              +
-        K[1,:,:]  * c          +
-        K[2,:,:]  * t          +
-        K[3,:,:]  * w          +
-        K[4,:,:]  * n          +
-        K[5,:,:]  * c ** 2     +
-        K[6,:,:]  * t ** 2     +
-        K[7,:,:]  * w ** 2     +
-        K[8,:,:]  * n ** 2     +
-        K[9,:,:]  * c *  w     +
-        K[10,:,:] * c *  n     +
-        K[11,:,:] * t *  w     +
-        K[12,:,:] * t *  n     +
-        K[13,:,:] * w *  n     +
-        K[14,:,:] * t ** 3     +
-        K[15,:,:] * w ** 3     +
-        K[16,:,:] * t *  w * n +
-        K[17,:,:] * t ** 2 * w +
-        K[18,:,:] * w ** 2 * t +
-        K[19,:,:] * w ** 2 * n +
-        K[20,:,:] * n ** 2 * c +
-        K[21,:,:] * n ** 2 * t +
-        K[22,:,:] * n ** 2 * w  )
-
-    elif (case == 'NI'):
-        Y = (K[0,:,:]          +
-        K[1,:,:]  * c          +
-        K[2,:,:]  * t          +
-        K[3,:,:]  * n          +
-        K[4,:,:]  * c ** 2     +
-        K[5,:,:]  * t ** 2     +
-        K[6,:,:]  * n ** 2     +
-        K[7,:,:]  * c *  n     +
-        K[8,:,:]  * t *  n     +
-        K[9,:,:]  * t ** 3     +
-        K[10,:,:] * n ** 2 * c +
-        K[11,:,:] * n ** 2 * t  )
-
-    elif (case == 'NL'):
-        Y = (K[0,:,:]          +
-        K[1,:,:]  * c          +
-        K[2,:,:]  * t          +
-        K[3,:,:]  * w          +
-        K[4,:,:]  * n          +
-        K[5,:,:]  * c ** 2     +
-        K[6,:,:]  * t ** 2     +
-        K[7,:,:]  * w ** 2     +
-        K[8,:,:]  * n ** 2     +
-        K[9,:,:]  * c *  w     +
-        K[10,:,:] * c *  n     +
-        K[11,:,:] * t *  w     +
-        K[12,:,:] * t *  n     +
-        K[13,:,:] * w *  n     +
-        K[14,:,:] * t ** 3     +
-        K[15,:,:] * w ** 3     +
-        K[16,:,:] * t *  w * n +
-        K[17,:,:] * t ** 2 * w +
-        K[18,:,:] * w ** 2 * t +
-        K[19,:,:] * w ** 2 * n +
-        K[20,:,:] * n ** 2 * c +
-        K[21,:,:] * n ** 2 * t +
-        K[22,:,:] * n ** 2 * w +
-        K[23,:,:] * n ** 3      )
-
-    elif (case == 'NIL'):
-        Y = (K[0,:,:]          +
-        K[1,:,:]  * c          +
-        K[2,:,:]  * t          +
-        K[3,:,:]  * n          +
-        K[4,:,:]  * c ** 2     +
-        K[5,:,:]  * t ** 2     +
-        K[6,:,:]  * n ** 2     +
-        K[7,:,:]  * c *  n     +
-        K[8,:,:]  * t *  n     +
-        K[9,:,:]  * t ** 3     +
-        K[10,:,:] * n ** 2 * c +
-        K[11,:,:] * n ** 2 * t +
-        K[12,:,:] * n ** 3      )
-
-    Y       = np.nan_to_num(Y)
-
-    # Limit output values
-    Y[Y<0]  = 0
-    if not is_irrig: Y[Y>30] = 30
-    return(Y)
-
+from em_functions import emulate, update_out_table, save_out_table
 
 def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
 
@@ -141,46 +30,6 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
 
         rf_200 = emulate(K,  co2, t,  w, 200, 'N', is_irrig)
     return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
-
-
-def do_emulation_wheats(emulator_dir, co2, ts, ws, tw, ww, is_irrig):
-    rf_10w,rf_60w,rf_200w,ir_10w,ir_60w,ir_200w = do_emulation(emulator_dir, "winter_wheat", co2, tw, ww, is_irrig)
-    rf_10s,rf_60s,rf_200s,ir_10s,ir_60s,ir_200s = do_emulation(emulator_dir, "spring_wheat", co2, ts, ws, is_irrig)
-
-    # Get maximum winter or spring
-    if is_irrig:
-        # No irrigation if rainfed
-        rf_10 = np.zeros(ir_10w.shape)
-        rf_60 = np.zeros(ir_10w.shape)
-        rf_200 = np.zeros(ir_10w.shape)
-    else:
-        rf_10   = np.maximum(rf_10w, rf_10s)
-        rf_60   = np.maximum(rf_60w, rf_60s)
-        rf_200   = np.maximum(rf_200w, rf_200s)
-    ir_10   = np.maximum(ir_10w, ir_10s)
-    ir_60   = np.maximum(ir_60w, ir_60s)
-    ir_200   = np.maximum(ir_200w, ir_200s)
-
-    return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
-
-
-def update_out_table(outarray, outheader, outfmt, PLUMcrop, rf_10, rf_60, rf_200, ir_10, ir_60, ir_200, mask_YX):
-    # outarray comes in as (crop,cell) because vstack is the only stack that works with one-d
-    # arrays like rf_10 etc., apparently. outarray will be transposed for write so that each
-    # row is a gridcell.
-    outarray = np.vstack((outarray, rf_10[mask_YX==1]))
-    outarray = np.vstack((outarray, rf_60[mask_YX==1]))
-    outarray = np.vstack((outarray, rf_200[mask_YX==1]))
-    outarray = np.vstack((outarray, ir_10[mask_YX==1]))
-    outarray = np.vstack((outarray, ir_60[mask_YX==1]))
-    outarray = np.vstack((outarray, ir_200[mask_YX==1]))
-
-    # Update header
-    outheader = outheader + " " + PLUMcrop + "010 " + PLUMcrop + "060 " + PLUMcrop + "200 " + PLUMcrop + "i010 " + PLUMcrop + "i060 " + PLUMcrop + "i200"
-    outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
-
-    return(outarray, outheader, outfmt)
-
 
 
 def PLUMemulate(GGCM, mask_YX, outarr_yield, outarr_irrig):
@@ -266,24 +115,14 @@ for GGCM in GGCMs:
     # Emulate
     outarr_yield,outarr_irrig,outheader,outfmt = PLUMemulate(GGCM, mask_YX, lonlats, lonlats)
     
-    # Make output directory, if needed
-    try:
-        os.makedirs(outdir)
-        print("mkdir -p " + outdir)
-    except FileExistsError:
-        # directory already exists
-        pass
-
     # Convert from tons/ha to kg/m2
     outarr_yield[:][2:] = outarr_yield[:][2:] * 0.1
 
     # Save in PLUM-readable format; compress
     if not exist_yield:
-        np.savetxt(outfile_yield, outarr_yield.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
-        os.system('gzip %s'%(outfile_yield))
+        save_out_table(outdir, outfile_yield, outfmt, outheader, outarr_yield)
     if not exist_irrig:
-        np.savetxt(outfile_irrig, outarr_irrig.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
-        os.system('gzip %s'%(outfile_irrig))
+        save_out_table(outdir, outfile_irrig, outfmt, outheader, outarr_irrig)
         
     # Compress and add "done" file for PLUM
     os.system('touch %s/done'%(outdir))
