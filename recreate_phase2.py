@@ -2,18 +2,22 @@
 import numpy as np
 import os
 # import glob
-import datetime
-from em_functions import emulate, do_emulation, update_out_table
+# import datetime
+from em_functions import emulate, update_out_table
 
 emulator_dir = "../fits_yield"
 co2 = 360
 t = 0
 w = 1
 is_irrig = False
-GGCM = "LPJ-GUESS"
+GGCM = "pDSSAT"
 
-crop_list_long = ['maize', 'winter_wheat', 'spring_wheat']
-crop_list_short = ["mai", "wwh", "swh"]
+os.chdir("/Users/Shared/GGCMI2PLUM/emulator/Sam/")
+
+#crop_list_long = ['maize', 'winter_wheat', 'spring_wheat']
+#crop_list_short = ["mai", "wwh", "swh"]
+crop_list_long = ['maize', 'winter_wheat', 'spring_wheat', 'soy', 'rice']
+crop_list_short = ["mai", "wwh", "swh", "soy", "ric"]
 N_list = [10, 60, 200]
 
 outdir = "outputs_recreate_phase2"
@@ -42,6 +46,8 @@ outarr_yield = lonlats
 
 for c in np.arange(0,len(crop_list_long)):
     crop_long = crop_list_long[c]
+    if GGCM == "LPJ-GUESS" and (crop_long=="soy" or crop_long=="rice"):
+        continue
     crop_short = crop_list_short[c]
     print(crop_long)
     # Emulate
