@@ -5,14 +5,21 @@
 %% Information about this calibration run
 
 % version_name = 'LPJ-GUESS_ggcmi_remap5e' ;   % calib_ver = 18
-% filename_guess_yield = '/Users/Shared/GGCMI2PLUM/emulator/Sam/outputs_calib/LPJ-GUESS.out' ;
+% filename_guess_yield = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/LPJ-GUESS.out' ;
 % filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
 % filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
 % filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
 % calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
 
-version_name = 'LPJmL_ggcmi_remap5e' ;   % calib_ver = 18
-filename_guess_yield = '/Users/Shared/GGCMI2PLUM/emulator/Sam/outputs_calib/LPJmL.out' ;
+% version_name = 'LPJmL_ggcmi_remap5e' ;   % calib_ver = 18
+% filename_guess_yield = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/LPJmL.out' ;
+% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
+% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
+% filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
+% calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
+
+version_name = 'pDSSAT_ggcmi_remap5e' ;   % calib_ver = 18
+filename_guess_yield = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/pDSSAT.out' ;
 filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
 filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
 filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
@@ -31,7 +38,7 @@ dir_code = '/Users/Shared/PLUM/crop_calib_code/' ;
 dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
 
 % Path to figure output directory
-dir_outfigs = '/Users/Shared/GGCMI2PLUM/emulator/Sam/outputs_calib/calib_figs/' ;
+dir_outfigs = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/calib_figs/' ;
 
 % Add code files to path (just for this session)
 addpath(genpath(dir_code))
