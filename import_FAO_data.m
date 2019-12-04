@@ -66,35 +66,24 @@ else
         twofiles = true ;
     elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20)
         disp('Reading FAO data from TXT file 1...')
-        fao1 = readtable('Production_Crops_E_All_Data_Norm.csv') ;
-        fao1.CountryCode = [] ;
-        fao1.ItemCode = [] ;
-        fao1.ElementCode = [] ;
-        fao1.Unit = [] ;
-        fao1.Flag = [] ;
-        fao1.YearCode = [] ;
+        fao1 = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOStat-Dec2015_fromPeterAl/Production_Crops_E_All_Data_Norm.csv') ;
+        extraneous_columns = {'CountryCode', 'ItemCode', 'ElementCode', ...
+            'Unit', 'Flag', 'YearCode'} ;
+        fao1(:, contains(fao1.Properties.VariableNames, extraneous_columns)) = [] ;
         fao1 = fao1(:,[1 3 2 4 5]) ;
         fao1.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
         disp('Reading FAO data from TXT file 2...')
-        fao2 = readtable('CommodityBalances_Crops_E_All_Data_Norm.csv') ;
-        fao2.CountryCode = [] ;
-        fao2.ItemCode = [] ;
-        fao2.ElementCode = [] ;
-        fao2.Unit = [] ;
-        fao2.Flag = [] ;
-        fao2.YearCode = [] ;
+        fao2 = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOStat-Dec2015_fromPeterAl/CommodityBalances_Crops_E_All_Data_Norm.csv') ;
+        fao2(:, contains(fao2.Properties.VariableNames, extraneous_columns)) = [] ;
         fao2 = fao2(:,[1 3 2 4 5]) ;
         fao2.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
         twofiles = true ;
     elseif calib_ver==21
         disp('Reading FAO data from TXT file...')
-        fao = readtable('Production_Crops_E_All_Data_Norm.csv') ;
-        fao.CountryCode = [] ;
-        fao.ItemCode = [] ;
-        fao.ElementCode = [] ;
-        fao.Unit = [] ;
-        fao.Flag = [] ;
-        fao.YearCode = [] ;
+        fao = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOStat-Dec2015_fromPeterAl/Production_Crops_E_All_Data_Norm.csv') ;
+        extraneous_columns = {'CountryCode', 'ItemCode', 'ElementCode', ...
+            'Unit', 'Flag', 'YearCode'} ;
+        fao(:, contains(fao.Properties.VariableNames, extraneous_columns)) = [] ;
         fao = fao(:,[1 3 2 4 5]) ;
         fao.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
         twofiles = false ;
