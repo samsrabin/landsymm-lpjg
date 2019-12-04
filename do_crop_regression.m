@@ -9,7 +9,6 @@ function [calib_factors_u,calib_factors_w] = ...
                                listCrops_data,... % listCrops_4cal
                                plot2data_key,... % FA2_to_PLUM_key
                                scatter_style,...
-                               outlier_thresh,...
                                varargin)
 
 % Set up input arguments
@@ -33,13 +32,14 @@ addParameter(p,'miscanthus_file','',@ischar) ;
 addParameter(p,'slope_symbol','',@ischar) ;
 addParameter(p,'marker_size',10,@isscalar) ;
 addParameter(p,'separate_figs',false,@islogical) ;
+addParameter(p,'regression_type','',@ischar) ;
 isOK_outlierThresh = @(x) numel(x)==1 & x>0 ;
 addParameter(p,'outlier_thresh',Inf,isOK_outlierThresh) ;
 parse(p,yield_in_obs_Cyc,yield_in_sim_Cyc,...
         ignore_obs_Cc, ignore_sim_Cc, ...
         weights_regr_Cyc,weights_plot_Cyc, ...
         listCrops_plot,listCrops_data,...
-        plot2data_key,scatter_style,outlier_thresh,varargin{:});
+        plot2data_key,scatter_style,varargin{:});
 pr = p.Results ;
 do_wtd_reg = ~isempty(pr.weights_regr_Cyc) ;
 do_wtd_plot = strcmp('scatter_style','size_weighted') ;
@@ -79,8 +79,17 @@ else
     error(['Ncrops_plot = ' num2str(Ncrops_plot) '. Set up subplot layout.'])
 end
 
-calib_factors_u = nan(Ncrops_plot,1) ;
-calib_factors_w = nan(Ncrops_plot,1) ;
+if strcmp(pr.regression_type, 'slope-only')
+    calib_factors_u = nan(Ncrops_plot,1) ;
+    calib_factors_w = nan(Ncrops_plot,1) ;
+elseif strcmp(pr.regression_type, 'full linear but 0->0')
+    % Columns: Y-intercept, slope
+    calib_factors_u = nan(Ncrops_plot,2) ;
+    calib_factors_w = nan(Ncrops_plot,2) ;
+else
+    error('regression_type ''%s'' not recognized', pr.regression_type)
+end
+
 
 if ~pr.separate_figs
     figure('Color','w') ;
@@ -231,21 +240,31 @@ for c_plot = 1:Ncrops_plot
 %     if Noutliers>0
 %         ajbrejrbe =1 ;
 %     end
-            
-    calib_factors_u(c_plot) = lscov(tmpS(:),tmpO(:)) ;
-    disp(['Calibration factor, unweighted = ' num2str(calib_factors_u(c_plot))])
-    if do_wtd_reg
-        calib_factors_w(c_plot) = lscov(tmpS,tmpO,tmpW) ;
-        disp(['Calibration factor, weighted   = ' num2str(calib_factors_w(c_plot))])
+
+    
+    % Get calibration factors and lines
+    regLine_u_x = [min(tmpO) max(tmpO)] ;
+    if strcmp(pr.regression_type, 'slope-only')
+        [calib_factors_u, calib_factors_w, ...
+            regLine_u_y, regLine_w_y, legend_arg2] = doReg_slopeOnly( ...
+            calib_factors_u, calib_factors_w, c_plot, tmpS, tmpO, tmpW, ...
+            pr, do_wtd_reg, regLine_u_x) ;
+    elseif strcmp(pr.regression_type, 'full linear but 0->0')
+        [calib_factors_u, calib_factors_w, ...
+            regLine_u_y, regLine_w_y, legend_arg2] = doReg_linBut00( ...
+            calib_factors_u, calib_factors_w, c_plot, tmpS, tmpO, tmpW, ...
+            do_wtd_reg, regLine_u_x) ;
+    else
+        error('regression_type ''%s'' not recognized', pr.regression_type)
     end
-    
-    disp(' ')
-    
+     
+    % Make plot
     if ~pr.separate_figs
         subplot(nsubp_y,nsubp_x,c_plot)
     end
     if strcmp(scatter_style,'size_uniform')
-        plot(tmpO,tmpS,'.b','MarkerSize',pr.marker_size)
+% % %         plot(tmpO,tmpS,'.b','MarkerSize',pr.marker_size)
+        plot(tmpS,tmpO,'.b','MarkerSize',pr.marker_size)
     elseif strcmp(scatter_style,'size_weighted')
         scatter(tmpO,tmpS,1000*tmpWp,'.b')
     else
@@ -259,20 +278,15 @@ for c_plot = 1:Ncrops_plot
     % Plot 1:1 line
     hold on
     plot([min(newlims) max(newlims)],[min(newlims) max(newlims)],'--k')
-    hold off
     % Plot regression lines
-    regLine_u_x = [min(tmpO) max(tmpO)] ;
-    regLine_u_y = regLine_u_x / calib_factors_u(c_plot) ;
-    
-    hold on
-    regLine_u = plot(regLine_u_x,regLine_u_y,'-m','LineWidth',pr.reg_line_width) ;
+% % %     regLine_u = plot(regLine_u_x,regLine_u_y,'-m','LineWidth',pr.reg_line_width) ;
+    regLine_u = plot(regLine_u_y,regLine_u_x,'-m','LineWidth',pr.reg_line_width) ;
     if do_wtd_reg
-        regLine_w_y = regLine_u_x / calib_factors_w(c_plot) ;
         regLine_w = plot(regLine_u_x,regLine_w_y,'-c','LineWidth',pr.reg_line_width) ;
     end
     hold off
     % Labels
-    title([pr.plot_title_prefix thisCrop_plot]) ;
+    ht = title([pr.plot_title_prefix thisCrop_plot]) ;
     if strcmpi(thisCrop_plot,'Starchy Roots')
         xlabel('Observed avg. yield (t/ha)') % http://www.fao.org/economic/ess/ess-standards/commodity/comm-chapters/en/
     else
@@ -280,19 +294,100 @@ for c_plot = 1:Ncrops_plot
     end
     ylabel('Simulated avg. yield (tDM/ha)')
     set(gca,'FontSize',pr.fig_font_size)
+    
     % Legend
     if do_wtd_reg
-        legend([regLine_u,regLine_w],...
-            {[pr.slope_symbol '_u = ' num2str(round(calib_factors_u(c_plot),3))],...
-            [pr.slope_symbol '_w = ' num2str(round(calib_factors_w(c_plot),3))]},...
-            'Location','north')
+        hl = legend([regLine_u,regLine_w], legend_arg2, 'Location','north') ;
     else
-        legend(regLine_u,...
-            [pr.slope_symbol ' = ' num2str(round(calib_factors_u(c_plot),3))],...
-            'Location','north')
+        hl = legend(regLine_u, legend_arg2, 'Location','north') ;
     end
+    
+    if strcmp(pr.regression_type, 'full linear but 0->0') && calib_factors_u(c_plot, 2)<0
+        warning('Negative slope!')
+        hl.TextColor = 'r' ;
+        ht.Color = 'r' ;
+    end
+    disp(' ')
+            
+end
+
+
+end
+
+
+function [calib_factors_u, calib_factors_w, ...
+    regLine_u_y, regLine_w_y, legend_arg2] = doReg_slopeOnly( ...
+    calib_factors_u, calib_factors_w, c_plot, tmpS, tmpO, tmpW, ...
+    pr, do_wtd_reg, regLine_u_x)
+
+% Get calibration factor(s)
+calib_factors_u(c_plot) = lscov(tmpS(:),tmpO(:)) ;
+disp(['Calibration factor, unweighted = ' num2str(calib_factors_u(c_plot))])
+if do_wtd_reg
+    calib_factors_w(c_plot) = lscov(tmpS,tmpO,tmpW) ;
+    disp(['Calibration factor, weighted   = ' num2str(calib_factors_w(c_plot))])
+end
+
+% Get line(s) and legend text
+regLine_u_y = regLine_u_x / calib_factors_u(c_plot) ;
+
+if do_wtd_reg
+    regLine_w_y = regLine_u_x / calib_factors_w(c_plot) ;
+    legend_arg2 = ...
+        {[pr.slope_symbol '_u = ' num2str(round(calib_factors_u(c_plot),3))],...
+        [pr.slope_symbol '_w = ' num2str(round(calib_factors_w(c_plot),3))]} ;
+else
+    regLine_w_y = [] ;
+    legend_arg2 = [pr.slope_symbol ' = ' num2str(round(calib_factors_u(c_plot),3))] ;
+end
+
+
+end
+
+
+function [calib_factors_u, calib_factors_w, ...
+    regLine_u_y, regLine_w_y, legend_arg2] = doReg_linBut00( ...
+    calib_factors_u, calib_factors_w, c_plot, tmpS, tmpO, tmpW, ...
+    do_wtd_reg, regLine_u_x)
+
+% Get calibration factor(s)
+y = tmpO(tmpS>0) ;
+if ~isempty(tmpW)
+    w = tmpW(tmpS>0) ;
+end
+x = tmpS(tmpS>0) ;
+X = [ones(length(x),1) x];
+result = X \ y ;
+bu = result(1) ;
+mu = result(2) ;
+calib_factors_u(c_plot, 1) = bu ; % Y-intercept
+calib_factors_u(c_plot, 2) = mu ; % Slope
+legend_arg2 = sprintf('y = %0.3g + %0.3gx', bu, mu) ;
+disp(legend_arg2) ;
+if do_wtd_reg
+    result = ([w w].*X) \ (w .* y) ;
+    bw = result(1) ;
+    mw = result(2) ;
+    calib_factors_w(c_plot, 1) = bw ; % Y-intercept
+    calib_factors_w(c_plot, 2) = mw ; % Slope
+    legend_arg2 = {legend_arg2} ;
+    legend_arg2{2} = sprintf('Wtd: y = %0.3g + %0.3gx', bu, mu) ;
+    disp(legend_arg2{2}) ;
+end
+
+% Get line(s)
+regLine_u_y = (regLine_u_x - bu) / mu ;
+regLine_w_y = [] ;
+if do_wtd_reg
+    regLine_w_y = (regLine_w_x - bw) / mw ;
+end
+
+
 end
 
 
 
-end
+
+
+
+
