@@ -5,6 +5,8 @@
 
 %% Setup
 
+need_countries = true ;
+
 script_setup_cropCalibration
 
 
@@ -54,6 +56,7 @@ end
     is_tropical, is_xtratrop, ...
     calib_ver_used, twofiles] ...
     = get_fao_data(year1,yearN,calib_ver,...
+    need_countries, ...
     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
     faoCommBalElement, is_ggcmi) ;
 

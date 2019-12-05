@@ -43,6 +43,8 @@ dir_outfigs = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/calib
 % Add code files to path (just for this session)
 addpath(genpath(dir_code))
 
+regression_type = 'slope-only' ;
+
 
 %% Do it
 

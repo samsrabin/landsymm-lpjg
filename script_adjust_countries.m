@@ -17,7 +17,7 @@ else
     error(['calib_ver ' num2str(calib_ver) ' not recognized in "Mask countries map to LPJ-GUESS gridlist"'])
 end
 
-%% Where does LPJ-GUESS have gridcells but countries_YX does not?
+% Where does LPJ-GUESS have gridcells but countries_YX does not?
 inGlNotCtries_YX = gl.mask_YX & isnan(countries_YX) ;
 if false % Put calib_ver==XX here if you want to try and fix this
     % First, try to fill with values from "all touched" gdal_rasterize. We do

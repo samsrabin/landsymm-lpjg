@@ -64,41 +64,11 @@ for c = 1:Ncrops_in
     end
     
     % Put into _Ccy table
-    for C = 1:Ncountries
-        thisCountry = listCountries_map_present{C} ;
-        
-        % Crop area
-        thisCountry_croparea_indices = find(strcmp(croparea_thisCrop.AreaName,thisCountry)) ;
-        if any(thisCountry_croparea_indices)
-            % Get this country's area of this crop
-            tmp_thisCountry = croparea_thisCrop(thisCountry_croparea_indices,:) ;
-            % Get this country's existing area in this category
-            tmp = squeeze(croparea_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year))) ;
-            tmp(isnan(tmp)) = 0 ;   % If this country-PLUMcrop-year combo has no data yet, convert from NaN to zero for addition
-            % Add this crop to existing area
-            tmp = tmp + tmp_thisCountry.Value ;
-            croparea_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year)) = tmp ;
-            clear tmp*
-            found_in_fao(C) = true ;
-        end
-        
-        % Total production
-        thisCountry_total_indices = find(strcmp(total_thisCrop.AreaName,thisCountry)) ;
-        if any(thisCountry_total_indices)
-             % Get this country's production of this crop
-            tmp_thisCountry = total_thisCrop(thisCountry_total_indices,:) ;
-            % Get this country's existing production in this category
-            tmp = squeeze(total_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year))) ;
-            tmp(isnan(tmp)) = 0 ;   % If this country-PLUMcrop-year combo has no data yet, convert from NaN to zero for addition
-            % Add this crop to existing production
-            tmp = tmp + tmp_thisCountry.Value ;
-            total_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year)) = tmp ;
-            clear tmp*
-            found_in_fao(C) = true ;
-        end
-                                
-        clear thisCountry*
-    end ; clear C   % Country loop
+    [croparea_fao_Ccy, total_fao_Ccy, found_in_fao] = fill_Ccy( ...
+        Ncountries, listCountries_map_present, i, ...
+        croparea_fao_Ccy, total_fao_Ccy, croparea_thisCrop, total_thisCrop, ...
+        found_in_fao, listYears_fao) ;
+    
     clear i *thisCrop*
 end ; clear c   % Crop loop
 
@@ -138,3 +108,72 @@ if any(isinf(yield2_fao_Ccy(:)))
         warning('At least one member of yield2_fao_Ccy is Inf! IGNORING')
     end
 end
+
+
+end
+
+
+
+function [croparea_fao_Ccy, total_fao_Ccy, found_in_fao] = fill_Ccy( ...
+    Ncountries, listCountries_map_present, i, ...
+    croparea_fao_Ccy, total_fao_Ccy, croparea_thisCrop, total_thisCrop, ...
+    found_in_fao, listYears_fao)
+
+for C = 1:Ncountries
+    thisCountry = listCountries_map_present{C} ;
+    
+    % Crop area
+    thisCountry_croparea_indices = find(strcmp(croparea_thisCrop.AreaName,thisCountry)) ;
+    if any(thisCountry_croparea_indices)
+        % Get this country's area of this crop
+        tmp_thisCountry = croparea_thisCrop(thisCountry_croparea_indices,:) ;
+        % Get this country's existing area in this category
+        tmp = squeeze(croparea_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year))) ;
+        tmp(isnan(tmp)) = 0 ;   % If this country-PLUMcrop-year combo has no data yet, convert from NaN to zero for addition
+        % Add this crop to existing area
+        tmp = tmp + tmp_thisCountry.Value ;
+        croparea_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year)) = tmp ;
+        clear tmp*
+        found_in_fao(C) = true ;
+    end
+    
+    % Total production
+    thisCountry_total_indices = find(strcmp(total_thisCrop.AreaName,thisCountry)) ;
+    if any(thisCountry_total_indices)
+        % Get this country's production of this crop
+        tmp_thisCountry = total_thisCrop(thisCountry_total_indices,:) ;
+        % Get this country's existing production in this category
+        tmp = squeeze(total_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year))) ;
+        tmp(isnan(tmp)) = 0 ;   % If this country-PLUMcrop-year combo has no data yet, convert from NaN to zero for addition
+        % Add this crop to existing production
+        tmp = tmp + tmp_thisCountry.Value ;
+        total_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year)) = tmp ;
+        clear tmp*
+        found_in_fao(C) = true ;
+    end
+    
+    clear thisCountry*
+end ; clear C   % Country loop
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
