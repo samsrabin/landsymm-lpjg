@@ -1,34 +1,66 @@
 function maps_YXr = map_run_diffs_fromEndHist_oneCol( ...
-    maps_d9, title_text, sumvars, ...
+    data_d9, title_text, sumvars, ...
     fontSize, spacing, textX, textY_1, textY_2, ...
     thisPos, colorBarLoc, runList, do_caps, land_area_YX, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, pct_clim, prctile_clim)
+    conv_fact_map, units_map, conv_fact_total, units_total, ...
+    pct_clim, prctile_clim, varargin)
+
+already_maps = true ;
+if ~isempty(varargin)
+    if length(varargin)==2
+        map_size = varargin{1} ;
+        list2map = varargin{2} ;
+        already_maps = false ;
+    else
+        error('map_run_diffs_fromEndHist_oneCol() accepts 0 or 2 optional arguments: map_size and list2map')
+    end
+end
 
 % Get missing info
 Nruns = length(runList) ;
 if isempty(land_area_YX)
-    land_area_YX = ones(size(maps_d9.maps_YXvyr,1),size(maps_d9.maps_YXvyr,2)) ;
+    if already_maps
+        land_area_YX = ones(size(data_d9.maps_YXvyr,1),size(data_d9.maps_YXvyr,2)) ;
+    else
+        land_area_YX = ones(map_size) ;
+    end
 end
 
 figure('Color','w','Position',thisPos) ;
 
-[~,IA] = intersect(maps_d9.varNames,sumvars) ;
+[~,IA] = intersect(data_d9.varNames,sumvars) ;
 if isempty(IA)
-    error('sumvars not found in maps_d9.varNames!')
+    error('sumvars not found in data_d9.varNames!')
 end
-endh_YXy = squeeze(sum(maps_d9.maps_YXvyB(:,:,IA,:),3)) ;
-endh_YXmean = mean(endh_YXy,3) ;
+if already_maps
+    endh_YXy = squeeze(sum(data_d9.maps_YXvyB(:,:,IA,:),3)) ;
+    endh_YXmean = mean(endh_YXy,3) ;
+else
+    endh_xy = squeeze(sum(data_d9.garr_xvyB(:,IA,:),2)) ;
+    endh_xmean = mean(endh_xy,2) ;
+    endh_YXmean = lpjgu_vector2map(endh_xmean, map_size, list2map) ;
+end
 
 clim_max = 0 ;
 hs = [] ;
 hcbs = [] ;
-maps_YXr = nan([size(land_area_YX) Nruns]) ;
+if already_maps
+    maps_YXr = nan([size(land_area_YX) Nruns]) ;
+else
+    maps_YXr = nan([map_size Nruns]) ;
+end
 for r = 1:Nruns
     hs(r) = subplot_tight(Nruns,1,r,spacing) ;
     
     % Get data
-    endf_YXy = squeeze(sum(maps_d9.maps_YXvyr(:,:,IA,:,r),3)) ;
-    endf_YXmean = mean(endf_YXy,3) ;
+    if already_maps
+        endf_YXy = squeeze(sum(data_d9.maps_YXvyr(:,:,IA,:,r),3)) ;
+        endf_YXmean = mean(endf_YXy,3) ;
+    else
+        endf_xy = squeeze(sum(data_d9.garr_xvyr(:,IA,:,r),2)) ;
+        endf_xmean = mean(endf_xy,2) ;
+        endf_YXmean = lpjgu_vector2map(endf_xmean, map_size, list2map) ;
+    end
     map = (endf_YXmean - endh_YXmean) .* conv_fact_map ;
     maps_YXr(:,:,r) = map ;
     
@@ -60,11 +92,18 @@ for r = 1:Nruns
     % Add data
     if ~isempty(conv_fact_total)
         mean_endh = conv_fact_total * nansum(nansum(endh_YXmean .* land_area_YX)) ;
-        sd_endh = std(nansum(nansum(endh_YXy .* repmat(land_area_YX,[1 1 10]),1),2),...
-            0,3) * conv_fact_total ;
         mean_endf = conv_fact_total * nansum(nansum(endf_YXmean .* land_area_YX)) ;
-        sd_endf = std(nansum(nansum(endf_YXy .* repmat(land_area_YX,[1 1 10]),1),2),...
-            0,3) * conv_fact_total ;
+        if already_maps
+            sd_endh = std(nansum(nansum(endh_YXy .* repmat(land_area_YX,[1 1 10]),1),2),...
+                0,3) * conv_fact_total ;
+            sd_endf = std(nansum(nansum(endf_YXy .* repmat(land_area_YX,[1 1 10]),1),2),...
+                0,3) * conv_fact_total ;
+        else
+            sd_endh = std(nansum(endh_xy .* repmat(land_area_YX(list2map),[1 10]),1),...
+                0,2) * conv_fact_total ;
+            sd_endf = std(nansum(endf_xy .* repmat(land_area_YX(list2map),[1 10]),1),...
+                0,2) * conv_fact_total ;
+        end
         data_fontSize = fontSize ;
         if contains(title_text, 'albedo')
             text(textX,textY_1, ...

@@ -18,9 +18,8 @@ co2file = strrep(co2file,'/home/fh1-project-lpjgpi/lr8247','/Users/Shared/lpj-gu
 if ~exist(co2file, 'file')
     error('co2file (%s) not found!', co2file)
 end
-thisTable_bl = readtable(co2file) ;
-thisTable_bl(:,3) = [] ;
-thisTable_bl.Properties.VariableNames = {'Year','co2'} ;
+thisTable_bl = read_and_process_table(co2file);
+
 % Add extra years to beginning, if needed
 while min(thisTable_bl.Year) > min(yearList_baseline)
     thisTable_bl = cat(1, {max(thisTable_bl.Year)-1 thisTable_bl.co2(1)}, thisTable_bl) ;
@@ -47,9 +46,7 @@ for r = 1:Nruns
     if ~exist(co2file, 'file')
         error('co2file (%s) not found!', co2file)
     end
-    thisTable = readtable(co2file) ;
-    thisTable(:,3) = [] ;
-    thisTable.Properties.VariableNames = {'Year','co2'} ;
+    thisTable = read_and_process_table(co2file);
     
     % Get future CO2
     % Add extra years to beginning, if needed
@@ -66,3 +63,25 @@ for r = 1:Nruns
 
     clear thisTable co2file thisDir tmp
 end; clear r
+
+
+function table_out = read_and_process_table(co2file)
+
+table_in = readtable(co2file, 'Delimiter', ' ') ;
+array_in = table2array(table_in) ;
+array_out = array_in ;
+
+if any(any(isnan(array_in)))
+    nrows = size(array_in, 1) ;
+    ncols = size(array_in, 2) ;
+    
+    bad_row = sum(isnan(array_in), 2) == ncols ;
+    bad_col = sum(isnan(array_in), 1) == nrows ;
+    
+    array_out(bad_row,:) = [] ;
+    array_out(:,bad_col) = [] ;
+end
+
+table_out = array2table(array_out, 'VariableNames', {'Year','co2'}) ;
+
+end

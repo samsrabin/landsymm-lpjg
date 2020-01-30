@@ -3,7 +3,8 @@
 cd '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work'
 
 % Define raster reference object and missing value
-R = georasterref('RasterSize', [360 720], ...
+map_size = [360 720] ;
+R = georasterref('RasterSize', map_size, ...
     'RasterInterpretation', 'cells', ...
     'ColumnsStartFrom', 'north', ...
     'LatitudeLimits', [-90 90], ...
@@ -769,25 +770,46 @@ if include_fao
     end
 end
 
-firstdec_tmp = load([baselineDir 'first_decade.mat']) ;
+firstdec_tmp = load([baselineDir 'first_decade.garr.mat']) ;
 bl_map_fields = fieldnames(firstdec_tmp) ;
 for f = 1:length(bl_map_fields)
     thisField = bl_map_fields{f} ;
-    eval(['maps_' thisField ' = renameStructField(firstdec_tmp.' thisField ',''maps_YXvy'',''maps_YXvyB'') ;']) ;
+    eval(['list2map_test = firstdec_tmp.' thisField '.list2map ;']) ;
+    if ~exist('list2map', 'var')
+        list2map = list2map_test ;
+    elseif ~isequal(list2map, list2map_test)
+        error('Mismatch in list2map!')
+    end; clear list2map_test
+    eval(['garr_' thisField ' = renameStructField(firstdec_tmp.' thisField ',''garr_xvy'',''garr_xvyB'') ;']) ;
+    firstdec_tmp = rmfield(firstdec_tmp, thisField) ;
 end
 clear firstdec_tmp
-lastdec_tmp = load([baselineDir 'last_decade.mat']) ;
+lastdec_tmp = load([baselineDir 'last_decade.garr.mat']) ;
 bl_map_fields = fieldnames(lastdec_tmp) ;
 for f = 1:length(bl_map_fields)
     thisField = bl_map_fields{f} ;
-    eval(['maps_' thisField ' = renameStructField(lastdec_tmp.' thisField ',''maps_YXvy'',''maps_YXvyB'') ;']) ;
+    eval(['list2map_test = lastdec_tmp.' thisField '.list2map ;']) ;
+    if ~exist('list2map', 'var')
+        list2map = list2map_test ;
+    elseif ~isequal(list2map, list2map_test)
+        error('Mismatch in list2map!')
+    end; clear list2map_test
+    eval(['garr_' thisField ' = renameStructField(lastdec_tmp.' thisField ',''garr_xvy'',''garr_xvyB'') ;']) ;
+    lastdec_tmp = rmfield(lastdec_tmp, thisField) ;
 end
 clear lastdec_tmp
-last30yrs_tmp = load([baselineDir 'last_30yrs.mat']) ;
+last30yrs_tmp = load([baselineDir 'last_30yrs.garr.mat']) ;
 bl_map_fields = fieldnames(last30yrs_tmp) ;
 for f = 1:length(bl_map_fields)
     thisField = bl_map_fields{f} ;
-    eval(['maps_' thisField ' = renameStructField(last30yrs_tmp.' thisField ',''maps_YXvs'',''maps_YXvsB'') ;']) ;
+    eval(['list2map_test = last30yrs_tmp.' thisField '.list2map ;']) ;
+    if ~exist('list2map', 'var')
+        list2map = list2map_test ;
+    elseif ~isequal(list2map, list2map_test)
+        error('Mismatch in list2map!')
+    end; clear list2map_test
+    eval(['garr_' thisField ' = renameStructField(last30yrs_tmp.' thisField ',''garr_xvs'',''garr_xvsB'') ;']) ;
+    last30yrs_tmp = rmfield(last30yrs_tmp, thisField) ;
 end
 clear last30yrs_tmp
 
@@ -821,9 +843,9 @@ for r = 1:Nruns
     yr_ts_fields(endsWith(yr_ts_fields,ignored_crops)) = [] ;
     is_expYields = ~cellfun(@isempty,regexp(yr_ts_fields,'^cropprodExp_')) ;
     have_expYields = any(is_expYields) ;
-    firstdec_tmp = load([runDirs{r} 'first_decade.mat']) ;
-    lastdec_tmp = load([runDirs{r} 'last_decade.mat']) ;
-    last30yrs_tmp = load([runDirs{r} 'last_30yrs.mat']) ;
+    firstdec_tmp = load([runDirs{r} 'first_decade.garr.mat']) ;
+    lastdec_tmp = load([runDirs{r} 'last_decade.garr.mat']) ;
+    last30yrs_tmp = load([runDirs{r} 'last_30yrs.garr.mat']) ;
     if r == 1
         if length(ts_tmp.LUarea_ts_bare) > Nyears_fu
             Nyears_2trim = length(ts_tmp.LUarea_ts_bare) - Nyears_fu ;
@@ -849,16 +871,16 @@ for r = 1:Nruns
             end
         end
         
-        % Get maps that were read in baseline
-        tmp = whos('maps_*') ;
-        vars_maps_bl = {tmp.name}' ;
+        % Get garrs that were read in baseline
+        tmp = whos('garr_*') ;
+        vars_garrs_bl = {tmp.name}' ;
         clear tmp
-        for v = 1:length(vars_maps_bl)
-            thisVar_in = vars_maps_bl{v} ;
-            if contains(thisVar_in,'maps_LU0')
+        for v = 1:length(vars_garrs_bl)
+            thisVar_in = vars_garrs_bl{v} ;
+            if contains(thisVar_in,'garr_LU0')
                 continue
             end
-            thisVar_out = strrep(thisVar_in,'maps_','') ;
+            thisVar_out = strrep(thisVar_in,'garr_','') ;
             
             % If not present in future run, remove from analysis
             if ~(isfield(firstdec_tmp,thisVar_out) || isfield(lastdec_tmp,thisVar_out) || isfield(last30yrs_tmp,thisVar_out))
@@ -868,21 +890,21 @@ for r = 1:Nruns
             end
             
             if contains(thisVar_in,'_d1')
-                eval([thisVar_in '.maps_YXvyr = nan([size(firstdec_tmp.' thisVar_out '.maps_YXvy) Nruns],''single'') ;']) ;
+                eval([thisVar_in '.garr_xvyr = nan([size(firstdec_tmp.' thisVar_out '.garr_xvy) Nruns],''single'') ;']) ;
             elseif contains(thisVar_in,'_d9')
-                eval([thisVar_in '.maps_YXvyr = nan([size(lastdec_tmp.' thisVar_out '.maps_YXvy) Nruns],''single'') ;']) ;
+                eval([thisVar_in '.garr_xvyr = nan([size(lastdec_tmp.' thisVar_out '.garr_xvy) Nruns],''single'') ;']) ;
             elseif contains(thisVar_in,'_last30')
-                eval([thisVar_in '.maps_YXvsr = nan([size(last30yrs_tmp.' thisVar_out '.maps_YXvs) Nruns],''single'') ;']) ;
+                eval([thisVar_in '.garr_xvsr = nan([size(last30yrs_tmp.' thisVar_out '.garr_xvs) Nruns],''single'') ;']) ;
             else
                 error('How did this happen?')
             end
             clear thisVar*
         end ; clear v
         
-        % Get vars_maps_bl again, now that you've cleared variables not
+        % Get vars_garrs_bl again, now that you've cleared variables not
         % present in future run(s)
-        tmp = whos('maps_*') ;
-        vars_maps_bl = {tmp.name}' ;
+        tmp = whos('garr_*') ;
+        vars_garrs_bl = {tmp.name}' ;
         clear tmp
     end % if r==1
     
@@ -923,20 +945,26 @@ for r = 1:Nruns
     clear ts_tmp
     
     % Maps
-    vars_maps_bl_toRemove = false(size(vars_maps_bl)) ;
-    for v = 1:length(vars_maps_bl)
-        thisVar_in = vars_maps_bl{v} ;
-        if contains(thisVar_in,'maps_LU0')
+    vars_garrs_bl_toRemove = false(size(vars_garrs_bl)) ;
+    for v = 1:length(vars_garrs_bl)
+        thisVar_in = vars_garrs_bl{v} ;
+        if contains(thisVar_in,'garr_LU0')
             continue
         end
-        thisVar_out = strrep(thisVar_in,'maps_','') ;
+        thisVar_out = strrep(thisVar_in,'garr_','') ;
         if contains(thisVar_in,'d1')
             if ~isfield(firstdec_tmp,thisVar_out)
                 warning([thisVar_in ' not found in future run ' num2str(r) '. Removing.']) ;
-                vars_maps_bl_toRemove(v) = true ;
+                vars_garrs_bl_toRemove(v) = true ;
                 eval(['clear ' thisVar_in]) ;
                 continue
             end
+            eval(['list2map_test = firstdec_tmp.' thisVar_out '.list2map ;']) ;
+            if ~exist('list2map', 'var')
+                list2map = list2map_test ;
+            elseif ~isequal(list2map, list2map_test)
+                error('Mismatch in list2map!')
+            end; clear list2map_test
             eval(['isequal_varNames = isequal(' thisVar_in '.varNames, firstdec_tmp.' thisVar_out '.varNames) ; ']) ;
             if ~isequal_varNames
                 eval(['isequal_varNames_afterSort = isequal(sort(' thisVar_in '.varNames), sort(firstdec_tmp.' thisVar_out '.varNames)) ; ']) ;
@@ -945,17 +973,23 @@ for r = 1:Nruns
                 end
                 warning(['~isequal_varNames (' thisVar_in '). Fixing.'])
                 eval(['[~,~,IB] = intersect(' thisVar_in '.varNames,firstdec_tmp.' thisVar_out '.varNames,''stable'') ;']) ;
-                eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = firstdec_tmp.' thisVar_out '.maps_YXvy(:,:,IB,:) ;']) ;
+                eval([thisVar_in '.garr_xvyr(:,:,:,r) = firstdec_tmp.' thisVar_out '.garr_xvy(:,IB,:) ;']) ;
             else
-                eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = firstdec_tmp.' thisVar_out '.maps_YXvy ;']) ;
+                eval([thisVar_in '.garr_xvyr(:,:,:,r) = firstdec_tmp.' thisVar_out '.garr_xvy ;']) ;
             end
         elseif contains(thisVar_in,'d9')
             if ~isfield(lastdec_tmp,thisVar_out)
                 warning([thisVar_in ' not found in future run ' num2str(r) '. Removing.']) ;
-                vars_maps_bl_toRemove(v) = true ;
+                vars_garrs_bl_toRemove(v) = true ;
                 eval(['clear ' thisVar_in]) ;
                 continue
             end
+            eval(['list2map_test = lastdec_tmp.' thisVar_out '.list2map ;']) ;
+            if ~exist('list2map', 'var')
+                list2map = list2map_test ;
+            elseif ~isequal(list2map, list2map_test)
+                error('Mismatch in list2map!')
+            end; clear list2map_test
             eval(['isequal_varNames = isequal(' thisVar_in '.varNames, lastdec_tmp.' thisVar_out '.varNames) ; ']) ;
             if ~isequal_varNames
                 eval(['isequal_varNames_afterSort = isequal(sort(' thisVar_in '.varNames), sort(lastdec_tmp.' thisVar_out '.varNames)) ; ']) ;
@@ -964,17 +998,23 @@ for r = 1:Nruns
                 end
                 warning(['~isequal_varNames (' thisVar_in '). Fixing.'])
                 eval(['[~,~,IB] = intersect(' thisVar_in '.varNames,lastdec_tmp.' thisVar_out '.varNames,''stable'') ;']) ;
-                eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = lastdec_tmp.' thisVar_out '.maps_YXvy(:,:,IB,:) ;']) ;
+                eval([thisVar_in '.garr_xvyr(:,:,:,r) = lastdec_tmp.' thisVar_out '.garr_xvy(:,IB,:) ;']) ;
             else
-                eval([thisVar_in '.maps_YXvyr(:,:,:,:,r) = lastdec_tmp.' thisVar_out '.maps_YXvy ;']) ;
+                eval([thisVar_in '.garr_xvyr(:,:,:,r) = lastdec_tmp.' thisVar_out '.garr_xvy ;']) ;
             end
         elseif contains(thisVar_in,'last30')
             if ~isfield(last30yrs_tmp,thisVar_out)
                 warning([thisVar_in ' not found in future run ' num2str(r) '. Removing.']) ;
-                vars_maps_bl_toRemove(v) = true ;
+                vars_garrs_bl_toRemove(v) = true ;
                 eval(['clear ' thisVar_in]) ;
                 continue
             end
+            eval(['list2map_test = last30yrs_tmp.' thisVar_out '.list2map ;']) ;
+            if ~exist('list2map', 'var')
+                list2map = list2map_test ;
+            elseif ~isequal(list2map, list2map_test)
+                error('Mismatch in list2map!')
+            end; clear list2map_test
             eval(['isequal_varNames = isequal(' thisVar_in '.varNames, last30yrs_tmp.' thisVar_out '.varNames) ; ']) ;
             if ~isequal_varNames
                 eval(['isequal_varNames_afterSort = isequal(sort(' thisVar_in '.varNames), sort(last30yrs_tmp.' thisVar_out '.varNames)) ; ']) ;
@@ -983,9 +1023,9 @@ for r = 1:Nruns
                 end
                 warning(['~isequal_varNames (' thisVar_in '). Fixing.'])
                 eval(['[~,~,IB] = intersect(' thisVar_in '.varNames,last30yrs_tmp.' thisVar_out '.varNames,''stable'') ;']) ;
-                eval([thisVar_in '.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_YXvs(:,:,IB,:) ;']) ;
+                eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs(:,IB,:) ;']) ;
             else
-                eval([thisVar_in '.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_YXvs ;']) ;
+                eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs ;']) ;
             end
             eval(['isequal_statList = isequal(' thisVar_in '.statList, last30yrs_tmp.' thisVar_out '.statList) ; ']) ;
             if ~isequal_statList
@@ -995,37 +1035,37 @@ for r = 1:Nruns
                 end
                 warning(['~isequal_statList (' thisVar_in '). Fixing.'])
                 eval(['[~,~,IB] = intersect(' thisVar_in '.statList,last30yrs_tmp.' thisVar_out '.statList,''stable'') ;']) ;
-                eval([thisVar_in '.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_YXvs(:,:,:,IB) ;']) ;
+                eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs(:,:,IB) ;']) ;
             else
-                eval([thisVar_in '.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_YXvs ;']) ;
+                eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs ;']) ;
             end
         else
             error('How did this happen?')
         end
     end
     
-    vars_maps_bl(vars_maps_bl_toRemove) = [] ;
-    clear vars_maps_bl_toRemove
+    vars_garrs_bl(vars_garrs_bl_toRemove) = [] ;
+    clear vars_garrs_bl_toRemove
     
     if isfield(firstdec_tmp,'expyield_d1')
         if r == 1
-            maps_yieldExp_d1 = renameStructField(firstdec_tmp.expyield_d1,'maps_YXvy','maps_YXvyr') ;
+            garr_yieldExp_d1 = renameStructField(firstdec_tmp.expyield_d1,'garr_xvy','garr_xvyr') ;
         else
-            maps_yieldExp_d1.maps_YXvyr(:,:,:,:,r) = firstdec_tmp.expyield_d1.maps_YXvy ;
+            garr_yieldExp_d1.garr_xvyr(:,:,:,r) = firstdec_tmp.expyield_d1.maps_YXvy ;
         end
     end
     if isfield(lastdec_tmp,'expyield_d9')
         if r == 1
-            maps_yieldExp_d9 = renameStructField(lastdec_tmp.expyield_d9,'maps_YXvy','maps_YXvyr') ;
+            garr_yieldExp_d9 = renameStructField(lastdec_tmp.expyield_d9,'garr_xvy','garr_xvyr') ;
         else
-            maps_yieldExp_d9.maps_YXvyr(:,:,:,:,r) = lastdec_tmp.expyield_d9.maps_YXvy ;
+            garr_yieldExp_d9.garr_xvy(:,:,:,r) = lastdec_tmp.expyield_d9.garr_xvy ;
         end
     end
     if isfield(last30yrs_tmp,'expyield_last30')
         if r == 1
-            maps_yieldExp_last30 = renameStructField(last30yrs_tmp.expyield_last30,'maps_YXvs','maps_YXvsr') ;
+            garr_yieldExp_last30 = renameStructField(last30yrs_tmp.expyield_last30,'garr_xvs','garr_xvsr') ;
         else
-            maps_yieldExp_last30.maps_YXvsr(:,:,:,:,r) = last30yrs_tmp.expyield_last30.maps_YXvs ;
+            garr_yieldExp_last30.garr_xvsr(:,:,:,:,r) = last30yrs_tmp.expyield_last30.garr_xvs ;
         end
     end
 
@@ -1034,9 +1074,11 @@ for r = 1:Nruns
     clear last30yrs_tmp
 
 end ; clear r
-
+%%
 disp('Processing...')
-nanmask = isnan(maps_LU_d1.maps_YXvyB(:,:,1,1)) ;
+nanmask = lpjgu_vector2map(zeros(size(list2map)), map_size, list2map) ;
+nanmask(isnan(nanmask)) = 1 ;
+nanmask = logical(nanmask) ;
 
 % Import land area (km2)
 landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
@@ -1046,101 +1088,105 @@ land_area_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
 %%%%% Convert to half-degree
 tmp = gcel_area_YXqd(:,1:2:1440) + gcel_area_YXqd(:,2:2:1440) ;
 gcel_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
+gcel_area_x = gcel_area_YX(list2map) ;
 gcel_area_YX(nanmask) = NaN ;
 tmp = land_area_YXqd(:,1:2:1440) + land_area_YXqd(:,2:2:1440) ;
 land_area_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
+land_area_x = land_area_YX(list2map) ;
 land_area_unmasked_YX = land_area_YX ;
 land_area_unmasked_weights_YX = land_area_unmasked_YX ./ nansum(nansum(land_area_unmasked_YX)) ;
+land_area_unmasked_weights_x = land_area_unmasked_weights_YX(list2map) ;
 land_area_YX(nanmask) = NaN ;
 %%% Convert to m2
 land_area_YX = land_area_YX*1e6 ;
+land_area_x = land_area_x*1e6 ;
 gcel_area_YX = gcel_area_YX*1e6 ;
+gcel_area_x = gcel_area_x*1e6 ;
 clear tmp land_frac_YXqd land_area_YXqd
 
-% area_YXBH: "Baseline" as last year of Historical run
-% area_YXBFr: "Baseline" as first year of Future runs
-% diff_YXrH: Difference from End-Historical to End-Future
-% diff_YXrF: Difference from Begin-Future to End-Future
+% area_xBH: "Baseline" as last year of Historical run
+% area_xBFr: "Baseline" as first year of Future runs
+% diff_xrH: Difference from End-Historical to End-Future
+% diff_xrF: Difference from Begin-Future to End-Future
 tmp_list_4 = {'ntrl','bare','crop','past'} ;
 tmp_list_full = {'NATURAL','BARREN','CROPLAND','PASTURE'} ;
 for i = 1:length(tmp_list_4)
     this_4 = tmp_list_4{i} ;
     this_full = tmp_list_full{i} ;
-    eval([this_4 '_area_YXBH = gcel_area_YX .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,this_full),end) ;']) ;
-    eval([this_4 '_area_YXBFr = gcel_area_YX .* squeeze(maps_LU_d1.maps_YXvyr(:,:,strcmp(maps_LU_d1.varNames,this_full),1,:)) ;']) ;
-    eval([this_4 '_area_YXr = repmat(gcel_area_YX,[1 1 Nruns]) .* squeeze(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,this_full),end,:)) ;']) ;
-    eval([this_4 '_diff_YXrH = ' this_4 '_area_YXr - repmat(' this_4 '_area_YXBH,[1 1 Nruns]) ;']) ;
-    eval([this_4 '_diff_YXrF = ' this_4 '_area_YXr - ' this_4 '_area_YXBFr ;']) ;
+    eval([this_4 '_area_xBH = gcel_area_x .* garr_LU_d9.garr_xvyB(:,strcmp(garr_LU_d9.varNames,this_full),end) ;']) ;
+    eval([this_4 '_area_xBFr = gcel_area_x .* squeeze(garr_LU_d1.garr_xvyr(:,strcmp(garr_LU_d1.varNames,this_full),1,:)) ;']) ;
+    eval([this_4 '_area_xr = repmat(gcel_area_x,[1 Nruns]) .* squeeze(garr_LU_d9.garr_xvyr(:,strcmp(garr_LU_d9.varNames,this_full),end,:)) ;']) ;
+    eval([this_4 '_diff_xrH = ' this_4 '_area_xr - repmat(' this_4 '_area_xBH,[1 Nruns]) ;']) ;
+    eval([this_4 '_diff_xrF = ' this_4 '_area_xr - ' this_4 '_area_xBFr ;']) ;
 end
 
-if exist('maps_LU0_d9','var')
-    crop0_area_YXBH = gcel_area_YX .* maps_LU0_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'CROPLAND'),end) ;
-    crop0_diff_YXrH = crop_area_YXr - repmat(crop0_area_YXBH,[1 1 Nruns]) ;
-end
-if exist('maps_LU0_d9','var')
-    past0_area_YXBH = gcel_area_YX .* maps_LU0_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'PASTURE'),end) ;
-    past0_diff_YXrH = past_area_YXr - repmat(past0_area_YXBH,[1 1 Nruns]) ;
+if exist('garr_LU0_d9','var')
+    warning('Not tested after maps->garr conversion. Problems here might be a result of that.')
+    crop0_area_xBH = gcel_area_x .* garr_LU0_d9.garr_xvyB(:,strcmp(garr_LU_d9.varNames,'CROPLAND'),end) ;
+    crop0_diff_xrH = crop_area_xr - repmat(crop0_area_xBH,[1 Nruns]) ;
+    past0_area_xBH = gcel_area_x .* garr_LU0_d9.garr_xvyB(:,strcmp(garr_LU_d9.varNames,'PASTURE'),end) ;
+    past0_diff_xrH = past_area_xr - repmat(past0_area_xBH,[1 Nruns]) ;
 end
 
-agri_area_YXBH = crop_area_YXBH + past_area_YXBH ;
-agri_area_YXBFr = crop_area_YXBFr + past_area_YXBFr ;
-agri_area_YXr = crop_area_YXr + past_area_YXr ;
-agri_diff_YXrH = crop_diff_YXrH + past_diff_YXrH ;
-agri_diff_YXrF = crop_diff_YXrF + past_diff_YXrF ;
+agri_area_xBH = crop_area_xBH + past_area_xBH ;
+agri_area_xBFr = crop_area_xBFr + past_area_xBFr ;
+agri_area_xr = crop_area_xr + past_area_xr ;
+agri_diff_xrH = crop_diff_xrH + past_diff_xrH ;
+agri_diff_xrF = crop_diff_xrF + past_diff_xrF ;
 
 % Remove ignored crops
 if ~isempty(ignored_crops)
-    maps_cropfracs_d1.maps_YXvyB(:,:,contains(maps_cropfracs_d1.varNames,ignored_crops),:) = [] ;
-    maps_cropfracs_d1.maps_YXvyr(:,:,contains(maps_cropfracs_d1.varNames,ignored_crops),:,:) = [] ;
-    maps_cropfracs_d1.varNames(contains(maps_cropfracs_d1.varNames,ignored_crops)) = [] ;
-    maps_cropfracs_d9.maps_YXvyB(:,:,contains(maps_cropfracs_d9.varNames,ignored_crops),:) = [] ;
-    maps_cropfracs_d9.maps_YXvyr(:,:,contains(maps_cropfracs_d9.varNames,ignored_crops),:,:) = [] ;
-    maps_cropfracs_d9.varNames(contains(maps_cropfracs_d9.varNames,ignored_crops)) = [] ;
-    maps_yield_d1.maps_YXvyB(:,:,contains(maps_yield_d1.varNames,ignored_crops),:) = [] ;
-    maps_yield_d1.maps_YXvyr(:,:,contains(maps_yield_d1.varNames,ignored_crops),:,:) = [] ;
-    maps_yield_d1.varNames(contains(maps_yield_d1.varNames,ignored_crops)) = [] ;
-    maps_yield_d9.maps_YXvyB(:,:,contains(maps_yield_d9.varNames,ignored_crops),:) = [] ;
-    maps_yield_d9.maps_YXvyr(:,:,contains(maps_yield_d9.varNames,ignored_crops),:,:) = [] ;
-    maps_yield_d9.varNames(contains(maps_yield_d9.varNames,ignored_crops)) = [] ;
-    if exist('maps_yieldExp_d1','var')
-        % (Baseline has no expected yield) maps_yieldExp_d1.maps_YXvyB(:,:,contains(maps_yieldExp_d1.varNames,ignored_crops),:) = [] ;
-        maps_yieldExp_d1.maps_YXvyr(:,:,contains(maps_yieldExp_d1.varNames,ignored_crops),:,:) = [] ;
-        maps_yieldExp_d1.varNames(contains(maps_yieldExp_d1.varNames,ignored_crops)) = [] ;
+    garr_cropfracs_d1.garr_xvyB(:,contains(garr_cropfracs_d1.varNames,ignored_crops),:) = [] ;
+    garr_cropfracs_d1.garr_xvyr(:,contains(garr_cropfracs_d1.varNames,ignored_crops),:,:) = [] ;
+    garr_cropfracs_d1.varNames(contains(garr_cropfracs_d1.varNames,ignored_crops)) = [] ;
+    garr_cropfracs_d9.garr_xvyB(:,contains(garr_cropfracs_d9.varNames,ignored_crops),:) = [] ;
+    garr_cropfracs_d9.garr_xvyr(:,contains(garr_cropfracs_d9.varNames,ignored_crops),:,:) = [] ;
+    garr_cropfracs_d9.varNames(contains(garr_cropfracs_d9.varNames,ignored_crops)) = [] ;
+    garr_yield_d1.garr_xvyB(:,contains(garr_yield_d1.varNames,ignored_crops),:) = [] ;
+    garr_yield_d1.garr_xvyr(:,contains(garr_yield_d1.varNames,ignored_crops),:,:) = [] ;
+    garr_yield_d1.varNames(contains(garr_yield_d1.varNames,ignored_crops)) = [] ;
+    garr_yield_d9.garr_xvyB(:,contains(garr_yield_d9.varNames,ignored_crops),:) = [] ;
+    garr_yield_d9.garr_xvyr(:,contains(garr_yield_d9.varNames,ignored_crops),:,:) = [] ;
+    garr_yield_d9.varNames(contains(garr_yield_d9.varNames,ignored_crops)) = [] ;
+    if exist('garr_yieldExp_d1','var')
+        % (Baseline has no expected yield) garr_yieldExp_d1.garr_xvyB(:,contains(garr_yieldExp_d1.varNames,ignored_crops),:) = [] ;
+        garr_yieldExp_d1.garr_xvyr(:,contains(garr_yieldExp_d1.varNames,ignored_crops),:,:) = [] ;
+        garr_yieldExp_d1.varNames(contains(garr_yieldExp_d1.varNames,ignored_crops)) = [] ;
     end
-    if exist('maps_yieldExp_d9','var')
-        % (Baseline has no expected yield) maps_yieldExp_d9.maps_YXvyB(:,:,contains(maps_yieldExp_d9.varNames,ignored_crops),:) = [] ;
-        maps_yieldExp_d9.maps_YXvyr(:,:,contains(maps_yieldExp_d9.varNames,ignored_crops),:,:) = [] ;
-        maps_yieldExp_d9.varNames(contains(maps_yieldExp_d9.varNames,ignored_crops)) = [] ;
+    if exist('garr_yieldExp_d9','var')
+        % (Baseline has no expected yield) garr_yieldExp_d9.garr_xvyB(:,contains(garr_yieldExp_d9.varNames,ignored_crops),:) = [] ;
+        garr_yieldExp_d9.garr_xvyr(:,contains(garr_yieldExp_d9.varNames,ignored_crops),:,:) = [] ;
+        garr_yieldExp_d9.varNames(contains(garr_yieldExp_d9.varNames,ignored_crops)) = [] ;
     end
-    if exist('maps_Nfert_d1','var')
-        maps_Nfert_d1.maps_YXvyB(:,:,contains(maps_Nfert_d1.varNames,ignored_crops),:) = [] ;
-        maps_Nfert_d1.maps_YXvyr(:,:,contains(maps_Nfert_d1.varNames,ignored_crops),:,:) = [] ;
-        maps_Nfert_d1.varNames(contains(maps_Nfert_d1.varNames,ignored_crops)) = [] ;
+    if exist('garr_Nfert_d1','var')
+        garr_Nfert_d1.garr_xvyB(:,contains(garr_Nfert_d1.varNames,ignored_crops),:) = [] ;
+        garr_Nfert_d1.garr_xvyr(:,contains(garr_Nfert_d1.varNames,ignored_crops),:,:) = [] ;
+        garr_Nfert_d1.varNames(contains(garr_Nfert_d1.varNames,ignored_crops)) = [] ;
     end
-    if exist('maps_Nfert_d9','var')
-        maps_Nfert_d9.maps_YXvyB(:,:,contains(maps_Nfert_d9.varNames,ignored_crops),:) = [] ;
-        maps_Nfert_d9.maps_YXvyr(:,:,contains(maps_Nfert_d9.varNames,ignored_crops),:,:) = [] ;
-        maps_Nfert_d9.varNames(contains(maps_Nfert_d9.varNames,ignored_crops)) = [] ;
+    if exist('garr_Nfert_d9','var')
+        garr_Nfert_d9.garr_xvyB(:,contains(garr_Nfert_d9.varNames,ignored_crops),:) = [] ;
+        garr_Nfert_d9.garr_xvyr(:,contains(garr_Nfert_d9.varNames,ignored_crops),:,:) = [] ;
+        garr_Nfert_d9.varNames(contains(garr_Nfert_d9.varNames,ignored_crops)) = [] ;
     end
 end
 
-if ~isequal(maps_cropfracs_d1.varNames,maps_cropfracs_d9.varNames)
-    error('~isequal(maps_cropfracs_d1.varNames,maps_cropfracs_d9.varNames)')
+if ~isequal(garr_cropfracs_d1.varNames,garr_cropfracs_d9.varNames)
+    error('~isequal(garr_cropfracs_d1.varNames,garr_cropfracs_d9.varNames)')
 else
-    CFTnames_maps = maps_cropfracs_d1.varNames ;
+    CFTnames_garr = garr_cropfracs_d1.varNames ;
 end
-maps_cropareas_d1 = maps_cropfracs_d1 ;
-maps_cropareas_d1.maps_YXvyB = maps_cropfracs_d1.maps_YXvyB .* repmat(gcel_area_YX,[1 1 Ncrops size(maps_cropfracs_d1.maps_YXvyB,4)]) .* repmat(maps_LU_d1.maps_YXvyB(:,:,strcmp(maps_LU_d1.varNames,'CROPLAND'),:),[1 1 Ncrops 1]) ;
-maps_cropareas_d1.maps_YXvyr = maps_cropfracs_d1.maps_YXvyr .* repmat(gcel_area_YX,[1 1 Ncrops size(maps_cropfracs_d1.maps_YXvyB,4) Nruns]) .* repmat(maps_LU_d1.maps_YXvyr(:,:,strcmp(maps_LU_d1.varNames,'CROPLAND'),:,:),[1 1 Ncrops 1 1]) ;
-maps_cropareas_d9 = maps_cropfracs_d9 ;
-maps_cropareas_d9.maps_YXvyB = maps_cropfracs_d9.maps_YXvyB .* repmat(gcel_area_YX,[1 1 Ncrops size(maps_cropfracs_d9.maps_YXvyB,4)]) .* repmat(maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'CROPLAND'),:),[1 1 Ncrops 1]) ;
-maps_cropareas_d9.maps_YXvyr = maps_cropfracs_d9.maps_YXvyr .* repmat(gcel_area_YX,[1 1 Ncrops size(maps_cropfracs_d9.maps_YXvyB,4) Nruns]) .* repmat(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'CROPLAND'),:,:),[1 1 Ncrops 1 1]) ;
+garr_cropareas_d1 = garr_cropfracs_d1 ;
+garr_cropareas_d1.garr_xvyB = garr_cropfracs_d1.garr_xvyB .* repmat(gcel_area_x,[1 Ncrops size(garr_cropfracs_d1.garr_xvyB,3)]) .* repmat(garr_LU_d1.garr_xvyB(:,strcmp(garr_LU_d1.varNames,'CROPLAND'),:),[1 Ncrops 1]) ;
+garr_cropareas_d1.garr_xvyr = garr_cropfracs_d1.garr_xvyr .* repmat(gcel_area_x,[1 Ncrops size(garr_cropfracs_d1.garr_xvyB,3) Nruns]) .* repmat(garr_LU_d1.garr_xvyr(:,strcmp(garr_LU_d1.varNames,'CROPLAND'),:,:),[1 Ncrops 1 1]) ;
+garr_cropareas_d9 = garr_cropfracs_d9 ;
+garr_cropareas_d9.garr_xvyB = garr_cropfracs_d9.garr_xvyB .* repmat(gcel_area_x,[1 Ncrops size(garr_cropfracs_d9.garr_xvyB,3)]) .* repmat(garr_LU_d9.garr_xvyB(:,strcmp(garr_LU_d9.varNames,'CROPLAND'),:),[1 Ncrops 1]) ;
+garr_cropareas_d9.garr_xvyr = garr_cropfracs_d9.garr_xvyr .* repmat(gcel_area_x,[1 Ncrops size(garr_cropfracs_d9.garr_xvyB,3) Nruns]) .* repmat(garr_LU_d9.garr_xvyr(:,strcmp(garr_LU_d9.varNames,'CROPLAND'),:,:),[1 Ncrops 1 1]) ;
 
-maps_cropareas_YXvBH =          maps_cropareas_d9.maps_YXvyB(:,:,:,end) ;
-maps_cropareas_YXvBFr = squeeze(maps_cropareas_d1.maps_YXvyr(:,:,:,1,  :)) ;
-maps_cropareas_YXvr   = squeeze(maps_cropareas_d9.maps_YXvyr(:,:,:,end,:)) ;
-maps_cropareasDiffs_YXvrH = maps_cropareas_YXvr - repmat(maps_cropareas_YXvBH,[1 1 1 Nruns]) ;
-maps_cropareasDiffs_YXvrF = maps_cropareas_YXvr - maps_cropareas_YXvBFr ;
+garr_cropareas_xvBH =          garr_cropareas_d9.garr_xvyB(:,:,end) ;
+garr_cropareas_xvBFr = squeeze(garr_cropareas_d1.garr_xvyr(:,:,1,  :)) ;
+garr_cropareas_xvr   = squeeze(garr_cropareas_d9.garr_xvyr(:,:,end,:)) ;
+garr_cropareasDiffs_xvrH = garr_cropareas_xvr - repmat(garr_cropareas_xvBH,[1 1 Nruns]) ;
+garr_cropareasDiffs_xvrF = garr_cropareas_xvr - garr_cropareas_xvBFr ;
 
 disp('Done importing future.')
 
@@ -1152,9 +1198,9 @@ disp('Performing secondary calculations...')
 % Adjust for technological improvement, if doing so
 if do_adjYieldTech
     
-    % Maps
-    maps_yield_d1 = adj_yield_tech(maps_yield_d1, yearList_baseline(end-9:end), yearList_future(1:10)) ;
-    maps_yield_d9 = adj_yield_tech(maps_yield_d9, yearList_baseline(end-9:end), yearList_future(end-9:end)) ;
+    % Garrs
+    garr_yield_d1 = adj_yield_tech(garr_yield_d1, yearList_baseline(end-9:end), yearList_future(1:10)) ;
+    garr_yield_d9 = adj_yield_tech(garr_yield_d9, yearList_baseline(end-9:end), yearList_future(end-9:end)) ;
     
     % Time series
     tmp = whos('ts_croppro*') ;
@@ -1270,36 +1316,35 @@ end ; clear tmp
 % Peak monthly runoff maps
 if exist('maps_mon_runoff_d1','var')
     maps_pk_runoff_d1 = maps_mon_runoff_d1 ;
-    maps_pk_runoff_d1.maps_YXvyB = max(maps_pk_runoff_d1.maps_YXvyB,[],3) ;
-    maps_pk_runoff_d1.maps_YXvyr = max(maps_pk_runoff_d1.maps_YXvyr,[],3) ;
+    maps_pk_runoff_d1.maps_xvyB = max(maps_pk_runoff_d1.maps_xvyB,[],2) ;
+    maps_pk_runoff_d1.maps_xvyr = max(maps_pk_runoff_d1.maps_xvyr,[],2) ;
     maps_pk_runoff_d1.varNames = {'Max'} ;
     maps_pk_runoff_d9 = maps_mon_runoff_d9 ;
-    maps_pk_runoff_d9.maps_YXvyB = max(maps_pk_runoff_d9.maps_YXvyB,[],3) ;
-    maps_pk_runoff_d9.maps_YXvyr = max(maps_pk_runoff_d9.maps_YXvyr,[],3) ;
+    maps_pk_runoff_d9.maps_xvyB = max(maps_pk_runoff_d9.maps_xvyB,[],2) ;
+    maps_pk_runoff_d9.maps_xvyr = max(maps_pk_runoff_d9.maps_xvyr,[],2) ;
     maps_pk_runoff_d9.varNames = {'Max'} ;
     
     % Change in 5th and 95th percentile of peak monthly runoff
     % After Asadieh & Krakauer (2017)
-    maps_pk_runoff_d1.maps_p05_YXB = prctile(maps_pk_runoff_d1.maps_YXvyB,5,4) ;
-    maps_pk_runoff_d1.maps_p95_YXB = prctile(maps_pk_runoff_d1.maps_YXvyB,95,4) ;
-    maps_pk_runoff_d9.maps_p05_YXB = prctile(maps_pk_runoff_d9.maps_YXvyB,5,4) ;
-    maps_pk_runoff_d9.maps_p95_YXB = prctile(maps_pk_runoff_d9.maps_YXvyB,95,4) ;
-    maps_pk_runoff_d1.maps_p05_YXr = squeeze(prctile(maps_pk_runoff_d1.maps_YXvyr(:,:,:,:,:),5,4)) ;
-    maps_pk_runoff_d1.maps_p95_YXr = squeeze(prctile(maps_pk_runoff_d1.maps_YXvyr(:,:,:,:,:),95,4)) ;
-    maps_pk_runoff_d9.maps_p05_YXr = squeeze(prctile(maps_pk_runoff_d9.maps_YXvyr(:,:,:,:,:),5,4)) ;
-    maps_pk_runoff_d9.maps_p95_YXr = squeeze(prctile(maps_pk_runoff_d9.maps_YXvyr(:,:,:,:,:),95,4)) ;
-    below_thresh_YX = mean(maps_awater_d1.maps_YXvyB(:,:,strcmp(maps_awater_d1.varNames,'Runoff'),:),4)/365 < 0.01 ;
-    maps_pk_runoff_d1.maps_p05_YXB(below_thresh_YX) = NaN ;
-    maps_pk_runoff_d1.maps_p95_YXB(below_thresh_YX) = NaN ;
-    maps_pk_runoff_d9.maps_p05_YXB(below_thresh_YX) = NaN ;
-    maps_pk_runoff_d9.maps_p95_YXB(below_thresh_YX) = NaN ;
-    maps_pk_runoff_d1.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
-    maps_pk_runoff_d1.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
-    maps_pk_runoff_d9.maps_p05_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
-    maps_pk_runoff_d9.maps_p95_YXr(repmat(below_thresh_YX, [1 1 Nruns])) = NaN ;
+    maps_pk_runoff_d1.maps_p05_xB = prctile(maps_pk_runoff_d1.maps_xvyB,5,3) ;
+    maps_pk_runoff_d1.maps_p95_xB = prctile(maps_pk_runoff_d1.maps_xvyB,95,3) ;
+    maps_pk_runoff_d9.maps_p05_xB = prctile(maps_pk_runoff_d9.maps_xvyB,5,3) ;
+    maps_pk_runoff_d9.maps_p95_xB = prctile(maps_pk_runoff_d9.maps_xvyB,95,3) ;
+    maps_pk_runoff_d1.maps_p05_xr = squeeze(prctile(maps_pk_runoff_d1.maps_xvyr,5,3)) ;
+    maps_pk_runoff_d1.maps_p95_xr = squeeze(prctile(maps_pk_runoff_d1.maps_xvyr,95,3)) ;
+    maps_pk_runoff_d9.maps_p05_xr = squeeze(prctile(maps_pk_runoff_d9.maps_xvyr,5,3)) ;
+    maps_pk_runoff_d9.maps_p95_xr = squeeze(prctile(maps_pk_runoff_d9.maps_xvyr,95,3)) ;
+    below_thresh_x = mean(maps_awater_d1.maps_xvyB(:,strcmp(maps_awater_d1.varNames,'Runoff'),:),3)/365 < 0.01 ;
+    maps_pk_runoff_d1.maps_p05_xB(below_thresh_x) = NaN ;
+    maps_pk_runoff_d1.maps_p95_xB(below_thresh_x) = NaN ;
+    maps_pk_runoff_d9.maps_p05_xB(below_thresh_x) = NaN ;
+    maps_pk_runoff_d9.maps_p95_xB(below_thresh_x) = NaN ;
+    maps_pk_runoff_d1.maps_p05_xr(repmat(below_thresh_x, [1 Nruns])) = NaN ;
+    maps_pk_runoff_d1.maps_p95_xr(repmat(below_thresh_x, [1 Nruns])) = NaN ;
+    maps_pk_runoff_d9.maps_p05_xr(repmat(below_thresh_x, [1 Nruns])) = NaN ;
+    maps_pk_runoff_d9.maps_p95_xr(repmat(below_thresh_x, [1 Nruns])) = NaN ;
 
 end
-
 
 % Total crop production
 tmp = whos('ts_cropprod_*') ;
@@ -1318,10 +1363,10 @@ for i = 1:length(tmp_name)
 end ; clear i
 
 % Non-bare land area
-bare_area_YXmean = mean(cat(3,bare_area_YXBH,bare_area_YXr),3) ;
-bare_frac_YXmean = bare_area_YXmean ./ gcel_area_YX ;
-vegd_frac_YXmean = 1 - bare_frac_YXmean ;
-vegd_area_YXmean = vegd_frac_YXmean .* gcel_area_YX ;
+bare_area_xmean = mean(cat(2,bare_area_xBH,bare_area_xr),2) ;
+bare_frac_xmean = bare_area_xmean ./ gcel_area_x ;
+vegd_frac_xmean = 1 - bare_frac_xmean ;
+vegd_area_xmean = vegd_frac_xmean .* gcel_area_x ;
 
 disp('Done performing secondary calculations.')
 
@@ -1333,6 +1378,8 @@ hotspot_YX = flipud(imread('/Users/sam/Geodata/BiodiversityHotspotsRevisited_Con
 hotspot_YX(nanmask) = NaN ;
 hotspot_YX = 1==hotspot_YX ;
 hotspot_area_YX = hotspot_YX.*gcel_area_YX ;
+hotspot_x = hotspot_YX(list2map) ;
+hotspot_area_x = hotspot_area_YX(list2map) ;
 hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
 
 disp('Importing Congolian swamp and lowland forests...')
@@ -1349,7 +1396,9 @@ for j = 1:length(cslf_IDs)
     cslf_YX(ecoid_YX==cslf_IDs(j)) = true ;
 end
 clear ecoid_YX
+cslf_x = cslf_YX(list2map) ;
 hotspotCSLF_area_YX = (hotspot_YX | cslf_YX).*gcel_area_YX ;
+hotspotCSLF_area_x = hotspotCSLF_area_YX(list2map) ;
 cslf_shp = '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.CSLF.shp' ;
 
 
@@ -1359,6 +1408,7 @@ disp('Importing FPUs...')
 
 fpu_YX = flipud(dlmread('/Users/Shared/PLUM/food_production_units/FPU.asc',' ',6,0)) ;
 fpu_YX(fpu_YX==-9999) = NaN ;
+fpu_x = fpu_YX(list2map) ;
 
 % Combine some FPUs to create the Amazon and Nile basins
 basins_YX = fpu_YX ;
@@ -1377,6 +1427,7 @@ end ; clear b basin_groups
 
 % Mask
 basins_YX(nanmask) = NaN ;
+basins_x = basins_YX(list2map) ;
 
 % Get basin numbers
 basin_list = unique(basins_YX(~isnan(basins_YX))) ;
@@ -1487,6 +1538,9 @@ end
 pop_yvr = repmat(permute(pop_yr,[1 3 2]), [1 size(ts_commodDemand_yvr,2) 1]) ;
 ts_commodDemandPC_yvr = ts_commodDemand_yvr ./ pop_yvr ;
 clear pop_yvr
+
+
+%% Import LUH1 
 
 
 disp('Done.')

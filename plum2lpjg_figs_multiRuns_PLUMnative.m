@@ -375,30 +375,6 @@ for i = 1:length(tmp_list_4)
     eval([this_4 '_diff_YXrH = ' this_4 '_area_YXr - repmat(' this_4 '_area_YXBH,[1 1 Nruns]) ;']) ;
     eval([this_4 '_diff_YXrF = ' this_4 '_area_YXr - ' this_4 '_area_YXBFr ;']) ;
 end
-if false
-% ntrl_area_YXBH = land_area_YX .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),end) ;
-% ntrl_area_YXBFr = land_area_YX .* squeeze(maps_LU_d1.maps_YXvyr(:,:,strcmp(maps_LU_d1.varNames,'NATURAL'),1,:)) ;
-% ntrl_area_YXr = repmat(land_area_YX,[1 1 Nruns]) .* squeeze(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'NATURAL'),end,:)) ;
-% ntrl_diff_YXrH = ntrl_area_YXr - repmat(ntrl_area_YXBH,[1 1 Nruns]) ;
-% ntrl_diff_YXrF = ntrl_area_YXr - ntrl_area_YXBFr ;
-% 
-% bare_area_YXBH = land_area_YX .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'BARREN'),end) ;
-% bare_area_YXBFr = land_area_YX .* squeeze(maps_LU_d1.maps_YXvyr(:,:,strcmp(maps_LU_d1.varNames,'BARREN'),1,:)) ;
-% bare_area_YXr = repmat(land_area_YX,[1 1 Nruns]) .* squeeze(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'BARREN'),end,:)) ;
-% bare_diff_YXrH = bare_area_YXr - repmat(bare_area_YXBH,[1 1 Nruns]) ;
-% bare_diff_YXrF = bare_area_YXr - bare_area_YXBFr ;
-% 
-% crop_area_YXBH = land_area_YX .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'CROPLAND'),end) ;
-% crop_area_YXBFr = land_area_YX .* squeeze(maps_LU_d1.maps_YXvyr(:,:,strcmp(maps_LU_d1.varNames,'CROPLAND'),1,:)) ;
-% crop_area_YXr = repmat(land_area_YX,[1 1 Nruns]) .* squeeze(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'CROPLAND'),end,:)) ;
-% crop_diff_YXrH = crop_area_YXr - repmat(crop_area_YXBH,[1 1 Nruns]) ;
-% crop_diff_YXrF = crop_area_YXr - crop_area_YXBFr ;
-% past_area_YXBH = land_area_YX .* maps_LU_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'PASTURE'),end) ;
-% past_area_YXBFr = land_area_YX .* squeeze(maps_LU_d1.maps_YXvyr(:,:,strcmp(maps_LU_d1.varNames,'PASTURE'),1,:)) ;
-% past_area_YXr = repmat(land_area_YX,[1 1 Nruns]) .* squeeze(maps_LU_d9.maps_YXvyr(:,:,strcmp(maps_LU_d9.varNames,'PASTURE'),end,:)) ;
-% past_diff_YXrH = past_area_YXr - repmat(past_area_YXBH,[1 1 Nruns]) ;
-% past_diff_YXrF = past_area_YXr - past_area_YXBFr ;
-end
 
 if exist('maps_LU0_d9','var')
     crop0_area_YXBH = land_area_YX .* maps_LU0_d9.maps_YXvyB(:,:,strcmp(maps_LU_d9.varNames,'CROPLAND'),end) ;

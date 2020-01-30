@@ -11,7 +11,23 @@ for r = 1:Nruns
     thisTable_dem = readtable(sprintf('%s/countryDemand.txt', thisDir)) ;
     [~,~,sortCols] = intersect({'Country','Commodity','Year'},thisTable_dem.Properties.VariableNames, 'stable') ;
     thisTable_dem = sortrows(thisTable_dem,sortCols) ; % Needed to produce _ymur dimensioned array
-    thisTable_dom = readtable(sprintf('%s/domestic.txt', thisDir)) ;
+    thisfile = sprintf('%s/domestic.txt', thisDir) ;
+    try
+        thisTable_dom = readtable(thisfile) ;
+    catch ME
+        if strcmp(ME.identifier, 'MATLAB:readtable:OpenFailed') ...
+        && exist([thisfile '.gz'], 'file')
+            gunzip([thisfile '.gz']) ;
+            thisTable_dom = readtable(thisfile) ;
+            gzip(thisfile)
+        else
+            rethrow(ME)
+        end
+    end
+    
+    
+    
+    
     [~,~,sortCols] = intersect({'Country','Crop','Year'},thisTable_dom.Properties.VariableNames, 'stable') ;
     thisTable_dom = sortrows(thisTable_dom,sortCols) ; % Needed to produce _ymur dimensioned array
     thisTable_dom(contains(thisTable_dom.Crop,{'energycrops','setaside','pasture'}),:) = [] ;

@@ -17,8 +17,15 @@ if iscell(data_in)
         data_in{c} = doit(data_in{c}, chg_mult_eachYear) ;
     end
 elseif isstruct(data_in)
-    data_in.maps_YXvyB = doit_maps_YXvyQ(data_in.maps_YXvyB, get_change_mult(tech_chg_rate, yearList_baseline, base_year)) ;
-    data_in.maps_YXvyr = doit_maps_YXvyQ(data_in.maps_YXvyr, get_change_mult(tech_chg_rate, yearList_future, base_year)) ;
+    if isfield(data_in, 'maps_YXvyB')
+        data_in.maps_YXvyB = doit_maps_YXvyQ(data_in.maps_YXvyB, get_change_mult(tech_chg_rate, yearList_baseline, base_year)) ;
+        data_in.maps_YXvyr = doit_maps_YXvyQ(data_in.maps_YXvyr, get_change_mult(tech_chg_rate, yearList_future, base_year)) ;
+    elseif isfield(data_in, 'garr_xvyB')
+        data_in.garr_xvyB = doit_garr_xvyQ(data_in.garr_xvyB, get_change_mult(tech_chg_rate, yearList_baseline, base_year)) ;
+        data_in.garr_xvyr = doit_garr_xvyQ(data_in.garr_xvyr, get_change_mult(tech_chg_rate, yearList_future, base_year)) ;
+    else
+        error('No field recognized as maps or garr')
+    end
 else
     chg_mult_eachYear = get_change_mult(tech_chg_rate, yearList, base_year) ;
     data_in = doit(data_in, chg_mult_eachYear) ;
@@ -66,6 +73,31 @@ if ndims(data_in_YXvyQ)>4
 end
     
 data_in_YXvyQ = data_in_YXvyQ .* ...
+    repmat(chg_rate_vector, repmat_dims) ;
+
+end
+
+
+function data_in_xvyQ = doit_garr_xvyQ(data_in_xvyQ, chg_mult_eachYear)
+
+if ndims(data_in_xvyQ)<3 %#ok<ISMAT>
+    error('doit_maps_YXvyQ() assumes at least 3 dimensions of array! (ndims=%d', ndims(data_in_xvyQ))
+end
+
+array_size = size(data_in_xvyQ) ;
+if array_size(3)~=length(chg_mult_eachYear)
+    error('doit_garr_xvyQ() assumes "year" is third dimension of array!')
+elseif length(find(array_size==length(chg_mult_eachYear)))>1
+    warning('doit_garr_xvyQ() assumes "year" is third dimension of array, but there are %d length-matching dimensions.', length(find(array_size==length(chg_mult_eachYear))))
+end
+chg_rate_vector = permute(chg_mult_eachYear,[3 2 1]) ;
+
+repmat_dims = [array_size(1:2) 1] ;
+if ndims(data_in_xvyQ)>3
+    repmat_dims = [repmat_dims array_size(4:end)] ;
+end
+    
+data_in_xvyQ = data_in_xvyQ .* ...
     repmat(chg_rate_vector, repmat_dims) ;
 
 end
