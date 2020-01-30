@@ -976,7 +976,7 @@ end
 
 % Options %%%%%%%%%
 fontSize = 14 ;
-spacing = [0.062 0.05] ;   % [vert, horz]
+spacing = [0.057 0.045] ;   % [vert, horz]
 textX = 25 ;
 textY_1 = 50 ;
 textY_2 = 20 ;
@@ -990,19 +990,31 @@ conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 units_map = 'km^2' ;
 units_total = 'Mkm^2' ;
 only1bl = true ;
+same_caxis = true ;
+Nbins = 11 ;
 %%%%%%%%%%%%%%%%%%%
 
 thisY1 = yearList_baseline(end) ;
 thisYN = yearList_future(end) ;
 
+crop_area_YXB = lpjgu_vector2map(crop_area_xBH, map_size, list2map) ;
+past_area_YXB = lpjgu_vector2map(past_area_xBH, map_size, list2map) ;
+crop_diff_YXrH = nan([map_size Nruns]) ;
+past_diff_YXrH = nan([map_size Nruns]) ;
+for r = 1:Nruns
+    crop_diff_YXrH(:,:,r) = lpjgu_vector2map(crop_diff_xrH(:,r), map_size, list2map) ;
+    past_diff_YXrH(:,:,r) = lpjgu_vector2map(past_diff_xrH(:,r), map_size, list2map) ;
+end
+
 [diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v3(...
-    lpjgu_vector2map(crop_area_xBH, map_size, list2map), ...
-    lpjgu_vector2map(past_area_xBH, map_size, list2map), ...
-    crop_diff_YXrF, past_diff_YXrF, ...
+    crop_area_YXB, ...
+    past_area_YXB, ...
+    crop_diff_YXrH, past_diff_YXrH, ...
     thisY1, thisYN, 'Cropland', runList, ...
     spacing, fontSize, textX, textY_1, textY_2, ...
     nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps) ;
+    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps, ...
+    same_caxis, Nbins) ;
 if do_save
     filename = [outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'] ;
     export_fig(filename,['-r' num2str(pngres)])

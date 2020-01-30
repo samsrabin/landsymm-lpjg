@@ -4,7 +4,7 @@ function [diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v3(...
     spacing, fontSize, textX, textY_1, textY_2, ...
     nx, ny, i1, colorBarLoc, ssp_plot_index, only1bl, ...
     Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, ...
-    do_caps)
+    do_caps, same_caxis, Nbins)
 
 % this_colormap_name = 'RdBu_ssr' ;
 % this_colormap_name = '-PRGn_ssr' ;
@@ -51,7 +51,7 @@ for r = 1:Nruns
         spacing, fontSize, textX, textY_1, textY_2, ...
         nx, ny, i1, i2, colorBarLoc, ...
         conv_fact_map, conv_fact_total, units_map, units_total, ...
-        do_caps, only1bl, this_colormap_name) ;
+        do_caps, only1bl, this_colormap_name, Nbins) ;
     caxis(hc,[-max(abs(caxis(hc))) max(abs(caxis(hc)))])
     caxis(hp,[-max(abs(caxis(hp))) max(abs(caxis(hp)))])
     gcas_crop = [gcas_crop hc] ;
@@ -59,6 +59,12 @@ for r = 1:Nruns
     colorlim_crop = max(colorlim,caxis_max_crop) ;
     colorlim_past = max(colorlim,caxis_max_past) ;
 end
+if same_caxis
+    colorlim_crop = max(colorlim_crop, colorlim_past) ;
+    colorlim_past = colorlim_crop ;
+end
+% colorlim_crop = 2250 ;
+% colorlim_past = colorlim_crop ;
 for r = 1:Nruns
     caxis(gcas_crop(r),[-colorlim_crop colorlim_crop])
     caxis(gcas_past(r),[-colorlim_past colorlim_past])
@@ -76,7 +82,7 @@ function [hc, hp, caxis_max_crop, caxis_max_past, ht] = actually_make_fig(...
     spacing, fontSize, textX, textY_1, textY_2, ...
     nx, ny, i1, i2, colorBarLoc, ...
     conv_fact_map, conv_fact_total, units_map, units_total, ...
-    do_caps, only1bl, this_colormap_name)
+    do_caps, only1bl, this_colormap_name, Nbins)
 
 en_dash = char(8211) ;
 flip_colormap = false ;
@@ -84,7 +90,7 @@ if strcmp(this_colormap_name(1),'-')
     flip_colormap = true ;
     this_colormap_name = this_colormap_name(2:end) ;
 end
-this_colormap = brighten(brewermap(64,this_colormap_name),-0.3) ;
+this_colormap = brighten(brewermap(Nbins,this_colormap_name),-0.3) ;
 if flip_colormap
     this_colormap = flipud(this_colormap) ;
 end
