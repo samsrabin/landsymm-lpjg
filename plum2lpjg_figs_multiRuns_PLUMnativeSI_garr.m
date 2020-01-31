@@ -976,10 +976,12 @@ end
 
 % Options %%%%%%%%%
 fontSize = 14 ;
-spacing = [0.057 0.045] ;   % [vert, horz]
-textX = 25 ;
+spacing = [0.02 0.02] ;   % [vert, horz]
+% textX = 25 ;
+textX = 45 ;
 textY_1 = 50 ;
 textY_2 = 20 ;
+% shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 shiftup = 15 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 thisPos = [1    33   770   772] ;
 nx = 2 ;
@@ -1006,7 +1008,7 @@ for r = 1:Nruns
     past_diff_YXrH(:,:,r) = lpjgu_vector2map(past_diff_xrH(:,r), map_size, list2map) ;
 end
 
-[diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v3(...
+[diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v4(...
     crop_area_YXB, ...
     past_area_YXB, ...
     crop_diff_YXrH, past_diff_YXrH, ...
