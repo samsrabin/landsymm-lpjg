@@ -3020,6 +3020,9 @@ end
 
 %% Map changes in BD hotspot area: CI + CSLF
 
+lu_source = 'plum' ;
+% lu_source = 'luh1' ;
+
 % Options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 edgecolor = 0.6*ones(3,1) ;
 % latlim = [-60,80];
@@ -3039,17 +3042,32 @@ units_total = 'Mkm^2' ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Biodiversity hotspots
-hotspotCSLF_area_YXB = lpjgu_vector2map( ...
-    mean(repmat(hotspotCSLF_area_x, [1 length(years_endh)]) .* permute(garr_LU_d9.garr_xvyB(:,strcmp(garr_LU_d9.varNames,'NATURAL'),:),[1 3 2]), 2), ...
-    map_size, list2map) ;
-hotspotCSLF_area_YXr = lpjgu_xz_to_YXz( ...
-    squeeze(mean(repmat(hotspotCSLF_area_x, [1 length(years_endh) Nruns]) .* permute(garr_LU_d9.garr_xvyr(:,strcmp(garr_LU_d9.varNames,'NATURAL'),:,:),[1 3 4 2]), 2)), ...
-    map_size, list2map) ;
-hotspotCSLF_diff_YXr = hotspotCSLF_area_YXr - repmat(hotspotCSLF_area_YXB, [1 1 Nruns]) ;
-
+if strcmp(lu_source, 'plum')
+    tmp_lu_d9_xyB = permute(garr_LU_d9.garr_xvyB(:,strcmp(garr_LU_d9.varNames,'NATURAL'),:),[1 3 2]) ;
+    tmp_lu_d9_xyr = permute(garr_LU_d9.garr_xvyr(:,strcmp(garr_LU_d9.varNames,'NATURAL'),:,:),[1 3 4 2]) ;
+    tmp_hotspotCSLF_area_YXB = lpjgu_vector2map( ...
+        mean(repmat(hotspotCSLF_area_x, [1 length(years_endh)]) .* tmp_lu_d9_xyB, 2), ...
+        map_size, list2map) ;
+    tmp_hotspotCSLF_area_YXr = lpjgu_xz_to_YXz( ...
+        squeeze(mean(repmat(hotspotCSLF_area_x, [1 length(years_endh) Nruns]) .* tmp_lu_d9_xyr, 2)), ...
+        map_size, list2map) ;
+    tmp_hotspotCSLF_diff_YXr = tmp_hotspotCSLF_area_YXr - repmat(tmp_hotspotCSLF_area_YXB, [1 1 Nruns]) ;
+elseif strcmp(lu_source, 'luh1')
+    import_luh1_NTRLfrac
+    tmp_hotspotCSLF_area_YXrB = lpjgu_xz_to_YXz( ...
+        repmat(hotspotCSLF_area_x, [1 Nruns]) .* garr_NTRLfrac_luh1_d9.garr_xrB, ...
+        map_size, list2map) ;
+    tmp_hotspotCSLF_area_YXB = tmp_hotspotCSLF_area_YXrB ;
+    tmp_hotspotCSLF_area_YXrF = lpjgu_xz_to_YXz( ...
+        repmat(hotspotCSLF_area_x, [1 Nruns]) .* garr_NTRLfrac_luh1_d9.garr_xrF, ...
+        map_size, list2map) ;
+    tmp_hotspotCSLF_diff_YXr = tmp_hotspotCSLF_area_YXrF - tmp_hotspotCSLF_area_YXrB ;
+else
+    error('lu_source (%s) not recognized', lu_source)
+end
 
 map_hotspot_diffs(...
-    hotspotCSLF_area_YXB, hotspotCSLF_diff_YXr, (hotspot_YX | cslf_YX), hotspot_shp, cslf_shp, ...
+    tmp_hotspotCSLF_area_YXB, tmp_hotspotCSLF_diff_YXr, (hotspot_YX | cslf_YX), hotspot_shp, cslf_shp, ...
     spacing, latlim, edgecolor, cbarOrient, fontSize, ...
     textX, textY_1, textY_2, ssp_plot_index, lineWidth, ...
     yearList_baseline, yearList_future, runList, ...
@@ -3061,6 +3079,8 @@ if do_save
         ['-r' num2str(pngres*2)])
     close
 end
+
+clear tmp_hotspot* tmp_lu*
     
 
 
