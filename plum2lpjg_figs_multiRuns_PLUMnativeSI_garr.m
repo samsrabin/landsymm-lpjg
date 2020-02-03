@@ -34,7 +34,7 @@ if false
 % thisVer = 'harm2.3_constClim' ;
 end
 
-thisVer = 'harm3' ; 
+thisVer = 'harm3' ;
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
@@ -3300,6 +3300,107 @@ if all_figs
     
 end
 
+
+%% Vegetation C if we had used LUH1
+% Assume that all vegC is on natural land. This is thus an upper limit for
+% the difference.
+
+if ~strcmp(thisVer, 'harm3')
+    error('You''ve only done this for harm3 so far. Current thisVer = %s.', thisVer)
+end
+
+luh1_file_list = { ...
+    '/Volumes/WDMPP_Storage/ExternalGeodata/LUH1/future/states/minicam.v1.mat', ... % RCP4.5
+    '/Volumes/WDMPP_Storage/ExternalGeodata/LUH1/future/states/aim.v1.1.mat', ... % RCP6.0
+    '/Volumes/WDMPP_Storage/ExternalGeodata/LUH1/future/states/aim.v1.1.mat', ... % RCP6.0
+    '/Volumes/WDMPP_Storage/ExternalGeodata/LUH1/future/states/message.v1.mat' ... % RCP8.5
+    } ;
+
+% Import
+disp('Importing LUH1...')
+garr_NTRLfrac_luh1_d9 = struct ;
+for r = 1:Nruns
+    thisFile = luh1_file_list{r} ;
+    if r>1 && strcmp(thisFile, luh1_file_list{r-1})
+        garr_NTRLfrac_luh1_d9.garr_xrB(:,r) = garr_NTRLfrac_luh1_d9.garr_xrB(:,r-1) ;
+        garr_NTRLfrac_luh1_d9.garr_xrF(:,r) = garr_NTRLfrac_luh1_d9.garr_xrF(:,r-1) ;
+        continue
+    end
+    if r==1
+        garr_NTRLfrac_luh1_d9.garr_xrB = nan(length(garr_LU_d9.list2map), Nruns, 'single') ;
+        garr_NTRLfrac_luh1_d9.garr_xrF = nan(length(garr_LU_d9.list2map), Nruns, 'single') ;
+    end
+    
+    % Import
+    load(thisFile) ; % --> LU_luh1
+    
+    % Remove unnecessary years
+    bad_years = ~(LU_luh1.yearList>=2006 & LU_luh1.yearList<=2010) & ~(LU_luh1.yearList>=2096 & LU_luh1.yearList<=2100) ;
+    LU_luh1.maps_YXvy(:,:,:,bad_years) = [] ;
+    LU_luh1.yearList(bad_years) = [] ;
+        
+    % Remove ice/water
+    LU_luh1.maps_YXvy = LU_luh1.maps_YXvy ./ sum(LU_luh1.maps_YXvy(:,:,~strcmp(LU_luh1.varNames,'icwr'),:),3) ;
+    LU_luh1.maps_YXvy(:,:,strcmp(LU_luh1.varNames,'icwr'),:) = [] ;
+    LU_luh1.varNames(strcmp(LU_luh1.varNames,'icwr')) = [] ;
+    
+    % Extract
+    is_othr = contains(LU_luh1.varNames, {'othr','secd'}) ;
+    tmp_YX = squeeze(mean(sum(LU_luh1.maps_YXvy(:,:,is_othr,LU_luh1.yearList>=2006 & LU_luh1.yearList<=2010),3),4)) ;
+    garr_NTRLfrac_luh1_d9.garr_xrB(:,r) = tmp_YX(garr_LU_d9.list2map) ;
+    tmp_YX = squeeze(mean(sum(LU_luh1.maps_YXvy(:,:,is_othr,LU_luh1.yearList>=2096 & LU_luh1.yearList<=2100),3),4)) ;
+    garr_NTRLfrac_luh1_d9.garr_xrF(:,r) = tmp_YX(garr_LU_d9.list2map) ;
+    
+    clear LU_luh1
+end
+
+is_othr = contains(garr_LU_d9.varNames, {'NATURAL'  'BARREN'}) ;
+garr_NTRLfrac_plum_d9.garr_xrB = repmat(mean(sum(garr_LU_d9.garr_xvyB(:,is_othr,6:end),2),3), [1 Nruns]) ;
+garr_NTRLfrac_plum_d9.garr_xrF = squeeze(mean(sum(garr_LU_d9.garr_xvyr(:,is_othr,6:end,:),2),3)) ;
+
+%% Get natural veg C (assuming cropland and pasture veg C = 0)
+% is_vegC = strcmp(garr_cpool_d9.varNames, 'VegC') ;
+is_vegC = strcmp(garr_cpool_d9.varNames, 'Total') ;
+garr_NTRLc_d9.garr_xrB = repmat(mean(sum(garr_cpool_d9.garr_xvyB(:,is_vegC,6:end),2),3), [1 Nruns]) ...
+    ./ garr_NTRLfrac_plum_d9.garr_xrB ;
+garr_NTRLc_d9.garr_xrF = squeeze(mean(sum(garr_cpool_d9.garr_xvyr(:,is_othr,6:end,:),2),3)) ...
+    ./ garr_NTRLfrac_plum_d9.garr_xrF ;
+
+% Get total veg C (PLUM)
+garr_NTRLc_plum_d9.garr_xrB = garr_NTRLfrac_plum_d9.garr_xrB .* garr_NTRLc_d9.garr_xrB .* repmat(land_area_x, [1 Nruns]) ;
+garr_NTRLc_plum_d9.garr_xrF = garr_NTRLfrac_plum_d9.garr_xrF .* garr_NTRLc_d9.garr_xrF .* repmat(land_area_x, [1 Nruns]) ;
+
+% Convert PLUM total veg C to LUH1 version
+garr_NTRLc_luh1_d9.garr_xrB = garr_NTRLc_plum_d9.garr_xrB .* garr_NTRLfrac_luh1_d9.garr_xrB ./ garr_NTRLfrac_plum_d9.garr_xrB ;
+garr_NTRLc_luh1_d9.garr_xrF = garr_NTRLc_plum_d9.garr_xrF .* garr_NTRLfrac_luh1_d9.garr_xrF ./ garr_NTRLfrac_plum_d9.garr_xrF ;
+
+% Ignore where PLUM had little natural area
+garr_NTRLc_plum_d9.garr_xrB(garr_NTRLfrac_plum_d9.garr_xrB<0.001 & garr_NTRLfrac_luh1_d9.garr_xrB==0) = 0 ;
+garr_NTRLc_plum_d9.garr_xrB(garr_NTRLfrac_plum_d9.garr_xrB<0.001 & garr_NTRLfrac_luh1_d9.garr_xrB>0) = NaN ;
+garr_NTRLc_plum_d9.garr_xrF(garr_NTRLfrac_plum_d9.garr_xrF<0.001 & garr_NTRLfrac_luh1_d9.garr_xrF==0) = 0 ;
+garr_NTRLc_plum_d9.garr_xrF(garr_NTRLfrac_plum_d9.garr_xrF<0.001 & garr_NTRLfrac_luh1_d9.garr_xrF>0) = NaN ;
+garr_NTRLc_luh1_d9.garr_xrB(garr_NTRLfrac_plum_d9.garr_xrB<0.001 & garr_NTRLfrac_luh1_d9.garr_xrB==0) = 0 ;
+garr_NTRLc_luh1_d9.garr_xrB(garr_NTRLfrac_plum_d9.garr_xrB<0.001 & garr_NTRLfrac_luh1_d9.garr_xrB>0) = NaN ;
+garr_NTRLc_luh1_d9.garr_xrF(garr_NTRLfrac_plum_d9.garr_xrF<0.001 & garr_NTRLfrac_luh1_d9.garr_xrF==0) = 0 ;
+garr_NTRLc_luh1_d9.garr_xrF(garr_NTRLfrac_plum_d9.garr_xrF<0.001 & garr_NTRLfrac_luh1_d9.garr_xrF>0) = NaN ;
+
+for r = 1:Nruns
+    disp(runList{r})
+    fprintf('     \t Baseline \t Future \t Delta\n')
+    plum_b = nansum(garr_NTRLc_plum_d9.garr_xrB(:,r)) ;
+    plum_f = nansum(garr_NTRLc_plum_d9.garr_xrF(:,r)) ;
+    plum_b2f = plum_f - plum_b ;
+    luh1_b = nansum(garr_NTRLc_luh1_d9.garr_xrB(:,r)) ;
+    luh1_f = nansum(garr_NTRLc_luh1_d9.garr_xrF(:,r)) ;
+    luh1_b2f = luh1_f - luh1_b ;
+    diff_b = (luh1_b - plum_b) / plum_b * 100 ;
+    diff_f = (luh1_f - plum_f) / plum_f * 100 ;
+    diff_b2f = (luh1_b2f - plum_b2f) / abs(plum_b2f) * 100 ;
+    fprintf('PLUM:\t %0.3g \t %0.3g \t %0.3g\n', plum_b, plum_f, plum_b2f) ;
+    fprintf('LUH1:\t %0.3g \t %0.3g \t %0.3g\n', luh1_b, luh1_f, luh1_b2f) ;
+    fprintf('diff:\t %0.1f%% \t\t %0.1f%% \t\t %0.1f%%\n', diff_b, diff_f, diff_b2f) ;
+    disp(' ')
+end
 
 %% Map changes in LU area: End-Historical to Begin-Future
 
