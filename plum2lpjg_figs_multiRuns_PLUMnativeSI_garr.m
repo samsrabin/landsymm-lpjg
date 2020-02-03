@@ -987,10 +987,7 @@ thisPos = [1    33   770   772] ;
 nx = 2 ;
 ny = 4 ;
 colorBarLoc = 'EastOutside' ;
-conv_fact_map = 1e-6 ;   % m2 to km2
-conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
-units_map = 'km^2' ;
-units_total = 'Mkm^2' ;
+as_frac_land = false ;
 only1bl = true ;
 same_caxis = true ;
 Nbins = 11 ;
@@ -1007,6 +1004,23 @@ for r = 1:Nruns
     crop_diff_YXrH(:,:,r) = lpjgu_vector2map(crop_diff_xrH(:,r), map_size, list2map) ;
     past_diff_YXrH(:,:,r) = lpjgu_vector2map(past_diff_xrH(:,r), map_size, list2map) ;
 end
+
+if as_frac_land
+    crop_area_YXB = crop_area_YXB ./ gcel_area_YX ;
+    past_area_YXB = past_area_YXB ./ gcel_area_YX ;
+    crop_diff_YXrH = crop_diff_YXrH ./ repmat(gcel_area_YX, [1 1 Nruns]) ;
+    past_diff_YXrH = past_diff_YXrH ./ repmat(gcel_area_YX, [1 1 Nruns]) ;
+    conv_fact_map = 100 ;
+    conv_fact_total = 0 ;
+    units_map = '%' ;
+    units_total = '???' ;
+else
+    conv_fact_map = 1e-6 ;   % m2 to km2
+    conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+    units_map = 'km^2' ;
+    units_total = 'Mkm^2' ;
+end
+
 
 [diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v4(...
     crop_area_YXB, ...
@@ -3358,7 +3372,7 @@ is_othr = contains(garr_LU_d9.varNames, {'NATURAL'  'BARREN'}) ;
 garr_NTRLfrac_plum_d9.garr_xrB = repmat(mean(sum(garr_LU_d9.garr_xvyB(:,is_othr,6:end),2),3), [1 Nruns]) ;
 garr_NTRLfrac_plum_d9.garr_xrF = squeeze(mean(sum(garr_LU_d9.garr_xvyr(:,is_othr,6:end,:),2),3)) ;
 
-%% Get natural veg C (assuming cropland and pasture veg C = 0)
+% Get natural veg C (assuming cropland and pasture veg C = 0)
 % is_vegC = strcmp(garr_cpool_d9.varNames, 'VegC') ;
 is_vegC = strcmp(garr_cpool_d9.varNames, 'Total') ;
 garr_NTRLc_d9.garr_xrB = repmat(mean(sum(garr_cpool_d9.garr_xvyB(:,is_vegC,6:end),2),3), [1 Nruns]) ...
