@@ -5,6 +5,7 @@ import glob
 import datetime
 np.random.seed(1234)
 from em_functions import emulate, update_out_table, save_out_table
+from netCDF4 import Dataset
 
 def try_load_climate(climate_dir, var, GGCM, GGCMIcrop, rcp, missing_climate, verbose):
     # If no previous climate file was missing, load climate file, if it exists.
@@ -21,14 +22,20 @@ def try_load_climate(climate_dir, var, GGCM, GGCMIcrop, rcp, missing_climate, ve
     return(in_array, missing_climate)
 
 
-def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade):
+def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt):
 
-    # Irrigated
+    # Get files and read parameters
     if is_irrig:
-        KI = np.load('%s/%s_%s_irr.npy'%(emulator_dir, GGCM, GGCMIcrop))
+        filename_rf = '%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop)
+        filename_ir = '%s/%s_%s_irr.npy'%(emulator_dir, GGCM, GGCMIcrop)
+        KI = np.load(filename_ir)
     else:
-        KI = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop))
-        print(decade)
+        filename = '%s/%s_%s_ggcmi_phase2_emulator_A%d.nc4'%(emulator_dir, GGCM, GGCMIcrop, do_adapt)
+        nc_fid = Dataset(filename, 'r')
+        K  = nc_fid.variables["K_rf"][:]
+        KI = nc_fid.variables["K_ir"][:]
+        
+    # Irrigated
     ir_10  = emulate(KI, co2[decade], t[decade,:,:], 1, 10,  'NI', is_irrig)
     ir_60  = emulate(KI, co2[decade], t[decade,:,:], 1, 60,  'NI', is_irrig)
     ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200, 'NI', is_irrig)
@@ -40,15 +47,13 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade):
         rf_60 = np.zeros(ir_10.shape)
         rf_200 = np.zeros(ir_10.shape)
     else:
-        K  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop))
         rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N', is_irrig)
         rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N', is_irrig)
-
         rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N', is_irrig)
     return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
 
 
-def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
+def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig, do_adapt):
     # GCM: ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','FGOALS-g2',
     #      'GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','GISS-E2-H','GISS-E2-R','HadGEM2-AO','HadGEM2-CC','HadGEM2-ES','inmcm4','IPSL-CM5A-LR',
     #      'IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M']
@@ -110,8 +115,8 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
         # Emulate the six management cases.
         emulator_dir_yield = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_yield"
         emulator_dir_irrig = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_irrig"
-        rf_10_yield,rf_60_yield,rf_200_yield,ir_10_yield,ir_60_yield,ir_200_yield = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False, decade)
-        rf_10_irrig,rf_60_irrig,rf_200_irrig,ir_10_irrig,ir_60_irrig,ir_200_irrig = do_emulation(emulator_dir_irrig,GGCMIcrop, co2, t, w, True, decade)
+        rf_10_yield,rf_60_yield,rf_200_yield,ir_10_yield,ir_60_yield,ir_200_yield = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False, decade, do_adapt)
+        rf_10_irrig,rf_60_irrig,rf_200_irrig,ir_10_irrig,ir_60_irrig,ir_200_irrig = do_emulation(emulator_dir_irrig,GGCMIcrop, co2, t, w, True, decade, do_adapt)
         del t, w
 
         # Add values to output tables
@@ -121,16 +126,18 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig):
 
     return(outarr_yield, outarr_irrig, outheader, outfmt,any_ok)
     
-    
-outdir_suffix = "20191008"
+do_adapt = False
+outdir_suffix = "20200204"
 
-GCMs = ["IPSL-CM5A-MR","GFDL-ESM2M","MIROC5", "HadGEM2-ES"]
+GCMs = ["IPSL-CM5A-MR"]
+# GCMs = ["IPSL-CM5A-MR","GFDL-ESM2M","MIROC5", "HadGEM2-ES"]
 #GCMs = ["IPSL-CM5A-LR", "GFDL-ESM2M", "MIROC5", "HadGEM2-ES"] # ISIMIP2b selection
 #GCMs = ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM','CMCC-CMS','CNRM-CM5','CSIRO-Mk3-6-0','FGOALS-g2','GFDL-CM3','GFDL-ESM2G','GFDL-ESM2M','GISS-E2-H','GISS-E2-R','HadGEM2-AO','HadGEM2-CC','HadGEM2-ES','inmcm4','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM','MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M']
-rcps = [45, 85]
+# rcps = [45, 85]
+rcps = [45]
 decades = range(9)
-GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
-#GGCMs = ["LPJmL"]
+# GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
+GGCMs = ["pDSSAT"]
 
 # Import PLUM mask and lon/lat
 plum_dir = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/plum/"
@@ -162,7 +169,7 @@ for decade in decades:
                     continue
 
                 # Emulate
-                outarr_yield,outarr_irrig,outheader,outfmt,any_ok = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats, lonlats)
+                outarr_yield,outarr_irrig,outheader,outfmt,any_ok = PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, lonlats, lonlats, do_adapt)
 
                 # If nothing actually processed, skip to next GGCM
                 if not any_ok:
