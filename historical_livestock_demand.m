@@ -1,3 +1,7 @@
+include_milk = false ;
+include_eggs = false ;
+
+
 %% Import
 
 T = readtable('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/livestock_byregion_FAOSTAT_data_12-13-2019.csv') ;
@@ -17,12 +21,31 @@ list_items = unique(T.Item) ;
 list_years = unique(T.Year) ;
 
 % Convert to PLUM feed-equivalent values (Peter Al. email 2019-12-16)
-T_feedeq = T(contains(T.Item, {'Poultry Meat', 'Pigmeat', 'Mutton & Goat Meat', 'Bovine Meat'}), :) ;
+included_items = {'Poultry Meat', 'Pigmeat', 'Mutton & Goat Meat', 'Bovine Meat'} ;
+if include_milk
+    included_items = [included_items {'Milk - Excluding Butter'}] ;
+end
+if include_eggs
+    included_items = [included_items {'Eggs'}] ;
+end
+T_feedeq = T(contains(T.Item, included_items), :) ;
 T_feedeq.Unit = strrep(T_feedeq.Unit, 'tonnes', 'tonnes PLUM feed equiv.') ;
-T_feedeq.Value(strcmp(T_feedeq.Item, 'Poultry Meat'))       =  3.3 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Poultry Meat')) ;
-T_feedeq.Value(strcmp(T_feedeq.Item, 'Pigmeat'))            =  6.4 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Pigmeat')) ;
-T_feedeq.Value(strcmp(T_feedeq.Item, 'Mutton & Goat Meat')) = 15.0 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Mutton & Goat Meat')) ;
-T_feedeq.Value(strcmp(T_feedeq.Item, 'Bovine Meat'))        = 25.0 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Bovine Meat')) ;
+T_feedeq.Value(strcmp(T_feedeq.Item, 'Poultry Meat')) ...
+    =  3.3 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Poultry Meat')) ;
+T_feedeq.Value(strcmp(T_feedeq.Item, 'Pigmeat')) ...
+    =  6.4 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Pigmeat')) ;
+T_feedeq.Value(strcmp(T_feedeq.Item, 'Mutton & Goat Meat')) ...
+    = 15.0 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Mutton & Goat Meat')) ;
+T_feedeq.Value(strcmp(T_feedeq.Item, 'Bovine Meat')) ...
+    = 25.0 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Bovine Meat')) ;
+if include_milk
+    T_feedeq.Value(strcmp(T_feedeq.Item, 'Milk - Excluding Butter')) ...
+        = 0.7 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Milk - Excluding Butter')) ;
+end
+if include_eggs
+    T_feedeq.Value(strcmp(T_feedeq.Item, 'Eggs')) ...
+        = 2.3 * T_feedeq.Value(strcmp(T_feedeq.Item, 'Eggs')) ;
+end
 
 
 %% Make delta time series by continent
@@ -32,20 +55,23 @@ thisT = T_feedeq ;
 
 % thisElement = 'Domestic supply quantity' ;
 thisElement = 'Food supply quantity (tonnes)' ;
-itemList_tmp = {'M+R', 'Monogastric meat'} ;
+itemList_tmp = {'M+R', 'Just monogastrics'} ;
 line_styles = {'-', '--', ':'} ;
 thisPos = [229   147   911   530] ;
+fontSize = 18 ;
 
 base_year = 1990 ;
 yearList_tmp = list_years(list_years>=base_year) ;
 Nyears_tmp = length(yearList_tmp) ;
 T_tmp0 = thisT(thisT.Year>=base_year ...
-    & strcmp(thisT.Element, thisElement), :) ;
+    & strcmp(thisT.Element, thisElement),   :) ;
 
-% continent_list = {'Africa', 'Asia', 'Northern America', 'Lat. America + Carib.', ...
-%     'Europe', 'Oceania'} ;
+% % continent_list = {'Africa', 'Asia', 'Northern America', 'Lat. America + Carib.', ...
+% %     'Europe', 'Oceania'} ;
+% continent_list = {'Africa', 'Asia + Oceania', 'N. Am. + Europe', ...
+%     'Lat. Am. + Carib.'} ;
 continent_list = {'Africa', 'Asia + Oceania', 'N. Am. + Europe', ...
-    'Lat. Am. + Carib.'} ;
+    'Lat. Am. + Carib.', 'World'} ;
 Ncontinents = length(continent_list) ;
 
 hf1 = figure('Color', 'w', 'Position', thisPos) ;
@@ -56,12 +82,24 @@ handles_hf2 = [] ;
 ts_ycm = nan(length(yearList_tmp), Ncontinents, length(itemList_tmp)) ;
 for ii = 1:length(itemList_tmp)
     thisItem = itemList_tmp{ii} ;
-    if strcmp(thisItem, 'Monogastric meat')
-        isThisItem = contains(T_tmp0.Item, {'Pigmeat', 'Poultry Meat'}) ;
-    elseif strcmp(thisItem, 'Ruminant meat')
-        isThisItem = contains(T_tmp0.Item, {'Bovine Meat', 'Mutton & Goat Meat'}) ;
+    if strcmp(thisItem, 'Just monogastrics')
+        if include_eggs
+            isThisItem = contains(T_tmp0.Item, ...
+                {'Pigmeat', 'Poultry Meat', 'Eggs'}) ;
+        else
+            isThisItem = contains(T_tmp0.Item, ...
+                {'Pigmeat', 'Poultry Meat'}) ;
+        end
+    elseif strcmp(thisItem, 'Just ruminants')
+        if include_milk
+            isThisItem = contains(T_tmp0.Item, ...
+                {'Bovine Meat', 'Mutton & Goat Meat'}) ;
+        else
+            isThisItem = contains(T_tmp0.Item, ...
+                {'Bovine Meat', 'Mutton & Goat Meat', 'Milk - Excluding Butter'}) ;
+        end
     elseif strcmp(thisItem, 'M+R')
-        isThisItem = contains(T_tmp0.Item, {'Pigmeat', 'Poultry Meat', 'Bovine Meat', 'Mutton & Goat Meat'}) ;
+        isThisItem = contains(T_tmp0.Item, included_items) ;
     else
         isThisItem = strcmp(T_tmp0.Item, thisItem) ;
     end
@@ -97,14 +135,21 @@ for ii = 1:length(itemList_tmp)
     handles_hf1 = [handles_hf1 ; h0] ;
     set(gca, 'ColorOrderIndex', 1) ;
     if ii==1
-        hl = legend(handles_hf1, continent_list, 'Location', 'Northwest') ;
+        hl = legend(handles_hf1, continent_list, 'Location', 'West') ;
         hl.AutoUpdate = 'off' ;
         title(sprintf('FAOSTAT: %s', thisElement))
         ylabel(sprintf('Demand (%s)', T_tmp_thisYear.Unit{1}))
-        set(gca, 'FontSize', 14)
-    end
-    if ii==1
+        set(gca, 'FontSize', fontSize)
         hold on
+    end
+    
+    % If plotting World, color it black
+    if any(contains(continent_list, 'World'))
+        kids = get(gca, 'Children') ;
+        if ii==1
+            w1 = length(kids) - find(strcmp(continent_list, 'World')) + 1 ;
+        end
+        kids(w1).Color = [0 0 0] ;
     end
     
     tsR_yc = ts_yc - repmat(ts_yc(1,:), [Nyears_tmp 1]) ;
@@ -119,37 +164,59 @@ for ii = 1:length(itemList_tmp)
         set(gca, 'XLim', minmax_ssr(yearList_tmp))
         hold on
     end
+    set(gca, 'ColorOrderIndex', 1) ;
     h0 = plot(yearList_tmp, tsR_yc, line_styles{ii}, 'LineWidth', 3) ;
     handles_hf2 = [handles_hf2 ; h0] ;
     set(gca, 'ColorOrderIndex', 1) ;
     if ii==1
-        hl = legend(handles_hf2, continent_list, 'Location', 'Northwest') ;
+        hl = legend(handles_hf2, continent_list, 'Location', 'West') ;
         hl.AutoUpdate = 'off' ;
         title(sprintf('FAOSTAT: %s', thisElement))
         ylabel(sprintf('Change since %d (%s)', base_year, T_tmp_thisYear.Unit{1}))
-        set(gca, 'FontSize', 14)
+        set(gca, 'FontSize', fontSize)
+    end
+    % If plotting World, color it black
+    if any(contains(continent_list, 'World'))
+        kids = get(gca, 'Children') ;
+        if ii==1
+            w2 = length(kids) - find(strcmp(continent_list, 'World')) ;
+        end
+        kids(w2).Color = [0 0 0] ;
     end
 end
 plot(yearList_tmp, 0*yearList_tmp, '--k')
+tmp_text = {'Solid: Monogastrics (poultry and pigs) + ruminants (beef, mutton, and goat)',...
+    'Dashed: Monogastrics only'} ;
+if include_milk
+    tmp_text = strrep(tmp_text, 'beef', 'milk not butter, beef') ;
+end
+if include_eggs
+    tmp_text = strrep(tmp_text, 'poultry', 'eggs, poultry,') ;
+end
 set(0,'CurrentFigure',hf1) ;
-text(0.25, 0.95, ...
-    {'Solid: Monogastrics (poultry and pigs) + ruminants (beef, mutton, and goat)',...
-    'Dashed: Monogastrics only'}, ...
+text(0.22, 0.95, tmp_text, ...
     'Units', 'normalized', 'HorizontalAlignment', 'left', 'FontSize', 12) ;
 set(0,'CurrentFigure',hf2) ;
-text(0.25, 0.95, ...
-    {'Solid: Monogastrics (poultry and pigs) + ruminants (beef, mutton, and goat)',...
-    'Dashed: Monogastrics only'}, ...
+text(0.22, 0.95, tmp_text, ...
     'Units', 'normalized', 'HorizontalAlignment', 'left', 'FontSize', 12) ;
 
-%{'M+R', 'Monogastric meat'}
 figure('Color', 'w', 'Position', thisPos) ;
 set(gca, 'ColorOrderIndex', 1) ;
-ydata = ts_ycm(:,:,strcmp(itemList_tmp,'Monogastric meat')) ...
+ydata = ts_ycm(:,:,strcmp(itemList_tmp,'Just monogastrics')) ...
     ./ ts_ycm(:,:,strcmp(itemList_tmp,'M+R')) ;
 plot(yearList_tmp, ydata, 'LineWidth', 3)
+
+% If plotting World, color it black
+if any(contains(continent_list, 'World'))
+    kids = get(gca, 'Children') ;
+    if ii==1
+        w2 = length(kids) - find(strcmp(continent_list, 'World')) + 1 ;
+    end
+    kids(w2).Color = [0 0 0] ;
+end
+    
 title('Monogastric fraction')
-set(gca, 'FontSize', 14)
+set(gca, 'FontSize', fontSize, 'XLim', minmax_ssr(yearList_tmp))
 legend(continent_list, 'Location', 'Best')
 
 % clear *tmp
