@@ -104,32 +104,32 @@ for c in np.arange(0,len(cropList_PLUM)):
         if is_irr:
             Kw = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, 'winter_wheat'))
             tmpW = emulate(
-                    Kw, co2, t, w, thisN, "NI", False
+                    Kw, co2, t, w, thisN
                     )
             Ks = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, 'spring_wheat'))
             tmpS = emulate(
-                    Ks, co2, t, w, thisN, "NI", False
+                    Ks, co2, t, w, thisN
                     )
         else:
             Kw = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, 'winter_wheat'))    
             tmpW = emulate(
-                Kw, co2, t, w, thisN, "N", False
+                Kw, co2, t, w, thisN
             )
             Ks = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, 'spring_wheat'))    
             tmpS = emulate(
-                Ks, co2, t, w, thisN, "N", False
+                Ks, co2, t, w, thisN
             )
         tmp = np.maximum(tmpW, tmpS)
     else:
         if is_irr:
             K = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, thisCrop_GGCMI_long))
             tmp = emulate(
-                    K, co2, t, w, thisN, "NI", False
+                    K, co2, t, w, thisN
                     )
         else:
             K = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, thisCrop_GGCMI_long))    
             tmp = emulate(
-                K, co2, t, w, thisN, "N", False
+                K, co2, t, w, thisN
             )
 
     # outarr_yield comes in as (crop,cell) because vstack is the only stack that works with one-d

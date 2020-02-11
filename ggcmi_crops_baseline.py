@@ -13,9 +13,9 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
         KI = np.load('%s/%s_%s_irr.npy'%(emulator_dir, GGCM, GGCMIcrop))
     else:
         KI = np.load('%s/%s_%s_I.npy'%(emulator_dir, GGCM, GGCMIcrop))
-    ir_10  = emulate(KI, co2, t, 1, 10,  'NI', is_irrig)
-    ir_60  = emulate(KI, co2, t, 1, 60,  'NI', is_irrig)
-    ir_200 = emulate(KI, co2, t, 1, 200, 'NI', is_irrig)
+    ir_10  = emulate(KI, co2, t, 1, 10)
+    ir_60  = emulate(KI, co2, t, 1, 60)
+    ir_200 = emulate(KI, co2, t, 1, 200)
 
     # Rainfed
     if is_irrig:
@@ -25,10 +25,10 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
         rf_200 = np.zeros(ir_10.shape)
     else:
         K  = np.load('%s/%s_%s.npy'%(emulator_dir, GGCM, GGCMIcrop))
-        rf_10  = emulate(K,  co2, t,  w, 10,  'N', is_irrig)
-        rf_60  = emulate(K,  co2, t,  w, 60,  'N', is_irrig)
+        rf_10  = emulate(K,  co2, t,  w, 10)
+        rf_60  = emulate(K,  co2, t,  w, 60)
 
-        rf_200 = emulate(K,  co2, t,  w, 200, 'N', is_irrig)
+        rf_200 = emulate(K,  co2, t,  w, 200)
     return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
 
 

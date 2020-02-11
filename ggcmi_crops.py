@@ -36,9 +36,9 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt)
         KI = nc_fid.variables["K_ir"][:]
         
     # Irrigated
-    ir_10  = emulate(KI, co2[decade], t[decade,:,:], 1, 10,  'NI', is_irrig)
-    ir_60  = emulate(KI, co2[decade], t[decade,:,:], 1, 60,  'NI', is_irrig)
-    ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200, 'NI', is_irrig)
+    ir_10  = emulate(KI, co2[decade], t[decade,:,:], 1, 10)
+    ir_60  = emulate(KI, co2[decade], t[decade,:,:], 1, 60)
+    ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200)
 
     # Rainfed
     if is_irrig:
@@ -47,9 +47,9 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt)
         rf_60 = np.zeros(ir_10.shape)
         rf_200 = np.zeros(ir_10.shape)
     else:
-        rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10,  'N', is_irrig)
-        rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60,  'N', is_irrig)
-        rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200, 'N', is_irrig)
+        rf_10  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 10)
+        rf_60  = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 60)
+        rf_200 = emulate(K,  co2[decade], t[decade,:,:],  w[decade,:,:], 200)
     return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
 
 
