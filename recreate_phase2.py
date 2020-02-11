@@ -1,9 +1,9 @@
 #!/bin/env python
+from em_functions import emulate, update_out_table
 import numpy as np
 import os
 # import glob
 # import datetime
-from em_functions import emulate, update_out_table
 
 emulator_dir = "../fits_yield"
 co2 = 360
@@ -54,22 +54,22 @@ for c in np.arange(0,len(crop_list_long)):
     K = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, crop_long))
     KI = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, crop_long))
     rf_10 = emulate(
-        K, co2, t, w, 10, "N", is_irrig
+        K, co2, t, w, 10
     )
     rf_60 = emulate(
-        K, co2, t, w, 60, "N", is_irrig
+        K, co2, t, w, 60
     )
     rf_200 = emulate(
-        K, co2, t, w, 200, "N", is_irrig
+        K, co2, t, w, 200
     )
     ir_10 = emulate(
-        KI, co2, t, w, 10, "NI", is_irrig
+        KI, co2, t, w, 10
     )
     ir_60 = emulate(
-        KI, co2, t, w, 60, "NI", is_irrig
+        KI, co2, t, w, 60
     )
     ir_200 = emulate(
-        KI, co2, t, w, 200, "NI", is_irrig
+        KI, co2, t, w, 200
     )
 
     # Update output table
