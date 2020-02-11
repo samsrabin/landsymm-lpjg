@@ -131,12 +131,24 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig, do_
                    890.3395]
 
         # Emulate the six management cases.
-        emulator_dir_yield = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_yield"
-        emulator_dir_irrig = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_irrig"
-        rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield \
-            = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False, decade, do_adapt)
-        rf_10_irrig, rf_60_irrig,rf_200_irrig, ir_10_irrig,ir_60_irrig, ir_200_irrig \
-            = do_emulation(emulator_dir_irrig, GGCMIcrop, co2, t, w, True, decade, do_adapt)
+        if GGCM == "LPJmL" and GGCMIcrop == "soy":
+            print("SKIPPING LPJML SOY (has Jim redone this yet?")
+            rf_10_yield = np.empty(mask_YX.shape)
+            rf_10_yield[:] = np.NaN
+            rf_60_yield = rf_10_yield
+            rf_200_yield = rf_10_yield
+            ir_10_yield = rf_10_yield
+            ir_60_yield = rf_10_yield
+            ir_200_yield = rf_10_yield
+        else:
+            emulator_dir_yield = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_yield"
+            emulator_dir_irrig = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_irrig"
+            rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield \
+                = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False, decade,
+                               do_adapt)
+            rf_10_irrig, rf_60_irrig,rf_200_irrig, ir_10_irrig,ir_60_irrig, ir_200_irrig \
+                = do_emulation(emulator_dir_irrig, GGCMIcrop, co2, t, w, True, decade,
+                               do_adapt)
         del t, w
 
         # Add values to output tables
