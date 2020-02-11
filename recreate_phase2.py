@@ -1,6 +1,6 @@
 #!/bin/env python
 from netCDF4 import Dataset
-from em_functions import emulate, update_out_table
+from em_functions import emulate, update_out_table, import_parameter_netcdfs
 import numpy as np
 import os
 # import glob
@@ -52,11 +52,7 @@ for c in np.arange(0,len(crop_list_long)):
     crop_short = crop_list_short[c]
     print(crop_long)
     # Emulate
-    filename = '%s/%s_%s_ggcmi_phase2_emulator_A0.nc4' \
-        % (emulator_dir, GGCM, crop_long)
-    nc_fid = Dataset(filename, 'r')
-    K = nc_fid.variables["K_rf"][:]
-    KI = nc_fid.variables["K_ir"][:]
+    K, KI = import_parameter_netcdfs(emulator_dir, GGCM, crop_long, False)
     rf_10 = emulate(
         K, co2, t, w, 10
     )

@@ -1,4 +1,5 @@
 #!/bin/env python
+from netCDF4 import Dataset
 import numpy as np
 import os
 
@@ -174,11 +175,14 @@ def emulate(K, C, T, W, N):
 def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, GGCM, decade):
     if is_irrig:
         KI = np.load("%s/%s_%s_irr.npy" % (emulator_dir, GGCM, GGCMIcrop))
+        ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10, "NI", True)
+        ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60, "NI", True)
+        ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200, "NI", True)
     else:
         KI = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, GGCMIcrop))
-    ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10)
-    ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60)
-    ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200)
+        ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10)
+        ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60)
+        ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200)
 
     # Rainfed
     if is_irrig:
@@ -256,3 +260,23 @@ def save_out_table(
     # Save in PLUM-readable format; compress
     np.savetxt(outfile, outarr.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
     os.system('gzip %s' % (outfile))
+
+
+def remove_extra_stuff(array_in):
+    if array_in.mask.size > 1:
+        array_in = np.delete(array_in, np.where(array_in.mask.all(axis=(1,2))), 0)
+    return array_in
+
+
+def import_parameter_netcdfs(
+        emulator_dir, GGCM, GGCMIcrop, do_adapt):
+    filename = '%s/%s_%s_ggcmi_phase2_emulator_A%d.nc4' \
+        % (emulator_dir, GGCM, GGCMIcrop, do_adapt)
+    nc_fid = Dataset(filename, 'r')
+    K = nc_fid.variables["K_rf"][:]
+    KI = nc_fid.variables["K_ir"][:]
+    K = remove_extra_stuff(K)
+    KI = remove_extra_stuff(KI)
+    return K, KI
+    
+    

@@ -1,6 +1,6 @@
 #!/bin/env python
-from netCDF4 import Dataset
-from em_functions import emulate_old, emulate, update_out_table, save_out_table
+from em_functions \
+    import emulate_old, emulate, update_out_table, save_out_table, import_parameter_netcdfs
 import numpy as np
 import os
 # import glob
@@ -29,11 +29,7 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt)
     if is_irrig:
         KI = np.load('%s/%s_%s_irr.npy' % (emulator_dir, GGCM, GGCMIcrop))
     else:
-        filename = '%s/%s_%s_ggcmi_phase2_emulator_A%d.nc4' \
-            % (emulator_dir, GGCM, GGCMIcrop, do_adapt)
-        nc_fid = Dataset(filename, 'r')
-        K = nc_fid.variables["K_rf"][:]
-        KI = nc_fid.variables["K_ir"][:]
+        K, KI = import_parameter_netcdfs(emulator_dir, GGCM, GGCMIcrop, do_adapt)
 
     # Irrigated
     if is_irrig:
