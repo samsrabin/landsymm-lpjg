@@ -14,8 +14,8 @@ GGCM = "pDSSAT"
 
 os.chdir("/Users/Shared/GGCMI2PLUM/emulator/Sam/")
 
-#crop_list_long = ['maize', 'winter_wheat', 'spring_wheat']
-#crop_list_short = ["mai", "wwh", "swh"]
+# crop_list_long = ['maize', 'winter_wheat', 'spring_wheat']
+# crop_list_short = ["mai", "wwh", "swh"]
 crop_list_long = ['maize', 'winter_wheat', 'spring_wheat', 'soy', 'rice']
 crop_list_short = ["mai", "wwh", "swh", "soy", "ric"]
 N_list = [10, 60, 200]
@@ -46,7 +46,7 @@ outarr_yield = lonlats
 
 for c in np.arange(0,len(crop_list_long)):
     crop_long = crop_list_long[c]
-    if GGCM == "LPJ-GUESS" and (crop_long=="soy" or crop_long=="rice"):
+    if GGCM == "LPJ-GUESS" and (crop_long == "soy" or crop_long == "rice"):
         continue
     crop_short = crop_list_short[c]
     print(crop_long)

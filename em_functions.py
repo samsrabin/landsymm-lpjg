@@ -2,6 +2,7 @@
 import numpy as np
 import os
 
+
 def emulate(K, C, T, W, N):
     if K.shape[0] == 34:
         Y = (K[0,:,:] + K[1,:,:]*C + K[2,:,:]*T + K[3,:,:]*W + K[4,:,:]*N + K[5,:,:]*C**2
@@ -19,18 +20,18 @@ def emulate(K, C, T, W, N):
              + K[11,:,:]*C**2*T + K[12,:,:]*C**2*W + K[13,:,:]*C*T**2 + K[14,:,:]*C*T*W
              + K[15,:,:]*C*W**2 + K[16,:,:]*T**3 + K[17,:,:]*T**2*W + K[18,:,:]*T*W**2
              + K[19,:,:]*W**3)
-  
+
     elif K.shape[0] == 19:
         Y = (K[0,:,:] + K[1,:,:]*C + K[2,:,:]*T + K[3,:,:]*N + K[4,:,:]*C**2 + K[5,:,:]*C*T
              + K[6,:,:]*C*N + K[7,:,:]*T**2 + K[8,:,:]*T*N + K[9,:,:]*N**2 + K[10,:,:]*C**3
              + K[11,:,:]*C**2*T + K[12,:,:]*C**2*N + K[13,:,:]*C*T**2 + K[14,:,:]*C*T*N
              + K[15,:,:]*C*N**2 + K[16,:,:]*T**3 + K[17,:,:]*T**2*N + K[18,:,:]*T*N**2)
-  
+
     elif K.shape[0] == 10:
         Y = (K[0,:,:] + K[1,:,:]*C + K[2,:,:]*T + K[3,:,:]*C**2 + K[4,:,:]*C*T
              + K[5,:,:]*T**2 + K[6,:,:]*C**3 + K[7,:,:]*C**2*T + K[8,:,:]*C*T**2
              + K[9,:,:]*T**3)
-  
+
     Y = np.nan_to_num(Y)
     Y[Y < 0.01] = 0
     return Y
@@ -90,20 +91,13 @@ def update_out_table(
 
     # Update header
     outheader = (
-        outheader
-        + " "
-        + PLUMcrop
-        + "010 "
-        + PLUMcrop
-        + "060 "
-        + PLUMcrop
-        + "200 "
-        + PLUMcrop
-        + "i010 "
-        + PLUMcrop
-        + "i060 "
-        + PLUMcrop
-        + "i200"
+        outheader + " "
+        + PLUMcrop + "010 "
+        + PLUMcrop + "060 "
+        + PLUMcrop + "200 "
+        + PLUMcrop + "i010 "
+        + PLUMcrop + "i060 "
+        + PLUMcrop + "i200"
     )
     outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
 
@@ -116,7 +110,7 @@ def save_out_table(
         outfmt,
         outheader,
         outarr):
-    
+
     # Make output directory, if needed
     try:
         os.makedirs(outdir)
@@ -127,5 +121,4 @@ def save_out_table(
 
     # Save in PLUM-readable format; compress
     np.savetxt(outfile, outarr.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
-    os.system('gzip %s'%(outfile))    
-    
+    os.system('gzip %s' % (outfile))
