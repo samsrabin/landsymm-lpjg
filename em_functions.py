@@ -31,6 +31,8 @@ def emulate(K, C, T, W, N):
         Y = (K[0,:,:] + K[1,:,:]*C + K[2,:,:]*T + K[3,:,:]*C**2 + K[4,:,:]*C*T
              + K[5,:,:]*T**2 + K[6,:,:]*C**3 + K[7,:,:]*C**2*T + K[8,:,:]*C*T**2
              + K[9,:,:]*T**3)
+    else:
+        raise Exception("K.shape[0] not recognized: %d" % K.shape[0])
 
     Y = np.nan_to_num(Y)
     Y[Y < 0.01] = 0
