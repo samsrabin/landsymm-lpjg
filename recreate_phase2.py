@@ -1,18 +1,19 @@
 #!/bin/env python
+from netCDF4 import Dataset
 from em_functions import emulate, update_out_table
 import numpy as np
 import os
 # import glob
 # import datetime
 
-emulator_dir = "../fits_yield"
+emulator_dir = "inputs/fits_yield"
 co2 = 360
 t = 0
 w = 1
 is_irrig = False
 GGCM = "pDSSAT"
 
-os.chdir("/Users/Shared/GGCMI2PLUM/emulator/Sam/")
+os.chdir("/Users/Shared/GGCMI2PLUM_sh/emulation/")
 
 # crop_list_long = ['maize', 'winter_wheat', 'spring_wheat']
 # crop_list_short = ["mai", "wwh", "swh"]
@@ -20,7 +21,7 @@ crop_list_long = ['maize', 'winter_wheat', 'spring_wheat', 'soy', 'rice']
 crop_list_short = ["mai", "wwh", "swh", "soy", "ric"]
 N_list = [10, 60, 200]
 
-outdir = "outputs_recreate_phase2"
+outdir = "outputs/outputs_recreate_phase2"
 outfile = "%s/%s.out" % (outdir, GGCM)
 
 # Make output directory, if needed
@@ -32,9 +33,9 @@ except FileExistsError:
     pass
 
 # Import PLUM mask and lon/lat
-mask_YX = np.genfromtxt("plum/PLUM_mask.csv", delimiter=",")
-lons_YX = np.genfromtxt("plum/PLUM_map_lons.csv", delimiter=",")
-lats_YX = np.genfromtxt("plum/PLUM_map_lats.csv", delimiter=",")
+mask_YX = np.genfromtxt("inputs/plum/PLUM_mask.csv", delimiter=",")
+lons_YX = np.genfromtxt("inputs/plum/PLUM_map_lons.csv", delimiter=",")
+lats_YX = np.genfromtxt("inputs/plum/PLUM_map_lats.csv", delimiter=",")
 lons = lons_YX[mask_YX == 1]
 lats = lats_YX[mask_YX == 1]
 lonlats = np.vstack((lons, lats))
@@ -51,8 +52,11 @@ for c in np.arange(0,len(crop_list_long)):
     crop_short = crop_list_short[c]
     print(crop_long)
     # Emulate
-    K = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, crop_long))
-    KI = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, crop_long))
+    filename = '%s/%s_%s_ggcmi_phase2_emulator_A0.nc4' \
+        % (emulator_dir, GGCM, crop_long)
+    nc_fid = Dataset(filename, 'r')
+    K = nc_fid.variables["K_rf"][:]
+    KI = nc_fid.variables["K_ir"][:]
     rf_10 = emulate(
         K, co2, t, w, 10
     )
