@@ -1,6 +1,6 @@
 #!/bin/env python
 from netCDF4 import Dataset
-from em_functions import emulate, update_out_table, save_out_table
+from em_functions import emulate_old, emulate, update_out_table, save_out_table
 import numpy as np
 import os
 # import glob
@@ -27,9 +27,7 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt)
 
     # Get files and read parameters
     if is_irrig:
-        filename_rf = '%s/%s_%s.npy' % (emulator_dir, GGCM, GGCMIcrop)
-        filename_ir = '%s/%s_%s_irr.npy' % (emulator_dir, GGCM, GGCMIcrop)
-        KI = np.load(filename_ir)
+        KI = np.load('%s/%s_%s_irr.npy' % (emulator_dir, GGCM, GGCMIcrop))
     else:
         filename = '%s/%s_%s_ggcmi_phase2_emulator_A%d.nc4' \
             % (emulator_dir, GGCM, GGCMIcrop, do_adapt)
@@ -38,9 +36,14 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt)
         KI = nc_fid.variables["K_ir"][:]
 
     # Irrigated
-    ir_10 = emulate(KI, co2[decade], t[decade,:,:], 1, 10)
-    ir_60 = emulate(KI, co2[decade], t[decade,:,:], 1, 60)
-    ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200)
+    if is_irrig:
+        ir_10 = emulate_old(KI, co2[decade], t[decade, :, :], 1, 10, "NI", True)
+        ir_60 = emulate_old(KI, co2[decade], t[decade, :, :], 1, 60, "NI", True)
+        ir_200 = emulate_old(KI, co2[decade], t[decade, :, :], 1, 200, "NI", True)
+    else:
+        ir_10 = emulate(KI, co2[decade], t[decade,:,:], 1, 10)
+        ir_60 = emulate(KI, co2[decade], t[decade,:,:], 1, 60)
+        ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200)
 
     # Rainfed
     if is_irrig:

@@ -1,5 +1,6 @@
 #!/bin/env python
-from em_functions import emulate, update_out_table, save_out_table
+from netCDF4 import Dataset
+from em_functions import emulate_old, emulate, update_out_table, save_out_table
 import numpy as np
 import os
 # import glob
@@ -9,14 +10,25 @@ np.random.seed(1234)
 
 def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
 
-    # Irrigated
+    # Get files and read parameters
     if is_irrig:
         KI = np.load('%s/%s_%s_irr.npy' % (emulator_dir, GGCM, GGCMIcrop))
     else:
-        KI = np.load('%s/%s_%s_I.npy' % (emulator_dir, GGCM, GGCMIcrop))
-    ir_10 = emulate(KI, co2, t, 1, 10)
-    ir_60 = emulate(KI, co2, t, 1, 60)
-    ir_200 = emulate(KI, co2, t, 1, 200)
+        filename = '%s/%s_%s_ggcmi_phase2_emulator_A0.nc4' \
+            % (emulator_dir, GGCM, GGCMIcrop)
+        nc_fid = Dataset(filename, 'r')
+        K = nc_fid.variables["K_rf"][:]
+        KI = nc_fid.variables["K_ir"][:]
+
+    # Irrigated
+    if is_irrig:
+        ir_10 = emulate_old(KI, co2, t, 1, 10, "NI", True)
+        ir_60 = emulate_old(KI, co2, t, 1, 60, "NI", True)
+        ir_200 = emulate_old(KI, co2, t, 1, 200, "NI", True)
+    else:
+        ir_10 = emulate(KI, co2, t, 1, 10)
+        ir_60 = emulate(KI, co2, t, 1, 60)
+        ir_200 = emulate(KI, co2, t, 1, 200)
 
     # Rainfed
     if is_irrig:
@@ -25,7 +37,6 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig):
         rf_60 = np.zeros(ir_10.shape)
         rf_200 = np.zeros(ir_10.shape)
     else:
-        K = np.load('%s/%s_%s.npy' % (emulator_dir, GGCM, GGCMIcrop))
         rf_10 = emulate(K, co2, t, w, 10)
         rf_60 = emulate(K, co2, t, w, 60)
         rf_200 = emulate(K, co2, t, w, 200)
@@ -59,8 +70,6 @@ def PLUMemulate(GGCM, mask_YX, outarr_yield, outarr_irrig):
     # prev_PLUMcrop = "nothing"
     for GGCMIcrop in GGCMIcrops:
 
-        print("%s %s" % (GGCM, GGCMIcrop))
-
         # Set climate
         t = 0.0
         w = 1.0
@@ -69,12 +78,23 @@ def PLUMemulate(GGCM, mask_YX, outarr_yield, outarr_irrig):
         co2 = 360
 
         # Emulate the six management cases.
-        emulator_dir_yield = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_yield"
-        emulator_dir_irrig = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_irrig"
-        rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield \
-            = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False)
-        rf_10_irrig, rf_60_irrig, rf_200_irrig, ir_10_irrig, ir_60_irrig, ir_200_irrig\
-            = do_emulation(emulator_dir_irrig,GGCMIcrop, co2, t, w, True)
+        if GGCM == "LPJmL" and GGCMIcrop == "soy":
+            print("SKIPPING LPJML SOY (has Jim redone this yet?")
+            rf_10_yield = np.empty(mask_YX.shape)
+            rf_10_yield[:] = np.NaN
+            rf_60_yield = rf_10_yield
+            rf_200_yield = rf_10_yield
+            ir_10_yield = rf_10_yield
+            ir_60_yield = rf_10_yield
+            ir_200_yield = rf_10_yield
+        else:
+            print("%s %s" % (GGCM, GGCMIcrop))
+            emulator_dir_yield = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_yield"
+            emulator_dir_irrig = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_irrig"
+            rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield \
+                = do_emulation(emulator_dir_yield, GGCMIcrop, co2, t, w, False)
+            rf_10_irrig, rf_60_irrig, rf_200_irrig, ir_10_irrig, ir_60_irrig, ir_200_irrig\
+                = do_emulation(emulator_dir_irrig, GGCMIcrop, co2, t, w, True)
         del t, w
 
         # Add values to output tables
@@ -92,16 +112,16 @@ def PLUMemulate(GGCM, mask_YX, outarr_yield, outarr_irrig):
     return(outarr_yield, outarr_irrig, outheader, outfmt)
 
 
-outdir_suffix = "20191008"
+outdir_suffix = "20200211"
 
 GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
 # GGCMs = ["LPJmL"]
 
 # Import PLUM mask and lon/lat
 plum_dir = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/plum/"
-mask_YX = np.genfromtxt(plum_dir+"PLUM_mask.csv", delimiter=",")
-lons_YX = np.genfromtxt(plum_dir+"PLUM_map_lons.csv", delimiter=",")
-lats_YX = np.genfromtxt(plum_dir+"PLUM_map_lats.csv", delimiter=",")
+mask_YX = np.genfromtxt(plum_dir + "PLUM_mask.csv", delimiter=",")
+lons_YX = np.genfromtxt(plum_dir + "PLUM_map_lons.csv", delimiter=",")
+lats_YX = np.genfromtxt(plum_dir + "PLUM_map_lats.csv", delimiter=",")
 lons = lons_YX[mask_YX == 1]
 lats = lats_YX[mask_YX == 1]
 lonlats = np.vstack((lons,lats))
@@ -113,8 +133,8 @@ for GGCM in GGCMs:
     outdir = \
         '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcropsBaseline_%s/%s' \
         % (outdir_suffix, GGCM)
-    outfile_yield = ' % s/yield.out' % (outdir)
-    outfile_irrig = ' % s/gsirrigation.out' % (outdir)
+    outfile_yield = '%s/yield.out' % (outdir)
+    outfile_irrig = '%s/gsirrigation.out' % (outdir)
 
     # Skip if files already exist
     exist_yield = os.path.isfile(outfile_yield) or os.path.isfile(outfile_yield + ".gz")
