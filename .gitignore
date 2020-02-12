@@ -7,7 +7,7 @@ crop/
 *.gz
 plum
 fits*
-outputs*/
+*outputs*/
 climate
 __pycache__
 .idea
