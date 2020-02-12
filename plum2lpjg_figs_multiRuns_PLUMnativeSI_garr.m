@@ -976,63 +976,53 @@ end
 
 % Options %%%%%%%%%
 fontSize = 14 ;
-spacing = [0.02 0.02] ;   % [vert, horz]
-% textX = 25 ;
-textX = 45 ;
-textY_1 = 50 ;
-textY_2 = 20 ;
+% spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
+spacing = 0 ;
+textX = 0.115 ;
+textY_1 = 50/360 ;
+textY_2 = 20/360 ;
 % shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
-shiftup = 15 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
+shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 thisPos = [1    33   770   772] ;
 nx = 2 ;
 ny = 4 ;
-colorBarLoc = 'EastOutside' ;
-as_frac_land = false ;
-only1bl = true ;
-same_caxis = true ;
-Nbins = 11 ;
+as_frac_land = true ;
+bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 %%%%%%%%%%%%%%%%%%%
 
 thisY1 = yearList_baseline(end) ;
 thisYN = yearList_future(end) ;
 
-crop_area_YXB = lpjgu_vector2map(crop_area_xBH, map_size, list2map) ;
-past_area_YXB = lpjgu_vector2map(past_area_xBH, map_size, list2map) ;
+area_crop_bl = sum(crop_area_xBH)*conv_fact_total ;
+area_past_bl = sum(past_area_xBH)*conv_fact_total ;
+total_cropDiff_r = sum(crop_diff_xrH, 1)*conv_fact_total ;
+total_pastDiff_r = sum(past_diff_xrH, 1)*conv_fact_total ;
+
+% Get difference (%)
 crop_diff_YXrH = nan([map_size Nruns]) ;
 past_diff_YXrH = nan([map_size Nruns]) ;
 for r = 1:Nruns
-    crop_diff_YXrH(:,:,r) = lpjgu_vector2map(crop_diff_xrH(:,r), map_size, list2map) ;
-    past_diff_YXrH(:,:,r) = lpjgu_vector2map(past_diff_xrH(:,r), map_size, list2map) ;
+    crop_diff_YXrH(:,:,r) = lpjgu_vector2map(100*crop_diff_xrH(:,r)./gcel_area_x, map_size, list2map) ;
+    past_diff_YXrH(:,:,r) = lpjgu_vector2map(100*past_diff_xrH(:,r)./gcel_area_x, map_size, list2map) ;
 end
 
-if as_frac_land
-    crop_area_YXB = crop_area_YXB ./ gcel_area_YX ;
-    past_area_YXB = past_area_YXB ./ gcel_area_YX ;
-    crop_diff_YXrH = crop_diff_YXrH ./ repmat(gcel_area_YX, [1 1 Nruns]) ;
-    past_diff_YXrH = past_diff_YXrH ./ repmat(gcel_area_YX, [1 1 Nruns]) ;
-    conv_fact_map = 100 ;
-    conv_fact_total = 0 ;
-    units_map = '%' ;
-    units_total = '???' ;
-else
-    conv_fact_map = 1e-6 ;   % m2 to km2
-    conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
-    units_map = 'km^2' ;
-    units_total = 'Mkm^2' ;
+units_map = '%' ;
+units_total = 'Mkm^2' ;
+
+if ~as_frac_land
+    error('This only works with as_frac_land TRUE')
 end
-
-
-[diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v4(...
-    crop_area_YXB, ...
-    past_area_YXB, ...
+[diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v5(...
+    area_crop_bl, area_past_bl, total_cropDiff_r, total_pastDiff_r, ...
     crop_diff_YXrH, past_diff_YXrH, ...
-    thisY1, thisYN, 'Cropland', runList, ...
+    thisY1, thisYN, runList, ...
     spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
-    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps, ...
-    same_caxis, Nbins) ;
+    nx, ny, ...
+    Nruns, thisPos, units_map, units_total, do_caps, ...
+    bins_lowBnds) ;
 if do_save
-    filename = [outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'] ;
+    filename = [outDir_maps 'areaPctDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'] ;
     export_fig(filename,['-r' num2str(pngres)])
     diff_agri_YXr = diff_crop_YXr + diff_past_YXr ;
     filename_crop = strrep(filename,'croppast','crop') ;
