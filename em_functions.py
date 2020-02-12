@@ -1,8 +1,10 @@
 #!/bin/env python
+from netCDF4 import Dataset
 import numpy as np
 import os
 
-def emulate(K, c, t, w, n, case, is_irrig):
+
+def emulate_old(K, c, t, w, n, case, is_irrig):
     '''
     Cases:
         NN: no nitrogen
@@ -134,14 +136,53 @@ def emulate(K, c, t, w, n, case, is_irrig):
     return Y
 
 
+def emulate(K, C, T, W, N):
+    if K.shape[0] == 34:
+        Y = (K[0,:,:] + K[1,:,:]*C + K[2,:,:]*T + K[3,:,:]*W + K[4,:,:]*N + K[5,:,:]*C**2
+             + K[6,:,:]*C*T + K[7,:,:]*C*W + K[8,:,:]*C*N + K[9,:,:]*T**2 + K[10,:,:]*T*W
+             + K[11,:,:]*T*N + K[12,:,:]*W**2 + K[13,:,:]*W*N + K[14,:,:]*N**2
+             + K[15,:,:]*C**3 + K[16,:,:]*C**2*T + K[17,:,:]*C**2*W + K[18,:,:]*C**2*N
+             + K[19,:,:]*C*T**2 + K[20,:,:]*C*T*W + K[21,:,:]*C*T*N + K[22,:,:]*C*W**2
+             + K[23,:,:]*C*W*N + K[24,:,:]*C*N**2 + K[25,:,:]*T**3 + K[26,:,:]*T**2*W
+             + K[27,:,:]*T**2*N + K[28,:,:]*T*W**2 + K[29,:,:]*T*W*N + K[30,:,:]*T*N**2
+             + K[31,:,:]*W**3 + K[32,:,:]*W**2*N + K[33,:,:]*W*N**2)
+
+    elif K.shape[0] == 20:
+        Y = (K[0,:,:] + K[1,:,:]*C + K[2,:,:]*T + K[3,:,:]*W + K[4,:,:]*C**2 + K[5,:,:]*C*T
+             + K[6,:,:]*C*W + K[7,:,:]*T**2 + K[8,:,:]*T*W + K[9,:,:]*W**2 + K[10,:,:]*C**3
+             + K[11,:,:]*C**2*T + K[12,:,:]*C**2*W + K[13,:,:]*C*T**2 + K[14,:,:]*C*T*W
+             + K[15,:,:]*C*W**2 + K[16,:,:]*T**3 + K[17,:,:]*T**2*W + K[18,:,:]*T*W**2
+             + K[19,:,:]*W**3)
+
+    elif K.shape[0] == 19:
+        Y = (K[0,:,:] + K[1,:,:]*C + K[2,:,:]*T + K[3,:,:]*N + K[4,:,:]*C**2 + K[5,:,:]*C*T
+             + K[6,:,:]*C*N + K[7,:,:]*T**2 + K[8,:,:]*T*N + K[9,:,:]*N**2 + K[10,:,:]*C**3
+             + K[11,:,:]*C**2*T + K[12,:,:]*C**2*N + K[13,:,:]*C*T**2 + K[14,:,:]*C*T*N
+             + K[15,:,:]*C*N**2 + K[16,:,:]*T**3 + K[17,:,:]*T**2*N + K[18,:,:]*T*N**2)
+
+    elif K.shape[0] == 10:
+        Y = (K[0,:,:] + K[1,:,:]*C + K[2,:,:]*T + K[3,:,:]*C**2 + K[4,:,:]*C*T
+             + K[5,:,:]*T**2 + K[6,:,:]*C**3 + K[7,:,:]*C**2*T + K[8,:,:]*C*T**2
+             + K[9,:,:]*T**3)
+    else:
+        raise Exception("K.shape[0] not recognized: %d" % K.shape[0])
+
+    Y = np.nan_to_num(Y)
+    Y[Y < 0.01] = 0
+    return Y
+
+
 def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, GGCM, decade):
     if is_irrig:
         KI = np.load("%s/%s_%s_irr.npy" % (emulator_dir, GGCM, GGCMIcrop))
+        ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10, "NI", True)
+        ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60, "NI", True)
+        ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200, "NI", True)
     else:
         KI = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, GGCMIcrop))
-    ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10, "NI", is_irrig)
-    ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60, "NI", is_irrig)
-    ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200, "NI", is_irrig)
+        ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10)
+        ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60)
+        ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200)
 
     # Rainfed
     if is_irrig:
@@ -152,13 +193,13 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, GGCM, decade):
     else:
         K = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, GGCMIcrop))
         rf_10 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 10, "N", is_irrig
+            K, co2[decade], t[decade, :, :], w[decade, :, :], 10
         )
         rf_60 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 60, "N", is_irrig
+            K, co2[decade], t[decade, :, :], w[decade, :, :], 60
         )
         rf_200 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 200, "N", is_irrig
+            K, co2[decade], t[decade, :, :], w[decade, :, :], 200
         )
     return (rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
 
@@ -188,20 +229,13 @@ def update_out_table(
 
     # Update header
     outheader = (
-        outheader
-        + " "
-        + PLUMcrop
-        + "010 "
-        + PLUMcrop
-        + "060 "
-        + PLUMcrop
-        + "200 "
-        + PLUMcrop
-        + "i010 "
-        + PLUMcrop
-        + "i060 "
-        + PLUMcrop
-        + "i200"
+        outheader + " "
+        + PLUMcrop + "010 "
+        + PLUMcrop + "060 "
+        + PLUMcrop + "200 "
+        + PLUMcrop + "i010 "
+        + PLUMcrop + "i060 "
+        + PLUMcrop + "i200"
     )
     outfmt = outfmt + " %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f"
 
@@ -214,7 +248,7 @@ def save_out_table(
         outfmt,
         outheader,
         outarr):
-    
+
     # Make output directory, if needed
     try:
         os.makedirs(outdir)
@@ -225,5 +259,24 @@ def save_out_table(
 
     # Save in PLUM-readable format; compress
     np.savetxt(outfile, outarr.T, delimiter=" ", fmt=outfmt, header=outheader, comments="")
-    os.system('gzip %s'%(outfile))    
+    os.system('gzip %s' % (outfile))
+
+
+def remove_extra_stuff(array_in):
+    if array_in.mask.size > 1:
+        array_in = np.delete(array_in, np.where(array_in.mask.all(axis=(1,2))), 0)
+    return array_in
+
+
+def import_parameter_netcdfs(
+        emulator_dir, GGCM, GGCMIcrop, do_adapt):
+    filename = '%s/%s_%s_ggcmi_phase2_emulator_A%d.nc4' \
+        % (emulator_dir, GGCM, GGCMIcrop, do_adapt)
+    nc_fid = Dataset(filename, 'r')
+    K = nc_fid.variables["K_rf"][:]
+    KI = nc_fid.variables["K_ir"][:]
+    K = remove_extra_stuff(K)
+    KI = remove_extra_stuff(KI)
+    return K, KI
+    
     
