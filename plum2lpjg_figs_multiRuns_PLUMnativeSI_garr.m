@@ -802,44 +802,45 @@ do_map_run_diffs_fromEndHist(do_save, garr_albedo_d9, sumvars, title_text, filen
 filename_base = [outDir_maps 'cpool_veg'] ;
 title_text = 'vegetation C' ;
 sumvars = 'VegC' ;
-pct_clim = 100 ;
-equalize_cbars = true ;
 conv_fact_map = 1e-3*1e4 ;   % kgC/m2 to tonsC/ha
 units_map = 'tons C ha^{-1}' ;
 conv_fact_total = cf_kg2Pg ;   % kgC to PgC
 units_total = 'PgC' ;
 this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
-prctile_clim = [] ;
-%%%%%%%%%%%%%%%%%%%
-textX = 25 ; textY_1 = 50 ; textY_2 = 20 ; 
-shiftup = 10 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup ; 
-% fontSize = 14 ;
-fontSize = 16 ;
-colorBarLoc = 'SouthOutside' ; 
-nx = 2 ; ny = 2 ;
-% nx = 1 ; ny = 4 ;
-% thisPos = figurePos ;
-thisPos = [1         130        1320         675] ;
-% spacing = [0.1 0.05] ;% [v h]
-spacing = [0.05 0.05] ;% [v h]
 %%%%%%%%%%%%%%%%%%%
 
-do_map_run_diffs_fromEndHist(do_save, garr_cpool_d9, sumvars, title_text, filename_base, ...
-    equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
-    thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
-    conv_fact_map, units_map, conv_fact_total, units_total, ...
-    pct_clim, prctile_clim, R, gtif_missing, map_size, list2map) ;
+% pct_clim = 100 ;
+% equalize_cbars = true ;
+% prctile_clim = [] ;
+% textX = 25/720 ; textY_1 = 50/360 ; textY_2 = 20/360 ; 
+% shiftup = 10/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup ; 
+% % fontSize = 14 ;
+% fontSize = 16 ;
+% colorBarLoc = 'SouthOutside' ; 
+% nx = 2 ; ny = 2 ;
+% % nx = 1 ; ny = 4 ;
+% % thisPos = figurePos ;
+% thisPos = [1         130        1320         675] ;
+% % spacing = [0.1 0.05] ;% [v h]
+% spacing = [0.05 0.05] ;% [v h]
+% do_map_run_diffs_fromEndHist(do_save, garr_cpool_d9, sumvars, title_text, filename_base, ...
+%     equalize_cbars, fontSize, spacing, textX, textY_1, textY_2, pngres, ...
+%     thisPos, nx, ny, colorBarLoc, runList, do_caps, this_land_area_map, ...
+%     conv_fact_map, units_map, conv_fact_total, units_total, ...
+%     pct_clim, prctile_clim, R, gtif_missing, map_size, list2map) ;
+
 
 thisPos = [1    33   407   772] ;
-spacing = [0.05 0.05] ;% [v h]
+spacing = [0.05 0.05] ; % [v h]
 fontSize = 11 ;
 textX = 0 ;
-
-map_run_diffs_fromEndHist_oneCol(garr_cpool_d9, title_text, sumvars, ...
+bins_lowBnds = [-250:50:-50 -5 5 50:50:200] ;
+map_run_diffs_fromEndHist_oneCol_v2(garr_cpool_d9, title_text, sumvars, ...
     fontSize, spacing, textX, textY_1, textY_2, ...
-    thisPos, colorBarLoc, runList, do_caps, this_land_area_map, ...
+    thisPos, runList, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, ...
-    pct_clim, prctile_clim, map_size, list2map) ;
+    bins_lowBnds, 'BrBG', ...
+    map_size, list2map) ;
 if do_save
     filename = [filename_base '_diff'] ;
     if ~isempty(prctile_clim)
@@ -853,7 +854,6 @@ if do_save
     export_fig(filename,['-r' num2str(pngres)])
     close
 end
-clear tmp_maps_YXr
 
 
 %% Map differences from end of historical to end of future: Total C
@@ -971,8 +971,82 @@ if all_figs
     end
 end
 
+%% Map AREA changes in cropland and pasture area: End-historical to End-Future
 
-%% Map changes in cropland and pasture area: End-historical to End-Future
+% Options %%%%%%%%%
+fontSize = 14 ;
+spacing = [0.02 0.02] ;   % [vert, horz]
+% textX = 25 ;
+textX = 45 ;
+textY_1 = 50 ;
+textY_2 = 20 ;
+% shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
+shiftup = 15 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
+thisPos = [1    33   770   772] ;
+nx = 2 ;
+ny = 4 ;
+colorBarLoc = 'EastOutside' ;
+as_frac_land = false ;
+only1bl = true ;
+same_caxis = true ;
+Nbins = 11 ;
+%%%%%%%%%%%%%%%%%%%
+
+thisY1 = yearList_baseline(end) ;
+thisYN = yearList_future(end) ;
+
+crop_area_YXB = lpjgu_vector2map(crop_area_xBH, map_size, list2map) ;
+past_area_YXB = lpjgu_vector2map(past_area_xBH, map_size, list2map) ;
+crop_diff_YXrH = nan([map_size Nruns]) ;
+past_diff_YXrH = nan([map_size Nruns]) ;
+for r = 1:Nruns
+    crop_diff_YXrH(:,:,r) = lpjgu_vector2map(crop_diff_xrH(:,r), map_size, list2map) ;
+    past_diff_YXrH(:,:,r) = lpjgu_vector2map(past_diff_xrH(:,r), map_size, list2map) ;
+end
+
+if as_frac_land
+    crop_area_YXB = crop_area_YXB ./ gcel_area_YX ;
+    past_area_YXB = past_area_YXB ./ gcel_area_YX ;
+    crop_diff_YXrH = crop_diff_YXrH ./ repmat(gcel_area_YX, [1 1 Nruns]) ;
+    past_diff_YXrH = past_diff_YXrH ./ repmat(gcel_area_YX, [1 1 Nruns]) ;
+    conv_fact_map = 100 ;
+    conv_fact_total = 0 ;
+    units_map = '%' ;
+    units_total = '???' ;
+else
+    conv_fact_map = 1e-6 ;   % m2 to km2
+    conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+    units_map = 'km^2' ;
+    units_total = 'Mkm^2' ;
+end
+
+
+[diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v4(...
+    crop_area_YXB, ...
+    past_area_YXB, ...
+    crop_diff_YXrH, past_diff_YXrH, ...
+    thisY1, thisYN, 'Cropland', runList, ...
+    spacing, fontSize, textX, textY_1, textY_2, ...
+    nx, ny, 1, colorBarLoc, ssp_plot_index, only1bl, ...
+    Nruns, thisPos, conv_fact_map, conv_fact_total, units_map, units_total, do_caps, ...
+    same_caxis, Nbins) ;
+if do_save
+    filename = [outDir_maps 'areaDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'] ;
+    export_fig(filename,['-r' num2str(pngres)])
+    diff_agri_YXr = diff_crop_YXr + diff_past_YXr ;
+    filename_crop = strrep(filename,'croppast','crop') ;
+    filename_past = strrep(filename,'croppast','past') ;
+    filename_agri = strrep(filename,'croppast','agri') ;
+    save_geotiffs(diff_crop_YXr, filename_crop, runList, R, gtif_missing) ;
+    save_geotiffs(diff_past_YXr, filename_past, runList, R, gtif_missing) ;
+    save_geotiffs(diff_agri_YXr, filename_agri, runList, R, gtif_missing) ;
+    clear diff_agri_YXr filename*
+    close
+end
+clear diff_crop_YXr diff_past_YXr
+
+
+%% Map %CELL changes in cropland and pasture area: End-historical to End-Future
 
 % Options %%%%%%%%%
 fontSize = 14 ;
