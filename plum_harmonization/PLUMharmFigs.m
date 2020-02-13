@@ -2,25 +2,20 @@
 %%% Testing harmonized PLUM land use trajectory %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-read_MATs = true ;
-
 % Baseline version
 % baseline_ver = 1 ;
-baseline_ver = 2 ;   % Based on remap_v6
+% baseline_ver = 2 ;   % Based on remap_v6
+baseline_ver = 3 ;   % Based on remap_v6p7
 
 thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
 
 runList = {...
-%            'SSP1.v10.s1' ;
-%            'SSP3.v10.s1' ;
-%            'SSP4.v10.s1' ;
-%            'SSP5.v10.s1' ;
-           'SSP1.v11.s1' ;
-           'SSP3.v11.s1' ;
-           'SSP4.v11.s1' ;
-           'SSP5.v11.s1';
+           'SSP1.v12.s1' ;
+           'SSP3.v12.s1' ;
+           'SSP4.v12.s1' ;
+           'SSP5.v12.s1';
             } ;
 
 base_year = 2010 ;
@@ -126,7 +121,7 @@ for r = 1:Nruns
     [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
         [topDir thisRun], base_year, yearList_orig, ...
         thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-        is2deg, [], norm2extra, inpaint_method, '', false, true) ;
+        is2deg, [], norm2extra, inpaint_method, '', true) ;
     [~,~,year_indices] = intersect(S_out.yearList,yearList_orig,'stable') ;
     if length(year_indices)~=length(yearList_orig)
         error('length(year_indices)~=length(yearList_orig)')
@@ -185,7 +180,7 @@ for r = 1:Nruns
         [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
             [topDir thisRun '.harm'],base_year,yearList_harm, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-            is2deg, [], 0, [], thisVer, read_MATs, false) ;
+            is2deg, [], 0, [], thisVer, false) ;
         PLUMharm_YXvyr(:,:,:,:,r) = S_out.maps_YXvy ;
         PLUMharm_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy ;
         PLUMharm_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy ;
