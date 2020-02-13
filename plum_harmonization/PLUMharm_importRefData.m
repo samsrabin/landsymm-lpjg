@@ -121,7 +121,12 @@ mask_YX = isnan(S.maps_YXv(:,:,1)) ...
     | landArea_YX==0 ...
     | bad_base_YX ;
 landArea_YX(mask_YX) = 0 ;
-base.maps_YXv(repmat(mask_YX,[1 1 length(LUnames)])) = NaN ;
+if isfield(base, 'maps_YXv')
+    base.maps_YXv(repmat(mask_YX,[1 1 length(LUnames)])) = NaN ;
+end
+if isfield(base, 'maps_YXvy')
+    base.maps_YXvy(repmat(mask_YX,[1 1 length(LUnames) length(base.yearList)])) = NaN ;
+end
 clear S
 
 % Get repmat 0.5º land area
