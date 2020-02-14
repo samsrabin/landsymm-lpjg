@@ -421,7 +421,7 @@ for r = 1:Nruns
         for y = 1:3
             thisYear = theseYears(y) ;
             h1 = subplot_tight(2,3,y,spacing) ;
-            tmp = 1e-6*PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
+            tmp = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
             shading flat ; axis equal tight off
@@ -429,7 +429,7 @@ for r = 1:Nruns
             title(sprintf('%s orig: %s, %d',thisRun,thisLU,thisYear)) ;
             set(gca,'FontSize',fontSize)
             h2 = subplot_tight(2,3,y+3,spacing) ;
-            tmp = 1e-6*PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
+            tmp = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
             shading flat ; axis equal tight off
@@ -464,8 +464,8 @@ for r = 1:Nruns
         for y = 1:3
             thisYear = theseYears(y) ;
             h1 = subplot_tight(1,3,y,spacing) ;
-            tmp1 = 1e-6*PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
-            tmp2 = 1e-6*PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear,r) ;
+            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
+            tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
             tmp = tmp2 - tmp1 ;
 %             tmp = tmp2/sum(tmp2(:)) - tmp1/sum(tmp1(:)) ;
             tmp(landArea_YX==0) = NaN ;
@@ -474,7 +474,7 @@ for r = 1:Nruns
             colormap(flipud(brewermap(64,'rdbu_ssr'))) ;
             caxis([-1 1]*max(abs(caxis))) ;
             colorbar('Location',cbar_loc) ;
-            title(sprintf('%s orig: %s, %d',thisRun,thisLU,thisYear)) ;
+            title(sprintf('Harm-Orig, %s: %s, %d',thisRun,thisLU,thisYear)) ;
             set(gca,'FontSize',fontSize)
         end
         export_fig([out_dir 'mapsOHdiffs_' thisLU '_' strrep(num2str(theseYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
@@ -503,8 +503,8 @@ for r = 1:Nruns
             thisYear1 = theseYears(y) ;
             thisYear2 = theseYears(y+1) ;
             h1 = subplot_tight(2,2,y,spacing) ;
-            tmp1 = 1e-6*PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear1,r) ;
-            tmp2 = 1e-6*PLUMorig_YXvyr(:,:,v,yearList_harm==thisYear2,r) ;
+            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_harm==thisYear1,r), [ny nx], list2map) ;
+            tmp2 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_harm==thisYear2,r), [ny nx], list2map) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
@@ -514,8 +514,8 @@ for r = 1:Nruns
             title(sprintf('%s orig: %s, %d-%d',thisRun,thisLU,thisYear1,thisYear2)) ;
             set(gca,'FontSize',fontSize)
             h2 = subplot_tight(2,2,y+2,spacing) ;
-            tmp1 = 1e-6*PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear1,r) ;
-            tmp2 = 1e-6*PLUMharm_YXvyr(:,:,v,yearList_harm==thisYear2,r) ;
+            tmp1 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear1,r), [ny nx], list2map) ;
+            tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear2,r), [ny nx], list2map) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
