@@ -99,25 +99,29 @@ if is2deg
     ny = 90 ;
     nx = 180 ;
     thisLandArea_YX = landArea_2deg_YX ;
+    thisLandArea_x = landArea_2deg_YX(list2map_2deg) ;
 else
     ny = 360 ;
     nx = 720 ;
     thisLandArea_YX = landArea_YX ;
+    thisLandArea_x = landArea_YX(list2map) ;
 end
 
-disp('Setting up PLUM*_YXvyr arrays...')
-PLUMorig_YXvyr = nan(ny,nx,Nlu,Nyears_orig,Nruns,'single') ;
-PLUMorig_nfert_YXvyr = nan(ny,nx,Ncrops_lpjg,Nyears_orig,Nruns,'single') ;
-PLUMorig_irrig_YXvyr = nan(ny,nx,Ncrops_lpjg,Nyears_orig,Nruns,'single') ;
-PLUMharm_YXvyr = nan(ny,nx,Nlu,Nyears_harm,Nruns,'single') ;
-PLUMharm_nfert_YXvyr = nan(ny,nx,Ncrops_lpjg,Nyears_harm,Nruns,'single') ;
-PLUMharm_irrig_YXvyr = nan(ny,nx,Ncrops_lpjg,Nyears_harm,Nruns,'single') ;
+disp('Setting up PLUM*_xvyr arrays...')
+Ncells = length(find(~mask_YX)) ;
+PLUMorig_xvyr = nan(Ncells,Nlu,Nyears_orig,Nruns,'single') ;
+PLUMorig_nfert_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_orig,Nruns,'single') ;
+PLUMorig_irrig_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_orig,Nruns,'single') ;
+PLUMharm_xvyr = nan(Ncells,Nlu,Nyears_harm,Nruns,'single') ;
+PLUMharm_nfert_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_harm,Nruns,'single') ;
+PLUMharm_irrig_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_harm,Nruns,'single') ;
 
 for r = 1:Nruns
     thisRun = removeslashifneeded(runList{r}) ;
 
     % Original
     fprintf('Importing %s...\n', thisRun) ;
+    tic
     [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
         [topDir thisRun], base_year, yearList_orig, ...
         thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
@@ -126,13 +130,32 @@ for r = 1:Nruns
     if length(year_indices)~=length(yearList_orig)
         error('length(year_indices)~=length(yearList_orig)')
     end
-    PLUMorig_YXvyr(:,:,:,:,r) = S_out.maps_YXvy(:,:,:,year_indices) ;
-    PLUMorig_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy(:,:,:,year_indices) ;
-    PLUMorig_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy(:,:,:,year_indices) ;
-    clear S_*out
+    
+    if length(year_indices) ~= size(S_out.maps_YXvy,4)
+        S_out.maps_YXvy = S_out.maps_YXvy(:,:,:,year_indices) ;
+    end
+    incl_YXvy = repmat(~mask_YX, [1 1 size(S_out.maps_YXvy, 3:4)]) ;
+    PLUMorig_xvyr(:,:,:,r) = reshape(S_out.maps_YXvy(incl_YXvy), size(PLUMorig_xvyr, 1:3)) ;
+    clear S_out incl_YXvy
+    
+    if length(year_indices) ~= size(S_nfert_out.maps_YXvy,4)
+        S_nfert_out.maps_YXvy = S_nfert_out.maps_YXvy(:,:,:,year_indices) ;
+    end
+    incl_YXvy = repmat(~mask_YX, [1 1 size(S_nfert_out.maps_YXvy, 3:4)]) ;
+    PLUMorig_nfert_xvyr(:,:,:,r) = reshape(S_nfert_out.maps_YXvy(incl_YXvy), size(PLUMorig_nfert_xvyr, 1:3)) ;
+    clear S_nfert_out
+    
+    if length(year_indices) ~= size(S_irrig_out.maps_YXvy,4)
+        S_irrig_out.maps_YXvy = S_irrig_out.maps_YXvy(:,:,:,year_indices) ;
+    end
+    incl_YXvy = repmat(~mask_YX, [1 1 size(S_irrig_out.maps_YXvy, 3:4)]) ;
+    PLUMorig_irrig_xvyr(:,:,:,r) = reshape(S_irrig_out.maps_YXvy(incl_YXvy), size(PLUMorig_irrig_xvyr, 1:3)) ;
+    clear S_nfert_out incl_YXvy
+    disp(toc_hms(toc))
 
     % Harmonized
     fprintf('Importing %s.harm...\n', thisRun) ;
+    tic
     if exist([topDir thisRun '.harm.forLPJG'],'dir')
         thisDir = [topDir thisRun '.harm.forLPJG/'] ;
         
@@ -142,22 +165,40 @@ for r = 1:Nruns
         if length(year_indices)~=length(yearList_harm)
             error('length(year_indices)~=length(yearList_harm)')
         end
+        if length(year_indices)~=size(S_lu.maps_YXvy, 4)
+            S_lu.maps_YXvy = S_lu.maps_YXvy(:,:,:,year_indices) ;
+        end
         S_cropf = lpjgu_matlab_readTable_then2map([thisDir 'cropfractions.txt'],'force_mat_save',true) ;
+        if length(year_indices)~=size(S_cropf.maps_YXvy, 4)
+            S_cropf.maps_YXvy = S_cropf.maps_YXvy(:,:,:,year_indices) ;
+        end
         crops_tmp = strcat(LUnames(isCrop),'i') ;
         crops_tmp(strcmp(crops_tmp,'ExtraCropi')) = {'ExtraCrop'} ;
         [C_lu,~,indices_lu] = intersect(LUnames(~isCrop),S_lu.varNames,'stable') ;
         [   ~,~,indices_cf] = intersect(crops_tmp,S_cropf.varNames,'stable') ;
         [C_cf,~,         ~] = intersect(LUnames(isCrop),S_cropf.varNames,'stable') ;
-        
         if ~isequal([C_cf C_lu],LUnames)
             error('~isequal([C_cf C_lu],LUnames)')
         end
-        cropland_frac_YXvy = repmat(S_lu.maps_YXvy(:,:,strcmp(S_lu.varNames,'CROPLAND'),year_indices),[1 1 length(crops_tmp) 1]) ;
-        PLUMharm_YXvyr(:,:,:,:,r) = repmat(thisLandArea_YX,[1 1 Nlu Nyears_harm]) ...
-                                    .* cat(3, ...
-                                           S_cropf.maps_YXvy(:,:,indices_cf,year_indices) .* cropland_frac_YXvy, ...
-                                           S_lu.maps_YXvy(:,:,indices_lu,year_indices)) ;
-        clear S_lu S_cropf cropland_frac_YXvy
+        
+        incl_YXvy = repmat(~mask_YX, [1 1 size(S_lu.maps_YXvy, 3:4)]) ;
+        lu_xvy = reshape(S_lu.maps_YXvy(incl_YXvy), [Ncells size(S_lu.maps_YXvy, 3:4)]) ;
+        lu_xvy = lu_xvy(:,indices_lu,:) ;
+        cropland_frac_YXvy = repmat(S_lu.maps_YXvy(:,:,strcmp(S_lu.varNames,'CROPLAND'),:),[1 1 length(crops_tmp) 1]) ;
+        clear S_lu incl_YXvy
+        incl_YXvy = repmat(~mask_YX, [1 1 size(cropland_frac_YXvy, 3:4)]) ;
+        cropland_frac_xvy = reshape(cropland_frac_YXvy(incl_YXvy), [Ncells size(cropland_frac_YXvy, 3:4)]) ;
+        clear cropland_frac_YXvy incl_YXvy
+        cropf_YXvy = S_cropf.maps_YXvy(:,:,indices_cf,:) ;
+        clear S_cropf
+        incl_YXvy = repmat(~mask_YX, [1 1 size(cropf_YXvy, 3:4)]) ;
+        cropf_xvy = reshape(cropf_YXvy(incl_YXvy), [Ncells size(cropf_YXvy, 3:4)]) ;
+        clear cropf_YXvy incl_YXvy
+        PLUMharm_xvyr(:,:,:,r) = repmat(thisLandArea_x,[1 Nlu Nyears_harm]) ...
+            .* cat(2, ...
+                   cropf_xvy .* cropland_frac_xvy, ...
+                   lu_xvy) ;
+        clear cropf_xvy cropland_frac_xvy lu_xvy
         
         % Fertilization
         S = lpjgu_matlab_readTable_then2map([thisDir 'nfert.txt'],'force_mat_save',true) ;
@@ -165,7 +206,13 @@ for r = 1:Nruns
         if length(IA) ~= Ncrops_lpjg
             error('length(IA)~=Ncrops_lpjg')
         end
-        PLUMharm_nfert_YXvyr(:,:,:,:,r) = S.maps_YXvy(:,:,IB,year_indices) ;
+        if ~isequal(IB, shiftdim(1:length(S.varNames))) ...
+                || length(year_indices)~=size(S.maps_YXvy,4)
+            S.maps_YXvy = S.maps_YXvy(:,:,IB,year_indices) ;
+        end
+        incl_YXvy = repmat(~mask_YX, [1 1 size(S.maps_YXvy, 3:4)]) ;
+        PLUMharm_nfert_xvyr(:,:,:,r) = reshape( ...
+            S.maps_YXvy(incl_YXvy), [Ncells size(S.maps_YXvy, 3:4)]) ;
         clear S
         
         % Irrigation
@@ -174,18 +221,42 @@ for r = 1:Nruns
         if length(IA) ~= Ncrops_lpjg
             error('length(IA)~=Ncrops_lpjg')
         end
-        PLUMharm_irrig_YXvyr(:,:,:,:,r) = S.maps_YXvy(:,:,IB,year_indices) ;
+        if ~isequal(IB, shiftdim(1:length(S.varNames))) ...
+                || length(year_indices)~=size(S.maps_YXvy,4)
+            S.maps_YXvy = S.maps_YXvy(:,:,IB,year_indices) ;
+        end
+        incl_YXvy = repmat(~mask_YX, [1 1 size(S.maps_YXvy, 3:4)]) ;
+        PLUMharm_irrig_xvyr(:,:,:,r) = reshape( ...
+            S.maps_YXvy(incl_YXvy), [Ncells size(S.maps_YXvy, 3:4)]) ;
         clear S
     else
         [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
             [topDir thisRun '.harm'],base_year,yearList_harm, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, [], 0, [], thisVer, false) ;
-        PLUMharm_YXvyr(:,:,:,:,r) = S_out.maps_YXvy ;
-        PLUMharm_nfert_YXvyr(:,:,:,:,r) = S_nfert_out.maps_YXvy ;
-        PLUMharm_irrig_YXvyr(:,:,:,:,r) = S_irrig_out.maps_YXvy ;
-        clear S_*out
+        
+        if length(year_indices) ~= size(S_out.maps_YXvy,4)
+            S_out.maps_YXvy = S_out.maps_YXvy(:,:,:,year_indices) ;
+        end
+        incl_YXvy = repmat(~mask_YX, [1 1 size(S_out.maps_YXvy, 3:4)]) ;
+        PLUMharm_xvyr(:,:,:,r) = reshape(S_out.maps_YXvy(incl_YXvy), size(PLUMharm_xvyr, 1:3)) ;
+        clear S_out incl_YXvy
+        
+        if length(year_indices) ~= size(S_nfert_out.maps_YXvy,4)
+            S_nfert_out.maps_YXvy = S_nfert_out.maps_YXvy(:,:,:,year_indices) ;
+        end
+        incl_YXvy = repmat(~mask_YX, [1 1 size(S_nfert_out.maps_YXvy, 3:4)]) ;
+        PLUMharm_nfert_xvyr(:,:,:,r) = reshape(S_nfert_out.maps_YXvy(incl_YXvy), size(PLUMharm_nfert_xvyr, 1:3)) ;
+        clear S_nfert_out
+        
+        if length(year_indices) ~= size(S_irrig_out.maps_YXvy,4)
+            S_irrig_out.maps_YXvy = S_irrig_out.maps_YXvy(:,:,:,year_indices) ;
+        end
+        PLUMharm_irrig_xvyr(:,:,:,r) = reshape(S_irrig_out.maps_YXvy(incl_YXvy), size(PLUMharm_irrig_xvyr, 1:3)) ;
+        clear S_irrig_out incl_YXvy
+        
     end
+    disp(toc_hms(toc))
 
 end
 
