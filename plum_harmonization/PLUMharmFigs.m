@@ -55,6 +55,10 @@ else
     inDir_protectedAreas = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/protected_areas/' ;
 end
 
+if ~exist(out_dir, 'dir')
+    mkdir(out_dir)
+end
+
 yearList_luh2 = 1971:2010 ;
 % yearList_luh2 = 2001:2010 ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
@@ -267,9 +271,9 @@ disp('Done reading PLUM.')
 
 ts_base_cy = squeeze(nansum(nansum(base.maps_YXvy,1),2)) ;
 ts_base_cy = cat(1,sum(ts_base_cy(isCrop,:),1),ts_base_cy(~isCrop,:)) ;
-ts_orig_cyr = squeeze(nansum(nansum(PLUMorig_YXvyr,1),2)) ;
+ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
 ts_orig_cyr = cat(1,sum(ts_orig_cyr(isCrop,:,:),1),ts_orig_cyr(~isCrop,:,:)) ;
-ts_harm_cyr = squeeze(nansum(nansum(PLUMharm_YXvyr,1),2)) ;
+ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
 ts_harm_cyr = cat(1,sum(ts_harm_cyr(isCrop,:,:),1),ts_harm_cyr(~isCrop,:,:)) ;
 ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 
@@ -302,8 +306,8 @@ close
 %% Time series of crops
 
 ts_base_cy = squeeze(nansum(nansum(base.maps_YXvy,1),2)) ;
-ts_orig_cyr = squeeze(nansum(nansum(PLUMorig_YXvyr,1),2)) ;
-ts_harm_cyr = squeeze(nansum(nansum(PLUMharm_YXvyr,1),2)) ;
+ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
+ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
 ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 
 spacing = [0.05 0.1] ;
@@ -337,8 +341,8 @@ if is2deg
 else
     ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot.maps_YXvy))) ;
 end
-ts_orig_cyr = cf_kg2Mt .* squeeze(nansum(nansum(PLUMorig_YXvyr(:,:,isCrop,:,:) .* PLUMorig_nfert_YXvyr,1),2)) ;
-ts_harm_cyr = cf_kg2Mt .* squeeze(nansum(nansum(PLUMharm_YXvyr(:,:,isCrop,:,:) .* PLUMharm_nfert_YXvyr,1),2)) ;
+ts_orig_cyr = cf_kg2Mt .* squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_nfert_xvyr,1)) ;
+ts_harm_cyr = cf_kg2Mt .* squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_nfert_xvyr,1)) ;
 ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 
 spacing = [0.05 0.1] ;
@@ -372,8 +376,8 @@ if is2deg
 else
     ts_base_cy = squeeze(nansum(nansum(base_irrigTot.maps_YXvy))) ;
 end
-ts_orig_cyr = squeeze(nansum(nansum(PLUMorig_YXvyr(:,:,isCrop,:,:) .* PLUMorig_irrig_YXvyr,1),2)) ;
-ts_harm_cyr = squeeze(nansum(nansum(PLUMharm_YXvyr(:,:,isCrop,:,:) .* PLUMharm_irrig_YXvyr,1),2)) ;
+ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_irrig_xvyr,1)) ;
+ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_irrig_xvyr,1)) ;
 ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 
 spacing = [0.05 0.1] ;
