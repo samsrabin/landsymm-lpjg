@@ -147,13 +147,21 @@ for y = 1:Nyears
         nfert_in.maps_YXv = nfert_in.maps_YXv * cf_kgNha_kgNm2 ;
     else
         if is2deg
-            [~, ~, ~, PLUM_in, nfert_in, irrig_in] = PLUMharm_processPLUMin_areaCrops(...
-                file_in_lu,landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
-                [], [], PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+            try
+                [~, ~, ~, PLUM_in, nfert_in, irrig_in] = PLUMharm_processPLUMin_areaCrops(...
+                    file_in_lu,landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
+                    [], [], PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+            catch ME
+                keyboard
+            end
         else
-            [PLUM_in, nfert_in, irrig_in, ~, ~, ~] = PLUMharm_processPLUMin_areaCrops(...
-                file_in_lu,landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
-                [], [], PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+            try
+                [PLUM_in, nfert_in, irrig_in, ~, ~, ~] = PLUMharm_processPLUMin_areaCrops(...
+                    file_in_lu,landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
+                    [], [], PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+            catch ME
+                keyboard
+            end
         end
     end
     if y==1

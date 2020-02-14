@@ -32,7 +32,7 @@ end
 file_in_dtl = strrep(file_in_lcf,'LandCoverFract','LandUse') ;
 if exist(file_in_dtl,'file') || exist([file_in_dtl '.gz'],'file')
     S_dtl = lpjgu_matlab_readTable_then2map(file_in_dtl,'verboseIfNoMat',false,'force_mat_save',true) ;
-    PLUMcrops = S_dtl.varNames ;
+%     PLUMcrops = S_dtl.varNames ;
     is_actual_PLUMcrops = contains(S_dtl.varNames,'_A') ...
         & ~contains(S_dtl.varNames,'ruminants') ...
         & ~contains(S_dtl.varNames,'monogastrics') ...
@@ -54,16 +54,12 @@ if exist(file_in_dtl,'file') || exist([file_in_dtl '.gz'],'file')
     S_irrig.maps_YXv = S_dtl.maps_YXv(:,:,inds_PLUMcrops_irrig) ;
     % If there is irrigation or fertilization present on SetAside, remove
     % it!
+    if ~any(strcmp(PLUMcrops,'setaside'))
+        error('\nsetaside not present??? %s', file_in_dtl)
+    end
     tmpN = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
     tmpI = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
     if any(any(tmpN>0)) || any(any(tmpI>0))
-%         if any(any(tmpN>0)) && any(any(tmpI>0))
-%             warning('Removing fertilization and irrigation from SetAside!')
-%         elseif any(any(tmpN>0))
-%             warning('Removing fertilization from SetAside!')
-%         elseif any(any(tmpI>0))
-%             warning('Removing irrigation from SetAside!')
-%         end
         tmpN(tmpN>0) = 0 ;
         tmpI(tmpI>0) = 0 ;
         S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) = tmpN ;
@@ -79,13 +75,21 @@ else
     S_nfert = lpjgu_matlab_readTable_then2map(file_in_nfert,'verboseIfNoMat',false,'force_mat_save',true) ;
     file_in_irrig = strrep(file_in_lcf,'LandCoverFract','Irrig') ;
     S_irrig = lpjgu_matlab_readTable_then2map(file_in_irrig,'verboseIfNoMat',false,'force_mat_save',true) ;
+    if ~any(strcmp(PLUMcrops,'setaside'))
+        error('\nsetaside not present??? %s', file_in_cropfrac)
+    end
 end
 
 % If there is irrigation or fertilization present on SetAside, throw an
 % error!
 tmpN = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
 tmpI = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
-if any(any(tmpN>0)) || any(any(tmpI>0))
+try
+    isBad = any(any(tmpN>0)) || any(any(tmpI>0)) ;
+catch ME
+    keyboard
+end
+if isBad
     error('Fertilization and/or irrigation on SetAside!')
 end
 clear tmpN tmpI
