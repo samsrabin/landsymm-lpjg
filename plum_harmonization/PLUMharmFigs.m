@@ -264,6 +264,10 @@ for r = 1:Nruns
 
 end
 
+landArea_x = landArea_YX(list2map) ;
+landArea_xv = repmat(landArea_x, [1 Nlu]) ;
+landArea_xvr = repmat(landArea_xv, [1 1 Nruns]) ;
+
 disp('Done reading PLUM.')
 
 
@@ -421,7 +425,7 @@ for r = 1:Nruns
         for y = 1:3
             thisYear = theseYears(y) ;
             h1 = subplot_tight(2,3,y,spacing) ;
-            tmp = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
+            tmp = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), [ny nx], list2map) ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
             shading flat ; axis equal tight off
@@ -464,7 +468,7 @@ for r = 1:Nruns
         for y = 1:3
             thisYear = theseYears(y) ;
             h1 = subplot_tight(1,3,y,spacing) ;
-            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
+            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), [ny nx], list2map) ;
             tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
             tmp = tmp2 - tmp1 ;
 %             tmp = tmp2/sum(tmp2(:)) - tmp1/sum(tmp1(:)) ;
@@ -483,6 +487,61 @@ for r = 1:Nruns
 end
 
 
+%% Maps: Diffs between orig and harm at one year for each run
+
+thisYear = 2011 ;
+spacing = [0.05 0.025] ;
+cbar_loc = 'SouthOutside' ;
+y1 = 66 ;
+fontSize = 14 ;
+png_res = 150 ;
+thisPos = figurePos ;
+as_frac_land = true ;
+
+tmpO_xvr = squeeze(PLUMorig_xvyr(:,:,yearList_orig==thisYear,:)) ;
+tmpH_xvr = squeeze(PLUMharm_xvyr(:,:,yearList_harm==thisYear,:)) ;
+if as_frac_land
+    tmp_xvr = 100*(tmpH_xvr - tmpO_xvr) ./ landArea_xvr ;
+else
+    tmp_xvr = 1e-6*(tmpH_xvr - tmpO_xvr) ;
+end
+tmp_xvr(landArea_xvr==0) = NaN ;
+
+for v = 1:Nlu
+    thisLU = LUnames{v} ;
+    figure('Color','w','Position',thisPos) ;
+    if as_frac_land
+%         new_caxis = [-100 100] ;
+        new_caxis = [-1 1]*max(max(abs(tmp_xvr(:,v,:)))) ;
+    else
+        new_caxis = [-1 1]*max(max(abs(tmp_xvr(:,v,:)))) ;
+    end
+    for r = 1:Nruns
+        thisRun = runList{r} ;
+        h1 = subplot_tight(2,2,r,spacing) ;
+        tmp = lpjgu_vector2map(tmp_xvr(:,v,r), [ny nx], list2map) ;
+        pcolor(tmp(y1:end,:)) ;
+        shading flat ; axis equal tight off
+        colormap(flipud(brewermap(64,'rdbu_ssr'))) ;
+        caxis(new_caxis) ;
+        colorbar('Location',cbar_loc) ;
+        title(thisRun) ;
+        set(gca,'FontSize',fontSize)
+    end
+    if as_frac_land
+        hsgt = sgtitle(sprintf('Harm-Orig (%%): %s, %d', thisLU, thisYear)) ;
+    else
+        hsgt = sgtitle(sprintf('Harm-Orig (km^2): %s, %d', thisLU, thisYear)) ;
+    end
+    set(hsgt, 'FontSize', fontSize+2, 'FontWeight', 'bold')
+    filename = sprintf('%s/mapsOHdiffs_%s_%d.png', out_dir, thisLU, thisYear) ;
+    if as_frac_land
+        filename = strrep(filename, 'diffs', 'diffsFrac') ;
+    end
+    export_fig(filename,['-r' num2str(png_res)]) ;
+    close
+end
+disp('Done')
 
 
 %% Maps: Differences between two pairs of years
@@ -503,8 +562,8 @@ for r = 1:Nruns
             thisYear1 = theseYears(y) ;
             thisYear2 = theseYears(y+1) ;
             h1 = subplot_tight(2,2,y,spacing) ;
-            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_harm==thisYear1,r), [ny nx], list2map) ;
-            tmp2 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_harm==thisYear2,r), [ny nx], list2map) ;
+            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear1,r), [ny nx], list2map) ;
+            tmp2 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear2,r), [ny nx], list2map) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
