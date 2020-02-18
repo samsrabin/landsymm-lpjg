@@ -1063,10 +1063,15 @@ ny = 4 ;
 as_frac_land = true ;
 bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+this_colormap_name = '-PiYG_ssr' ;
 %%%%%%%%%%%%%%%%%%%
 
 thisY1 = yearList_baseline(end) ;
 thisYN = yearList_future(end) ;
+col_titles = { ...
+    sprintf('%s cropland area, %d%s%d','\Delta',thisY1,char(8211),thisYN), ...
+    sprintf('%s pasture area, %d%s%d','\Delta',thisY1,char(8211),thisYN) ...
+    } ;
 
 area_crop_bl = sum(crop_area_xBH)*conv_fact_total ;
 area_past_bl = sum(past_area_xBH)*conv_fact_total ;
@@ -1094,7 +1099,7 @@ end
     spacing, fontSize, textX, textY_1, textY_2, ...
     nx, ny, ...
     Nruns, thisPos, units_map, units_total, do_caps, ...
-    bins_lowBnds) ;
+    bins_lowBnds, col_titles) ;
 if do_save
     filename = [outDir_maps 'areaPctDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_croppast.png'] ;
     export_fig(filename,['-r' num2str(pngres)])
