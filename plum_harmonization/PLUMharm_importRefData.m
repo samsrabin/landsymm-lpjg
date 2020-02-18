@@ -62,10 +62,12 @@ clear resFrac_prot
 resFrac_prot_YX(resFrac_prot_YX==-9999) = 0 ;
 
 % Get LUH2 land area (m2)
-gcel_area_YXqd = 1e6*double(transpose(ncread(landarea_file,'carea'))) ;
+gcelArea_YXqd = 1e6*double(transpose(ncread(landarea_file,'carea'))) ;
 land_frac_YXqd = 1 - double(flipud(transpose(ncread(landarea_file,'icwtr')))) ;
-landArea_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
+landArea_YXqd = gcelArea_YXqd .* land_frac_YXqd ;
 %%%%% Convert to half-degree
+tmp = gcelArea_YXqd(:,1:2:1440) + gcelArea_YXqd(:,2:2:1440) ;
+gcelArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 tmp = landArea_YXqd(:,1:2:1440) + landArea_YXqd(:,2:2:1440) ;
 landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 clear *_YXqd tmp

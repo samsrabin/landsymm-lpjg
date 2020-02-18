@@ -264,11 +264,289 @@ for r = 1:Nruns
 
 end
 
+gcelArea_x = gcelArea_YX(list2map) ;
 landArea_x = landArea_YX(list2map) ;
 landArea_xv = repmat(landArea_x, [1 Nlu]) ;
 landArea_xvr = repmat(landArea_xv, [1 1 Nruns]) ;
 
+% Import food production units
+fpu_YX = flipud(dlmread('/Users/Shared/PLUM/food_production_units/FPU.asc',' ',6,0)) ;
+fpu_YX(fpu_YX==-9999) = NaN ;
+fpu_x = fpu_YX(list2map) ;
+fpu_list = unique(fpu_x(~isnan(fpu_x))) ;
+Nfpu = length(fpu_list) ;
+
 disp('Done reading PLUM.')
+
+
+%% Scatter plots after Hurtt et al. (2011) Fig. 4 (crop, pre-harm)
+do_save = true ;
+
+% Options %%%
+ny = 1 ;
+nx = Nruns ;
+spacing = [0.05 0.05] ; % v h
+fontSize = 14 ;
+thisPos = [0         324        1440         376] ;
+%%%%%%%%%%%%%
+
+y1 = 2011 ;
+
+figure('Color','w','Position',thisPos) ;
+
+for r = 1:Nruns
+    
+    % Establish axis
+    subplot_tight(ny, nx, r, spacing) ;
+    
+    % Plot crop scatter
+    plot( ...
+        sum(PLUMorig_xvyr(:,isCrop,yearList_orig==y1,r),2) ./ gcelArea_x, ...
+        sum(PLUMharm_xvyr(:,isCrop,yearList_harm==y1,r),2) ./ gcelArea_x, ...
+        '.k')
+    
+    % Finish up
+    axis equal tight ;
+    set(gca,'XLim',[0 1],'YLim',[0 1], 'FontSize', fontSize)
+    title(runList{r})
+    xlabel(sprintf('Fraction of gridcell %d (original)', y1))
+    ylabel(sprintf('Fraction of gridcell %d (harmonized)', y1))
+    
+end
+
+if do_save
+    export_fig([out_dir 'scatter_hurtt2011_fig4.png'], '-r300') ;
+    close
+end
+
+
+
+%% Scatter plots after Hurtt et al. (2011) Fig. 5 (crop and past, post-harm)
+do_save = true ;
+
+% Options %%%
+ny = 2 ;
+nx = Nruns ;
+spacing = [0.05 0.05] ; % v h
+fontSize = 14 ;
+%%%%%%%%%%%%%
+
+y1 = 2011 ;
+yN = 2100 ;
+
+thisGray = 0.65*ones(3,1) ;
+
+diff_crop_orig_xr = ...
+    squeeze(sum(PLUMorig_xvyr(:,isCrop,yearList_orig==yN,:) ...
+    - PLUMorig_xvyr(:,isCrop,yearList_orig==y1,:),2)) ...
+    ./ repmat(gcelArea_x, [1 Nruns]) ;
+diff_past_orig_xr = ...
+    squeeze(PLUMorig_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_orig==yN,:) ...
+    - PLUMorig_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_orig==y1,:)) ...
+    ./ repmat(gcelArea_x, [1 Nruns]) ;
+diff_orig_xrL = cat(3, diff_crop_orig_xr, diff_past_orig_xr) ;
+diff_crop_harm_xr = ...
+    squeeze(sum(PLUMharm_xvyr(:,isCrop,yearList_harm==yN,:) ...
+    - PLUMharm_xvyr(:,isCrop,yearList_harm==y1,:),2)) ...
+    ./ repmat(gcelArea_x, [1 Nruns]) ;
+diff_past_harm_xr = ...
+    squeeze(PLUMharm_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_harm==yN,:) ...
+    - PLUMharm_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_harm==y1,:)) ...
+    ./ repmat(gcelArea_x, [1 Nruns]) ;
+diff_harm_xrL = cat(3, diff_crop_harm_xr, diff_past_harm_xr) ;
+
+diff2_orig_xrL = nan(length(list2map_2deg), Nruns, 2) ;
+diff2_harm_xrL = nan(length(list2map_2deg), Nruns, 2) ;
+map_size = size(landArea_YX) ;
+tmp = ...
+    gcelArea_YX(:,1:4:720) + gcelArea_YX(:,2:4:720) + ...
+    gcelArea_YX(:,3:4:720) + gcelArea_YX(:,4:4:720) ;
+gcelArea_2deg_YX = ...
+    tmp(1:4:360,:) + tmp(2:4:360,:) + ...
+    tmp(3:4:360,:) + tmp(4:4:360,:) ;
+clear tmp
+for r = 1:Nruns
+    for L = 1:2
+        % Orig
+        tmp_YX = lpjgu_vector2map(diff_orig_xrL(:,r,L).*gcelArea_x, ...
+            map_size, list2map) ;
+        tmp = ...
+            tmp_YX(:,1:4:720) + tmp_YX(:,2:4:720) + ...
+            tmp_YX(:,3:4:720) + tmp_YX(:,4:4:720) ;
+        tmp_2deg_YX = ...
+            tmp(1:4:360,:) + tmp(2:4:360,:) + ...
+            tmp(3:4:360,:) + tmp(4:4:360,:) ;
+        clear tmp_YX tmp
+        tmp_2deg_YX = tmp_2deg_YX ./ gcelArea_2deg_YX ;
+        diff2_orig_xrL(:,r,L) = tmp_2deg_YX(list2map_2deg) ;
+        clear tmp_2deg_YX
+        
+        % Harm
+        tmp_YX = lpjgu_vector2map(diff_harm_xrL(:,r,L).*gcelArea_x, ...
+            map_size, list2map) ;
+        tmp = ...
+            tmp_YX(:,1:4:720) + tmp_YX(:,2:4:720) + ...
+            tmp_YX(:,3:4:720) + tmp_YX(:,4:4:720) ;
+        tmp_2deg_YX = ...
+            tmp(1:4:360,:) + tmp(2:4:360,:) + ...
+            tmp(3:4:360,:) + tmp(4:4:360,:) ;
+        clear tmp_YX tmp
+        tmp_2deg_YX = tmp_2deg_YX ./ gcelArea_2deg_YX ;
+        diff2_harm_xrL(:,r,L) = tmp_2deg_YX(list2map_2deg) ;
+        clear tmp_2deg_YX
+    end
+end
+
+diffFPU_orig_xrL = nan(Nfpu, Nruns, 2) ;
+diffFPU_harm_xrL = nan(Nfpu, Nruns, 2) ;
+for f = 1:Nfpu
+    thisFPU = fpu_list(f) ;
+    isThisFPU = fpu_x==thisFPU ;
+    if ~any(isThisFPU)
+        error('No cells in this FPU?')
+    end
+    gcelArea_thisFPU_x = gcelArea_x(isThisFPU) ;
+    for r = 1:Nruns
+        for L = 1:2
+            diffFPU_orig_xrL(f,r,L) = sum(diff_orig_xrL(isThisFPU,r,L) ...
+                .* gcelArea_thisFPU_x) ./ sum(gcelArea_thisFPU_x) ;
+            diffFPU_harm_xrL(f,r,L) = sum(diff_harm_xrL(isThisFPU,r,L) ...
+                .* gcelArea_thisFPU_x) ./ sum(gcelArea_thisFPU_x) ;
+            clear tmp_2deg_YX
+        end
+    end
+end
+
+figure('Color','w','Position',figurePos) ;
+
+for r = 1:Nruns
+    for L = 1:2
+        % Establish axis
+        if L==1
+            thisPlot = r ;
+        else
+            thisPlot = Nruns + r ;
+        end
+        subplot_tight(ny, nx, thisPlot, spacing) ;
+        
+        % Plot half-degree points
+        plot(diff_orig_xrL(:,r,L), diff_harm_xrL(:,r,L), '.', ...
+            'MarkerFaceColor', thisGray, 'MarkerEdgeColor', thisGray);
+        
+        % Plot two-degree points
+        hold on
+        plot(diff2_orig_xrL(:,r,L), diff2_harm_xrL(:,r,L), '.k') ;
+        hold off
+        
+        % Plot FPU points
+        hold on
+        plot(diffFPU_orig_xrL(:,r,L), diffFPU_harm_xrL(:,r,L), 'or') ;
+        hold off
+        
+        % Plot 1:1 line
+        hold on
+        plot([-1 1], [-1 1], '--k')
+        hold off
+        
+        % Finish up
+        axis equal tight ;
+        set(gca,'XLim',[-1 1],'YLim',[-1 1], 'FontSize', fontSize)
+        title(runList{r})
+        xlabel('\Delta gridcell fraction (original)')
+        ylabel('\Delta gridcell fraction (harmonized)')
+    end
+end
+
+if do_save
+    export_fig([out_dir 'scatter_hurtt2011_fig5.png'], '-r300') ;
+    close
+end
+
+
+%% Map deltas for orig and harm
+do_save = true ;
+
+thisLU = 'NATURAL' ;
+y1 = 2011 ;
+yN = 2100 ;
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+% spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
+spacing = 0 ;
+textX = 0.115 ;
+textY_1 = 50/360 ;
+textY_2 = 20/360 ;
+% shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
+shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
+thisPos = [1    33   770   772] ;
+nx = 2 ;
+ny = 4 ;
+as_frac_land = true ;
+bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
+% step = 200/(64+1); bins_lowBnds = -100:step:(100-step);
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+do_caps = false ;
+this_colormap_name = 'PiYG_ssr' ;
+%%%%%%%%%%%%%%%%%%%
+
+v = contains(LUnames, thisLU) ;
+
+area_orig_bl_r = squeeze(nansum(nansum( ...
+    PLUMorig_xvyr(:,v,yearList_orig==y1,:),1),2))*conv_fact_total ;
+area_harm_bl_r = squeeze(nansum(nansum( ...
+    PLUMharm_xvyr(:,v,yearList_harm==y1,:),1),2))*conv_fact_total ;
+
+total_origDiff_r = squeeze(nansum(nansum( ...
+    PLUMorig_xvyr(:,v,yearList_orig==yN,:),1),2))*conv_fact_total ...
+    - area_orig_bl_r ;
+total_harmDiff_r = squeeze(nansum(nansum( ...
+    PLUMharm_xvyr(:,v,yearList_harm==yN,:),1),2))*conv_fact_total ...
+    - area_harm_bl_r ;
+
+% Get difference (%)
+orig_diff_YXrH = nan([map_size Nruns]) ;
+harm_diff_YXrH = nan([map_size Nruns]) ;
+diff_orig_xr = squeeze(nansum( ...
+    PLUMorig_xvyr(:,v,yearList_orig==yN,:) ...
+    - PLUMorig_xvyr(:,v,yearList_orig==y1,:), ...
+    2)) ;
+diff_harm_xr = squeeze(nansum( ...
+    PLUMharm_xvyr(:,v,yearList_harm==yN,:) ...
+    - PLUMharm_xvyr(:,v,yearList_harm==y1,:), ...
+    2)) ;
+map_size = size(landArea_YX) ;
+for r = 1:Nruns
+    orig_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
+    harm_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
+end
+
+units_map = '%' ;
+units_total = 'Mkm^2' ;
+
+if ~as_frac_land
+    error('This only works with as_frac_land TRUE')
+end
+% bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
+this_runList = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
+col_titles = {sprintf('Original %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN), ...
+              sprintf('Harmonized %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN)} ;
+[diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v5(...
+    area_orig_bl_r, area_harm_bl_r, total_origDiff_r, total_harmDiff_r, ...
+    orig_diff_YXrH, harm_diff_YXrH, ...
+    y1, yN, this_runList, ...
+    spacing, fontSize, textX, textY_1, textY_2, ...
+    nx, ny, ...
+    Nruns, thisPos, units_map, units_total, do_caps, ...
+    bins_lowBnds, this_colormap_name, col_titles) ;
+
+if do_save
+    filename = sprintf('%s/maps_deltas_%d-%d_beforeAfter.png', ...
+        out_dir, y1, yN) ;
+    export_fig(filename, '-r300') ;
+    close
+end
+
 
 
 %% Time series of LUs
