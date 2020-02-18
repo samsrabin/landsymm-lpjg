@@ -18,8 +18,8 @@ plot_labels = strcat('RCP', { ...
 % Historical
 disp('Importing historical...')
 tmp = lpjgu_matlab_read2geoArray(file_in_hist, 'verboseIfNoMat', false) ;
-tempH_yx = tmp.garr_yxv(:,:,strcmp(tmp.varNames,'temp_mean')) ;
-precH_yx = tmp.garr_yxv(:,:,strcmp(tmp.varNames,'prec')) ;
+tempH_yx = transpose(squeeze(tmp.garr_xvy(:,strcmp(tmp.varNames,'temp_mean'),:))) ;
+precH_yx = transpose(squeeze(tmp.garr_xvy(:,strcmp(tmp.varNames,'prec'),:))) ;
 yearListH = tmp.yearList ;
 list2mapH = tmp.list2map ;
 clear tmp
@@ -42,8 +42,8 @@ for r = 1:Nruns
         tempF_yxr = nan(NyearsF, Ncells, Nruns) ;
         precF_yxr = nan(NyearsF, Ncells, Nruns) ;
     end
-    tempF_yxr(:,:,r) = tmp.garr_yxv(:,:,strcmp(tmp.varNames,'temp_mean')) ;
-    precF_yxr(:,:,r) = tmp.garr_yxv(:,:,strcmp(tmp.varNames,'prec')) ;
+    tempF_yxr(:,:,r) = transpose(squeeze(tmp.garr_xvy(:,strcmp(tmp.varNames,'temp_mean'),:))) ;
+    precF_yxr(:,:,r) = transpose(squeeze(tmp.garr_xvy(:,strcmp(tmp.varNames,'prec'),:))) ;
     clear tmp
 end
 disp('Done importing.')
