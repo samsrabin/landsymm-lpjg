@@ -1064,6 +1064,8 @@ as_frac_land = true ;
 bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 this_colormap_name = '-PiYG_ssr' ;
+lines_overlay = 'landareas.shp' ;
+% lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
 thisY1 = yearList_baseline(end) ;
