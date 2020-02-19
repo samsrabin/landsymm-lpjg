@@ -276,7 +276,6 @@ fpu_x = fpu_YX(list2map) ;
 fpu_list = unique(fpu_x(~isnan(fpu_x))) ;
 Nfpu = length(fpu_list) ;
 
-%%
 map_size = size(landArea_YX) ;
 if yearList_harm(1)==yearList_orig(1)+1 ...
 && yearList_orig(1)==base_year ...
@@ -328,7 +327,7 @@ fontSize = 14 ;
 thisPos = [0         324        1440         376] ;
 %%%%%%%%%%%%%
 
-y1 = 2011 ;
+y1 = 2010 ;
 
 figure('Color','w','Position',thisPos) ;
 
@@ -339,16 +338,16 @@ for r = 1:Nruns
     
     % Plot crop scatter
     plot( ...
-        sum(PLUMorig_xvyr(:,isCrop,yearList_orig==y1,r),2) ./ gcelArea_x, ...
         sum(PLUMharm_xvyr(:,isCrop,yearList_harm==y1,r),2) ./ gcelArea_x, ...
+        sum(PLUMorig_xvyr(:,isCrop,yearList_orig==y1,r),2) ./ gcelArea_x, ...
         '.k')
     
     % Finish up
     axis equal tight ;
     set(gca,'XLim',[0 1],'YLim',[0 1], 'FontSize', fontSize)
     title(runList{r})
-    xlabel(sprintf('Fraction of gridcell %d (original)', y1))
-    ylabel(sprintf('Fraction of gridcell %d (harmonized)', y1))
+    xlabel(sprintf('Fraction of gridcell %d (LUH2)', y1))
+    ylabel(sprintf('Fraction of gridcell %d (PLUM output)', y1))
     
 end
 
@@ -505,6 +504,8 @@ end
 do_save = true ;
 
 thisLU = 'NATURAL' ;
+% thisLU = 'CROPLAND' ;
+% thisLU = 'PASTURE' ;
 y1_list = 2010 ;
 yN_list= 2011 ;
 % y1_list = 2011 ;
@@ -527,7 +528,9 @@ thisPos = [1    33   770   772] ;
 nx = 2 ;
 ny = 4 ;
 as_frac_land = true ;
-bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
+% bins_lowBnds = [-100:20:-20 [-1 1]*3 20:20:80] ;
+% bins_lowBnds = [-100:20:-20 [-1 1]*0.1 20:20:80] ;
+bins_lowBnds = [-100:20:-20 -5 [-1 1]*0.1 5 20:20:80] ;
 % step = 200/(64+1); bins_lowBnds = -100:step:(100-step);
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 do_caps = false ;
@@ -536,7 +539,11 @@ this_colormap_name = 'PiYG_ssr' ;
 lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
-v = contains(LUnames, thisLU) ;
+if strcmp(thisLU, 'CROPLAND')
+    v = isCrop ;
+else
+    v = contains(LUnames, thisLU) ;
+end
 
 if length(y1_list) > 1    
     this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
@@ -563,15 +570,15 @@ for y = 1:length(y1_list)
     y1 = y1_list(y) ;
     yN = yN_list(y) ;
     
-    area_orig_bl_r = squeeze(nansum(nansum( ...
+    area_orig_bl_r = squeeze(sum(sum( ...
         PLUMorig_xvyr(:,v,yearList_orig==y1,:),1),2))*conv_fact_total ;
-    area_harm_bl_r = squeeze(nansum(nansum( ...
+    area_harm_bl_r = squeeze(sum(sum( ...
         PLUMharm_xvyr(:,v,yearList_harm==y1,:),1),2))*conv_fact_total ;
     
-    total_origDiff_r = squeeze(nansum(nansum( ...
+    total_origDiff_r = squeeze(sum(sum( ...
         PLUMorig_xvyr(:,v,yearList_orig==yN,:),1),2))*conv_fact_total ...
         - area_orig_bl_r ;
-    total_harmDiff_r = squeeze(nansum(nansum( ...
+    total_harmDiff_r = squeeze(sum(sum( ...
         PLUMharm_xvyr(:,v,yearList_harm==yN,:),1),2))*conv_fact_total ...
         - area_harm_bl_r ;
     
@@ -607,13 +614,106 @@ for y = 1:length(y1_list)
         lines_overlay) ;
 
     if do_save
-        filename = sprintf('%s/maps_deltas_%d-%d_beforeAfter.png', ...
-            this_outdir, y1, yN) ;
+        filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
+            this_outdir, thisLU, y1, yN) ;
         export_fig(filename, pngres) ;
         close
     end
     
 end
+
+
+
+%% Map one year, one LC for orig and harm
+do_save = true ;
+
+thisLU = 'NATURAL' ;
+thisYear = 2010 ;
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+% spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
+spacing = 0 ;
+textX = 0.115 ;
+textY_1 = 50/360 ;
+textY_2 = 20/360 ;
+% shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ;
+shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ;
+thisPos = [1    33   770   772] ;
+nx = 2 ;
+ny = 4 ;
+as_frac_land = true ;
+bins_lowBnds = [0:99] ;
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+do_caps = false ;
+this_colormap_name = 'parula' ;
+% lines_overlay = 'landareas.shp' ;
+lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
+%%%%%%%%%%%%%%%%%%%
+
+v = contains(LUnames, thisLU) ;
+
+if length(y1_list) > 1
+    this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
+        out_dir, min(y1_list), max(yN_list), yN_list(1)-y1_list(1)+1) ;
+    pngres = '-r150' ;
+else
+    this_outdir = out_dir ;
+    pngres = '-r300' ;
+end
+
+if ~exist(this_outdir, 'dir')
+    mkdir(this_outdir) ;
+end
+
+units_map = '%' ;
+units_total = 'Mkm^2' ;
+this_runList = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
+
+map_size = size(landArea_YX) ;
+orig_frac_YXrH = nan([map_size Nruns]) ;
+harm_frac_YXrH = nan([map_size Nruns]) ;
+
+y1 = y1_list(y) ;
+yN = yN_list(y) ;
+
+% Get gridcell fraction that is this LU type (%)
+area_orig_xr = squeeze(nansum( ...
+    PLUMorig_xvyr(:,v,yearList_orig==thisYear,:), ...
+    2)) ;
+area_harm_xr = squeeze(nansum( ...
+    PLUMharm_xvyr(:,v,yearList_harm==thisYear,:), ...
+    2)) ;
+for r = 1:Nruns
+    orig_frac_YXrH(:,:,r) = lpjgu_vector2map(100*area_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
+    harm_frac_YXrH(:,:,r) = lpjgu_vector2map(100*area_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
+end
+area_orig_r = sum(area_orig_xr,1)*conv_fact_total ;
+area_harm_r = sum(area_harm_xr,1)*conv_fact_total ;
+
+if ~as_frac_land
+    error('This only works with as_frac_land TRUE')
+end
+
+col_titles = {sprintf('Original %s, %d', thisLU, thisYear), ...
+    sprintf('Harmonized %s, d', thisLU, thisYear)} ;
+make_LUfrac_fig_v5(...
+    area_orig_r, area_harm_r, ...
+    orig_frac_YXrH, harm_frac_YXrH, ...
+    this_runList, ...
+    spacing, fontSize, textX, textY_1, textY_2, ...
+    nx, ny, ...
+    Nruns, thisPos, units_map, units_total, do_caps, ...
+    bins_lowBnds, this_colormap_name, col_titles, ...
+    lines_overlay) ;
+
+if do_save
+    filename = sprintf('%s/maps_%d_beforeAfter.png', ...
+        this_outdir, thisYear) ;
+    export_fig(filename, pngres) ;
+    close
+end
+    
 
 
 
@@ -841,7 +941,7 @@ end
 
 %% Maps: Diffs between orig and harm at one year for each run
 
-thisYear = 2011 ;
+thisYear = 2010 ;
 spacing = [0.05 0.025] ;
 cbar_loc = 'SouthOutside' ;
 y1 = 66 ;
@@ -853,7 +953,7 @@ as_frac_land = true ;
 tmpO_xvr = squeeze(PLUMorig_xvyr(:,:,yearList_orig==thisYear,:)) ;
 tmpH_xvr = squeeze(PLUMharm_xvyr(:,:,yearList_harm==thisYear,:)) ;
 if as_frac_land
-    tmp_xvr = 100*(tmpH_xvr - tmpO_xvr) ./ landArea_xvr ;
+    tmp_xvr = 100*(tmpH_xvr - tmpO_xvr) ./ repmat(gcelArea_x, [1 Nlu Nruns]) ;
 else
     tmp_xvr = 1e-6*(tmpH_xvr - tmpO_xvr) ;
 end
@@ -871,7 +971,7 @@ for v = 1:Nlu
     for r = 1:Nruns
         thisRun = runList{r} ;
         h1 = subplot_tight(2,2,r,spacing) ;
-        tmp = lpjgu_vector2map(tmp_xvr(:,v,r), [ny nx], list2map) ;
+        tmp = lpjgu_vector2map(tmp_xvr(:,v,r), map_size, list2map) ;
         pcolor(tmp(y1:end,:)) ;
         shading flat ; axis equal tight off
         colormap(flipud(brewermap(64,'rdbu_ssr'))) ;
