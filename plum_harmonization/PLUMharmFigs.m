@@ -276,6 +276,44 @@ fpu_x = fpu_YX(list2map) ;
 fpu_list = unique(fpu_x(~isnan(fpu_x))) ;
 Nfpu = length(fpu_list) ;
 
+%%
+map_size = size(landArea_YX) ;
+if yearList_harm(1)==yearList_orig(1)+1 ...
+&& yearList_orig(1)==base_year ...
+&& any(yearList_luh2==base_year)
+    % Area
+    tmp_base_YXv = base.maps_YXvy(:,:,:,yearList_luh2==base_year) ;
+    tmp_base_xv = nan(Ncells, Nlu) ;
+    tmp_list2map_all = lpjgu_get_list2map_all(list2map, map_size, Nlu) ;
+    tmp_base_xv(:) = tmp_base_YXv(tmp_list2map_all) ;
+    PLUMharm_xvyr = cat(3, ...
+        repmat(tmp_base_xv, [1 1 1 Nruns]), ...
+        PLUMharm_xvyr) ;
+    clear tmp*
+    
+    % Fert
+    tmp_base_YXv = base_nfert.maps_YXvy(:,:,:,yearList_luh2==base_year) ;
+    tmp_base_xv = nan(Ncells, Ncrops_lpjg) ;
+    tmp_list2map_all = lpjgu_get_list2map_all(list2map, map_size, Ncrops_lpjg) ;
+    tmp_base_xv(:) = tmp_base_YXv(tmp_list2map_all) ;
+    PLUMharm_nfert_xvyr = cat(3, ...
+        repmat(tmp_base_xv, [1 1 1 Nruns]), ...
+        PLUMharm_nfert_xvyr) ;
+    clear tmp*
+    
+    % Irrig
+    tmp_base_YXv = base_irrig.maps_YXvy(:,:,:,yearList_luh2==base_year) ;
+    tmp_base_xv = nan(Ncells, Ncrops_lpjg) ;
+    tmp_list2map_all = lpjgu_get_list2map_all(list2map, map_size, Ncrops_lpjg) ;
+    tmp_base_xv(:) = tmp_base_YXv(tmp_list2map_all) ;
+    PLUMharm_irrig_xvyr = cat(3, ...
+        repmat(tmp_base_xv, [1 1 1 Nruns]), ...
+        PLUMharm_irrig_xvyr) ;
+    clear tmp*
+    
+    yearList_harm = [base_year yearList_harm] ;
+end
+
 disp('Done reading PLUM.')
 
 
@@ -467,8 +505,14 @@ end
 do_save = true ;
 
 thisLU = 'NATURAL' ;
-y1 = 2011 ;
-yN = 2100 ;
+y1_list = 2010 ;
+yN_list= 2011 ;
+% y1_list = 2011 ;
+% yN_list= 2100 ;
+% y1_list = 2011:1:2099 ;
+% yN_list = 2012:1:2100 ;
+% y1_list = 2011:5:2099 ;
+% yN_list = 2015:5:2100 ;
 
 % Options %%%%%%%%%
 fontSize = 14 ;
@@ -488,63 +532,87 @@ bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 do_caps = false ;
 this_colormap_name = 'PiYG_ssr' ;
+% lines_overlay = 'landareas.shp' ;
+lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
 v = contains(LUnames, thisLU) ;
 
-area_orig_bl_r = squeeze(nansum(nansum( ...
-    PLUMorig_xvyr(:,v,yearList_orig==y1,:),1),2))*conv_fact_total ;
-area_harm_bl_r = squeeze(nansum(nansum( ...
-    PLUMharm_xvyr(:,v,yearList_harm==y1,:),1),2))*conv_fact_total ;
+if length(y1_list) > 1    
+    this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
+        out_dir, min(y1_list), max(yN_list), yN_list(1)-y1_list(1)+1) ;
+    pngres = '-r150' ;
+else
+    this_outdir = out_dir ;
+    pngres = '-r300' ;
+end
 
-total_origDiff_r = squeeze(nansum(nansum( ...
-    PLUMorig_xvyr(:,v,yearList_orig==yN,:),1),2))*conv_fact_total ...
-    - area_orig_bl_r ;
-total_harmDiff_r = squeeze(nansum(nansum( ...
-    PLUMharm_xvyr(:,v,yearList_harm==yN,:),1),2))*conv_fact_total ...
-    - area_harm_bl_r ;
-
-% Get difference (%)
-orig_diff_YXrH = nan([map_size Nruns]) ;
-harm_diff_YXrH = nan([map_size Nruns]) ;
-diff_orig_xr = squeeze(nansum( ...
-    PLUMorig_xvyr(:,v,yearList_orig==yN,:) ...
-    - PLUMorig_xvyr(:,v,yearList_orig==y1,:), ...
-    2)) ;
-diff_harm_xr = squeeze(nansum( ...
-    PLUMharm_xvyr(:,v,yearList_harm==yN,:) ...
-    - PLUMharm_xvyr(:,v,yearList_harm==y1,:), ...
-    2)) ;
-map_size = size(landArea_YX) ;
-for r = 1:Nruns
-    orig_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
-    harm_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
+if ~exist(this_outdir, 'dir')
+    mkdir(this_outdir) ;
 end
 
 units_map = '%' ;
 units_total = 'Mkm^2' ;
-
-if ~as_frac_land
-    error('This only works with as_frac_land TRUE')
-end
-% bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
 this_runList = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
-col_titles = {sprintf('Original %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN), ...
-              sprintf('Harmonized %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN)} ;
-[diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v5(...
-    area_orig_bl_r, area_harm_bl_r, total_origDiff_r, total_harmDiff_r, ...
-    orig_diff_YXrH, harm_diff_YXrH, ...
-    y1, yN, this_runList, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, ...
-    Nruns, thisPos, units_map, units_total, do_caps, ...
-    bins_lowBnds, this_colormap_name, col_titles) ;
 
-if do_save
-    filename = sprintf('%s/maps_deltas_%d-%d_beforeAfter.png', ...
-        out_dir, y1, yN) ;
-    export_fig(filename, '-r300') ;
-    close
+map_size = size(landArea_YX) ;
+orig_diff_YXrH = nan([map_size Nruns]) ;
+harm_diff_YXrH = nan([map_size Nruns]) ;
+for y = 1:length(y1_list)
+    
+    y1 = y1_list(y) ;
+    yN = yN_list(y) ;
+    
+    area_orig_bl_r = squeeze(nansum(nansum( ...
+        PLUMorig_xvyr(:,v,yearList_orig==y1,:),1),2))*conv_fact_total ;
+    area_harm_bl_r = squeeze(nansum(nansum( ...
+        PLUMharm_xvyr(:,v,yearList_harm==y1,:),1),2))*conv_fact_total ;
+    
+    total_origDiff_r = squeeze(nansum(nansum( ...
+        PLUMorig_xvyr(:,v,yearList_orig==yN,:),1),2))*conv_fact_total ...
+        - area_orig_bl_r ;
+    total_harmDiff_r = squeeze(nansum(nansum( ...
+        PLUMharm_xvyr(:,v,yearList_harm==yN,:),1),2))*conv_fact_total ...
+        - area_harm_bl_r ;
+    
+    % Get difference (%)
+    diff_orig_xr = squeeze(nansum( ...
+        PLUMorig_xvyr(:,v,yearList_orig==yN,:) ...
+        - PLUMorig_xvyr(:,v,yearList_orig==y1,:), ...
+        2)) ;
+    diff_harm_xr = squeeze(nansum( ...
+        PLUMharm_xvyr(:,v,yearList_harm==yN,:) ...
+        - PLUMharm_xvyr(:,v,yearList_harm==y1,:), ...
+        2)) ;
+    for r = 1:Nruns
+        orig_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
+        harm_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
+    end
+    
+    
+    if ~as_frac_land
+        error('This only works with as_frac_land TRUE')
+    end
+    
+    col_titles = {sprintf('Original %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN), ...
+        sprintf('Harmonized %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN)} ;
+    [diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v5(...
+        area_orig_bl_r, area_harm_bl_r, total_origDiff_r, total_harmDiff_r, ...
+        orig_diff_YXrH, harm_diff_YXrH, ...
+        y1, yN, this_runList, ...
+        spacing, fontSize, textX, textY_1, textY_2, ...
+        nx, ny, ...
+        Nruns, thisPos, units_map, units_total, do_caps, ...
+        bins_lowBnds, this_colormap_name, col_titles, ...
+        lines_overlay) ;
+
+    if do_save
+        filename = sprintf('%s/maps_deltas_%d-%d_beforeAfter.png', ...
+            this_outdir, y1, yN) ;
+        export_fig(filename, pngres) ;
+        close
+    end
+    
 end
 
 
@@ -590,7 +658,9 @@ close
 ts_base_cy = squeeze(nansum(nansum(base.maps_YXvy,1),2)) ;
 ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
 ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
-ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+if ~isequal(yearList_orig, yearList_harm)
+    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+end
 
 spacing = [0.05 0.1] ;
 
@@ -625,7 +695,9 @@ else
 end
 ts_orig_cyr = cf_kg2Mt .* squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_nfert_xvyr,1)) ;
 ts_harm_cyr = cf_kg2Mt .* squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_nfert_xvyr,1)) ;
-ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+if ~isequal(yearList_orig, yearList_harm)
+    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+end
 
 spacing = [0.05 0.1] ;
 
@@ -660,7 +732,9 @@ else
 end
 ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_irrig_xvyr,1)) ;
 ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_irrig_xvyr,1)) ;
-ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+if ~isequal(yearList_orig, yearList_harm)
+    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+end
 
 spacing = [0.05 0.1] ;
 
