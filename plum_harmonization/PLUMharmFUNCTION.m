@@ -1,4 +1,4 @@
-function PLUMharmFUNCTION(varargin)
+% function PLUMharmFUNCTION(varargin)
 
 PLUM_in_toptop = {...
 %                   'SSP1.v10.s1' ;
@@ -18,12 +18,12 @@ PLUM_in_toptop = {...
                   } ;
 
 % Replace PLUM_in_toptop with input, if provided
-if ~isempty(varargin)
-    PLUM_in_toptop = varargin{1} ;
-    if length(varargin) > 1
-        error('At most one optional argument (PLUM_in_toptop) can be provided.')
-    end
-end
+% if ~isempty(varargin)
+%     PLUM_in_toptop = varargin{1} ;
+%     if length(varargin) > 1
+%         error('At most one optional argument (PLUM_in_toptop) can be provided.')
+%     end
+% end
 if ~iscellstr(PLUM_in_toptop)
     error('PLUM_in_toptop must be a cell array of strings!')
 end
@@ -58,4 +58,4 @@ end
 PLUMharm
 
 
-end
+% end
