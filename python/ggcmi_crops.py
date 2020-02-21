@@ -3,6 +3,7 @@ from em_functions \
     import emulate_old, emulate, update_out_table, save_out_table, import_parameter_netcdfs
 import numpy as np
 import os
+from netCDF4 import Dataset
 # import glob
 # import datetime
 np.random.seed(1234)
@@ -13,13 +14,23 @@ def try_load_climate(climate_dir, var, GGCM, GGCMIcrop, rcp, missing_climate, ve
     # Otherwise, change missing_climate to True.
     in_array = -1
     if not missing_climate:
-        climate_file = '%s/%s_%s_%s_rf_%d.npy' % (climate_dir, var, GCM, GGCMIcrop, rcp)
+        climate_file = ('%s/rcp%s/rcp%s_%s_%s_growingseason_%s'
+                        + '_annual_2011-2099_vs_baseline_mean.nc4') \
+            % (climate_dir, rcp, rcp, GCM, GGCMIcrop, var)
         try:
-            in_array = np.load(climate_file)
+            nc_fid = Dataset(climate_file, 'r')
         except FileNotFoundError:
             if verbose:
                 print('    File not found: %s' % (climate_file))
             missing_climate = True
+            return(in_array, missing_climate)
+        nc_vars = nc_fid.variables
+        varName = [s for s in list(nc_vars.keys()) if "delta" in s][0]
+        in_array = nc_fid.variables[varName]
+
+    # Find average decadal values
+    breakpoint()
+
     return(in_array, missing_climate)
 
 
@@ -93,7 +104,8 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig, do_
         print("%s rcp%d dec%d %s %s" % (GCM, rcp, decade, GGCM, GGCMIcrop))
 
         # Load climate files
-        climate_dir = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/climate/agmerra/cmip5"
+        climate_dir = \
+            "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/climate/emulator_gs_deltas/CMIP5"
         missing_climate = False
         t, missing_climate = try_load_climate(
             climate_dir, "tas", GGCM, GGCMIcrop, rcp, missing_climate, False)
@@ -163,10 +175,9 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig, do_
 
 
 do_adapt = False
-# outdir_suffix = "20200204"
-outdir_suffix = "20200211"
+outdir_suffix = "20200221"
 
-GCMs = ["IPSL-CM5A-MR"]
+GCMs = ["IPSL-CM5A-MR_r1i1p1"]
 # GCMs = ["IPSL-CM5A-MR","GFDL-ESM2M","MIROC5", "HadGEM2-ES"]
 # GCMs = ["IPSL-CM5A-LR", "GFDL-ESM2M", "MIROC5", "HadGEM2-ES"] # ISIMIP2b selection
 # GCMs = ['ACCESS1-0','bcc-csm1-1','BNU-ESM','CanESM2','CCSM4','CESM1-BGC','CMCC-CM',
