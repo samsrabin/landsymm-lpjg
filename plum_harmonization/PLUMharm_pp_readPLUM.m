@@ -4,6 +4,11 @@ function [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
     is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, thisVer, ...
     is_orig)
 
+combineCrops = isempty(PLUMtoLPJG) ;
+
+S_nfert_out = [] ;
+S_irrig_out = [] ;
+
 % Does MAT-file already exist?
 MATfile = [inDir '.processed.' thisVer 'mat'] ;
 if exist(MATfile,'file')
@@ -12,25 +17,52 @@ if exist(MATfile,'file')
     TXTfile_info = dir(TXTfile) ;
     
     if isempty(TXTfile_info) || MATfile_info.datenum > TXTfile_info.datenum
-        S_out = [] ;
-        S_nfert_out = [] ;
-        S_irrig_out = [] ;
         disp('   Loading MAT file...')
-        load(MATfile,'S_out','S_nfert_out','S_irrig_out') ;
+        if combineCrops
+            load(MATfile,'S_out') ;
+        else
+            load(MATfile,'S_out','S_nfert_out','S_irrig_out') ;
+        end
     else
         warning('.mat file exists but is older than latest .txt file. Regenerating.')
-        [S_out, S_nfert_out, S_irrig_out] = ...
+        if combineCrops
+            [S_out, ~, ~] = ...
+                generate_struct( ...
+                inDir,base_year,yearList, ...
+                landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
+                is2deg, bareFrac_y0_YX, norm2extra, inpaint_method) ;
+        else
+            [S_out, S_nfert_out, S_irrig_out] = ...
             generate_struct( ...
                 inDir,base_year,yearList, ...
                 landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
                 is2deg, bareFrac_y0_YX, norm2extra, inpaint_method) ;
+        end
         % Save, catching exceptions to avoid having to re-read everything
         disp('   Saving MAT file...')
         try
-            save(MATfile,'S_out', 'S_nfert_out', 'S_irrig_out') ;
+            if combineCrops
+                save(MATfile,'S_out') ;
+            elseif ~combineCrops
+                save(MATfile,'S_out', 'S_nfert_out', 'S_irrig_out') ;
+            end
         catch ME
             keyboard
         end
+    end
+elseif combineCrops
+    [S_out, ~, ~] = ...
+        generate_struct( ...
+            inDir,base_year,yearList, ...
+            landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
+            is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
+            is_orig) ;
+    % Save, catching exceptions to avoid having to re-read everything
+    disp('   Saving MAT file...')
+    try
+        save(MATfile,'S_out') ;
+    catch ME
+        keyboard
     end
 else
     [S_out, S_nfert_out, S_irrig_out] = ...
@@ -61,13 +93,21 @@ function [S, S_nfert, S_irrig] = generate_struct(...
     is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
     is_orig)
 
+combineCrops = isempty(PLUMtoLPJG) ;
+S_nfert = [] ;
+S_irrig = [] ;
+
 S.varNames = LUnames ;
-S_nfert.varNames = LPJGcrops ;
-S_irrig.varNames = LPJGcrops ;
+if ~combineCrops
+    S_nfert.varNames = LPJGcrops ;
+    S_irrig.varNames = LPJGcrops ;
+end
 
 S.yearList = yearList ;
-S_nfert.yearList = yearList ;
-S_irrig.yearList = yearList ;
+if ~combineCrops
+    S_nfert.yearList = yearList ;
+    S_irrig.yearList = yearList ;
+end
 Nyears = length(yearList) ;
 
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
@@ -124,9 +164,17 @@ for y = 1:Nyears
             .* repmat(thisLandArea_YX,[1 1 size(LU_tmp_in.maps_YXv,3)]) ;
         
         % Import crop areas
-        file_in_cf = strrep(file_in_lu,'LandCoverFract','CropFract') ;
-        tmp = load(file_in_cf) ;
-        cropFrac_tmp_in = tmp.out_y1 ; clear tmp
+        if combineCrops
+            cropFrac_tmp_in.maps_YXv = ...
+                ones(size(LUarea_tmp_in.maps_YXv, 1:2)) ;
+%                 LUarea_tmp_in.maps_YXv(:,:,strcmp(LUarea_tmp_in.varNames,'CROPLAND')) ...
+%                 ./ repmat(thisLandArea_YX,[1 1 size(LU_tmp_in.maps_YXv,3)]) ;
+            cropFrac_tmp_in.varNames = LPJGcrops ;
+        else
+            file_in_cf = strrep(file_in_lu,'LandCoverFract','CropFract') ;
+            tmp = load(file_in_cf) ;
+            cropFrac_tmp_in = tmp.out_y1 ; clear tmp
+        end
         cropArea_tmp_in = cropFrac_tmp_in ;
         Ncrops = size(cropFrac_tmp_in.maps_YXv,3) ;
         cropArea_tmp_in.maps_YXv = cropFrac_tmp_in.maps_YXv .* repmat(LUarea_tmp_in.maps_YXv(:,:,strcmp(LUarea_tmp_in.varNames,'CROPLAND')), [1 1 Ncrops]) ;
@@ -135,16 +183,18 @@ for y = 1:Nyears
         PLUM_in.varNames = [cropArea_tmp_in.varNames LUarea_tmp_in.varNames(~strcmp(LUarea_tmp_in.varNames,'CROPLAND'))] ;
         PLUM_in.maps_YXv = cat(3, cropArea_tmp_in.maps_YXv, LUarea_tmp_in.maps_YXv(:,:,~strcmp(LUarea_tmp_in.varNames,'CROPLAND'))) ;
         
-        % Import managements
-        file_in_nfert = strrep(file_in_lu,'LandCoverFract','Fert') ;
-        tmp = load(file_in_nfert) ;
-        nfert_in = tmp.out_y1 ; clear tmp
-        file_in_irrig = strrep(file_in_lu,'LandCoverFract','Irrig') ;
-        tmp = load(file_in_irrig) ;
-        irrig_in = tmp.out_y1 ; clear tmp
-        
-        % Convert kgN/ha to kgN/m2
-        nfert_in.maps_YXv = nfert_in.maps_YXv * cf_kgNha_kgNm2 ;
+        if ~combineCrops
+            % Import managements
+            file_in_nfert = strrep(file_in_lu,'LandCoverFract','Fert') ;
+            tmp = load(file_in_nfert) ;
+            nfert_in = tmp.out_y1 ; clear tmp
+            file_in_irrig = strrep(file_in_lu,'LandCoverFract','Irrig') ;
+            tmp = load(file_in_irrig) ;
+            irrig_in = tmp.out_y1 ; clear tmp
+            
+            % Convert kgN/ha to kgN/m2
+            nfert_in.maps_YXv = nfert_in.maps_YXv * cf_kgNha_kgNm2 ;
+        end
     else
         if is2deg
             try
@@ -168,16 +218,20 @@ for y = 1:Nyears
         S.maps_YXvy = nan(size(PLUM_in.maps_YXv,1), ...
             size(PLUM_in.maps_YXv,2), ...
             length(LUnames), Nyears, 'single') ;
-        S_nfert.maps_YXvy = nan(size(nfert_in.maps_YXv,1), ...
-            size(nfert_in.maps_YXv,2), ...
-            length(LPJGcrops), Nyears, 'single') ;
-        S_irrig.maps_YXvy = nan(size(nfert_in.maps_YXv,1), ...
-            size(nfert_in.maps_YXv,2), ...
-            length(LPJGcrops), Nyears, 'single') ;
+        if ~combineCrops
+            S_nfert.maps_YXvy = nan(size(nfert_in.maps_YXv,1), ...
+                size(nfert_in.maps_YXv,2), ...
+                length(LPJGcrops), Nyears, 'single') ;
+            S_irrig.maps_YXvy = nan(size(nfert_in.maps_YXv,1), ...
+                size(nfert_in.maps_YXv,2), ...
+                length(LPJGcrops), Nyears, 'single') ;
+        end
     end
     S.maps_YXvy(:,:,:,y) = PLUM_in.maps_YXv ;
-    S_nfert.maps_YXvy(:,:,:,y) = nfert_in.maps_YXv ;
-    S_irrig.maps_YXvy(:,:,:,y) = irrig_in.maps_YXv ;
+    if ~combineCrops
+        S_nfert.maps_YXvy(:,:,:,y) = nfert_in.maps_YXv ;
+        S_irrig.maps_YXvy(:,:,:,y) = irrig_in.maps_YXv ;
+    end
 
 end
 
