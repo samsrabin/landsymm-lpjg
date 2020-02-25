@@ -7,6 +7,12 @@
 % baseline_ver = 2 ;   % Based on remap_v6
 baseline_ver = 3 ;   % Based on remap_v6p7
 
+% Which PLUM version?
+PLUM_version = 'v12.s1' ;
+
+% Use combined-crop version?
+combineCrops = false ;
+
 thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
@@ -88,11 +94,29 @@ Nruns = length(runList) ;
 % Conversion factors
 cf_kg2Mt = 1e-3*1e-6 ;
 
+R = georasterref('RasterSize', [360 720], ...
+    'RasterInterpretation', 'cells', ...
+    'ColumnsStartFrom', 'north', ...
+    'LatitudeLimits', [-90 90], ...
+    'LongitudeLimits', [-180 180]) ;
+
 
 %% Import reference data
 
 doHarm = false ;
 run([PLUMharm_top 'PLUMharm_importRefData.m']) ;
+
+biomeID_YX = flipud(imread( ...
+    '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif')) ;
+biomeID_YX(biomeID_YX<0) = NaN ;
+biomeID_x = biomeID_YX(list2map) ;
+countries_YX = flipud(dlmread( ...
+    '/Users/Shared/PLUM/crop_calib_data/countries/PLUM-specific/country_boundaries62892.noNeg99.extrapd.asc', ...
+    '',6,0)) ;
+countries_YX(countries_YX<=0) = NaN ;
+countries_x = countries_YX(list2map) ;
+countries_key = readtable('/Users/Shared/lpj-guess-plum/input/unifying_gridlist/country_boundaries_codes4.csv') ;
+
 
 
 %% Import PLUM (original + harmonized)
@@ -368,7 +392,7 @@ spacing = [0.05 0.05] ; % v h
 fontSize = 14 ;
 %%%%%%%%%%%%%
 
-y1 = 2011 ;
+y1 = 2010 ;
 yN = 2100 ;
 
 thisGray = 0.65*ones(3,1) ;
@@ -503,9 +527,9 @@ end
 %% Map deltas for orig and harm
 do_save = true ;
 
-thisLU = 'NATURAL' ;
-% thisLU = 'CROPLAND' ;
-% thisLU = 'PASTURE' ;
+tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
+% y1_list = 2011 ;
+% yN_list= 2012 ;
 y1_list = 2010 ;
 yN_list= 2011 ;
 % y1_list = 2011 ;
@@ -534,7 +558,7 @@ bins_lowBnds = [-100:20:-20 -5 [-1 1]*0.1 5 20:20:80] ;
 % step = 200/(64+1); bins_lowBnds = -100:step:(100-step);
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 do_caps = false ;
-this_colormap_name = 'PiYG_ssr' ;
+ntrl_colormap_name = 'PiYG_ssr' ;
 % lines_overlay = 'landareas.shp' ;
 lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
@@ -545,7 +569,7 @@ else
     v = contains(LUnames, thisLU) ;
 end
 
-if length(y1_list) > 1    
+if length(y1_list) > 1
     this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
         out_dir, min(y1_list), max(yN_list), yN_list(1)-y1_list(1)+1) ;
     pngres = '-r150' ;
@@ -553,9 +577,13 @@ else
     this_outdir = out_dir ;
     pngres = '-r300' ;
 end
+this_outdir_geo = [removeslashifneeded(out_dir) 'geo/'] ;
 
 if ~exist(this_outdir, 'dir')
     mkdir(this_outdir) ;
+end
+if ~exist(this_outdir_geo, 'dir')
+    mkdir(this_outdir_geo) ;
 end
 
 units_map = '%' ;
@@ -565,63 +593,207 @@ this_runList = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
 map_size = size(landArea_YX) ;
 orig_diff_YXrH = nan([map_size Nruns]) ;
 harm_diff_YXrH = nan([map_size Nruns]) ;
-for y = 1:length(y1_list)
-    
-    y1 = y1_list(y) ;
-    yN = yN_list(y) ;
-    
-    area_orig_bl_r = squeeze(sum(sum( ...
-        PLUMorig_xvyr(:,v,yearList_orig==y1,:),1),2))*conv_fact_total ;
-    area_harm_bl_r = squeeze(sum(sum( ...
-        PLUMharm_xvyr(:,v,yearList_harm==y1,:),1),2))*conv_fact_total ;
-    
-    total_origDiff_r = squeeze(sum(sum( ...
-        PLUMorig_xvyr(:,v,yearList_orig==yN,:),1),2))*conv_fact_total ...
-        - area_orig_bl_r ;
-    total_harmDiff_r = squeeze(sum(sum( ...
-        PLUMharm_xvyr(:,v,yearList_harm==yN,:),1),2))*conv_fact_total ...
-        - area_harm_bl_r ;
-    
-    % Get difference (%)
-    diff_orig_xr = squeeze(nansum( ...
-        PLUMorig_xvyr(:,v,yearList_orig==yN,:) ...
-        - PLUMorig_xvyr(:,v,yearList_orig==y1,:), ...
-        2)) ;
-    diff_harm_xr = squeeze(nansum( ...
-        PLUMharm_xvyr(:,v,yearList_harm==yN,:) ...
-        - PLUMharm_xvyr(:,v,yearList_harm==y1,:), ...
-        2)) ;
-    for r = 1:Nruns
-        orig_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
-        harm_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
-    end
-    
-    
-    if ~as_frac_land
-        error('This only works with as_frac_land TRUE')
-    end
-    
-    col_titles = {sprintf('Original %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN), ...
-        sprintf('Harmonized %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN)} ;
-    [diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v5(...
-        area_orig_bl_r, area_harm_bl_r, total_origDiff_r, total_harmDiff_r, ...
-        orig_diff_YXrH, harm_diff_YXrH, ...
-        y1, yN, this_runList, ...
-        spacing, fontSize, textX, textY_1, textY_2, ...
-        nx, ny, ...
-        Nruns, thisPos, units_map, units_total, do_caps, ...
-        bins_lowBnds, this_colormap_name, col_titles, ...
-        lines_overlay) ;
 
-    if do_save
-        filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
-            this_outdir, thisLU, y1, yN) ;
-        export_fig(filename, pngres) ;
-        close
+for l = 2:length(tmp_lu_list)
+    
+    % Get long and short LU name
+    thisLU = tmp_lu_list{l} ;
+    thisLU_short = lower(thisLU(1:4)) ;
+    if strcmp(thisLU_short, 'natu')
+        thisLU_short = 'ntrl' ;
+    end
+    
+    % Get color map
+    if strcmp(thisLU, 'CROPLAND')
+        v = isCrop ;
+    else
+        v = contains(LUnames, thisLU) ;
+    end
+    this_colormap_name = ntrl_colormap_name ;
+    if ~strcmp(thisLU, 'NATURAL')
+        if strcmp(this_colormap_name(1), '-')
+            this_colormap_name = this_colormap_name(2:end) ;
+        else
+            this_colormap_name = ['-' this_colormap_name] ;
+        end
+    end
+    for y = 1:length(y1_list)
+        
+        y1 = y1_list(y) ;
+        yN = yN_list(y) ;
+        
+        area_orig_bl_r = squeeze(sum(sum( ...
+            PLUMorig_xvyr(:,v,yearList_orig==y1,:),1),2))*conv_fact_total ;
+        area_harm_bl_r = squeeze(sum(sum( ...
+            PLUMharm_xvyr(:,v,yearList_harm==y1,:),1),2))*conv_fact_total ;
+        
+        total_origDiff_r = squeeze(sum(sum( ...
+            PLUMorig_xvyr(:,v,yearList_orig==yN,:),1),2))*conv_fact_total ...
+            - area_orig_bl_r ;
+        total_harmDiff_r = squeeze(sum(sum( ...
+            PLUMharm_xvyr(:,v,yearList_harm==yN,:),1),2))*conv_fact_total ...
+            - area_harm_bl_r ;
+        
+        % Get difference (%)
+        diff_orig_xr = squeeze(nansum( ...
+            PLUMorig_xvyr(:,v,yearList_orig==yN,:) ...
+            - PLUMorig_xvyr(:,v,yearList_orig==y1,:), ...
+            2)) ;
+        diff_harm_xr = squeeze(nansum( ...
+            PLUMharm_xvyr(:,v,yearList_harm==yN,:) ...
+            - PLUMharm_xvyr(:,v,yearList_harm==y1,:), ...
+            2)) ;
+        for r = 1:Nruns
+            orig_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
+            harm_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
+        end
+        
+        
+        if ~as_frac_land
+            error('This only works with as_frac_land TRUE')
+        end
+        
+        col_titles = {sprintf('Original %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN), ...
+            sprintf('Harmonized %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN)} ;
+        [diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v5(...
+            area_orig_bl_r, area_harm_bl_r, total_origDiff_r, total_harmDiff_r, ...
+            orig_diff_YXrH, harm_diff_YXrH, ...
+            y1, yN, this_runList, ...
+            spacing, fontSize, textX, textY_1, textY_2, ...
+            nx, ny, ...
+            Nruns, thisPos, units_map, units_total, do_caps, ...
+            bins_lowBnds, this_colormap_name, col_titles, ...
+            lines_overlay) ;
+        
+        if do_save
+%             filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
+%                 this_outdir, thisLU, y1, yN) ;
+%             export_fig(filename, pngres) ;
+            close
+            if length(y1_list) == 1
+                disp('Saving GeoTIFFs...')
+                for r = 1:Nruns
+                    filename = sprintf('%s/D%s_%d-%d_%s_orig.tif', ...
+                        removeslashifneeded(this_outdir_geo), ...
+                        thisLU_short, y1_list, yN_list, this_runList{r}) ;
+                    geotiffwrite_ssr(filename,orig_diff_YXrH(:,:,r),R,-999)
+                    filename = strrep(filename, 'orig', 'harm') ;
+                    geotiffwrite_ssr(filename,harm_diff_YXrH(:,:,r),R,-999)
+                end
+            end
+        end
     end
     
 end
+disp('Done')
 
+
+%% Harmonization effects by the numbers
+
+thisLU = 'NATURAL' ;
+% thisLU = 'CROPLAND' ;
+% thisLU = 'PASTURE' ;
+outfile = sprintf('%s/harm_by_numbers.%s.xlsx', ...
+    '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/harmonization_qgis', ...
+    thisLU) ;
+
+%TODO: Add rest of regions
+harm_focus_regions = { ...
+... Number  Super-region    General biome           Geog. restriction?      Description
+    1095,   'Amazon',       'Trop. rainforest',     [],                     'Amazon' ;
+    429,    'N. America',   'Temp. grassland',      [],                     'Great Plains' ;
+    437,    'N. America',   'Temp. forest',         [],                     'E US mixed for' ;
+    306,    'N. America',   'Temp. forest',         [],                     'U. Midw US br/mix for' ;
+    477,    'N. America',   'Temp. forest',         [],                     'E US conif for' ;
+    436,    'N. America',   'Temp. forest',         [],                     'Texarkana conif for' ;
+    950,    'Sub-Sah. Afr.','Trop. rainforest',     [],                     'C Afr rainfor.' ;
+    1251,   'Sub-Sah. Afr.','Savanna',              '0&N',                  'N Afr savanna' ;
+    1251,   'Sub-Sah. Afr.','Savanna',              '0&S',                  'S Afr savanna' ;
+    811,    'South Asia',   'Desert/xeric',         {'India', 'Pakistan', 'Afghanistan'}, ...
+                                                                            'S Asia xeric/desert' ;
+    661,    'South Asia',   '(Sub)trop. dry for.',  [],                     'C Ind subt dry for' ;
+    712,    'South Asia',   '(Sub)trop. dry for.',  [],                     'S Ind subt dry for' ;
+    766,    'South Asia',   '(Sub)trop. dry for.',  [],                     'S Ind scrub for' ;
+    808,    'South Asia',   '(Sub)trop. dry for.',  [],                     'SriL subt dry for' ;
+    708,    'South Asia',   '(Sub)trop. wet for.',  [],                     'W Ind subt wet for' ;
+    830,    'South Asia',   '(Sub)trop. wet for.',  [],                     'SriL subt wet for' ;
+    597,    'South Asia',   '(Sub)trop. wet for.',  [],                     'C Ind subt wet for' ;
+    [551;567;632;638], ...
+            'South Asia',   '(Sub)trop. wet for.',  [],                     'E Ind subt wet for' ;
+    662,    'South Asia',   '(Sub)trop. wet for.',  {'India', 'Bangladesh'},'NWInd+Bangl subt wet for' ;
+    480,    'East Asia',    'Temp. forest',         [],                     'E Asia temp for' ;
+    487,    'East Asia',    'Montane gr/shr',       [],                     'Tibetan Plat. steppe' ;
+    342,    'East Asia',    'Desert/xeric',         [],                     'E Asia xeric/desert' ;
+    348,    'East Asia',    'Temp. grass/sav/shr',  [],                     'E Asia temp grass' ;
+    [132;153;169;171;252;313], ...
+            'Europe+Nafr',  'Temp. forest',         [],                     'Eur temp br/mix for' ;
+    [168;287;288;347], ...
+            'Europe+Nafr',  'Temp. forest',         [],                     'Eur temp conif for' ;
+    349,    'Europe+Nafr',  'Mediterranean',        [],                     'Mediterr. mediterr.' ;
+    } ;
+
+% Setup
+list_regions = harm_focus_regions(:,5) ;
+list_superRegs = unique(harm_focus_regions(:,2)) ;
+Nregions = length(list_regions) ;
+NsuperRegs = length(list_superRegs) ;
+
+if strcmp(thisLU, 'CROPLAND')
+    v = isCrop ;
+else
+    v = strcmp(LUnames, thisLU) ;
+end
+
+% lon_map = repmat((-180:0.5:179.5)+0.25, [360 1]) ;
+% lat_map = repmat((-90:0.5:89.5)'+0.25, [1 720]) ;
+
+for r = 1:Nruns
+    thisRun = runList{r} ;
+    fprintf('2010-2100, %s, %s\n', thisRun, thisLU)
+    for s = 1:NsuperRegs
+        [table_orig, table_orig_relY1] = PLUMharmFigs_iterate_superReg( ...
+            sum(PLUMorig_xvyr(:,v,:,r),2), s, 'orig', ...
+            list_superRegs, list_regions, harm_focus_regions, ...
+            biomeID_x, countries_x, countries_key, lats, lons, ...
+            list2map) ;
+        if s==1
+            table_orig_out = table_orig ;
+            table_orig_relY1_out = table_orig_relY1 ;
+        else
+            table_orig_out = cat(1, table_orig_out, table_orig) ;
+            table_orig_relY1_out = cat(1, table_orig_relY1_out, table_orig_relY1) ;
+        end
+        [table_harm, table_harm_relY1] = PLUMharmFigs_iterate_superReg( ...
+            sum(PLUMharm_xvyr(:,v,:,r),2), s, 'harm', ...
+            list_superRegs, list_regions, harm_focus_regions, ...
+            biomeID_x, countries_x, countries_key, lats, lons, ...
+            list2map) ;
+        if s==1
+            table_harm_out = table_harm ;
+            table_harm_relY1_out = table_harm_relY1 ;
+        else
+            table_harm_out = cat(1, table_harm_out, table_harm) ;
+            table_harm_relY1_out = cat(1, table_harm_relY1_out, table_harm_relY1) ;
+        end
+    end
+    disp(' ')
+    
+    % Save to Excel file
+    thisRange = sprintf('A1:F%d', size(table_orig_out, 1) + 1) ;
+    sheetName = [strrep(thisRun,'.','_') '_orig'] ;
+    writetable(table_orig_out, outfile, ...
+        'Sheet', sheetName, 'Range', thisRange) ;    
+    sheetName = [strrep(thisRun,'.','_') '_harm'] ;
+    writetable(table_harm_out, outfile, ...
+        'Sheet', sheetName, 'Range', thisRange) ;
+    sheetName = [strrep(thisRun,'.','_') '_orig_relY1'] ;
+    writetable(table_orig_relY1_out, outfile, ...
+        'Sheet', sheetName, 'Range', thisRange) ;    
+    sheetName = [strrep(thisRun,'.','_') '_harm_relY1'] ;
+    writetable(table_harm_relY1_out, outfile, ...
+        'Sheet', sheetName, 'Range', thisRange) ;
+    
+end
 
 
 %% Map one year, one LC for orig and harm
@@ -714,8 +886,6 @@ if do_save
     close
 end
     
-
-
 
 %% Time series of LUs
 
@@ -1043,3 +1213,4 @@ for r = 1:Nruns
         close
     end
 end
+
