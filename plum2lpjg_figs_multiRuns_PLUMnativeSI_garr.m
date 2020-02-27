@@ -68,6 +68,8 @@ years_endf = 2091:2100 ;
 
 tic
 run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import_garr.m') ;
+addpath('/Users/sam/Documents/Dropbox/FireMIP/Stijn_files_2019/')
+addpath('/Users/Shared/PLUM/crop_calib_code/')
 toc
 
 
@@ -2608,12 +2610,13 @@ thisYear = 2010 ;
 % thisCountry = {'United States of America','Canada'} ; thisCountry_short = 'USA + Canada' ;
 % thisCountry = {'United States of America'} ;
 % thisCountry = {'Germany Austria & Switzerland'} ;
-thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
-    'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
-    'Southern Africa other', 'Sudan', 'Uganda', ...
-    'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
+% thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
+%     'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
+%     'Southern Africa other', 'Sudan', 'Uganda', ...
+%     'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
 % thisCountry = 'Russian Federation' ;
 % thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan', 'Bangladesh', 'Nepal & Butan'} ; thisCountry_short = 'South Asia' ;
+thisCountry = 'China' ; thisCountry_short = 'China' ;
 thisPos = figurePos ;
 lineWidth = 2 ;
 spacing = [0.1 0.05] ; % [v h]
@@ -2705,15 +2708,15 @@ if do_save
     set(0,'CurrentFigure',hf1) ;
     export_fig(sprintf('%s/production_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
         '-r150') ;
-    close
+    close(hf1)
     set(0,'CurrentFigure',hf2) ;
     export_fig(sprintf('%s/productionDelta_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
         '-r150') ;
-    close
+    close(hf2)
     set(0,'CurrentFigure',hf3) ;
     export_fig(sprintf('%s/exportfrac_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
         '-r150') ;
-    close
+    close(hf3)
 end
 
 
@@ -2735,11 +2738,11 @@ thisYear = 2010 ;
 %     'Germany Austria & Switzerland', 'Other former USSR', 'Poland', ...
 %     'Spain & Portugal', 'Ukraine', 'United Kingdom', 'ex-Yugoslavia'} ;
 % thisCountry = 'Russian Federation' ;
-% thisCountry = 'China' ;
-thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
-    'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
-    'Southern Africa other', 'Sudan', 'Uganda', ...
-    'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
+thisCountry = 'China' ; thisCountry_short = 'China' ;
+% thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
+%     'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
+%     'Southern Africa other', 'Sudan', 'Uganda', ...
+%     'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
 % thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan', 'Bangladesh', ...
 %     'Nepal & Butan', 'China', 'Indonesia'} ; thisCountry_short = 'China, South Asia, Indonesia' ;
 thisPos = figurePos ;
@@ -2766,10 +2769,12 @@ elseif length(IA) < length(thisCountry)
 end
 ts_tmp_dmnd_ymr = squeeze(sum(ts_countryDemand_ymur(:,:,IA,:),3)) ;
 ts_tmp_dmndF_ymr = squeeze(sum(ts_countryDemandWithFeed_ymur(:,:,IA,:),3)) ;
-ts_tmp_self_ymr = squeeze(sum(ts_countryProdnet_ymur(:,:,IA,:),3) ./ sum(ts_countryDemandWithFeed_ymur(:,:,IA,:),3)) ;
+ts_tmp_self_ymr = ...
+    squeeze(sum(ts_countryProdnet_ymur(:,:,IA,:),3) ...
+    ./ sum(ts_countryDemandWithFeed_ymur(:,:,IA,:),3)) ;
 ts_tmp_self_ymr(ts_tmp_dmnd_ymr==0) = NaN ;
 ts_tmp_self_ymr(ts_tmp_dmndF_ymr==0) = NaN ;
-ts_tmp_self_ymr(ts_tmp_self_ymr>1) = 1 ;
+% ts_tmp_self_ymr(ts_tmp_self_ymr>1) = 1 ;
 
 ts_tmp_dmnd_ymr = ts_tmp_dmnd_ymr * conv_fact ;
 ts_tmp_dmndF_ymr = ts_tmp_dmndF_ymr * conv_fact ;
@@ -2796,12 +2801,14 @@ for m = 1:Ncommods
     set(0,'CurrentFigure',hf1) ;
     h = subplot_tight(2,4,m,spacing) ;
     plot(yearList_PLUMout,ts_tmp_dmndF_yr,'-','LineWidth',lineWidth) ;
-    hold on
-    h.ColorOrderIndex = 1 ;
-    plot(yearList_PLUMout,ts_tmp_dmnd_yr,':','LineWidth',lineWidth) ;
-    hold off
+    ylabel(units)
     title(get_commods_title(commods{m}))
-    ylabel(sprintf('Demand (dots=w/o feed) (%s)', units))
+%     hold on
+%     h.ColorOrderIndex = 1 ;
+%     plot(yearList_PLUMout,ts_tmp_dmnd_yr,':','LineWidth',lineWidth) ;
+%     hold off
+%     ylabel(sprintf('%s (dots=w/o feed)', units))
+    title(get_commods_title(commods{m}))
     legend(runList,'Location','Best')
     h.FontSize = fontSize ;
     
@@ -2812,12 +2819,12 @@ for m = 1:Ncommods
     h = subplot_tight(2,4,m,spacing) ;
     plot(yearList_PLUMout,ts_tmp_dmndF_yr_pct,'-','LineWidth',lineWidth) ;
     hold on
+    plot(h.XLim, [0 0], ':k')
     h.ColorOrderIndex = 1 ;
     plot(yearList_PLUMout,ts_tmp_dmnd_yr_pct,':','LineWidth',lineWidth) ;
-    plot(h.XLim, [0 0], ':k')
-    hold off
-    ylabel(sprintf('Demand %s from %d (%%, dots=w/o feed) (%s)', '\Delta', thisYear, units))
+    ylabel(sprintf('%% %s from %d (dots=w/o feed)', '\Delta', thisYear))
     title(get_commods_title(commods{m}))
+    hold off
     legend(runList,'Location','Best')
     h.FontSize = fontSize ;
     
@@ -2841,11 +2848,144 @@ end; clear m
 
 % Add figure titles
 if ~isempty(thisCountry_short)
+    thisSGtitle = sprintf('%s: Demand', thisCountry_short) ;
+else
+    thisSGtitle = strjoin(thisCountry,' + ') ;
+end
+for hf = {hf1 hf2}
+    sgtitle(hf{:}, thisSGtitle, ...
+        'FontSize', fontSize+6, ...
+        'FontWeight', 'Bold') ;
+end
+if ~isempty(thisCountry_short)
     thisSGtitle = thisCountry_short ;
 else
     thisSGtitle = strjoin(thisCountry,' + ') ;
 end
-for hf = {hf1 hf2 hf3}
+for hf = {hf3}
+    sgtitle(hf{:}, thisSGtitle, ...
+        'FontSize', fontSize+6, ...
+        'FontWeight', 'Bold') ;
+end
+
+% Save figures
+thisCountry_short_filename = thisCountry_short_toFilename(thisCountry_short) ;
+if do_save
+    if isempty(thisCountry_short)
+        error('Specify thisCountry_short to save figure')
+    end
+    set(0,'CurrentFigure',hf1) ;
+    export_fig(sprintf('%s/demand_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
+        '-r150') ;
+    close(hf1)
+    set(0,'CurrentFigure',hf2) ;
+    export_fig(sprintf('%s/demandDelta_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
+        '-r150') ;
+    close(hf2)
+    set(0,'CurrentFigure',hf3) ;
+    export_fig(sprintf('%s/selfsuff_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
+        '-r150') ;
+    close(hf3)
+    disp('Done')
+    clear hf* ts_tmp*
+end
+
+
+
+
+%% Plot timeseries: Per-country (or group) demand and production
+
+thisCountry_short = '' ;
+
+%%%%%%%%%%%%%%%
+% Options
+thisYear = 2010 ;
+% thisCountry = {'United States of America','Canada'} ; thisCountry_short = 'USA + Canada' ;
+% thisCountry = {'United States of America'} ;
+% thisCountry = {'Germany Austria & Switzerland'} ;
+% thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan', 'Bangladesh', 'Nepal & Butan'} ; thisCountry_short = 'South Asia' ;
+% thisCountry = {'Eastern Europe','France Netherlands & Benlex','Italy', ...
+%     'Germany Austria & Switzerland', 'Other former USSR', 'Poland', ...
+%     'Spain & Portugal', 'Ukraine', 'United Kingdom', 'ex-Yugoslavia'} ;
+% thisCountry = 'Russian Federation' ;
+thisCountry = 'China' ; thisCountry_short = 'China' ;
+% thisCountry = {'Central Africa', 'Democratic Republic of the Congo', ...
+%     'East Africa', 'Ethiopia', 'Kenya', 'Nigeria', 'South Africa', ...
+%     'Southern Africa other', 'Sudan', 'Uganda', ...
+%     'United Republic of Tanzania', 'West Africa'} ; thisCountry_short = 'Sub-Saharan Africa' ;
+% thisCountry = {'India  & Sri Lanka','Pakistan & Afghanistan', 'Bangladesh', ...
+%     'Nepal & Butan', 'China', 'Indonesia'} ; thisCountry_short = 'China, South Asia, Indonesia' ;
+thisPos = figurePos ;
+lineWidth = 2 ;
+spacing = [0.1 0.05] ; % [v h]
+fontSize = 14 ;
+% units = 'kg' ; conv_fact = 1 ;
+units = 'Mt' ; conv_fact = 1e-3*1e-6 ;
+%%%%%%%%%%%%%%%
+
+if ~exist('countryList_dem','var')
+    import_country_demandEtc
+end
+
+if ischar(thisCountry)
+    thisCountry = {thisCountry} ;
+end
+
+[~,IA] = intersect(countryList_dem,thisCountry) ;
+if isempty(IA)
+    error('No country match(es) found!')
+elseif length(IA) < length(thisCountry)
+    error('Only %d of %d countries found!', length(IA), length(thisCountry))
+end
+ts_tmp_dmndF_ymr = squeeze(sum(ts_countryDemandWithFeed_ymur(:,:,IA,:),3)) ;
+ts_tmp_prod_ymr = squeeze(sum(ts_countryProdnet_ymur(:,:,IA,:),3)) ;
+
+ts_tmp_dmndF_ymr = ts_tmp_dmndF_ymr * conv_fact ;
+ts_tmp_prod_ymr = ts_tmp_prod_ymr * conv_fact ;
+
+% figure('Color','w','Position',[350   268   720   350]) ;
+% ydata = ts_tmp_dmndF_ymr(:,strcmp(commods, 'monogastrics'),:) ...
+%     ./ sum(ts_tmp_dmndF_ymr(:,contains(commods, {'monogastrics','ruminants'}),:),2) ;
+% ydata = squeeze(ydata) ;
+% plot(yearList_PLUMout, ydata)
+% title(thisCountry_short)
+% ylabel('Monogastric fraction')
+% set(gca, 'FontSize', fontSize) ;
+% stop
+
+hf1 = figure('Color','w','Position',thisPos) ;
+for m = 1:Ncommods
+    
+    ts_tmp_dmndF_yr = squeeze(ts_tmp_dmndF_ymr(:,m,:)) ;
+    ts_tmp_prod_yr = squeeze(ts_tmp_prod_ymr(:,m,:)) ;
+    
+    % Demand
+    set(0,'CurrentFigure',hf1) ;
+    h = subplot_tight(2,4,m,spacing) ;
+    plot(yearList_PLUMout,ts_tmp_dmndF_yr,'-','LineWidth',lineWidth) ;
+    
+    % Production
+    hold on
+    h.ColorOrderIndex = 1 ;
+    plot(yearList_PLUMout,ts_tmp_prod_yr,':','LineWidth',lineWidth) ;
+    hold off
+    
+    % Finish
+    legend(runList,'Location','Best')
+    title(get_commods_title(commods{m}))
+    ylabel(units)
+    h.FontSize = fontSize ;
+    
+    clear h
+end; clear m
+
+% Add figure titles
+if ~isempty(thisCountry_short)
+    thisSGtitle = sprintf('%s: Demand and production', thisCountry_short) ;
+else
+    thisSGtitle = strjoin(thisCountry,' + ') ;
+end
+for hf = {hf1}
     sgtitle(hf{:}, thisSGtitle, ...
         'FontSize', fontSize+6, ...
         'FontWeight', 'Bold') ;
@@ -2856,22 +2996,15 @@ if do_save
     if isempty(thisCountry_short)
         error('Specify thisCountry_short to save figure')
     end
+    set(0,'CurrentFigure',hf1) ;
     thisCountry_short_filename = thisCountry_short_toFilename(thisCountry_short) ;    set(0,'CurrentFigure',hf1) ;
-    export_fig(sprintf('%s/demand_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
+    export_fig(sprintf('%s/demandVsProd_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
         '-r150') ;
-    close
-    set(0,'CurrentFigure',hf2) ;
-    export_fig(sprintf('%s/demandDelta_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
-        '-r150') ;
-    close
-    set(0,'CurrentFigure',hf3) ;
-    export_fig(sprintf('%s/selfsuff_%s.pdf', removeslashifneeded(outDir_ts), thisCountry_short_filename), ...
-        '-r150') ;
-    close
+    close(hf1)
+    disp('Done')
 end
 
 clear hf* ts_tmp*
-
 
 
 %% Plot timeseries: Calories, EXPECTED
@@ -3455,6 +3588,70 @@ for r = 1:Nruns
     fprintf('diff:\t %0.1f%% \t\t %0.1f%% \t\t %0.1f%%\n', diff_b, diff_f, diff_b2f) ;
     disp(' ')
 end
+
+
+%% Map lost primary land
+
+if ~exist('dPrim_YX', 'var')
+    % fileName = '/Users/sam/Geodata/LUH2/v2h/states.1850-2015.nc' ;
+    % Ntimes = 166 ;
+    % date1 = [1850 1 1] ;
+    % dateN = [2010 1 1] ;
+    fileName = '/Volumes/WDMPP_Storage/ExternalGeodata/LUH2/v2h/states.nc' ;
+    Ntimes = 1166 ;
+    date1 = [850 1 1] ;
+    dateN = [2010 1 1] ;
+    
+    Nlons = 1440 ;
+    Nlats = 720 ;
+    verbose = false ;
+    do_byPFT = false ;
+    
+    varName = 'primf' ;
+    primf_t1_YX = flipud(read_and_arrange_selectTime(fileName, ...
+        Nlons, Nlats, Ntimes, varName, verbose, do_byPFT, ...
+        date1)) ;
+    primf_tN_YX = flipud(read_and_arrange_selectTime(fileName, ...
+        Nlons, Nlats, Ntimes, varName, verbose, do_byPFT, ...
+        dateN)) ;
+    
+    varName = 'primn' ;
+    primn_t1_YX = flipud(read_and_arrange_selectTime(fileName, ...
+        Nlons, Nlats, Ntimes, varName, verbose, do_byPFT, ...
+        date1)) ;
+    primn_tN_YX = flipud(read_and_arrange_selectTime(fileName, ...
+        Nlons, Nlats, Ntimes, varName, verbose, do_byPFT, ...
+        dateN)) ;
+    
+    prim_t1_YX = primf_t1_YX + primn_t1_YX ;
+    prim_tN_YX = primf_tN_YX + primn_tN_YX ;
+    carea_YX = 1e6*flipud(transpose(ncread( ...
+        '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc', ...
+        'carea'))) ;
+    prim_t1_YX = prim_t1_YX .* carea_YX ;
+    prim_tN_YX = prim_tN_YX .* carea_YX ;
+    
+    prim_t1_YX(isnan(prim_t1_YX)) = 0 ;
+    tmp = prim_t1_YX(:,1:2:1440) + prim_t1_YX(:,2:2:1440) ;
+    prim_t1_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
+    clear tmp
+    
+    prim_tN_YX(isnan(prim_tN_YX)) = 0 ;
+    tmp = prim_tN_YX(:,1:2:1440) + prim_tN_YX(:,2:2:1440) ;
+    prim_tN_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
+    clear tmp
+    
+    dPrim_YX = prim_tN_YX - prim_t1_YX ;
+end
+
+if ~exist('biomeID_x', 'var')
+    biomeID_YX = flipud(imread( ...
+        '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif')) ;
+    biomeID_YX(biomeID_YX<0) = NaN ;
+    biomeID_x = biomeID_YX(list2map) ;
+end
+
+disp('Done')
 
 %% Map changes in LU area: End-Historical to Begin-Future
 
