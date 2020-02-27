@@ -107,6 +107,16 @@ R = georasterref('RasterSize', [360 720], ...
     'LatitudeLimits', [-90 90], ...
     'LongitudeLimits', [-180 180]) ;
 
+% Get shortest distinct runList
+shortened_runList = runList ;
+tmp = shortened_runList ;
+while length(unique(tmp)) == Nruns
+    shortened_runList = tmp ;
+    for r = 1:Nruns
+        tmp{r} = tmp{r}(1:end-1) ;
+    end
+end
+
 
 %% Import reference data
 
@@ -642,7 +652,7 @@ map_size = size(landArea_YX) ;
 orig_diff_YXrH = nan([map_size Nruns]) ;
 harm_diff_YXrH = nan([map_size Nruns]) ;
 
-for l = 2:length(tmp_lu_list)
+for l = 1:length(tmp_lu_list)
     
     % Get long and short LU name
     thisLU = tmp_lu_list{l} ;
@@ -738,22 +748,23 @@ disp('Done')
 
 %% Harmonization effects by the numbers
 
-thisLU = 'NATURAL' ;
-% thisLU = 'CROPLAND' ;
-% thisLU = 'PASTURE' ;
-outfile = sprintf('%s/harm_by_numbers.%s.xlsx', ...
-    '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/harmonization_qgis', ...
-    thisLU) ;
+tmp_lu_list = {'NATURAL','CROPLAND','PASTURE'} ;
 
-%TODO: Add rest of regions
 harm_focus_regions = { ...
 ... Number  Super-region    General biome           Geog. restriction?      Description
+    unique(biomeID_x), ...
+            'World',        'World',                [],                     'World' ;
     1095,   'Amazon',       'Trop. rainforest',     [],                     'Amazon' ;
     429,    'N. America',   'Temp. grassland',      [],                     'Great Plains' ;
     437,    'N. America',   'Temp. forest',         [],                     'E US mixed for' ;
     306,    'N. America',   'Temp. forest',         [],                     'U. Midw US br/mix for' ;
     477,    'N. America',   'Temp. forest',         [],                     'E US conif for' ;
     436,    'N. America',   'Temp. forest',         [],                     'Texarkana conif for' ;
+    229,    'Alaska',       'Tundra',               [],                     'Alaskan forest' ;
+    [62 63 68 72 78 79 80 87 95:97 101 102 109:113 124:127 ...
+     131 133 134:136 139 143 144 150 163 175 202 213 220 229]', ...
+            'Alaska',       'Bor. forest',               {'United States of America'}, ...
+                                                                            'Alaskan tundra' ;
     950,    'Sub-Sah. Afr.','Trop. rainforest',     [],                     'C Afr rainfor.' ;
     1251,   'Sub-Sah. Afr.','Savanna',              '0&N',                  'N Afr savanna' ;
     1251,   'Sub-Sah. Afr.','Savanna',              '0&S',                  'S Afr savanna' ;
@@ -773,6 +784,14 @@ harm_focus_regions = { ...
     487,    'East Asia',    'Montane gr/shr',       [],                     'Tibetan Plat. steppe' ;
     342,    'East Asia',    'Desert/xeric',         [],                     'E Asia xeric/desert' ;
     348,    'East Asia',    'Temp. grass/sav/shr',  [],                     'E Asia temp grass' ;
+    480,    'China',        'Temp. forest',         {'China'},              'E China temp for' ;
+    487,    'China',        'Montane gr/shr',       {'China'},              'China Tib. Plat. steppe' ;
+    342,    'China',        'Desert/xeric',         {'China'},              'China xeric/desert' ;
+    348,    'China',        'Temp. grass/sav/shr',  {'China'},              'China temp grass' ;
+    662,    'China',        '(Sub)trop. wet for.',  {'China'},              'China subt wet for' ;
+    setdiff(unique(biomeID_x(countries_x==countries_key.numCode(strcmp(countries_key.Country,'China')))), ...
+            [480 487 342 348 662]), ...
+            'China',        'China other',          {'China'},              'China other' ;
     [132;153;169;171;252;313], ...
             'Europe+Nafr',  'Temp. forest',         [],                     'Eur temp br/mix for' ;
     [168;287;288;347], ...
@@ -786,62 +805,77 @@ list_superRegs = unique(harm_focus_regions(:,2)) ;
 Nregions = length(list_regions) ;
 NsuperRegs = length(list_superRegs) ;
 
-if strcmp(thisLU, 'CROPLAND')
-    v = isCrop ;
-else
-    v = strcmp(LUnames, thisLU) ;
-end
-
-% lon_map = repmat((-180:0.5:179.5)+0.25, [360 1]) ;
-% lat_map = repmat((-90:0.5:89.5)'+0.25, [1 720]) ;
-
-for r = 1:Nruns
-    thisRun = runList{r} ;
-    fprintf('2010-2100, %s, %s\n', thisRun, thisLU)
-    for s = 1:NsuperRegs
-        [table_orig, table_orig_relY1] = PLUMharmFigs_iterate_superReg( ...
-            sum(PLUMorig_xvyr(:,v,:,r),2), s, 'orig', ...
-            list_superRegs, list_regions, harm_focus_regions, ...
-            biomeID_x, countries_x, countries_key, lats, lons, ...
-            list2map) ;
-        if s==1
-            table_orig_out = table_orig ;
-            table_orig_relY1_out = table_orig_relY1 ;
-        else
-            table_orig_out = cat(1, table_orig_out, table_orig) ;
-            table_orig_relY1_out = cat(1, table_orig_relY1_out, table_orig_relY1) ;
-        end
-        [table_harm, table_harm_relY1] = PLUMharmFigs_iterate_superReg( ...
-            sum(PLUMharm_xvyr(:,v,:,r),2), s, 'harm', ...
-            list_superRegs, list_regions, harm_focus_regions, ...
-            biomeID_x, countries_x, countries_key, lats, lons, ...
-            list2map) ;
-        if s==1
-            table_harm_out = table_harm ;
-            table_harm_relY1_out = table_harm_relY1 ;
-        else
-            table_harm_out = cat(1, table_harm_out, table_harm) ;
-            table_harm_relY1_out = cat(1, table_harm_relY1_out, table_harm_relY1) ;
-        end
+for l = 1:length(tmp_lu_list)
+    thisLU = tmp_lu_list{l} ;
+    outfile = sprintf('%s/harm_by_numbers.%s.xlsx', ...
+        '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/harmonization_qgis', ...
+        thisLU) ;
+    if combineCrops
+        outfile = strrep(outfile, thisLU, ['combCrops.' thisLU]) ;
     end
-    disp(' ')
     
-    % Save to Excel file
-    thisRange = sprintf('A1:F%d', size(table_orig_out, 1) + 1) ;
-    sheetName = [strrep(thisRun,'.','_') '_orig'] ;
-    writetable(table_orig_out, outfile, ...
-        'Sheet', sheetName, 'Range', thisRange) ;    
-    sheetName = [strrep(thisRun,'.','_') '_harm'] ;
-    writetable(table_harm_out, outfile, ...
-        'Sheet', sheetName, 'Range', thisRange) ;
-    sheetName = [strrep(thisRun,'.','_') '_orig_relY1'] ;
-    writetable(table_orig_relY1_out, outfile, ...
-        'Sheet', sheetName, 'Range', thisRange) ;    
-    sheetName = [strrep(thisRun,'.','_') '_harm_relY1'] ;
-    writetable(table_harm_relY1_out, outfile, ...
-        'Sheet', sheetName, 'Range', thisRange) ;
+    if strcmp(thisLU, 'CROPLAND')
+        v = isCrop ;
+    else
+        v = strcmp(LUnames, thisLU) ;
+    end
     
+    % Set up Excel file based on NATURAL template
+    if ~strcmp(thisLU, 'NATURAL')
+        if exist(outfile, 'file')
+            delete(outfile)
+        end
+        copyfile(strrep(outfile,thisLU,'NATURAL'), outfile) ;
+    end
+    
+    for r = 1:Nruns
+        thisRun = runList{r} ;
+        fprintf('2010-2100, %s, %s\n', thisRun, thisLU)
+        for s = 1:NsuperRegs
+            [table_orig, table_orig_relY1] = PLUMharmFigs_iterate_superReg( ...
+                sum(PLUMorig_xvyr(:,v,:,r),2), s, 'orig', ...
+                list_superRegs, list_regions, harm_focus_regions, ...
+                biomeID_x, countries_x, countries_key, lats, lons, ...
+                list2map) ;
+            if s==1
+                table_orig_out = table_orig ;
+                table_orig_relY1_out = table_orig_relY1 ;
+            else
+                table_orig_out = cat(1, table_orig_out, table_orig) ;
+                table_orig_relY1_out = cat(1, table_orig_relY1_out, table_orig_relY1) ;
+            end
+            [table_harm, table_harm_relY1] = PLUMharmFigs_iterate_superReg( ...
+                sum(PLUMharm_xvyr(:,v,:,r),2), s, 'harm', ...
+                list_superRegs, list_regions, harm_focus_regions, ...
+                biomeID_x, countries_x, countries_key, lats, lons, ...
+                list2map) ;
+            if s==1
+                table_harm_out = table_harm ;
+                table_harm_relY1_out = table_harm_relY1 ;
+            else
+                table_harm_out = cat(1, table_harm_out, table_harm) ;
+                table_harm_relY1_out = cat(1, table_harm_relY1_out, table_harm_relY1) ;
+            end
+        end
+        
+        % Save to Excel file
+        thisRun_short = shortened_runList{r} ;
+        thisRange = sprintf('A1:F%d', size(table_orig_out, 1) + 1) ;
+        sheetName = [strrep(thisRun_short,'.','_') '_o2'] ;
+        writetable(table_orig_out, outfile, ...
+            'Sheet', sheetName, 'Range', thisRange) ;
+        sheetName = [strrep(thisRun_short,'.','_') '_h2'] ;
+        writetable(table_harm_out, outfile, ...
+            'Sheet', sheetName, 'Range', thisRange) ;
+        sheetName = [strrep(thisRun_short,'.','_') '_o2Ry1'] ;
+        writetable(table_orig_relY1_out, outfile, ...
+            'Sheet', sheetName, 'Range', thisRange) ;
+        sheetName = [strrep(thisRun_short,'.','_') '_h2Ry1'] ;
+        writetable(table_harm_relY1_out, outfile, ...
+            'Sheet', sheetName, 'Range', thisRange) ;
+    end
 end
+disp('Done.')
 
 
 %% Map one year, one LC for orig and harm

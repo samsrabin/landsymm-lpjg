@@ -48,7 +48,7 @@ for s2 = 1:length(subset(:,1))
         list_loss_relY1(biome_total_index,1) = 0 ;
         list_net_relY1(biome_total_index,1) = 0 ;
         list_biome{biome_total_index,1} = thisBiome ;
-        list_subreg{biome_total_index,1} = 'TOTAL' ;
+        list_subreg{biome_total_index,1} = 'TOTAL (BIOME)' ;
         list_superReg_out{biome_total_index,1} = thisSuperReg ;
         biome_orig = 0 ;
     end
@@ -176,7 +176,7 @@ if length(subset(:,1))==1
     list_biome = string(subset{1,3}) ;
 else
     list_superReg_out = cellstr(repmat(thisSuperReg, [length(subset(:,1))+Ntotals 1])) ;
-    list_subreg{1} = 'TOTAL' ;
+    list_subreg{1} = 'TOTAL (SUPREG)' ;
     list_gain(1) = nansum(list_gain) ;
     list_loss(1) = nansum(list_loss) ;
     list_net(1) = nansum(list_net) ;
