@@ -73,9 +73,11 @@ for c = 1:Nvars
         if strcmp(sd_or_sem,'st. dev.')
             errb_endh_v(c) = std(area_endh_y) ;
             errb_endf_vr(c,:) = std(area_endf_yr, 1) ;
-        else
+        elseif strcmp(sd_or_sem,'SEM')
             errb_endh_v(c) = sem_ssr(area_endh_y, years_endh) ;
             errb_endf_vr(c,:) = sem_ssr(area_endf_yr, years_endf) ;
+        elseif ~isempty(sd_or_sem)
+            error('sd_or_sem not recognized: %s', sd_or_sem) ;
         end
         
     elseif contains(thisVar,'emand')
@@ -153,9 +155,11 @@ for c = 1:Nvars
         if strcmp(sd_or_sem,'st. dev.')
             errb_endh_v(c) = thisConv*std(ts_thisVarTMP_bl) ;
             errb_endf_vr(c,:) = thisConv*std(ts_thisVarTMP_yr, 1) ;
-        else
+        elseif strcmp(sd_or_sem,'SEM')
             errb_endh_v(c) = thisConv*sem_ssr(ts_thisVarTMP_bl) ;
             errb_endf_vr(c,:) = thisConv*sem_ssr(ts_thisVarTMP_yr, years_endf) ;
+        elseif ~isempty(sd_or_sem)
+            error('sd_or_sem not recognized: %s', sd_or_sem) ;
         end
         % Add marker indicating difference is from last 3 decades, not
         % years_endh and years_endf
@@ -226,9 +230,11 @@ for c = 1:Nvars
         if strcmp(sd_or_sem,'st. dev.')
             errb_endh_v(c) = thisConv*std(ts_thisVarTMP_bl) ;
             errb_endf_vr(c,:) = thisConv*std(ts_thisVarTMP_yr, 1) ;
-        else
+        elseif strcmp(sd_or_sem,'SEM')
             errb_endh_v(c) = thisConv*sem_ssr(ts_thisVarTMP_bl) ;
             errb_endf_vr(c,:) = thisConv*sem_ssr(ts_thisVarTMP_yr, years_endf) ;
+        elseif ~isempty(sd_or_sem)
+            error('sd_or_sem not recognized: %s', sd_or_sem) ;
         end
         clear ts_thisVar_yr % Does nothing if does not exist
         
@@ -243,12 +249,16 @@ end
 
 % Calculate % difference
 mean_endh_vr = repmat(mean_endh_v,[1 Nruns]) ;
-errb_endh_vr = repmat(errb_endh_v,[1 Nruns]) ;
 mean_diff_vr = mean_endf_vr - mean_endh_vr ;
 mean_diffPct_vr = 100 * (mean_diff_vr ./ mean_endh_vr) ;
+errb_endh_vr = repmat(errb_endh_v,[1 Nruns]) ;
 errb_diff_vr = sqrt(errb_endh_vr.^2 + errb_endf_vr.^2) ;
 % EQUIVALENT TO BELOW % errb_diffPct_vr = 100 * ((mean_endf_vr+errb_diff_vr-mean_endh_vr)./mean_endh_vr - (mean_endf_vr-mean_endh_vr)./mean_endh_vr) ;
 errb_diffPct_vr = 100 * (errb_diff_vr ./ mean_endh_vr) ;
+if isempty(sd_or_sem)
+    errb_diff_vr = zeros(size(errb_diff_vr)) ;
+    errb_diffPct_vr = zeros(size(errb_diff_vr)) ;
+end
 
 
 %% Make figure
@@ -306,7 +316,11 @@ for i = 1:nbars
         y = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars) ;
         he = errorbar(mean_diffPct_vr(:,i), y, errb_diffPct_vr(:,i), 'horizontal', 'linestyle', 'none', 'linewidth', 0.5) ;
     end
-    set(he, 'Color', errbar_color) ;
+    if ~isempty(sd_or_sem)
+        set(he, 'Color', errbar_color) ;
+    else
+        set(he, 'Visible', 'off') ;
+    end
     for g = 1:ngroups
         x = x + 1 ;
         if strcmp(orientation,'v')
@@ -389,17 +403,22 @@ end
 %% Finish
 
 % Add legend, and labels
+if ~isempty(sd_or_sem)
+    axis_label = ['Change ' plusminus ' across-year ' sd_or_sem ' (%)'] ;
+else
+    axis_label = 'Change (%)' ;
+end
 if strcmp(orientation,'v')
     legend(runList, 'Location', 'Northwest')
 %     hxl = xlabel('Indicator') ;
 %     hxl.FontWeight = 'bold' ;
-    hyl = ylabel(['Change ' plusminus ' across-year ' sd_or_sem ' (%)']) ;
+    hyl = ylabel(axis_label) ;
     hyl.FontWeight = 'bold' ;
 else
     legend(runList, 'Location', 'Northeast')
 %     hyl = ylabel('Indicator') ;
 %     hyl.FontWeight = 'bold' ;
-    hxl = xlabel(['Change ' plusminus ' across-year ' sd_or_sem ' (%)']) ;
+    hxl = xlabel(axis_label) ;
     hxl.FontWeight = 'bold' ;
 end
 set(gca, 'FontSize', fontSize) ;

@@ -158,8 +158,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Options
 orientation = 'h' ; % v(ertical) or h(orizontal)
-sd_or_sem = 'st. dev.' ;
+% sd_or_sem = 'st. dev.' ;
 % sd_or_sem = 'SEM' ;
+sd_or_sem = '' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
 fontSize = 14 ;
