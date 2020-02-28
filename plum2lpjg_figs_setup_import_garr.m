@@ -653,6 +653,30 @@ if include_fao
     end
 end
 
+% Get plot titles
+runList_titles = runList ;
+if contains(thisVer, '_attr')
+    tmp = strsplit(runList{1}, '-') ;
+    tmp_ssp = tmp{1}(end) ;
+    tmp_rcp = tmp{2} ;
+    ii = find(strcmp(runList, sprintf('SSP%s-%s', tmp_ssp, tmp_rcp))) ;
+    if length(ii)~=1
+        error('length(ii)~=1')
+    end
+    runList_titles{ii} = sprintf('%s (s%slum_r%sclico2)', ...
+        runList{ii}, tmp_ssp, tmp_rcp) ;
+    ii = find(strcmp(runList, 'constLU')) ;
+    runList_titles{ii} = sprintf('Const. LU (r%sclico2)', ...
+        tmp_rcp) ;
+    ii = find(strcmp(runList, 'constClimCO2')) ;
+    runList_titles{ii} = sprintf('Const. Clim./CO2 (s%slum)', ...
+        tmp_ssp) ;
+    ii = find(strcmp(runList, 'constCO2')) ;
+    runList_titles{ii} = sprintf('Const. CO2 (s%slum_r%scli)', ...
+        tmp_ssp, tmp_rcp) ;
+end
+runList_titles = strrep(runList_titles, '_', '\_') ;
+
 
 %% Import baseline
 

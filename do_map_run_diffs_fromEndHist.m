@@ -30,8 +30,15 @@ else
         pct_clim, prctile_clim, map_size, list2map) ;
 end
 if do_save
+    runList_tmp = runList ;
+    if any(contains(runList,'('))
+        for r = 1:length(runList)
+            tmp = strsplit(runList{r}, '(') ;
+            runList_tmp{r} = strrep(tmp{2}(1:end-1), '\', '') ;
+        end
+    end
     actually_save(filename_base, do_pct, prctile_clim, pngres, ...
-        maps_YXr, runList, R, gtif_missing)
+        maps_YXr, runList_tmp, R, gtif_missing)
 end
 
 
@@ -49,9 +56,10 @@ else
         conv_fact_map, units_map, conv_fact_total, units_total, ...
         pct_clim, prctile_clim, map_size, list2map) ;
 end
+
 if do_save
     actually_save(filename_base, do_pct, prctile_clim, pngres, ...
-        maps_YXr, runList, R, gtif_missing)
+        maps_YXr, runList_tmp, R, gtif_missing)
 end
 
 
