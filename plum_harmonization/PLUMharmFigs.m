@@ -748,7 +748,7 @@ disp('Done')
 
 %% Harmonization effects by the numbers
 
-tmp_lu_list = {'NATURAL','CROPLAND','PASTURE'} ;
+incl_years = 2010:2020 ;
 
 harm_focus_regions = { ...
 ... Number  Super-region    General biome           Geog. restriction?      Description
@@ -799,6 +799,18 @@ harm_focus_regions = { ...
     349,    'Europe+Nafr',  'Mediterranean',        [],                     'Mediterr. mediterr.' ;
     } ;
 
+[~, yi_orig] = intersect(yearList_orig, incl_years) ;
+[~, yi_harm] = intersect(yearList_harm, incl_years) ;
+if length(yi_orig) ~= length(incl_years)
+    error('length(yi_orig) ~= length(incl_years)')
+elseif length(yi_harm) ~= length(incl_years)
+    error('length(yi_harm) ~= length(incl_years)')
+end
+y1 = min(incl_years) ;
+yN = max(incl_years) ;
+
+tmp_lu_list = {'NATURAL','CROPLAND','PASTURE'} ;
+
 % Setup
 list_regions = harm_focus_regions(:,5) ;
 list_superRegs = unique(harm_focus_regions(:,2)) ;
@@ -807,9 +819,9 @@ NsuperRegs = length(list_superRegs) ;
 
 for l = 1:length(tmp_lu_list)
     thisLU = tmp_lu_list{l} ;
-    outfile = sprintf('%s/harm_by_numbers.%s.xlsx', ...
+    outfile = sprintf('%s/harm_by_numbers.%d-%d.%s.xlsx', ...
         '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/harmonization_qgis', ...
-        thisLU) ;
+        y1, yN, thisLU) ;
     if combineCrops
         outfile = strrep(outfile, thisLU, ['combCrops.' thisLU]) ;
     end
@@ -830,10 +842,10 @@ for l = 1:length(tmp_lu_list)
     
     for r = 1:Nruns
         thisRun = runList{r} ;
-        fprintf('2010-2100, %s, %s\n', thisRun, thisLU)
+        fprintf('%d-%d, %s, %s\n', y1, yN, thisRun, thisLU)
         for s = 1:NsuperRegs
             [table_orig, table_orig_relY1] = PLUMharmFigs_iterate_superReg( ...
-                sum(PLUMorig_xvyr(:,v,:,r),2), s, 'orig', ...
+                sum(PLUMorig_xvyr(:,v,yi_orig,r),2), s, 'orig', ...
                 list_superRegs, list_regions, harm_focus_regions, ...
                 biomeID_x, countries_x, countries_key, lats, lons, ...
                 list2map) ;
@@ -845,7 +857,7 @@ for l = 1:length(tmp_lu_list)
                 table_orig_relY1_out = cat(1, table_orig_relY1_out, table_orig_relY1) ;
             end
             [table_harm, table_harm_relY1] = PLUMharmFigs_iterate_superReg( ...
-                sum(PLUMharm_xvyr(:,v,:,r),2), s, 'harm', ...
+                sum(PLUMharm_xvyr(:,v,yi_harm,r),2), s, 'harm', ...
                 list_superRegs, list_regions, harm_focus_regions, ...
                 biomeID_x, countries_x, countries_key, lats, lons, ...
                 list2map) ;
