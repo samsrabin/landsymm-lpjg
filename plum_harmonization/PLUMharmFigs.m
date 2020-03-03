@@ -576,7 +576,6 @@ end
 
 
 %% Map deltas for orig and harm
-do_save = true ;
 
 tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
 % y1_list = 2011 ;
@@ -600,15 +599,9 @@ shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - s
 thisPos = [1    33   770   772] ;
 nx = 2 ;
 ny = 4 ;
-as_frac_land = true ;
-% bins_lowBnds = [-100:20:-20 [-1 1]*3 20:20:80] ;
-% bins_lowBnds = [-100:20:-20 [-1 1]*0.1 20:20:80] ;
-bins_lowBnds = [-100:20:-20 -5 [-1 1]*0.1 5 20:20:80] ;
-% step = 200/(64+1); bins_lowBnds = -100:step:(100-step);
+as_frac_land = false ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 units_total = 'Mkm^2' ;
-% conv_fact_total = 1e-6*1e-3 ;   % m2 to Kkm2
-% units_total = 'Kkm^2' ;
 do_caps = false ;
 ntrl_colormap_name = 'PiYG_ssr' ;
 % lines_overlay = 'landareas.shp' ;
@@ -621,10 +614,10 @@ else
     v = contains(LUnames, thisLU) ;
 end
 if ~strcmp(thisLU, 'NATURAL')
-    if strcmp(this_colormap_name(1), '-')
-        this_colormap_name = this_colormap_name(2:end) ;
+    if strcmp(ntrl_colormap_name(1), '-')
+        this_colormap_name = ntrl_colormap_name(2:end) ;
     else
-        this_colormap_name = ['-' this_colormap_name] ;
+        this_colormap_name = ['-' ntrl_colormap_name] ;
     end
 end
 
@@ -645,12 +638,23 @@ if ~exist(this_outdir_geo, 'dir')
     mkdir(this_outdir_geo) ;
 end
 
-units_map = '%' ;
 this_runList = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
 
 map_size = size(landArea_YX) ;
 orig_diff_YXrH = nan([map_size Nruns]) ;
 harm_diff_YXrH = nan([map_size Nruns]) ;
+
+if as_frac_land
+    bins_lowBnds = [-100:20:-20 -5 [-1 1]*0.1 5 20:20:80] ;
+    conv_fact_map = 1 ;
+    units_map = '%' ;
+else
+    bins_lowBnds = [] ;
+%     conv_fact_map = 1e-6 ;   % m2 to km2
+%     units_map = 'km^2' ;
+    conv_fact_map = 1e-4*1e-6 ;   % m2 to Mha
+    units_map = 'Mha' ;
+end
 
 for l = 1:length(tmp_lu_list)
     
@@ -702,14 +706,20 @@ for l = 1:length(tmp_lu_list)
             - PLUMharm_xvyr(:,v,yearList_harm==y1,:), ...
             2)) ;
         for r = 1:Nruns
-            orig_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
-            harm_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
+            orig_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_orig_xr(:,r), map_size, list2map) ;
+            harm_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_harm_xr(:,r), map_size, list2map) ;
         end
+        if as_frac_land
+            orig_diff_YXrH = orig_diff_YXrH ./ repmat(gcelArea_YX, [1 1 Nruns]) ;
+            harm_diff_YXrH = harm_diff_YXrH ./ repmat(gcelArea_YX, [1 1 Nruns]) ;
+        end
+        orig_diff_YXrH = orig_diff_YXrH * conv_fact_map ;
+        harm_diff_YXrH = harm_diff_YXrH * conv_fact_map ;
         
         
-        if ~as_frac_land
-            error('This only works with as_frac_land TRUE')
-        end
+%         if ~as_frac_land
+%             error('This only works with as_frac_land TRUE')
+%         end
         
         col_titles = {sprintf('Original %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN), ...
             sprintf('Harmonized %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN)} ;
@@ -724,11 +734,14 @@ for l = 1:length(tmp_lu_list)
             lines_overlay) ;
         
         if do_save
-%             filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
-%                 this_outdir, thisLU, y1, yN) ;
-%             export_fig(filename, pngres) ;
+            filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
+                this_outdir, thisLU, y1, yN) ;
+            if ~as_frac_land
+                filename = strrep(filename, '.png', sprintf('.%s.png', units_map)) ;
+            end
+            export_fig(filename, pngres) ;
             close
-            if length(y1_list) == 1
+            if as_frac_land && length(y1_list) == 1
                 disp('Saving GeoTIFFs...')
                 for r = 1:Nruns
                     filename = sprintf('%s/D%s_%d-%d_%s_orig.tif', ...
