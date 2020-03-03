@@ -890,6 +890,47 @@ end
 disp('Done.')
 
 
+%% Time series of harmonization effect on change in non-ag area
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+lineWidth = 2 ;
+thisPos = [1         455        1440         350] ;
+%%%%%%%%%%%%%%%%%%%
+
+if ~isequal(yearList_orig, yearList_harm)
+    error('This code assumes original and harmonized have same yearList.')
+end
+
+ii = strcmp(LUnames, 'NATURAL') ;
+PLUMorig_incr_xyr = squeeze(PLUMorig_xvyr(:,ii,2:end,:) - PLUMorig_xvyr(:,ii,1:end-1,:)) ;
+PLUMharm_incr_xyr = squeeze(PLUMharm_xvyr(:,ii,2:end,:) - PLUMharm_xvyr(:,ii,1:end-1,:)) ;
+PLUMorig_incr_xyr(PLUMorig_incr_xyr<0) = 0 ;
+PLUMharm_incr_xyr(PLUMharm_incr_xyr<0) = 0 ;
+PLUMorig_incr_yr = squeeze(sum(PLUMorig_incr_xyr,1)) ;
+PLUMharm_incr_yr = squeeze(sum(PLUMharm_incr_xyr,1)) ;
+harmEffect_yr = PLUMharm_incr_yr - PLUMorig_incr_yr ;
+
+x = yearList_orig(2:end) ;
+lms = cell(Nruns,1) ;
+for r = 1:Nruns
+    lms{r} = fitlm(x, harmEffect_yr(:,r)) ;
+end
+
+figure('Color', 'w', 'Position', thisPos) ;
+plot(x, harmEffect_yr, ...
+    'LineWidth', 1)
+set(gca, 'FontSize', fontSize) ;
+hold on
+set(gca,'ColorOrderIndex',1) ;
+for r = 1:Nruns
+    plot(x, lms{r}.Fitted, '--', ...
+        'LineWidth', 2)
+end
+hold off
+legend(shortened_runList, 'Location', 'best')
+
+
 %% Map one year, one LC for orig and harm
 do_save = true ;
 
