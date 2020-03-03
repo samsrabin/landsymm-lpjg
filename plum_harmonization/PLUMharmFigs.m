@@ -748,7 +748,7 @@ disp('Done')
 
 %% Harmonization effects by the numbers
 
-incl_years = 2010:2020 ;
+incl_years = 2010:2100 ;
 
 harm_focus_regions = { ...
 ... Number  Super-region    General biome           Geog. restriction?      Description
@@ -816,15 +816,20 @@ list_regions = harm_focus_regions(:,5) ;
 list_superRegs = unique(harm_focus_regions(:,2)) ;
 Nregions = length(list_regions) ;
 NsuperRegs = length(list_superRegs) ;
+harmByNums_outdir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/harmonization_qgis' ;
+templatefile = sprintf('%s/harm_by_numbers.template.xlsx', harmByNums_outdir) ;
+templatefile_relLandArea = sprintf('%s/harm_by_numbers.template.relLandArea.xlsx', harmByNums_outdir) ;
 
+% Do it
 for l = 1:length(tmp_lu_list)
     thisLU = tmp_lu_list{l} ;
     outfile = sprintf('%s/harm_by_numbers.%d-%d.%s.xlsx', ...
-        '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/harmonization_qgis', ...
+        harmByNums_outdir, ...
         y1, yN, thisLU) ;
     if combineCrops
         outfile = strrep(outfile, thisLU, ['combCrops.' thisLU]) ;
     end
+    outfile_relLandArea = strrep(outfile, '.xlsx', '.relLandArea.xlsx') ;
     
     if strcmp(thisLU, 'CROPLAND')
         v = isCrop ;
@@ -832,35 +837,34 @@ for l = 1:length(tmp_lu_list)
         v = strcmp(LUnames, thisLU) ;
     end
     
-    % Set up Excel file based on NATURAL template
-    if ~strcmp(thisLU, 'NATURAL')
-        if exist(outfile, 'file')
-            delete(outfile)
-        end
-        copyfile(strrep(outfile,thisLU,'NATURAL'), outfile) ;
-    end
+    % Set up Excel files based on template
+    copyfile(templatefile, outfile) ;
+    copyfile(templatefile_relLandArea, outfile_relLandArea) ;
     
     for r = 1:Nruns
         thisRun = runList{r} ;
         fprintf('%d-%d, %s, %s\n', y1, yN, thisRun, thisLU)
+        landArea_byReg = [] ;
         for s = 1:NsuperRegs
-            [table_orig, table_orig_relY1] = PLUMharmFigs_iterate_superReg( ...
+            [table_orig, table_orig_relY1, landArea_byReg] = PLUMharmFigs_iterate_superReg( ...
                 sum(PLUMorig_xvyr(:,v,yi_orig,r),2), s, 'orig', ...
                 list_superRegs, list_regions, harm_focus_regions, ...
                 biomeID_x, countries_x, countries_key, lats, lons, ...
-                list2map) ;
+                list2map, landArea_x) ;
             if s==1
                 table_orig_out = table_orig ;
                 table_orig_relY1_out = table_orig_relY1 ;
+                landArea_byReg_out = landArea_byReg ;
             else
                 table_orig_out = cat(1, table_orig_out, table_orig) ;
                 table_orig_relY1_out = cat(1, table_orig_relY1_out, table_orig_relY1) ;
+                landArea_byReg_out = cat(1, landArea_byReg_out, landArea_byReg) ;
             end
             [table_harm, table_harm_relY1] = PLUMharmFigs_iterate_superReg( ...
                 sum(PLUMharm_xvyr(:,v,yi_harm,r),2), s, 'harm', ...
                 list_superRegs, list_regions, harm_focus_regions, ...
                 biomeID_x, countries_x, countries_key, lats, lons, ...
-                list2map) ;
+                list2map, landArea_x) ;
             if s==1
                 table_harm_out = table_harm ;
                 table_harm_relY1_out = table_harm_relY1 ;
@@ -870,20 +874,44 @@ for l = 1:length(tmp_lu_list)
             end
         end
         
-        % Save to Excel file
+        % Calculate tables relative to land area in region
+        table_orig_relLandArea_out = table_orig_out ;
+        table_orig_relLandArea_out.Gain = ...
+            table_orig_out.Gain ./ landArea_byReg_out ;
+        table_orig_relLandArea_out.Loss = ...
+            table_orig_out.Loss ./ landArea_byReg_out ;
+        table_orig_relLandArea_out.Net = ...
+            table_orig_out.Net ./ landArea_byReg_out ;
+        table_harm_relLandArea_out = table_harm_out ;
+        table_harm_relLandArea_out.Gain = ...
+            table_harm_out.Gain ./ landArea_byReg_out ;
+        table_harm_relLandArea_out.Loss = ...
+            table_harm_out.Loss ./ landArea_byReg_out ;
+        table_harm_relLandArea_out.Net = ...
+            table_harm_out.Net ./ landArea_byReg_out ;
+        
+        % Save to Excel files
         thisRun_short = shortened_runList{r} ;
         thisRange = sprintf('A1:F%d', size(table_orig_out, 1) + 1) ;
         sheetName = [strrep(thisRun_short,'.','_') '_o2'] ;
         writetable(table_orig_out, outfile, ...
             'Sheet', sheetName, 'Range', thisRange) ;
+        writetable(table_orig_relLandArea_out, outfile_relLandArea, ...
+            'Sheet', sheetName, 'Range', thisRange) ;
         sheetName = [strrep(thisRun_short,'.','_') '_h2'] ;
         writetable(table_harm_out, outfile, ...
+            'Sheet', sheetName, 'Range', thisRange) ;
+        writetable(table_harm_relLandArea_out, outfile_relLandArea, ...
             'Sheet', sheetName, 'Range', thisRange) ;
         sheetName = [strrep(thisRun_short,'.','_') '_o2Ry1'] ;
         writetable(table_orig_relY1_out, outfile, ...
             'Sheet', sheetName, 'Range', thisRange) ;
+        writetable(table_orig_relY1_out, outfile_relLandArea, ...
+            'Sheet', sheetName, 'Range', thisRange) ;
         sheetName = [strrep(thisRun_short,'.','_') '_h2Ry1'] ;
         writetable(table_harm_relY1_out, outfile, ...
+            'Sheet', sheetName, 'Range', thisRange) ;
+        writetable(table_harm_relY1_out, outfile_relLandArea, ...
             'Sheet', sheetName, 'Range', thisRange) ;
     end
 end

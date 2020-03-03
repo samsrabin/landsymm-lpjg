@@ -1,8 +1,8 @@
-function [table_out, table_out_relY1] = PLUMharmFigs_iterate_superReg( ...
+function [table_out, table_out_relY1, list_landArea] = PLUMharmFigs_iterate_superReg( ...
     area_x1y, s, orig_or_harm, ...
     list_superRegs, list_regions, harm_focus_regions, ...
     biomeID_x, countries_x, countries_key, lats, lons, ...
-    list2map)
+    list2map, landArea_x)
 
 thisSuperReg = list_superRegs{s} ;
 max_superReg_nameLength = max(cellfun(@length,list_superRegs)) ;
@@ -19,6 +19,7 @@ incl_biomes = unique(subset(:,3), 'stable') ;
 list_gain = NaN ;
 list_loss = NaN ;
 list_net = NaN ;
+list_landArea = NaN ;
 list_gain_relY1 = NaN ;
 list_loss_relY1 = NaN ;
 list_net_relY1 = NaN ;
@@ -31,12 +32,18 @@ superReg_net  = 0 ;
 superReg_orig = 0 ;
 
 for s2 = 1:length(subset(:,1))
+    
+    % Get info about this row of harm_focus_regions table
     is_cell_in_reg = false(size(biomeID_x)) ;
     tmp_incl_countries = subset{s2,4} ;
     tmp_incl_regions = subset{s2,1} ;
     thisReg_index = find(strcmp(harm_focus_regions(:,5),subset{s2,5})) ;
     thisReg_name = list_regions{thisReg_index} ;
     thisBiome = subset{s2,3} ;
+    
+    % Are we adding a row for a biome total? I.e., is this row part of a 
+    % biome that spans mutliple rows of harm_focus_regions table? If so,
+    % and if this is the first row in that biome, set up here.
     do_biome_total = length(find(strcmp(subset(:,3), thisBiome))) > 1 ;
     if do_biome_total && s2==min(find(strcmp(subset(:,3), thisBiome)))
         Ntotals = Ntotals + 1 ;
@@ -44,6 +51,7 @@ for s2 = 1:length(subset(:,1))
         list_gain(biome_total_index,1) = 0 ;
         list_loss(biome_total_index,1) = 0 ;
         list_net(biome_total_index,1) = 0 ;
+        list_landArea(biome_total_index,1) = 0 ;
         list_gain_relY1(biome_total_index,1) = 0 ;
         list_loss_relY1(biome_total_index,1) = 0 ;
         list_net_relY1(biome_total_index,1) = 0 ;
@@ -52,6 +60,8 @@ for s2 = 1:length(subset(:,1))
         list_superReg_out{biome_total_index,1} = thisSuperReg ;
         biome_orig = 0 ;
     end
+    
+    % Find cells in this region. 
     if isempty(tmp_incl_countries)
         is_cell_in_reg = is_cell_in_reg | ...
             ismember(biomeID_x, tmp_incl_regions) ;
@@ -90,30 +100,42 @@ for s2 = 1:length(subset(:,1))
         error('Unsure how to parse tmp_incl_countries')
     end
     clear tmp*
+    
+    % Calculate gain and loss in this region
     [gain, loss, orig] = get_region_numbers(area_x1y(is_cell_in_reg,:,:)) ;
     net = gain + loss ;
     superReg_gain = superReg_gain + gain ;
     superReg_loss = superReg_loss + loss ;
     superReg_net  = superReg_net  + net ;
     superReg_orig = superReg_orig + orig ;
+    
+    % Calculate land area in this region
+    landArea = sum(landArea_x(is_cell_in_reg)) ;
+    
+    % Save this row to output arrays
     if length(subset(:,1))==1
         list_gain = gain ;
         list_loss = loss ;
         list_net = net ;
+        list_landArea = landArea ;
     else
         list_gain(end+1,1) = gain ; %#ok<*AGROW>
         list_loss(end+1,1) = loss ;
         list_net(end+1,1) = net ;
+        list_landArea(end+1,1) = landArea ;
         list_gain_relY1(end+1,1) = gain/orig ;
         list_loss_relY1(end+1,1) = loss/orig ;
         list_net_relY1(end+1,1) = net/orig ;
         list_subreg{end+1,1} = thisReg_name ;
         list_biome{end+1,1} = subset{s2,3} ;
     end
+    
+    % If needed, save biome total to output arrays
     if do_biome_total
         list_gain(biome_total_index) = list_gain(biome_total_index) + gain ;
         list_loss(biome_total_index) = list_loss(biome_total_index) + loss ;
         list_net(biome_total_index)  = list_net(biome_total_index)  + net ;
+        list_landArea(biome_total_index) = list_landArea(biome_total_index) + landArea ;
         biome_orig = biome_orig + orig ;
         if s2==max(find(strcmp(subset(:,3), thisBiome)))
             list_gain_relY1(biome_total_index) = list_gain(biome_total_index) / biome_orig ;
@@ -180,6 +202,7 @@ else
     list_gain(1) = nansum(list_gain) ;
     list_loss(1) = nansum(list_loss) ;
     list_net(1) = nansum(list_net) ;
+    list_landArea(1) = nansum(list_landArea) ;
 end
 list_gain_relY1(1) = superReg_gain / superReg_orig ;
 list_loss_relY1(1) = superReg_loss / superReg_orig ;
