@@ -28,9 +28,6 @@ def try_load_climate(climate_dir, var, GGCM, GGCMIcrop, rcp, missing_climate, ve
         varName = [s for s in list(nc_vars.keys()) if "delta" in s][0]
         in_array = nc_fid.variables[varName]
 
-    # Find average decadal values
-    breakpoint()
-
     return(in_array, missing_climate)
 
 
@@ -42,15 +39,30 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt)
     else:
         K, KI = import_parameter_netcdfs(emulator_dir, GGCM, GGCMIcrop, do_adapt)
 
+    # Get mean climate over decade
+    yearList = np.arange(2011, 2100) # 2011-2099
+    if yearList.shape[0] != t.shape[0]:
+        raise Exception("yearList length (%d) different from time size in t (%d)"
+                        % yearList.shape[0], t.shape[0])
+    elif yearList.shape[0] != w.shape[0]:
+        raise Exception("yearList length (%d) different from time size in w (%d)"
+                        % yearList.shape[0], w.shape[0])
+    y1 = 2011+10*decade
+    yN = 2020+10*decade
+    year_is_incl = np.logical_and(yearList >= y1, yearList <= yN)
+    co2_dec = np.mean(co2[decade]) # For now at least, still using decadal list
+    t_dec = np.mean(t[year_is_incl, :, :], axis=0)
+    w_dec = np.mean(w[year_is_incl, :, :], axis=0)
+
     # Irrigated
     if is_irrig:
-        ir_10 = emulate_old(KI, co2[decade], t[decade, :, :], 1, 10, "NI", True)
-        ir_60 = emulate_old(KI, co2[decade], t[decade, :, :], 1, 60, "NI", True)
-        ir_200 = emulate_old(KI, co2[decade], t[decade, :, :], 1, 200, "NI", True)
+        ir_10 = emulate_old(KI, co2_dec, t_dec, 1, 10, "NI", True)
+        ir_60 = emulate_old(KI, co2_dec, t_dec, 1, 60, "NI", True)
+        ir_200 = emulate_old(KI, co2_dec, t_dec, 1, 200, "NI", True)
     else:
-        ir_10 = emulate(KI, co2[decade], t[decade,:,:], 1, 10)
-        ir_60 = emulate(KI, co2[decade], t[decade,:,:], 1, 60)
-        ir_200 = emulate(KI, co2[decade], t[decade,:,:], 1, 200)
+        ir_10 = emulate(KI, co2_dec, t_dec, 1, 10)
+        ir_60 = emulate(KI, co2_dec, t_dec, 1, 60)
+        ir_200 = emulate(KI, co2_dec, t_dec, 1, 200)
 
     # Rainfed
     if is_irrig:
@@ -59,9 +71,9 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt)
         rf_60 = np.zeros(ir_10.shape)
         rf_200 = np.zeros(ir_10.shape)
     else:
-        rf_10 = emulate(K, co2[decade], t[decade,:,:], w[decade,:,:], 10)
-        rf_60 = emulate(K, co2[decade], t[decade,:,:], w[decade,:,:], 60)
-        rf_200 = emulate(K, co2[decade], t[decade,:,:], w[decade,:,:], 200)
+        rf_10 = emulate(K, co2_dec, t_dec, w_dec, 10)
+        rf_60 = emulate(K, co2_dec, t_dec, w_dec, 60)
+        rf_200 = emulate(K, co2_dec, t_dec, w_dec, 200)
     return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
 
 
@@ -73,7 +85,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig, do_
           'inmcm4','IPSL-CM5A-LR','IPSL-CM5A-MR','IPSL-CM5B-LR','MIROC5','MIROC-ESM',
           'MPI-ESM-LR','MPI-ESM-MR','MRI-CGCM3','NorESM1-M']
     rcp: 45 or 85
-    decade: 0,1,2,3,4,5,6,7,8  (which equates to 2010-2020, 2030-2040, ... 2090-2100)
+    decade: 0,1,2,3,4,5,6,7,8  (which equates to 2011-2019 [shortened!], 2020-2029, ... 2090-2099)
     GGCM: ['EPIC-TAMU','pDSSAT','LPJ-GUESS', 'LPJmL']
     GGCMIcrop: ['maize' , 'rice', 'soy', 'winter_wheat', 'spring_wheat']
     """
@@ -139,24 +151,14 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig, do_
                    890.3395]
 
         # Emulate the six management cases.
-        if GGCM == "LPJmL" and GGCMIcrop == "soy":
-            print("SKIPPING LPJML SOY (has Jim redone this yet?")
-            rf_10_yield = np.empty(mask_YX.shape)
-            rf_10_yield[:] = np.NaN
-            rf_60_yield = rf_10_yield
-            rf_200_yield = rf_10_yield
-            ir_10_yield = rf_10_yield
-            ir_60_yield = rf_10_yield
-            ir_200_yield = rf_10_yield
-        else:
-            emulator_dir_yield = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_yield"
-            emulator_dir_irrig = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_irrig"
-            rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield \
-                = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False, decade,
-                               do_adapt)
-            rf_10_irrig, rf_60_irrig,rf_200_irrig, ir_10_irrig,ir_60_irrig, ir_200_irrig \
-                = do_emulation(emulator_dir_irrig, GGCMIcrop, co2, t, w, True, decade,
-                               do_adapt)
+        emulator_dir_yield = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_yield"
+        emulator_dir_irrig = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/fits_irrig"
+        rf_10_yield, rf_60_yield, rf_200_yield, ir_10_yield, ir_60_yield, ir_200_yield \
+            = do_emulation(emulator_dir_yield,GGCMIcrop, co2, t, w, False, decade,
+                           do_adapt)
+        rf_10_irrig, rf_60_irrig,rf_200_irrig, ir_10_irrig,ir_60_irrig, ir_200_irrig \
+            = do_emulation(emulator_dir_irrig, GGCMIcrop, co2, t, w, True, decade,
+                           do_adapt)
         del t, w
 
         # Add values to output tables
@@ -175,7 +177,7 @@ def PLUMemulate(GCM, rcp, decade, GGCM, mask_YX, outarr_yield, outarr_irrig, do_
 
 
 do_adapt = False
-outdir_suffix = "20200221"
+outdir_suffix = "20200310"
 
 GCMs = ["IPSL-CM5A-MR_r1i1p1"]
 # GCMs = ["IPSL-CM5A-MR","GFDL-ESM2M","MIROC5", "HadGEM2-ES"]
@@ -189,7 +191,8 @@ GCMs = ["IPSL-CM5A-MR_r1i1p1"]
 rcps = [45]
 decades = range(9)
 # GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL", "pDSSAT"]
-GGCMs = ["pDSSAT"]
+# GGCMs = ["pDSSAT"]
+GGCMs = ["EPIC-TAMU", "LPJ-GUESS", "LPJmL"]
 
 # Import PLUM mask and lon/lat
 plum_dir = "/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/plum/"
@@ -206,7 +209,9 @@ for decade in decades:
             for GGCM in GGCMs:
 
                 # Set up info about this run
-                decade_str = '%d-%d' % (2011+10*decade, 2020+10*decade)
+                y1 = 2011+10*decade
+                yN = min(2099, 2020+10*decade)
+                decade_str = '%d-%d' % (y1, yN)
                 print("%s rcp%d %s %s..." % (GCM, rcp, decade_str, GGCM))
                 # outdir = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/'\
                 #     + 'outputs_GGCMIcrops_%s/%s/%s/rcp%d/%s' \

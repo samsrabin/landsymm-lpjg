@@ -6,7 +6,7 @@
 % inDir = 'outputs_20190930' ;
 % inDir = 'outputs_GGCMIcrops_20191008' ;
 % inDir = 'outputs_GGCMIcrops_20200204' ;
-inDir = 'outputs_GGCMIcrops_20200211' ;
+inDir = 'outputs_GGCMIcrops_20200310' ;
 thisVar = 'yield' ;
 % thisVar = 'gsirrigation' ;
 
