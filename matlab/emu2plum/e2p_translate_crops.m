@@ -18,7 +18,8 @@ for c = 1:length(cropList_lpj)
         else
             cropList_lpj_asEmu{c} = 'spring_wheat' ;
         end
-    elseif strcmp(thisCrop_lpj,'StarchyRoots')
+    elseif strcmp(thisCrop_lpj,'StarchyRoots') ...
+            || strcmp(thisCrop_lpj,'Rice')
         cropList_lpj_asEmu{c} = 'spring_wheat' ;
     else
         error('GGCMI equivalent of %s not specified', thisCrop_lpj)

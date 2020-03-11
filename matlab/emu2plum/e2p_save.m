@@ -1,10 +1,9 @@
 function e2p_save(outDir, y1, yN, out_header_cell, lonlats, garr_xv, which_file, ...
-    interp_infs, remove_outliers)
+    interp_infs, remove_outliers, overwrite)
 
 outPrec = 6 ;
 outWidth = 1 ;
 delimiter = ' ' ;
-overwrite = true ;
 fancy = false ;
 
 outDir_thisT = sprintf('%s/%d-%d', outDir, y1, yN) ;
