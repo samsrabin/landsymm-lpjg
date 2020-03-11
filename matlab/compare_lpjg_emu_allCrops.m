@@ -2,10 +2,10 @@
 %%% Compare LPJ-GUESS and emulator outputs %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% thisEmu = 'LPJ-GUESS' ;
+thisEmu = 'LPJ-GUESS' ;
 % thisEmu = 'LPJmL' ;
 % thisEmu = 'pDSSAT' ;
-thisEmu = 'EPIC-TAMU' ;
+% thisEmu = 'EPIC-TAMU' ;
 
 incl_cf = true ;
 
@@ -100,55 +100,59 @@ end
 %%%% Options
 spacing = [0.04 0.025] ; % v h
 yrange = 70:360 ;
-thisPos = [1    34   720   771] ;
+% thisPos = [1    34   720   771] ;
+thisPos = figurePos ;
 %%%%
+
+Nn = length(N_list_lpj) ;
 
 for c = 1:length(crop_list)
     thisCrop = crop_list{c} ;
     for ii = 1:2
         thisIrr = irr_list{ii} ;
-        for n = 1:length(N_list_lpj)
+        tmp_lpj_YXn = nan(360,720,Nn) ;
+        tmp_emu_YXn = nan(360,720,Nn) ;
+        outfile = sprintf('%s/LPJGcomp_map_%s_%s%s.png', ...
+            fig_dir, thisEmu, thisCrop, thisIrr) ;
+        for n = 1:Nn
             thisVar_lpj = sprintf('%s%s%s',thisCrop,thisIrr,N_list_lpj{n}) ;
             thisVar_emu = sprintf('%s%s%s',thisCrop,thisIrr,N_list_emu{n}) ;
             
-            outfile = sprintf('%s/LPJGcomp_map_%s_%s%s_N%s.png', ...
-                fig_dir, thisEmu, thisCrop, thisIrr,N_list_lpj{n}) ;
-            
-%             [cf_lpj, cf_emu] = get_cf(thisVar_lpj, thisEmu) ;
-%             tmp_lpj = cf_lpj * yield_lpj.garr_xv(:,strcmp(yield_lpj.varNames,thisVar_lpj)) ;
-%             tmp_emu = cf_emu * yield_emu.garr_xv(:,strcmp(yield_emu.varNames,thisVar_emu)) ;
             tmp_lpj = yield_lpj.garr_xv(:,strcmp(yield_lpj.varNames,thisVar_lpj)) ;
             tmp_emu = yield_emu.garr_xv(:,strcmp(yield_emu.varNames,thisVar_emu)) ;
-
-
-%             new_caxis = [0 max(max(tmp_lpj),max(tmp_emu))] ;
-            tmp_array = cat(1,tmp_lpj(~isnan(tmp_lpj)),tmp_emu(~isnan(tmp_emu))) ;
-            new_caxis = [0 prctile(tmp_array,99.9)] ;
             
             tmp_lpj_YX = nan(360,720) ;
             tmp_lpj_YX(yield_lpj.list2map) = tmp_lpj ;
+            tmp_lpj_YXn(:,:,n) = tmp_lpj_YX ;
             tmp_emu_YX = nan(360,720) ;
             tmp_emu_YX(yield_emu.list2map) = tmp_emu ;
-            
-            figure('Color','w','Position',thisPos)
-            
-            subplot_tight(2,1,1,spacing)
-            pcolor(tmp_lpj_YX(yrange,:)); shading flat; axis equal tight off
-            caxis(new_caxis) ; colormap(gca,'jet'); hcb = colorbar('Location','SouthOutside') ;
-            title(sprintf('LPJ-GUESS: %s', thisVar_lpj))
-            xlabel(hcb,'tons/ha')
-            
-            subplot_tight(2,1,2,spacing)
-            pcolor(tmp_emu_YX(yrange,:)); shading flat; axis equal tight off
-            caxis(new_caxis) ; colormap(gca,'jet'); hcb = colorbar('Location','SouthOutside') ;
-            title(sprintf('%s emulator: %s', thisEmu, thisVar_emu))
-            xlabel(hcb,'tons/ha')
-            
-            export_fig(outfile, '-r150') ;
-            close
-            
-            
+            tmp_emu_YXn(:,:,n) = tmp_emu_YX ;
         end
+        
+        new_caxis = [0 prctile(cat(1,tmp_lpj_YXn(~isnan(tmp_lpj_YXn)),tmp_emu_YXn(~isnan(tmp_emu_YXn))),99.9)] ;
+        
+        figure('Color','w','Position',thisPos)
+        
+        for n = 1:Nn
+            thisVar_lpj = sprintf('%s%s%s',thisCrop,thisIrr,N_list_lpj{n}) ;
+            thisVar_emu = sprintf('%s%s%s',thisCrop,thisIrr,N_list_emu{n}) ;
+            
+            subplot_tight(Nn,2,(n-1)*2+1,spacing)
+            pcolor(tmp_lpj_YXn(yrange,:,n)); shading flat; axis equal tight off
+            caxis(new_caxis) ; colormap(gca,'jet'); hcb = colorbar('Location','SouthOutside') ;
+            title(sprintf('LPJ-GUESS: %s (N%s)', thisVar_lpj, N_list_lpj{n}))
+            xlabel(hcb,'tons/ha')
+            
+            subplot_tight(Nn,2,n*2,spacing)
+            pcolor(tmp_emu_YXn(yrange,:,n)); shading flat; axis equal tight off
+            caxis(new_caxis) ; colormap(gca,'jet'); hcb = colorbar('Location','SouthOutside') ;
+            title(sprintf('%s emulator: %s (N%s)', thisEmu, thisVar_emu, N_list_emu{n}))
+            xlabel(hcb,'tons/ha')
+        end
+        
+        export_fig(outfile, '-r150') ;
+        close
+
     end
 end
 
@@ -156,7 +160,7 @@ disp('Done')
 
 
 %% Compare for all crops: Scatter
-
+stop
 %%%% Options
 spacing = [0.1 0.025] ; % v h
 thisPos = [254    33   792   772] ;
