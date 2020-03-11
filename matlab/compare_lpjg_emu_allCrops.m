@@ -3,12 +3,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % thisEmu = 'LPJ-GUESS' ;
-thisEmu = 'LPJmL' ;
+% thisEmu = 'LPJmL' ;
 % thisEmu = 'pDSSAT' ;
+thisEmu = 'EPIC-TAMU' ;
 
 incl_cf = true ;
 
-top_dir = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_20190930/IPSL-CM5A-MR' ;
+top_dir = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/potYields_20200310/IPSL-CM5A-MR_r1i1p1' ;
+fig_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/potYields_20200310_IPSL-CM5A-MR' ;
 
 
 %% Setup
@@ -19,18 +21,13 @@ N_list_lpj = {'0','0200'} ;
 N_list_emu = {'010','200'} ;
 
 if incl_cf
-    switch thisEmu
-        case 'LPJmL'
-            cf_file_emu = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables/LPJmL_emu_remap5e_simple_cv18_20190930154609.csv' ;
-        otherwise
-            error('thisEmu not recognized: %s', thisEmu)
+    cf_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
+    cf_file_emu = dir(sprintf('%s/*%s*', cf_dir, thisEmu)) ;
+    if length(cf_file_emu) ~= 1
+        error('%d possible cf_file_emu found', length(cf_file_emu))
     end
-    if ~exist(cf_file_emu, 'file')
-        error('cf_file_emu not found: %s', cf_file_emu)
-    end
-    fig_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/outputsCF_20190930_IPSL-CM5A-MR' ;
-else
-    fig_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/outputs_20190930_IPSL-CM5A-MR' ;
+    cf_file_emu = sprintf('%s/%s', cf_dir, cf_file_emu.name) ;
+    fig_dir = strrep(fig_dir, 'potYields', 'potYields_cf') ;
 end
 
 if ~exist(fig_dir,'dir')
@@ -40,8 +37,8 @@ end
 
 %% Read files
 
-yield_lpj1 = lpjgu_matlab_read2geoArray('/Volumes/WDMPP_Storage/Shared/PLUM/trunk_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_rcp45/LPJGPLUM_2001-2100_remap6p7_forPotYields_rcp45_forED_20190225101539/2011-2015/yield.out.gz') ;
-yield_lpj2 = lpjgu_matlab_read2geoArray('/Volumes/WDMPP_Storage/Shared/PLUM/trunk_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_rcp45/LPJGPLUM_2001-2100_remap6p7_forPotYields_rcp45_forED_20190225101539/2016-2020/yield.out.gz') ;
+yield_lpj1 = lpjgu_matlab_read2geoArray('/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/plum/yield.2011-2015.out.gz') ;
+yield_lpj2 = lpjgu_matlab_read2geoArray('/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/plum/yield.2016-2020.out.gz') ;
 yield_lpj = yield_lpj1 ;
 yield_lpj.garr_xv = nanmean(cat(3,yield_lpj1.garr_xv,yield_lpj2.garr_xv),3) ;
 clear yield_lpj1 yield_lpj2
@@ -155,6 +152,8 @@ for c = 1:length(crop_list)
     end
 end
 
+disp('Done')
+
 
 %% Compare for all crops: Scatter
 
@@ -175,10 +174,9 @@ for c = 1:length(crop_list)
         for n = 1:length(N_list_lpj)
             thisVar_lpj = sprintf('%s%s%s',thisCrop,thisIrr,N_list_lpj{n}) ;
             thisVar_emu = sprintf('%s%s%s',thisCrop,thisIrr,N_list_emu{n}) ;
-            [cf_lpj, cf_emu] = get_cf(thisVar_lpj, thisEmu) ;
             
-            tmp_lpj = cf_lpj * yield_lpj.garr_xv(:,strcmp(yield_lpj.varNames,thisVar_lpj)) ;
-            tmp_emu = cf_emu * yield_emu.garr_xv(:,strcmp(yield_emu.varNames,thisVar_emu)) ;
+            tmp_lpj = yield_lpj.garr_xv(:,strcmp(yield_lpj.varNames,thisVar_lpj)) ;
+            tmp_emu = yield_emu.garr_xv(:,strcmp(yield_emu.varNames,thisVar_emu)) ;
             
             tmp_lpj_YX = nan(360,720) ;
             tmp_lpj_YX(yield_lpj.list2map) = tmp_lpj ;
@@ -234,46 +232,5 @@ for c = 1:length(crop_list)
     close
 end
 
-%% FUNCTIONS
+disp('Done')
 
-function [cf_lpj, cf_emu] = get_cf(thisVar_lpj, thisEmu)
-
-thisCrop = thisVar_lpj ;
-
-xtra = regexp(thisCrop,'(i|0|1|2)+$') ;
-if ~isempty(xtra)
-    thisCrop(xtra:end) = [] ;
-end
-
-crop_list = {'CerealsC3','CerealsC4','Rice','Oilcrops','Pulses','StarchyRoots'} ;
-thisCrop_i = find(strcmp(crop_list, thisCrop)) ;
-if length(thisCrop_i) ~= 1
-    error('Error finding index of thisCrop')
-end
-
-cf_lpj_list = [1.046 0.654 0.972 0.578 0.686 4.560] ;
-switch lower(thisEmu)
-    case 'lpj-guess'; cf_emu_list = [1.078 0.874 1.815 0.711 1.084 5.748] ;
-    case 'lpjml';     cf_emu_list = [0.682 0.716 1.420 0.592 0.642 4.071] ;
-    case 'pdssat';    cf_emu_list = [0.710 0.562 0.483 0.402 0.425 4.579] ;
-    otherwise ; error('%s not recognized in code to get calib factors', thisEmu)
-end
-
-if length(cf_lpj_list) ~= length(crop_list)
-    error('Mismatch in length of crop_list and cf_lpj_list')
-elseif length(cf_emu_list) ~= length(crop_list)
-    error('Mismatch in length of crop_list and cf_emu_list')
-end
-
-cf_lpj = cf_lpj_list(thisCrop_i) ;
-cf_emu = cf_emu_list(thisCrop_i) ;
-
-end
-
-
-function out_YX = get_map(in_x, list2map)
-
-out_YX = nan(360,720) ;
-out_YX(list2map) = in_x ;
-
-end
