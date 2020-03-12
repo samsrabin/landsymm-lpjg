@@ -98,22 +98,22 @@ end
 %% Compare for all crops: Maps
 
 %%%% Options
-spacing = [0.04 0.025] ; % v h
+spacing = [0.04 0.015] ; % v h
 yrange = 70:360 ;
 % thisPos = [1    34   720   771] ;
-thisPos = figurePos ;
+% thisPos = figurePos ;
+thisPos = [1 375 1440 430] ;
 %%%%
 
 Nn = length(N_list_lpj) ;
 
 for c = 1:length(crop_list)
     thisCrop = crop_list{c} ;
+    
+    tmp_lpj_YXin = nan(360,720,2,Nn) ;
+    tmp_emu_YXin = nan(360,720,2,Nn) ;
     for ii = 1:2
         thisIrr = irr_list{ii} ;
-        tmp_lpj_YXn = nan(360,720,Nn) ;
-        tmp_emu_YXn = nan(360,720,Nn) ;
-        outfile = sprintf('%s/LPJGcomp_map_%s_%s%s.png', ...
-            fig_dir, thisEmu, thisCrop, thisIrr) ;
         for n = 1:Nn
             thisVar_lpj = sprintf('%s%s%s',thisCrop,thisIrr,N_list_lpj{n}) ;
             thisVar_emu = sprintf('%s%s%s',thisCrop,thisIrr,N_list_emu{n}) ;
@@ -123,44 +123,55 @@ for c = 1:length(crop_list)
             
             tmp_lpj_YX = nan(360,720) ;
             tmp_lpj_YX(yield_lpj.list2map) = tmp_lpj ;
-            tmp_lpj_YXn(:,:,n) = tmp_lpj_YX ;
+            tmp_lpj_YXin(:,:,ii,n) = tmp_lpj_YX ;
             tmp_emu_YX = nan(360,720) ;
             tmp_emu_YX(yield_emu.list2map) = tmp_emu ;
-            tmp_emu_YXn(:,:,n) = tmp_emu_YX ;
+            tmp_emu_YXin(:,:,ii,n) = tmp_emu_YX ;
         end
         
-        new_caxis = [0 prctile(cat(1,tmp_lpj_YXn(~isnan(tmp_lpj_YXn)),tmp_emu_YXn(~isnan(tmp_emu_YXn))),99.9)] ;
-        
-        figure('Color','w','Position',thisPos)
-        
+    end
+    
+    figure('Color','w','Position',thisPos)
+    new_caxis = [0 prctile(cat(1,tmp_lpj_YXin(~isnan(tmp_lpj_YXin)),tmp_emu_YXin(~isnan(tmp_emu_YXin))),99.9)] ;
+    outfile = sprintf('%s/LPJGcomp_map_%s_%s.png', ...
+        fig_dir, thisEmu, thisCrop) ;
+    
+    nx = 2*Nn ;
+    ny = 2 ;
+    pltind1 = 0;
+    
+    for ii = 1:2
+        thisIrr = irr_list{ii} ;
         for n = 1:Nn
             thisVar_lpj = sprintf('%s%s%s',thisCrop,thisIrr,N_list_lpj{n}) ;
             thisVar_emu = sprintf('%s%s%s',thisCrop,thisIrr,N_list_emu{n}) ;
             
-            subplot_tight(Nn,2,(n-1)*2+1,spacing)
-            pcolor(tmp_lpj_YXn(yrange,:,n)); shading flat; axis equal tight off
+            pltind1 = pltind1 + 1 ;
+            pltind2 = pltind1 + 2*Nn ;
+            
+            subplot_tight(ny,nx,pltind1,spacing)
+            pcolor(tmp_lpj_YXin(yrange,:,ii,n)); shading flat; axis equal tight off
             caxis(new_caxis) ; colormap(gca,'jet'); hcb = colorbar('Location','SouthOutside') ;
             title(sprintf('LPJ-GUESS: %s (N%s)', thisVar_lpj, N_list_lpj{n}))
             xlabel(hcb,'tons/ha')
             
-            subplot_tight(Nn,2,n*2,spacing)
-            pcolor(tmp_emu_YXn(yrange,:,n)); shading flat; axis equal tight off
+            subplot_tight(ny,nx,pltind2,spacing)
+            pcolor(tmp_emu_YXin(yrange,:,ii,n)); shading flat; axis equal tight off
             caxis(new_caxis) ; colormap(gca,'jet'); hcb = colorbar('Location','SouthOutside') ;
             title(sprintf('%s emulator: %s (N%s)', thisEmu, thisVar_emu, N_list_emu{n}))
             xlabel(hcb,'tons/ha')
         end
-        
-        export_fig(outfile, '-r150') ;
-        close
-
     end
+    
+    export_fig(outfile, '-r150') ;
+    close
 end
 
 disp('Done')
 
 
 %% Compare for all crops: Scatter
-stop
+
 %%%% Options
 spacing = [0.1 0.025] ; % v h
 thisPos = [254    33   792   772] ;
