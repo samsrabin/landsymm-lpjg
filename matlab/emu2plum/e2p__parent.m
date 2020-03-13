@@ -13,7 +13,7 @@ save_out_figs = true ;
 excl_lowBL_agmerra = true ;
 excl_lowBL_emu = true ;
 interp_infs = true ;
-remove_outliers = false ;
+remove_outliers = true ;
 
 % Run info
 gcm = 'IPSL-CM5A-MR_r1i1p1' ;
@@ -40,6 +40,9 @@ topDir_lpj = sprintf( ...
 topDir_emu_bl = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcropsBaseline_%s', thisVer) ;
 topDir_emu_fu = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcrops_%s', thisVer) ;
 outDir = sprintf('/Users/Shared/GGCMI2PLUM_sh/send_to_plum/%s_%s_v%s', gcm, rcp, thisVer) ;
+if remove_outliers
+    outDir = [outDir '_rmol'] ;
+end
 
 if ~contains(topDir_lpj, rcp)
     error('~contains(topDir_lpj, rcp)')
