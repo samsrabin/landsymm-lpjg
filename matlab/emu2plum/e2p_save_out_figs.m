@@ -1,5 +1,6 @@
 function e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
-    ggcm, getbasename, getbasenamei, getN, outDir_figs, which_file)
+    ggcm, getbasename, getbasenamei, getN, outDir_figs, ...
+    which_file, cropList_lpj_asEmu)
 
 this_colormap = 'parula' ;
 % this_colormap = 'jet' ;
@@ -64,30 +65,8 @@ for v = 1:length(data_fu_out.varNames)
     thisVar_out = data_fu_out.varNames{v} ;
     thisCrop_out = getbasename(thisVar_out) ;
     thisCropi_out = getbasenamei(thisVar_out) ;
-    switch thisCrop_out
-        case 'CerealsC3'
-            thisCropi_emu = strrep(thisCropi_out, thisCrop_out, 'max_wheat') ;
-        case 'CerealsC4'
-            thisCropi_emu = strrep(thisCropi_out, thisCrop_out, 'maize') ;
-        case 'StarchyRoots'
-            thisCropi_emu = strrep(thisCropi_out, thisCrop_out, 'spring_wheat') ;
-        case 'Rice'
-            switch ggcm
-                case 'LPJ-GUESS'
-                    thisCropi_emu = strrep(thisCropi_out, thisCrop_out, 'spring_wheat') ;
-                otherwise
-                    thisCropi_emu = strrep(thisCropi_out, thisCrop_out, 'rice') ;
-            end
-        case {'Oilcrops', 'Pulses'}
-            switch ggcm
-                case 'LPJ-GUESS'
-                    thisCropi_emu = strrep(thisCropi_out, thisCrop_out, 'spring_wheat') ;
-                otherwise
-                    thisCropi_emu = strrep(thisCropi_out, thisCrop_out, 'soy') ;
-            end
-        otherwise
-            error('thisCrop_out not recognized')
-    end
+    thisCropi_emu = strrep(thisCropi_out, thisCrop_out, ...
+        cropList_lpj_asEmu{strcmp(cropList_lpj, thisCrop_out)}) ;
     title_center = sprintf('Raw %s emu (%s)', ggcm, strrep(thisCropi_emu, '_', '\_')) ;
     
     % Get maps

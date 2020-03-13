@@ -251,10 +251,12 @@ for ggcm_counter = 1:length(ggcm_list)
     if save_out_figs
         if strcmp(which_file, 'yield')
             e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
-                ggcm, getbasename, getbasenamei, getN, outDir_yield_figs, which_file)
+                ggcm, getbasename, getbasenamei, getN, outDir_yield_figs, ...
+                which_file, cropList_lpj_asEmu)
         elseif strcmp(which_file, 'gsirrigation')
             e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
-                ggcm, getbasename, getbasenamei, getN, outDir_irrig_figs, which_file)
+                ggcm, getbasename, getbasenamei, getN, outDir_irrig_figs, ...
+                which_file, cropList_lpj_asEmu)
         else
             warning('which_file (%s) not recognized for save_yield_figs; skipping.', which_file)
         end
