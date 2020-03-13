@@ -212,11 +212,11 @@ for v = 1:length(data_fu_out.varNames)
     hold off
     
     % Save
-    filename = sprintf('%s/max%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisCropi_out) ;
+    filename = sprintf('%s/max%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisVar_out) ;
     if ~exist(outDir_figs, 'dir')
         mkdir(outDir_figs)
     end
-    export_fig(filename, '-r150')
+    export_fig(filename, '-r100')
     close
     
 end
