@@ -8,6 +8,39 @@ yield_fu_lpj_max_xv = max(data_fu_lpj.garr_xvt,[],3) ;
 yield_fu_emu_max_xv = max(data_fu_emu.garr_xvt,[],3) ;
 yield_fu_out_max_xv = max(data_fu_out.garr_xvt,[],3) ;
 
+% Apply calibration factors used in ES paper
+cropList_lpj = unique(getbasename(data_fu_lpj.varNames)) ;
+Ncrops = length(cropList_lpj) ;
+if strcmp(which_file, 'yield')
+    cf_lpj = nan(Ncrops,1) ;
+    cf_lpj(strcmp(cropList_lpj, 'CerealsC3')) = 1.056 ;
+    cf_lpj(strcmp(cropList_lpj, 'CerealsC4')) = 0.738 ;
+    cf_lpj(strcmp(cropList_lpj, 'Rice')) = 1.052 ;
+    cf_lpj(strcmp(cropList_lpj, 'Oilcrops')) = 0.687 ;
+    cf_lpj(strcmp(cropList_lpj, 'Pulses')) = 0.865 ;
+    cf_lpj(strcmp(cropList_lpj, 'StarchyRoots')) = 5.443 ;
+    for c = 1:Ncrops
+        thisCrop = cropList_lpj{c} ;
+%         fprintf('%s lpj: %0.3f\n', thisCrop, cf_lpj(c)) ;
+        
+        % Apply to LPJ-GUESS sim
+        isThisCrop = contains(data_fu_lpj.varNames, thisCrop) ;
+        if length(find(isThisCrop)) ~= Ncrops
+            error('length(find(isThisCrop)) ~= Ncrops')
+        end
+        yield_fu_lpj_max_xv(:,isThisCrop) = ...
+            cf_lpj(c) * yield_fu_lpj_max_xv(:,isThisCrop) ;
+        
+        % Apply to final outputs
+        isThisCrop = contains(data_fu_out.varNames, thisCrop) ;
+        if length(find(isThisCrop)) ~= Ncrops
+            error('length(find(isThisCrop)) ~= Ncrops')
+        end
+        yield_fu_out_max_xv(:,isThisCrop) = ...
+            cf_lpj(c) * yield_fu_out_max_xv(:,isThisCrop) ;
+    end
+end
+
 if strcmp(which_file, 'yield')
     tmp_which_file = 'Yield' ;
     units = 'tons/ha' ;
