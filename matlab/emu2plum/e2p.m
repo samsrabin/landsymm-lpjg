@@ -107,7 +107,8 @@ if contains(which_file, {'yield','gsirrigation'}) && (excl_lowBL_agmerra || excl
         % Set up exclusion array
         exclude_xc = false(length(data_bl_emu.list2map),length(cropList_emu_basei)) ;
         
-        % Where do we exclude based on low AgMERRA yield (or existing exclusions)?
+        % Where do we exclude based on low AgMERRA yield at max N 
+        % (or existing exclusions)?
         if excl_lowBL_agmerra
             disp('Excluding based on low AgMERRA yield...')
             % Get AgMERRA yield
@@ -126,8 +127,8 @@ if contains(which_file, {'yield','gsirrigation'}) && (excl_lowBL_agmerra || excl
             error('All cells excluded because of low AgMERRA yield')
         end
         
-        % Where do we exclude based on low baseline-year emulated yield (or
-        % existing exclusions)?
+        % Where do we exclude based on low baseline-year emulated yield at
+        % max N (or existing exclusions)?
         if excl_lowBL_emu
             disp('Excluding based on low baseline-year emulated yield...')
             exclude_xc = e2p_exclude_lowBLyield_atMaxN( ...
@@ -264,6 +265,9 @@ end
 
 disp('Applying deltas...')
 
+% Applies emulator deltas to LPJ-GUESS baseline.
+% data_fu_lpj is not affected, except to have its variables sorted for
+% consistency.
 [data_fu_lpj, data_fu_out] = e2p_apply_deltas( ...
     data_bl_lpj, data_fu_lpj, data_bl_emu, data_fu_emu, deltas_emu_xvt, ...
     cropList_lpj, cropList_lpj_asEmu, varNames_lpj, ...
@@ -335,18 +339,4 @@ elseif ~contains(which_file, {'anpp', 'gsirrigation'})
 end
 
 disp('All done!')
-
-
-%% UNUSED: Applying deltas to AgMERRA baseline
-
-% % Set up output structure
-% data_fu_out.list2map = list2map ;
-% data_fu_out.lonlats = data_bl_emu.lonlats ;
-% data_fu_out.varNames = varNames_emu ;
-% data_fu_out.y1s = data_fu_emu.y1s ;
-% data_fu_out.yNs = data_fu_emu.yNs ;
-% Actually apply the deltas
-% data_fu_out.garr_xvt = deltas_emu_xvt .* ...
-%     repmat(yield_agmerraBL_xv, [1 1 Ntpers]) ;
-
 
