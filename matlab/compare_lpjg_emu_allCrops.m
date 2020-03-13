@@ -2,13 +2,15 @@
 %%% Compare LPJ-GUESS and emulator outputs %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% thisEmu = 'LPJ-GUESS' ;
-thisEmu = 'LPJmL' ;
+thisEmu = 'LPJ-GUESS' ;
+% thisEmu = 'LPJmL' ;
 % thisEmu = 'pDSSAT' ;
+% thisEmu = 'EPIC-TAMU' ;
 
 incl_cf = true ;
 
-top_dir = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_20190930/IPSL-CM5A-MR' ;
+top_dir = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/potYields_20200310/IPSL-CM5A-MR_r1i1p1' ;
+fig_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/potYields_20200310_IPSL-CM5A-MR' ;
 
 
 %% Setup
@@ -19,18 +21,13 @@ N_list_lpj = {'0','0200'} ;
 N_list_emu = {'010','200'} ;
 
 if incl_cf
-    switch thisEmu
-        case 'LPJmL'
-            cf_file_emu = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables/LPJmL_emu_remap5e_simple_cv18_20190930154609.csv' ;
-        otherwise
-            error('thisEmu not recognized: %s', thisEmu)
+    cf_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
+    cf_file_emu = dir(sprintf('%s/*%s*', cf_dir, thisEmu)) ;
+    if length(cf_file_emu) ~= 1
+        error('%d possible cf_file_emu found', length(cf_file_emu))
     end
-    if ~exist(cf_file_emu, 'file')
-        error('cf_file_emu not found: %s', cf_file_emu)
-    end
-    fig_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/outputsCF_20190930_IPSL-CM5A-MR' ;
-else
-    fig_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/outputs_20190930_IPSL-CM5A-MR' ;
+    cf_file_emu = sprintf('%s/%s', cf_dir, cf_file_emu.name) ;
+    fig_dir = strrep(fig_dir, 'potYields', 'potYields_cf') ;
 end
 
 if ~exist(fig_dir,'dir')
@@ -40,8 +37,8 @@ end
 
 %% Read files
 
-yield_lpj1 = lpjgu_matlab_read2geoArray('/Volumes/WDMPP_Storage/Shared/PLUM/trunk_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_rcp45/LPJGPLUM_2001-2100_remap6p7_forPotYields_rcp45_forED_20190225101539/2011-2015/yield.out.gz') ;
-yield_lpj2 = lpjgu_matlab_read2geoArray('/Volumes/WDMPP_Storage/Shared/PLUM/trunk_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_rcp45/LPJGPLUM_2001-2100_remap6p7_forPotYields_rcp45_forED_20190225101539/2016-2020/yield.out.gz') ;
+yield_lpj1 = lpjgu_matlab_read2geoArray('/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/plum/yield.2011-2015.out.gz') ;
+yield_lpj2 = lpjgu_matlab_read2geoArray('/Users/Shared/GGCMI2PLUM_sh/emulation/inputs/plum/yield.2016-2020.out.gz') ;
 yield_lpj = yield_lpj1 ;
 yield_lpj.garr_xv = nanmean(cat(3,yield_lpj1.garr_xv,yield_lpj2.garr_xv),3) ;
 clear yield_lpj1 yield_lpj2
@@ -101,59 +98,76 @@ end
 %% Compare for all crops: Maps
 
 %%%% Options
-spacing = [0.04 0.025] ; % v h
+spacing = [0.04 0.015] ; % v h
 yrange = 70:360 ;
-thisPos = [1    34   720   771] ;
+% thisPos = [1    34   720   771] ;
+% thisPos = figurePos ;
+thisPos = [1 375 1440 430] ;
 %%%%
+
+Nn = length(N_list_lpj) ;
 
 for c = 1:length(crop_list)
     thisCrop = crop_list{c} ;
+    
+    tmp_lpj_YXin = nan(360,720,2,Nn) ;
+    tmp_emu_YXin = nan(360,720,2,Nn) ;
     for ii = 1:2
         thisIrr = irr_list{ii} ;
-        for n = 1:length(N_list_lpj)
+        for n = 1:Nn
             thisVar_lpj = sprintf('%s%s%s',thisCrop,thisIrr,N_list_lpj{n}) ;
             thisVar_emu = sprintf('%s%s%s',thisCrop,thisIrr,N_list_emu{n}) ;
             
-            outfile = sprintf('%s/LPJGcomp_map_%s_%s%s_N%s.png', ...
-                fig_dir, thisEmu, thisCrop, thisIrr,N_list_lpj{n}) ;
-            
-%             [cf_lpj, cf_emu] = get_cf(thisVar_lpj, thisEmu) ;
-%             tmp_lpj = cf_lpj * yield_lpj.garr_xv(:,strcmp(yield_lpj.varNames,thisVar_lpj)) ;
-%             tmp_emu = cf_emu * yield_emu.garr_xv(:,strcmp(yield_emu.varNames,thisVar_emu)) ;
             tmp_lpj = yield_lpj.garr_xv(:,strcmp(yield_lpj.varNames,thisVar_lpj)) ;
             tmp_emu = yield_emu.garr_xv(:,strcmp(yield_emu.varNames,thisVar_emu)) ;
-
-
-%             new_caxis = [0 max(max(tmp_lpj),max(tmp_emu))] ;
-            tmp_array = cat(1,tmp_lpj(~isnan(tmp_lpj)),tmp_emu(~isnan(tmp_emu))) ;
-            new_caxis = [0 prctile(tmp_array,99.9)] ;
             
             tmp_lpj_YX = nan(360,720) ;
             tmp_lpj_YX(yield_lpj.list2map) = tmp_lpj ;
+            tmp_lpj_YXin(:,:,ii,n) = tmp_lpj_YX ;
             tmp_emu_YX = nan(360,720) ;
             tmp_emu_YX(yield_emu.list2map) = tmp_emu ;
+            tmp_emu_YXin(:,:,ii,n) = tmp_emu_YX ;
+        end
+        
+    end
+    
+    figure('Color','w','Position',thisPos)
+    new_caxis = [0 prctile(cat(1,tmp_lpj_YXin(~isnan(tmp_lpj_YXin)),tmp_emu_YXin(~isnan(tmp_emu_YXin))),99.9)] ;
+    outfile = sprintf('%s/LPJGcomp_map_%s_%s.png', ...
+        fig_dir, thisEmu, thisCrop) ;
+    
+    nx = 2*Nn ;
+    ny = 2 ;
+    pltind1 = 0;
+    
+    for ii = 1:2
+        thisIrr = irr_list{ii} ;
+        for n = 1:Nn
+            thisVar_lpj = sprintf('%s%s%s',thisCrop,thisIrr,N_list_lpj{n}) ;
+            thisVar_emu = sprintf('%s%s%s',thisCrop,thisIrr,N_list_emu{n}) ;
             
-            figure('Color','w','Position',thisPos)
+            pltind1 = pltind1 + 1 ;
+            pltind2 = pltind1 + 2*Nn ;
             
-            subplot_tight(2,1,1,spacing)
-            pcolor(tmp_lpj_YX(yrange,:)); shading flat; axis equal tight off
+            subplot_tight(ny,nx,pltind1,spacing)
+            pcolor(tmp_lpj_YXin(yrange,:,ii,n)); shading flat; axis equal tight off
             caxis(new_caxis) ; colormap(gca,'jet'); hcb = colorbar('Location','SouthOutside') ;
-            title(sprintf('LPJ-GUESS: %s', thisVar_lpj))
+            title(sprintf('LPJ-GUESS: %s (N%s)', thisVar_lpj, N_list_lpj{n}))
             xlabel(hcb,'tons/ha')
             
-            subplot_tight(2,1,2,spacing)
-            pcolor(tmp_emu_YX(yrange,:)); shading flat; axis equal tight off
+            subplot_tight(ny,nx,pltind2,spacing)
+            pcolor(tmp_emu_YXin(yrange,:,ii,n)); shading flat; axis equal tight off
             caxis(new_caxis) ; colormap(gca,'jet'); hcb = colorbar('Location','SouthOutside') ;
-            title(sprintf('%s emulator: %s', thisEmu, thisVar_emu))
+            title(sprintf('%s emulator: %s (N%s)', thisEmu, thisVar_emu, N_list_emu{n}))
             xlabel(hcb,'tons/ha')
-            
-            export_fig(outfile, '-r150') ;
-            close
-            
-            
         end
     end
+    
+    export_fig(outfile, '-r150') ;
+    close
 end
+
+disp('Done')
 
 
 %% Compare for all crops: Scatter
@@ -175,10 +189,9 @@ for c = 1:length(crop_list)
         for n = 1:length(N_list_lpj)
             thisVar_lpj = sprintf('%s%s%s',thisCrop,thisIrr,N_list_lpj{n}) ;
             thisVar_emu = sprintf('%s%s%s',thisCrop,thisIrr,N_list_emu{n}) ;
-            [cf_lpj, cf_emu] = get_cf(thisVar_lpj, thisEmu) ;
             
-            tmp_lpj = cf_lpj * yield_lpj.garr_xv(:,strcmp(yield_lpj.varNames,thisVar_lpj)) ;
-            tmp_emu = cf_emu * yield_emu.garr_xv(:,strcmp(yield_emu.varNames,thisVar_emu)) ;
+            tmp_lpj = yield_lpj.garr_xv(:,strcmp(yield_lpj.varNames,thisVar_lpj)) ;
+            tmp_emu = yield_emu.garr_xv(:,strcmp(yield_emu.varNames,thisVar_emu)) ;
             
             tmp_lpj_YX = nan(360,720) ;
             tmp_lpj_YX(yield_lpj.list2map) = tmp_lpj ;
@@ -234,46 +247,5 @@ for c = 1:length(crop_list)
     close
 end
 
-%% FUNCTIONS
+disp('Done')
 
-function [cf_lpj, cf_emu] = get_cf(thisVar_lpj, thisEmu)
-
-thisCrop = thisVar_lpj ;
-
-xtra = regexp(thisCrop,'(i|0|1|2)+$') ;
-if ~isempty(xtra)
-    thisCrop(xtra:end) = [] ;
-end
-
-crop_list = {'CerealsC3','CerealsC4','Rice','Oilcrops','Pulses','StarchyRoots'} ;
-thisCrop_i = find(strcmp(crop_list, thisCrop)) ;
-if length(thisCrop_i) ~= 1
-    error('Error finding index of thisCrop')
-end
-
-cf_lpj_list = [1.046 0.654 0.972 0.578 0.686 4.560] ;
-switch lower(thisEmu)
-    case 'lpj-guess'; cf_emu_list = [1.078 0.874 1.815 0.711 1.084 5.748] ;
-    case 'lpjml';     cf_emu_list = [0.682 0.716 1.420 0.592 0.642 4.071] ;
-    case 'pdssat';    cf_emu_list = [0.710 0.562 0.483 0.402 0.425 4.579] ;
-    otherwise ; error('%s not recognized in code to get calib factors', thisEmu)
-end
-
-if length(cf_lpj_list) ~= length(crop_list)
-    error('Mismatch in length of crop_list and cf_lpj_list')
-elseif length(cf_emu_list) ~= length(crop_list)
-    error('Mismatch in length of crop_list and cf_emu_list')
-end
-
-cf_lpj = cf_lpj_list(thisCrop_i) ;
-cf_emu = cf_emu_list(thisCrop_i) ;
-
-end
-
-
-function out_YX = get_map(in_x, list2map)
-
-out_YX = nan(360,720) ;
-out_YX(list2map) = in_x ;
-
-end

@@ -38,8 +38,12 @@ for v = 1:Nvars_emu
     
     % Import (exclude last timestep to avoid incomplete final seasons)
     tmp_XYt = ncread(thisFile,['yield_' thisCrop_short]) ;
-    tmp_YX = flipud(transpose(mean(tmp_XYt(:,:,1:end-1), 3))) ;
-    yield_agmerraBL_xv(:,v) = tmp_YX(list2map) ;
+    tmp_YX = flipud(transpose(nanmean(tmp_XYt(:,:,1:end-1), 3))) ;
+    tmp = tmp_YX(list2map) ;
+    if ~any(~isnan(tmp))
+        warning('%s is all NaN', thisCrop)
+    end
+    yield_agmerraBL_xv(:,v) = tmp ;
     
 end
 

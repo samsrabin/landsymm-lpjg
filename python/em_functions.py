@@ -172,17 +172,38 @@ def emulate(K, C, T, W, N):
     return Y
 
 
-def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, GGCM, decade):
+def do_emulation(emulator_dir, GGCM, GGCMIcrop, co2, t, w, is_irrig, decade, do_adapt):
+
+    # Get files and read parameters
     if is_irrig:
-        KI = np.load("%s/%s_%s_irr.npy" % (emulator_dir, GGCM, GGCMIcrop))
-        ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10, "NI", True)
-        ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60, "NI", True)
-        ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200, "NI", True)
+        KI = np.load('%s/%s_%s_irr.npy' % (emulator_dir, GGCM, GGCMIcrop))
     else:
-        KI = np.load("%s/%s_%s_I.npy" % (emulator_dir, GGCM, GGCMIcrop))
-        ir_10 = emulate(KI, co2[decade], t[decade, :, :], 1, 10)
-        ir_60 = emulate(KI, co2[decade], t[decade, :, :], 1, 60)
-        ir_200 = emulate(KI, co2[decade], t[decade, :, :], 1, 200)
+        K, KI = import_parameter_netcdfs(emulator_dir, GGCM, GGCMIcrop, do_adapt)
+
+    # Get mean climate over decade
+    yearList = np.arange(2011, 2100) # 2011-2099
+    if yearList.shape[0] != t.shape[0]:
+        raise Exception("yearList length (%d) different from time size in t (%d)"
+                        % yearList.shape[0], t.shape[0])
+    elif yearList.shape[0] != w.shape[0]:
+        raise Exception("yearList length (%d) different from time size in w (%d)"
+                        % yearList.shape[0], w.shape[0])
+    y1 = 2011+10*decade
+    yN = 2020+10*decade
+    year_is_incl = np.logical_and(yearList >= y1, yearList <= yN)
+    co2_dec = np.mean(co2[decade]) # For now at least, still using decadal list
+    t_dec = np.mean(t[year_is_incl, :, :], axis=0)
+    w_dec = np.mean(w[year_is_incl, :, :], axis=0)
+
+    # Irrigated
+    if is_irrig:
+        ir_10 = emulate_old(KI, co2_dec, t_dec, 1, 10, "NI", True)
+        ir_60 = emulate_old(KI, co2_dec, t_dec, 1, 60, "NI", True)
+        ir_200 = emulate_old(KI, co2_dec, t_dec, 1, 200, "NI", True)
+    else:
+        ir_10 = emulate(KI, co2_dec, t_dec, 1, 10)
+        ir_60 = emulate(KI, co2_dec, t_dec, 1, 60)
+        ir_200 = emulate(KI, co2_dec, t_dec, 1, 200)
 
     # Rainfed
     if is_irrig:
@@ -191,17 +212,10 @@ def do_emulation(emulator_dir, GGCMIcrop, co2, t, w, is_irrig, GGCM, decade):
         rf_60 = np.zeros(ir_10.shape)
         rf_200 = np.zeros(ir_10.shape)
     else:
-        K = np.load("%s/%s_%s.npy" % (emulator_dir, GGCM, GGCMIcrop))
-        rf_10 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 10
-        )
-        rf_60 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 60
-        )
-        rf_200 = emulate(
-            K, co2[decade], t[decade, :, :], w[decade, :, :], 200
-        )
-    return (rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
+        rf_10 = emulate(K, co2_dec, t_dec, w_dec, 10)
+        rf_60 = emulate(K, co2_dec, t_dec, w_dec, 60)
+        rf_200 = emulate(K, co2_dec, t_dec, w_dec, 200)
+    return(rf_10, rf_60, rf_200, ir_10, ir_60, ir_200)
 
 
 def update_out_table(
@@ -278,5 +292,25 @@ def import_parameter_netcdfs(
     K = remove_extra_stuff(K)
     KI = remove_extra_stuff(KI)
     return K, KI
-    
-    
+
+
+def try_load_climate(climate_dir, var, GCM, GGCMIcrop, rcp, missing_climate, verbose):
+    # If no previous climate file was missing, load climate file, if it exists.
+    # Otherwise, change missing_climate to True.
+    in_array = -1
+    if not missing_climate:
+        climate_file = ('%s/rcp%s/rcp%s_%s_%s_growingseason_%s'
+                        + '_annual_2011-2099_vs_baseline_mean.nc4') \
+            % (climate_dir, rcp, rcp, GCM, GGCMIcrop, var)
+        try:
+            nc_fid = Dataset(climate_file, 'r')
+        except FileNotFoundError:
+            if verbose:
+                print('    File not found: %s' % (climate_file))
+            missing_climate = True
+            return(in_array, missing_climate)
+        nc_vars = nc_fid.variables
+        varName = [s for s in list(nc_vars.keys()) if "delta" in s][0]
+        in_array = nc_fid.variables[varName]
+
+    return(in_array, missing_climate)
