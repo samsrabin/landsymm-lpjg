@@ -5,11 +5,16 @@
 which_file = 'yield' ;
 % which_file = 'gsirrigation' ;
 
+% Development vs. production
+save_interp_figs = true ;
+
+% Behaviors
 excl_lowBL_agmerra = true ;
 excl_lowBL_emu = true ;
 interp_infs = true ;
 remove_outliers = false ;
 
+% Run info
 gcm = 'IPSL-CM5A-MR_r1i1p1' ;
 ggcm = 'LPJ-GUESS' ;
 rcp = 'rcp45' ;
@@ -21,25 +26,34 @@ future_ts = 10 ; % Number of years in future time step
 future_yN_lpj = 2100 ;
 future_yN_emu = 2099 ;
 
-topDir_phase2 = sprintf('/Users/Shared/GGCMI/AgMIP.output/%s/phase2', ggcm) ;
-
-topDir_lpj = '/Users/Shared/GGCMI2PLUM_sh/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_rcp45_forED_20191104133630' ;
-topDir_emu_bl = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcropsBaseline_%s', thisVer) ;
-topDir_emu_fu = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcrops_%s', thisVer) ;
-outDir = sprintf('/Users/Shared/GGCMI2PLUM_sh/send_to_plum/emulator_%s', thisVer) ;
-
 
 %% Setup 
 
 cd '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/matlab/emu2plum'
+
+topDir_phase2 = sprintf('/Users/Shared/GGCMI/AgMIP.output/%s/phase2', ggcm) ;
+
+topDir_lpj = sprintf( ...
+    '/Users/Shared/GGCMI2PLUM_sh/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
+    rcp) ;
+topDir_emu_bl = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcropsBaseline_%s', thisVer) ;
+topDir_emu_fu = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcrops_%s', thisVer) ;
+outDir = sprintf('/Users/Shared/GGCMI2PLUM_sh/send_to_plum/%s_%s_v%s', gcm, rcp, thisVer) ;
+
+if ~contains(topDir_lpj, rcp)
+    error('~contains(topDir_lpj, rcp)')
+elseif ~exist(topDir_lpj, 'dir')
+    error('topDir_lpj does not exist:\n %s', topDir_lpj)
+end
 
 getbasename = @(x) regexprep(x,'i?\d\d\d$','') ;
 getbasenamei = @(x) regexprep(x,'\d\d\d$','') ;
 getN = @(x) x(end-2:end) ;
 get_unneeded = @(x) cellfun(@isempty,regexp(x, '.*\d\d+')) ;
 
-outDir_lpj = sprintf('%s/LPJ-GUESS', outDir) ;
-outDir_ggcm = sprintf('%s/emul_%s', outDir, ggcm) ;
+outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
+outDir_ggcm = sprintf('%s/emu_%s', outDir, ggcm) ;
+outDir_interp_figs = sprintf('%s/interp_figs', outDir) ;
 
 if ~exist(outDir, 'dir')
     mkdir(outDir) ;
@@ -254,9 +268,10 @@ if contains(which_file, {'yield','gsirrigation'})
     deltas_emu_xvt = e2p_get_deltas(...
         data_bl_emu, data_fu_emu, interp_infs, cropList_emu, ...
         getbasename, getbasenamei, which_file, ...
-        used_emuCrops, list2map) ;
+        used_emuCrops, list2map, ...
+        save_interp_figs, outDir_interp_figs, ggcm) ;
     e2p_check_correct_zeros(deltas_emu_xvt, which_file, getbasenamei(data_fu_emu.varNames))
-    
+    stop
     disp('Done.')
     
 elseif ~strcmp(which_file, 'anpp')

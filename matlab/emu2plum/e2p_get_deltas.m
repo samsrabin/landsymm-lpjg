@@ -1,7 +1,8 @@
 function deltas_emu_xvt = e2p_get_deltas(...
     data_bl_emu, data_fu_emu, interp_infs, cropList_emu, ...
     getbasename, getbasenamei, which_file, ...
-    used_emuCrops, list2map)
+    used_emuCrops, list2map, ...
+    save_interp_figs, outDir_interp_figs, ggcm)
 
 verbose = false ;
 
@@ -110,6 +111,77 @@ elseif ~isempty(isbad) && interp_infs
             
             deltas_emu_xvt(:,v,t) = tmp_x ;
             e2p_check_correct_zeros(deltas_emu_xvt(:,:,t), which_file, getbasenamei(data_fu_emu.varNames))
+            
+            if save_interp_figs && t==Ntpers
+                
+                figure('Color', 'w', 'Position', figurePos) ;
+                spacing = [0.05 0.01] ; % v h
+                fontSize = 14 ;
+                ybnds = 65:360 ;
+                
+                % Map highlighting Inf cells
+                map_infs_YX = double(isinf(orig_YX)) ;
+                map_infs_YX(isnan(orig_YX)) = NaN ;
+                subplot_tight(1,3,1,spacing)
+                pcolor(map_infs_YX(ybnds,:)); shading flat; axis equal tight off
+                colormap(gca, flipud(colormap('parula')))
+                title('Inf cells (blue)')
+                set(gca, 'FontSize', fontSize)
+                
+                % Map before interpolation
+                map_before_YX = orig_YX ;
+                map_before_YX(isinf(orig_YX)) = NaN ;
+                h1 = subplot_tight(2,3,2:3,spacing) ;
+                pcolor(map_before_YX(ybnds,:)); shading flat; axis equal tight off
+                colormap(gca, 'jet')
+                hcb = colorbar ;
+                ylabel(hcb, '\Delta (future/baseline)')
+                title('Before interp. (Infs are white)')
+                set(gca, 'FontSize', fontSize)
+                
+                % Map after interpolation
+                map_after_YX = intp_YX ;
+                map_after_YX(isnan(orig_YX)) = NaN ;
+                h2 = subplot_tight(2,3,5:6,spacing) ;
+                pcolor(map_after_YX(ybnds,:)); shading flat; axis equal tight off
+                colormap(gca, 'jet')
+                hcb = colorbar ;
+                ylabel(hcb, '\Delta (future/baseline)')
+                title('After interp.')
+                set(gca, 'FontSize', fontSize)
+                
+                % Standardize caxis
+                tmp_beforeafter = cat(3, map_before_YX, map_after_YX) ;
+                new_caxis = [ ...
+                    min(min(min(tmp_beforeafter))), ...
+                    max(max(max(tmp_beforeafter)))] ;
+                caxis(h1, new_caxis) ;
+                caxis(h2, new_caxis) ;
+                
+                % Add info
+                hold on; ax2 = axes(); hold off
+                ax2.Position = [0 0 1 1] ;
+                ax2.Visible = 'off' ;
+                info_text = sprintf( ...
+                    '%s:\n%s\n(last timestep)', ...
+                    ggcm, ...
+                    strrep(thisVar_emu, '_', '\_')) ;
+                text(ax2, 0.1, 0.9, ...
+                    info_text, ...
+                    'FontSize', fontSize*2, ...
+                    'FontWeight', 'bold')
+                
+                % Save figure
+                if ~exist(outDir_interp_figs, 'dir')
+                    mkdir(outDir_interp_figs)
+                end
+                filename = sprintf('%s/intp_%s_%s.png', ...
+                    outDir_interp_figs, ggcm, ...
+                    strrep(thisVar_emu, '_', '')) ;
+                export_fig(filename, '-r150') ;
+                close
+            end
+            
             clear orig_YX intp_YX
         end
     end
