@@ -6,7 +6,8 @@ which_file = 'yield' ;
 % which_file = 'gsirrigation' ;
 
 % Development vs. production
-save_interp_figs = true ;
+save_interp_figs = false ;
+save_out_figs = true ;
 
 % Behaviors
 excl_lowBL_agmerra = true ;
@@ -17,6 +18,8 @@ remove_outliers = false ;
 % Run info
 gcm = 'IPSL-CM5A-MR_r1i1p1' ;
 ggcm_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT', 'EPIC-TAMU'} ;
+% ggcm_list = {'LPJ-GUESS'} ;
+% ggcm_list = {'EPIC-TAMU', 'LPJmL', 'pDSSAT'} ;
 rcp = 'rcp45' ;
 thisVer = '20200310' ;
 
@@ -52,6 +55,8 @@ get_unneeded = @(x) cellfun(@isempty,regexp(x, '.*\d\d+')) ;
 outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
 
 outDir_interp_figs = sprintf('%s/interp_figs', outDir) ;
+outDir_yield_figs = sprintf('%s/yield_figs', outDir) ;
+outDir_irrig_figs = sprintf('%s/irrig_figs', outDir) ;
 
 if ~exist(outDir, 'dir')
     mkdir(outDir) ;

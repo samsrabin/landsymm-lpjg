@@ -241,11 +241,24 @@ for ggcm_counter = 1:length(ggcm_list)
     end
     
     disp('    Done.')
-    
+
     
     %% Save outputs
     
     disp('    Saving...')
+    
+    % Save yield diagnostic figures, if doing so
+    if save_out_figs
+        if strcmp(which_file, 'yield')
+            e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
+                ggcm, getbasename, getbasenamei, getN, outDir_yield_figs, which_file)
+        elseif strcmp(which_file, 'gsirrigation')
+            e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
+                ggcm, getbasename, getbasenamei, getN, outDir_irrig_figs, which_file)
+        else
+            warning('which_file (%s) not recognized for save_yield_figs; skipping.', which_file)
+        end
+    end
     
     % Save exclusion info
     out_file = sprintf('%s/exclude_xc.mat', outDir_ggcm) ;
