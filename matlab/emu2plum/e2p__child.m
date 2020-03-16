@@ -241,11 +241,15 @@ for ggcm_counter = 1:length(ggcm_list)
     end
     
     disp('    Done.')
-
+    
     
     %% Save outputs
     
     disp('    Saving...')
+    
+    % Save outputs (one file)
+    out_file = sprintf('%s/future_%s.mat', outDir_ggcm, which_file) ;
+    save(out_file, 'data_fu_lpj', 'data_fu_emu', 'data_fu_out')
     
     % Save yield diagnostic figures, if doing so
     if save_out_figs
@@ -266,7 +270,7 @@ for ggcm_counter = 1:length(ggcm_list)
     out_file = sprintf('%s/exclude_xc.mat', outDir_ggcm) ;
     save(out_file, 'exclude_xc')
     
-    % Save outputs
+    % Save outputs (for PLUM)
     out_header_cell = [{'Lon', 'Lat'} data_fu_out.varNames] ;
     for t = 1:Ntpers
         fprintf('    %d/%d...\n', t, Ntpers)

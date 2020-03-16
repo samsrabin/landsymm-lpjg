@@ -7,7 +7,7 @@ which_file = 'yield' ;
 
 % Development vs. production
 save_interp_figs = false ;
-save_out_figs = true ;
+save_out_figs = false ;
 
 % Behaviors
 excl_lowBL_agmerra = true ;
