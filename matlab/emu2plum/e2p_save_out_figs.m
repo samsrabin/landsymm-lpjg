@@ -127,15 +127,18 @@ for v = 1:length(data_fu_out.varNames)
     
     % Get limited caxis
     max_raw = max(yield_fu_lpj_max_YX(:)) ;
-    if ~isempty(yield_fu_emu_max_YX)
-        max_raw = max( ...
-            max(yield_fu_emu_max_YX(:)), ...
-            max_raw ...
-            ) ;
-    end
+%     if ~isempty(yield_fu_emu_max_YX)
+%         max_raw = max( ...
+%             max(yield_fu_emu_max_YX(:)), ...
+%             max_raw ...
+%             ) ;
+%     end
     max_out = max(yield_fu_out_max_YX(:)) ;
-    new_caxis = [0 min(max_raw*1.25, max_out)] ;
-%     new_caxis = [0 max_raw] ;
+    if max_out >= max_raw
+        new_caxis = [0 min(max_raw*1.25, max_out)] ;
+    else
+        new_caxis = [0 max_raw] ;
+    end
 
     % Maps with caxis limited
     subplot_tight(2,3,4,spacing) ;
