@@ -7,7 +7,8 @@ which_file = 'yield' ;
 
 % Development vs. production
 save_interp_figs = false ;
-save_out_figs = false ;
+save_out_figs = true ;
+load_existing_file = true ;
 
 % Behaviors
 excl_lowBL_agmerra = true ;
@@ -17,9 +18,9 @@ remove_outliers = true ;
 
 % Run info
 gcm = 'IPSL-CM5A-MR_r1i1p1' ;
-ggcm_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT', 'EPIC-TAMU'} ;
-% ggcm_list = {'LPJ-GUESS'} ;
-% ggcm_list = {'EPIC-TAMU', 'LPJmL', 'pDSSAT'} ;
+% ggcm_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT', 'EPIC-TAMU'} ;
+% ggcm_list = {'EPIC-TAMU'} ;
+ggcm_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT'} ;
 rcp = 'rcp45' ;
 thisVer = '20200310' ;
 
