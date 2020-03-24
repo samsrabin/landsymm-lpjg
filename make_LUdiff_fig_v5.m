@@ -12,7 +12,12 @@ figure('Color','w','Position',thisPos) ;
 gcas_lu1 = {} ;
 gcas_lu2 = {} ;
 colorlim = 0 ;
-Nbins = length(bins_lowBnds) ;
+if isempty(bins_lowBnds)
+    new_caxis = [-1 1] * ...
+        max(max(max(abs(cat(3, diff_lu1_YXr, diff_lu2_YXr))))) ;
+else
+    new_caxis = [1 Nbins+1] ;
+end
 for r = 1:Nruns
     runName = runList{r} ;
     i1 = (r-1)*2 + 1 ;
@@ -27,7 +32,7 @@ for r = 1:Nruns
         nx, ny, i1, i2, ...
         units_total, ...
         do_caps, this_colormap_name, bins_lowBnds, col_titles, ...
-        lines_overlay) ;
+        lines_overlay, new_caxis) ;
     gcas_lu1 = [gcas_lu1 hc] ;
     gcas_lu2 = [gcas_lu2 hp] ;
 end
@@ -69,7 +74,7 @@ function [hc, hp, ht] = actually_make_fig(...
     nx, ny, i1, i2, ...
     units_total, ...
     do_caps, this_colormap_name, bins_lowBnds, col_titles, ...
-    lines_overlay)
+    lines_overlay, new_caxis)
 
 if ny ~= 4
     error('Code for one big colorbar (per column) only tested with ny==4')
@@ -93,7 +98,7 @@ ht = plot_map(diff_lu1_YX, bins_lowBnds, this_colormap_name, ...
     is_lu1, i1, runName, fontSize, ...
     area_lu1_bl, total_lu1Diff, units_total, ...
     textX, textY_1, textY_2, ...
-    do_caps, lines_overlay) ;
+    do_caps, lines_overlay, new_caxis) ;
 hc = gca ;
 
 % Add lu1 column title
@@ -115,7 +120,7 @@ plot_map(diff_lu2_YX, bins_lowBnds, this_colormap_name, ...
     is_lu1, i1+1, runName, fontSize, ...
     area_lu2_bl, total_lu2Diff, units_total, ...
     textX, textY_1, textY_2, ...
-    do_caps, lines_overlay) ;
+    do_caps, lines_overlay, new_caxis) ;
 hp = gca ;
 
 % Add lu2 column title
@@ -187,15 +192,17 @@ hcb.FontSize = fontSize ;
 
 % Mess with ticks
 hcb.TickDirection = 'out' ;
-Nbins = length(bins_lowBnds) ;
-hcb.Ticks = 1:(Nbins+1) ;
-bins_lowBnds_str = strrep(cellstr(num2str(bins_lowBnds')), ' ', '') ;
-bins_lowBnds_str = [bins_lowBnds_str ; {'100'}] ;
-hcb.TickLabels = bins_lowBnds_str ;
-for b = 1:length(bins_lowBnds_str)
-    thisTick = str2num(bins_lowBnds_str{b}) ;
-    if thisTick > 0
-        hcb.TickLabels{b} = ['+' hcb.TickLabels{b}] ;
+if ~isempty(bins_lowBnds)
+    Nbins = length(bins_lowBnds) ;
+    hcb.Ticks = 1:(Nbins+1) ;
+    bins_lowBnds_str = strrep(cellstr(num2str(bins_lowBnds')), ' ', '') ;
+    bins_lowBnds_str = [bins_lowBnds_str ; {'100'}] ;
+    hcb.TickLabels = bins_lowBnds_str ;
+    for b = 1:length(bins_lowBnds_str)
+        thisTick = str2num(bins_lowBnds_str{b}) ;
+        if thisTick > 0
+            hcb.TickLabels{b} = ['+' hcb.TickLabels{b}] ;
+        end
     end
 end
 
@@ -212,13 +219,18 @@ function ht = plot_map(map_YX, bins_lowBnds, this_colormap_name, ...
     is_lu1, i_in, runName, fontSize, ...
     area_bl, total_diff, units_total, ...
     textX, textY_1, textY_2, ...
-    do_caps, lines_overlay)
+    do_caps, lines_overlay, new_caxis)
 
 % Create binned version of map
-Nbins = length(bins_lowBnds) ;
-map_YX_bin = nan(size(map_YX)) ;
-for b = 1:Nbins
-    map_YX_bin(map_YX >= bins_lowBnds(b)) = b+0.1 ;
+if isempty(bins_lowBnds)
+    Nbins = 64 ;
+    map_YX_bin = map_YX ;
+else
+    Nbins = length(bins_lowBnds) ;
+    map_YX_bin = nan(size(map_YX)) ;
+    for b = 1:Nbins
+        map_YX_bin(map_YX >= bins_lowBnds(b)) = b+0.1 ;
+    end
 end
 
 % Get colormap
@@ -234,7 +246,7 @@ set(findall(hwm,'Tag','MLabel'),'visible','off')
 geoshow(map_YX_bin, R, ...
     'DisplayType', 'surface')
 colormap(gca, this_colormap)
-caxis([1 Nbins+1])
+caxis(new_caxis)
 
 % Plot continent outlines
 if ~isempty(lines_overlay)
