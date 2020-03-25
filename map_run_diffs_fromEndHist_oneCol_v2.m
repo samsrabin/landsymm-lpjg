@@ -4,27 +4,16 @@ function maps_YXr = map_run_diffs_fromEndHist_oneCol_v2( ...
     thisPos, runList, do_caps, land_area_YX, ...
     conv_fact_map, units_map, conv_fact_total, units_total, ...
     bins_lowBnds, this_colormap_name, ...
-    varargin)
+    map_size, list2map, precision_total)
 
-already_maps = true ;
-if ~isempty(varargin)
-    if length(varargin)==2
-        map_size = varargin{1} ;
-        list2map = varargin{2} ;
-        already_maps = false ;
-    else
-        error('map_run_diffs_fromEndHist_oneCol_v2() accepts 0 or 2 optional arguments: map_size and list2map')
-    end
+if ~isint(precision_total)
+    error('precision_total must be int')
 end
 
 % Get missing info
 Nruns = length(runList) ;
 if isempty(land_area_YX)
-    if already_maps
-        land_area_YX = ones(size(data_d9.maps_YXvyr,1),size(data_d9.maps_YXvyr,2)) ;
-    else
-        land_area_YX = ones(map_size) ;
-    end
+    land_area_YX = ones(map_size) ;
 end
 
 figure('Color','w','Position',thisPos) ;
@@ -33,35 +22,21 @@ figure('Color','w','Position',thisPos) ;
 if isempty(IA)
     error('sumvars not found in data_d9.varNames!')
 end
-if already_maps
-    endh_YXy = squeeze(sum(data_d9.maps_YXvyB(:,:,IA,:),3)) ;
-    endh_YXmean = mean(endh_YXy,3) ;
-else
-    endh_xy = squeeze(sum(data_d9.garr_xvyB(:,IA,:),2)) ;
-    endh_xmean = mean(endh_xy,2) ;
-    endh_YXmean = lpjgu_vector2map(endh_xmean, map_size, list2map) ;
-end
+endh_xy = squeeze(sum(data_d9.garr_xvyB(:,IA,:),2)) ;
+endh_xmean = mean(endh_xy,2) ;
+endh_YXmean = lpjgu_vector2map(endh_xmean, map_size, list2map) ;
 
 clim_max = 0 ;
 hs = [] ;
 hcbs = [] ;
-if already_maps
-    maps_YXr = nan([size(land_area_YX) Nruns]) ;
-else
-    maps_YXr = nan([map_size Nruns]) ;
-end
+maps_YXr = nan([map_size Nruns]) ;
 for r = 1:Nruns
     hs(r) = subplot_tight(Nruns,1,r,spacing) ;
     
     % Get data
-    if already_maps
-        endf_YXy = squeeze(sum(data_d9.maps_YXvyr(:,:,IA,:,r),3)) ;
-        endf_YXmean = mean(endf_YXy,3) ;
-    else
-        endf_xy = squeeze(sum(data_d9.garr_xvyr(:,IA,:,r),2)) ;
-        endf_xmean = mean(endf_xy,2) ;
-        endf_YXmean = lpjgu_vector2map(endf_xmean, map_size, list2map) ;
-    end
+    endf_xy = squeeze(sum(data_d9.garr_xvyr(:,IA,:,r),2)) ;
+    endf_xmean = mean(endf_xy,2) ;
+    endf_YXmean = lpjgu_vector2map(endf_xmean, map_size, list2map) ;
     map = (endf_YXmean - endh_YXmean) .* conv_fact_map ;
     maps_YXr(:,:,r) = map ;
     
@@ -114,33 +89,47 @@ for r = 1:Nruns
     if ~isempty(conv_fact_total)
         mean_endh = conv_fact_total * nansum(nansum(endh_YXmean .* land_area_YX)) ;
         mean_endf = conv_fact_total * nansum(nansum(endf_YXmean .* land_area_YX)) ;
-        if already_maps
-            sd_endh = std(nansum(nansum(endh_YXy .* repmat(land_area_YX,[1 1 10]),1),2),...
-                0,3) * conv_fact_total ;
-            sd_endf = std(nansum(nansum(endf_YXy .* repmat(land_area_YX,[1 1 10]),1),2),...
-                0,3) * conv_fact_total ;
-        else
-            sd_endh = std(nansum(endh_xy .* repmat(land_area_YX(list2map),[1 10]),1),...
-                0,2) * conv_fact_total ;
-            sd_endf = std(nansum(endf_xy .* repmat(land_area_YX(list2map),[1 10]),1),...
-                0,2) * conv_fact_total ;
-        end
+        sd_endh = std(nansum(endh_xy .* repmat(land_area_YX(list2map),[1 10]),1),...
+            0,2) * conv_fact_total ;
+        sd_endf = std(nansum(endf_xy .* repmat(land_area_YX(list2map),[1 10]),1),...
+            0,2) * conv_fact_total ;
         data_fontSize = fontSize ;
-        if contains(title_text, 'albedo')
-            text(textX,textY_1, ...
-                sprintf('2000s: %0.3f±%0.3f %s', mean_endh, sd_endh, units_total), ...
-                'FontSize',data_fontSize, 'Units', 'normalized') ;
-            text(textX,textY_2, ...
-                sprintf('2090s: %0.3f±%0.3f %s', mean_endf, sd_endf, units_total), ...
-                'FontSize',data_fontSize, 'Units', 'normalized') ;
+%         if contains(title_text, 'albedo')
+%             text(textX,textY_1, ...
+%                 sprintf('2000s: %0.3f±%0.3f %s', mean_endh, sd_endh, units_total), ...
+%                 'FontSize',data_fontSize, 'Units', 'normalized') ;
+%             text(textX,textY_2, ...
+%                 sprintf('2090s: %0.3f±%0.3f %s', mean_endf, sd_endf, units_total), ...
+%                 'FontSize',data_fontSize, 'Units', 'normalized') ;
+%         else
+%             text(textX,textY_1, ...
+%                 sprintf('2000s: %d±%d %s', round(mean_endh), round(sd_endh), units_total), ...
+%                 'FontSize',data_fontSize, 'Units', 'normalized') ;
+%             text(textX,textY_2, ...
+%                 sprintf('2090s: %d±%d %s', round(mean_endf), round(sd_endf), units_total), ...
+%                 'FontSize',data_fontSize, 'Units', 'normalized') ;
+%         end
+        the_diff = mean_endf - mean_endh ;
+        pct_diff = 100*(the_diff)/mean_endh ;
+        if the_diff >= 0
+            plussign = '+' ;
         else
-            text(textX,textY_1, ...
-                sprintf('2000s: %d±%d %s', round(mean_endh), round(sd_endh), units_total), ...
-                'FontSize',data_fontSize, 'Units', 'normalized') ;
-            text(textX,textY_2, ...
-                sprintf('2090s: %d±%d %s', round(mean_endf), round(sd_endf), units_total), ...
-                'FontSize',data_fontSize, 'Units', 'normalized') ;
+            plussign = '' ;
         end
+        if precision_total == 0
+            the_diff = round(the_diff) ;
+            data_char = '%d' ;
+        elseif precision_total>0
+            data_char = sprintf('%%0.%df', precision_total) ;
+        else
+            error('Problem with precision_total')
+        end
+        the_text = sprintf( ...
+            ['%s' data_char ' %s\n(%s%0.1f%%)'], ...
+            plussign, the_diff, units_total, plussign, pct_diff) ;
+        ht = text(textX,textY_1, ...
+            the_text, ...
+            'FontSize',data_fontSize, 'Units', 'normalized') ;
     end
     pause(0.1)
 end

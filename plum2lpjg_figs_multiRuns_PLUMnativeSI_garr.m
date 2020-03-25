@@ -34,8 +34,8 @@ if false
 % thisVer = 'harm2.3_constClim' ;
 end
 
-thisVer = 'harm3' ;
-% thisVer = 'harm3_constLU' ;
+% thisVer = 'harm3' ;
+thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
 % thisVer = 'harm3_constClimCO2' ;
@@ -493,7 +493,7 @@ if do_save
         outDir_maps, file_suffix) ;
     export_fig(thisFile, ['-r' num2str(pngres)])
     for r = 1:Nruns
-        thisYX = pctDiff_YXr(:,:,r) ;
+        thisYX = lpjgu_vector2map(pctDiff_xr(:,r), map_size, list2map) ;
         thisFile = sprintf('%s/pkRunoff_drought_last3decs_20th-21st.%s%s.tif', ...
             outDir_gtif, runList{r}, file_suffix) ;
         geotiffwrite_ssr(thisFile, thisYX, R, gtif_missing) ;
@@ -808,6 +808,7 @@ conv_fact_map = 1e-3*1e4 ;   % kgC/m2 to tonsC/ha
 units_map = 'tons C ha^{-1}' ;
 conv_fact_total = cf_kg2Pg ;   % kgC to PgC
 units_total = 'PgC' ;
+precision_total = 1 ;
 this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
 %%%%%%%%%%%%%%%%%%%
 
@@ -834,18 +835,19 @@ this_land_area_map = gcel_area_YX ; % Set to [] if not needed to calculate total
 thisPos = [1    33   407   772] ;
 spacing = [0.05 0.05] ; % [v h]
 fontSize = 11 ;
-textX = 0 ; textY_1 = 50/360 ; textY_2 = 20/360 ;
+% textX = 0 ; textY_1 = 50/360 ; textY_2 = 20/360 ;
+textX = 80/720 ; textY_1 = 90/360 ; textY_2 = 20/360 ;
 bins_lowBnds = [-250:50:-50 -5 5 50:50:200] ;
 map_run_diffs_fromEndHist_oneCol_v2(garr_cpool_d9, title_text, sumvars, ...
     fontSize, spacing, textX, textY_1, textY_2, ...
     thisPos, runList_titles, do_caps, this_land_area_map, ...
     conv_fact_map, units_map, conv_fact_total, units_total, ...
     bins_lowBnds, 'BrBG', ...
-    map_size, list2map) ;
+    map_size, list2map, precision_total) ;
 
 if do_save
     filename = [filename_base '_diff'] ;
-    if ~isempty(prctile_clim)
+    if exist('prctile_clim', 'var') && ~isempty(prctile_clim)
         if isint(prctile_clim)
             filename = sprintf('%s_limPrctile%df', filename, prctile_clim) ;
         else
