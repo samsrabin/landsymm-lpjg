@@ -11,3 +11,5 @@ fits*
 climate
 __pycache__
 .idea
+*.nc
+*.Rhistory
