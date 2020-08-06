@@ -33,7 +33,7 @@ future_yN_emu = 2099 ;
 
 %% Setup 
 
-cd '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/matlab/emu2plum'
+cd '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB/emulation/matlab/emu2plum'
 
 topDir_lpj = sprintf( ...
     '/Users/Shared/GGCMI2PLUM_sh/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
