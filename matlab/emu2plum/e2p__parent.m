@@ -18,7 +18,7 @@ interp_infs = true ;
 remove_outliers = true ;
 
 % Run info
-gcm = 'GFDL-ESM4' ;
+gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
 ggcm_list = {'CARAIB', 'EPIC-TAMU', 'LPJmL', 'pDSSAT'} ;
 ssp_list = {'ssp126', 'ssp245', 'ssp370', 'ssp585'} ;
 thisVer = '20200806' ;
