@@ -25,7 +25,7 @@ for g = 1:length(gcm_list)
 
             %% Setup
             ggcm = ggcm_list{ggcm_counter} ;
-            disp(ggcm)
+            fprintf('%s %s %s\n', gcm, ssp, ggcm)
             topDir_phase2 = sprintf('%s/AgMIP.output/%s/phase2', topdir_sh, ggcm) ;
             outDir_ggcm = sprintf('%s/emu_%s', outDir, ggcm) ;
             if ~exist(outDir_ggcm, 'dir')
@@ -56,10 +56,20 @@ for g = 1:length(gcm_list)
 
                     disp('    Importing emulator outputs...')
 
-                    [data_bl_emu, data_fu_emu] = e2p_import_emu( ...
-                        topDir_emu, gcm, ggcm, ssp, which_file, ...
-                        cropList_in, gridlist, ts1_list, tsN_list, Nlist, ...
-                        baseline_yN, future_yN_emu, irrList_in, irrList_out) ;
+                    try
+                        [data_bl_emu, data_fu_emu] = e2p_import_emu( ...
+                            topDir_emu, gcm, ggcm, ssp, which_file, ...
+                            cropList_in, gridlist, ts1_list, tsN_list, Nlist, ...
+                            baseline_yN, future_yN_emu, irrList_in, irrList_out) ;
+                    catch ME
+                        if strcmp(ME.identifier, 'e2p:e2p_import_emu:noFilesFound')
+                            warning('No files found for %s %s %s; skipping', ...
+                                gcm, ssp, ggcm)
+                            continue
+                        else
+                            rethrow(ME)
+                        end
+                    end
 
                     e2p_check_correct_zeros(data_bl_emu.garr_xv, which_file, getbasenamei(data_bl_emu.varNames))
                     e2p_check_correct_zeros(data_fu_emu.garr_xvt, which_file, getbasenamei(data_fu_emu.varNames))
@@ -89,7 +99,7 @@ for g = 1:length(gcm_list)
                         % (or existing exclusions)?
                         if excl_lowBL_agmerra
                             disp('    Excluding based on low AgMERRA yield...')
-                            % Get AgMERRA yield
+                            %% Get AgMERRA yield
                             yield_agmerraBL_xv = e2p_get_agmerra_yield(...
                                 varNames_emu, topDir_phase2, ggcm, data_bl_emu.list2map, getbasenamei, getN) ;
                             if ~any(any(~isnan(yield_agmerraBL_xv)))

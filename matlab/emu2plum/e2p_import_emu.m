@@ -43,6 +43,15 @@ end
 % Which crops does this emulator have for this GCM-SSP?
 cropList_in_this = dir(sprintf('%s/**/*%s_%s*%s*iwd_baseline*.nc4', ...
     topDir_emu, thisSSP, thisGCM, thisEmu)) ;
+if isempty(cropList_in_this)
+    msgStruct.messsage = sprintf( ...
+        'No files found matching %s/**/*%s_%s*%s*iwd_baseline*.nc4', ...
+        topDir_emu, thisSSP, thisGCM, thisEmu) ;
+    msgStruct.identifier = 'e2p:e2p_import_emu:noFilesFound' ;
+%     error(msgStruct)
+    error(msgStruct.identifier, msgStruct.messsage)
+    stop
+end
 cropList_in_this = {cropList_in_this.name}' ;
 cropList_in_this = regexprep(cropList_in_this, ...
     ['cmip6_' thisSSP '_' thisGCM '_r\di\dp\d_'], '') ;
