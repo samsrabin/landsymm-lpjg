@@ -156,15 +156,24 @@ data_fu_lpj_irrig = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, top
     which_file, data_bl_lpj_irrig.varNames, get_unneeded, gridlist_target) ;
 e2p_check_correct_zeros(data_fu_lpj_irrig.garr_xvt, which_file, getbasenamei(data_fu_lpj_irrig.varNames))
 
-[varNames_lpj, cropList_lpj, ...
-    varNames_lpj_basei, cropList_lpj_basei, ...
-    Nlist_lpj, ~] = ...
+[varNames_lpj, cropList_lpj2, ...
+    varNames_lpj_basei2, cropList_lpj_basei2, ...
+    Nlist_lpj2, ~] = ...
     e2p_get_names(data_bl_lpj_irrig.varNames, data_fu_lpj_irrig.varNames, ...
     getbasename, getbasenamei, getN) ;
 
 if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
     error('Mismatch between cropIrrNlist_out and varNames_lpj')
+elseif ~isequal(cropList_lpj,cropList_lpj2)
+    error('Mismatch between cropList_lpj for yield vs. gsirrigation')
+elseif ~isequal(varNames_lpj_basei,varNames_lpj_basei2)
+    error('Mismatch between varNames_lpj_basei for yield vs. gsirrigation')
+elseif ~isequal(cropList_lpj_basei,cropList_lpj_basei2)
+    error('Mismatch between cropList_lpj_basei for yield vs. gsirrigation')
+elseif ~isequal(Nlist_lpj,Nlist_lpj2)
+    error('Mismatch between Nlist_lpj2 for yield vs. gsirrigation')
 end
+clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj2
 
 
 
