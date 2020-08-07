@@ -2,7 +2,7 @@ function deltas_emu_xvt = e2p_get_deltas(...
     data_bl_emu, data_fu_emu, interp_infs, cropList_emu, ...
     getbasename, getbasenamei, which_file, ...
     used_emuCrops, list2map, ...
-    save_interp_figs, outDir_interp_figs, ggcm)
+    save_interp_figs, outDir_interp_figs, ggcm, figure_visibility)
 
 verbose = false ;
 
@@ -114,7 +114,7 @@ elseif ~isempty(isbad) && interp_infs
             
             if save_interp_figs && t==Ntpers
                 
-                figure('Color', 'w', 'Position', figurePos) ;
+                figure('Color', 'w', 'Position', figurePos, 'Visible', figure_visibility) ;
                 spacing = [0.05 0.01] ; % v h
                 fontSize = 14 ;
                 ybnds = 65:360 ;

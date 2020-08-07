@@ -1,6 +1,6 @@
 function e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
     ggcm, getbasename, getbasenamei, getN, outDir_figs, ...
-    which_file, cropList_lpj_asEmu)
+    which_file, cropList_lpj_asEmu, figure_visibility)
 
 this_colormap = 'parula' ;
 % this_colormap = 'jet' ;
@@ -96,7 +96,7 @@ for v = 1:length(data_fu_out.varNames)
     fontSize = 14 ;
     thisPos = figurePos ;
 %     thisPos = [1         112        1440         693] ;
-    figure('Color','w','Position',thisPos) ;
+    figure('Color','w','Position',thisPos, 'Visible', figure_visibility) ;
     
     % Maps with caxis "fit"
     subplot_tight(2,3,1,spacing) ;

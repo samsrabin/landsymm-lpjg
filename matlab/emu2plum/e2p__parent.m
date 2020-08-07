@@ -6,6 +6,7 @@ which_file = 'yield' ;
 % which_file = 'gsirrigation' ;
 
 % Development vs. production
+figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
 save_interp_figs = false ;
 save_out_figs = true ;
 load_existing_file = false ;

@@ -1,7 +1,7 @@
 function [data_fu_lpj, data_fu_out] = e2p_apply_deltas( ...
     data_bl_lpj, data_fu_lpj, data_bl_emu, data_fu_emu, deltas_emu_xvt, ...
     cropList_lpj, cropList_lpj_asEmu, varNames_lpj, ...
-    list2map, getbasename, getbasenamei, which_file)
+    list2map, getbasename, getbasenamei, which_file, figure_visibility)
 
 % warning('TROUBLESHOOTING')
 % deltas_emu_xvt = ones(size(deltas_emu_xvt)) ;
@@ -116,7 +116,7 @@ end
 function make_fig(y_lpj_bl, y_lpj_fu, y_out_fu, ...
     varName, y1, yN)
 
-figure('Color', 'w', 'Position', [1 34 720 771]) ;
+figure('Color', 'w', 'Position', [1 34 720 771], 'Visible', figure_visibility) ;
 xlims = [0 0] ;
 
 h1 = subplot(3,1,1) ;
