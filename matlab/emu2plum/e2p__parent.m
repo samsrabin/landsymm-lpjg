@@ -22,7 +22,7 @@ gcm = 'GFDL-ESM4' ;
 % ggcm_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT', 'EPIC-TAMU'} ;
 % ggcm_list = {'EPIC-TAMU'} ;
 ggcm_list = {'LPJ-GUESS', 'LPJmL'} ;
-ssp = 'ssp126' ;
+ssp_list = {'ssp126', 'ssp245', 'ssp370', 'ssp585'} ;
 thisVer = '20200806' ;
 
 baseline_y1 = 2001 ;
@@ -55,12 +55,6 @@ topDir_lpj = sprintf( ...
     '%s/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
     topdir_sh, tmp_rcp) ;
 
-outDir = sprintf('%s_forPLUM/%s_%s_v%s', ...
-    topDir_emu, gcm, ssp, thisVer) ;
-if remove_outliers
-    outDir = [outDir '_rmol'] ;
-end
-
 if ~contains(topDir_lpj, tmp_rcp)
     error('~contains(topDir_lpj, rcp)')
 elseif ~exist(topDir_lpj, 'dir')
@@ -71,19 +65,6 @@ getbasename = @(x) regexprep(x,'i?\d\d\d$','') ;
 getbasenamei = @(x) regexprep(x,'\d\d\d$','') ;
 getN = @(x) x(end-2:end) ;
 get_unneeded = @(x) cellfun(@isempty,regexp(x, '.*\d\d+')) ;
-
-outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
-
-outDir_interp_figs = sprintf('%s/interp_figs', outDir) ;
-outDir_yield_figs = sprintf('%s/yield_figs', outDir) ;
-outDir_irrig_figs = sprintf('%s/irrig_figs', outDir) ;
-
-if ~exist(outDir, 'dir')
-    mkdir(outDir) ;
-end
-if ~exist(outDir_lpj, 'dir')
-    mkdir(outDir_lpj) ;
-end
 
 Nlist = [10 60 200] ;
 NN = length(Nlist) ;
