@@ -19,9 +19,7 @@ remove_outliers = true ;
 
 % Run info
 gcm = 'GFDL-ESM4' ;
-% ggcm_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT', 'EPIC-TAMU'} ;
-% ggcm_list = {'EPIC-TAMU'} ;
-ggcm_list = {'LPJ-GUESS', 'LPJmL'} ;
+ggcm_list = {'CARAIB', 'EPIC-TAMU', 'LPJmL', 'pDSSAT'} ;
 ssp_list = {'ssp126', 'ssp245', 'ssp370', 'ssp585'} ;
 thisVer = '20200806' ;
 
