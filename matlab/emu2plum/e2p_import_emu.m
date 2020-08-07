@@ -138,7 +138,10 @@ for c = 1:Ncrops_in_this
                 clear yieldBL_in_YX yield_in_YXy
             end
         elseif strcmp(which_file, 'iwd')
-            ii = strcmp(irrList_in,'ir') ;
+            ii = find(strcmp(irrList_in,'ir')) ;
+            if length(ii) ~= 1
+                error('Error finding ii: %d found', length(ii))
+            end
             
             % Read IWD file
             thisVar = sprintf('iwd_%s', thisCrop_short) ;
@@ -148,9 +151,6 @@ for c = 1:Ncrops_in_this
             if size(iwd_in_YXy,3) ~= Nyears
                 error('Expected %d years in IWD file but found %d', ...
                     Nyears, size(iwd_in_YXy,3))
-            end
-            if length(ii) ~= 1
-                error('Error finding ii: %d found', length(ii))
             end
             data_in_fu_xtcni(:,:,c,n,ii) = ...
                 process_timesteps(ts1_list, tsN_list, ...
