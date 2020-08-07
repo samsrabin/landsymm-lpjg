@@ -32,14 +32,25 @@ future_yN_emu = 2084 ;
 
 %% Setup 
 
-cd '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB/emulation/matlab/emu2plum'
+current_dir = pwd ;
+if strcmp(current_dir(1:6), '/Users')
+    topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
+    topdir_sh = '/Users/Shared/GGCMI2PLUM_sh/' ;
+elseif strcmp(current_dir(1:3), '/pd')
+    topdir_db = '/pd/data/lpj/sam/ggcmi2plum' ;
+    topdir_sh = topdir_db ;
+else
+    error('Failed to interpret what system you''re on')
+end
+
+cd(sprintf('%s/emulation/matlab/emu2plum', topdir_db))
 
 tmp_rcp = 'rcp45' ;
 warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP6 runs.', ...
     tmp_rcp)
 topDir_lpj = sprintf( ...
-    '/Users/Shared/GGCMI2PLUM_sh/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
-    tmp_rcp) ;
+    '%s/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
+    topdir_sh, tmp_rcp) ;
 topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
 outDir = sprintf('/Volumes/Reacher/GGCMI/CMIP_emulated_forPLUM/%s_%s_v%s', gcm, ssp, thisVer) ;
 if remove_outliers
@@ -76,7 +87,8 @@ NN = length(Nlist) ;
 irrList_in = {'rf', 'ir'} ;
 irrList_out = {'', 'i'} ;
 
-gridlist_file = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/gridlist.txt' ;
+gridlist_file = sprintf('%s/lpj-guess_runs/gridlist_62892.runAEclimOK.txt', ...
+    topdir_sh) ;
 gridlist = lpjgu_matlab_readTable_then2map(gridlist_file, ...
     'force_mat_nosave', true, 'force_mat_save', false) ;
 gridlist_target = {gridlist.lonlats gridlist.list_to_map} ;
