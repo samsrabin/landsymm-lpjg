@@ -8,8 +8,8 @@ which_file = 'yield' ;
 % Development vs. production
 figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
 save_interp_figs = false ;
-save_out_figs = true ;
-load_existing_file = false ;
+save_out_figs = false ;
+load_existing_file = true ;
 
 % Behaviors
 excl_lowBL_agmerra = true ;
@@ -20,7 +20,7 @@ remove_outliers = true ;
 % Run info
 gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
 ggcm_list = {'EPIC-TAMU', 'LPJ-GUESS', 'LPJmL', 'pDSSAT'} ;
-ssp_list = {'ssp126', 'ssp245', 'ssp370', 'ssp585'} ;
+ssp_list = {'ssp245', 'ssp126', 'ssp370', 'ssp585'} ;
 thisVer = '20200806' ;
 
 baseline_y1 = 2001 ;
