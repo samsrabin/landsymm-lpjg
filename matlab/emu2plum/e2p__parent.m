@@ -2,8 +2,7 @@
 %%% Generate emulator-projected yields as deltas from LPJ-GUESS baseline %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-which_file = 'yield' ;
-% which_file = 'gsirrigation' ;
+whichfile_list = {'yield', 'gsirrigation'} ;
 
 % Development vs. production
 figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
@@ -116,27 +115,58 @@ header_out = [header_out '\n'] ;
 format_out = [format_out '\n'] ;
 
 
-%% Import LPJ-GUESS
+%% Import LPJ-GUESS yield
 
-disp('Importing LPJ-GUESS...')
+disp('Importing LPJ-GUESS yield...')
 
-data_bl_lpj = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj, ...
+which_file = 'yield' ;
+
+data_bl_lpj_yield = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj, ...
     which_file, get_unneeded, gridlist_target) ;
-e2p_check_correct_zeros(data_bl_lpj.garr_xv, which_file, getbasenamei(data_bl_lpj.varNames))
+e2p_check_correct_zeros(data_bl_lpj_yield.garr_xv, which_file, getbasenamei(data_bl_lpj_yield.varNames))
 
-data_fu_lpj = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj, ...
-    which_file, data_bl_lpj.varNames, get_unneeded, gridlist_target) ;
-e2p_check_correct_zeros(data_fu_lpj.garr_xvt, which_file, getbasenamei(data_fu_lpj.varNames))
+data_fu_lpj_yield = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj, ...
+    which_file, data_bl_lpj_yield.varNames, get_unneeded, gridlist_target) ;
+e2p_check_correct_zeros(data_fu_lpj_yield.garr_xvt, which_file, getbasenamei(data_fu_lpj_yield.varNames))
 
 [varNames_lpj, cropList_lpj, ...
     varNames_lpj_basei, cropList_lpj_basei, ...
     Nlist_lpj, ~] = ...
-    e2p_get_names(data_bl_lpj.varNames, data_fu_lpj.varNames, ...
+    e2p_get_names(data_bl_lpj_yield.varNames, data_fu_lpj_yield.varNames, ...
     getbasename, getbasenamei, getN) ;
 
 if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
     error('Mismatch between cropIrrNlist_out and varNames_lpj')
 end
+
+disp('Done.')
+
+
+%% Import LPJ-GUESS irrigation
+
+disp('Importing LPJ-GUESS irrigation...')
+
+which_file = 'gsirrigation' ;
+
+data_bl_lpj_irrig = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj, ...
+    which_file, get_unneeded, gridlist_target) ;
+e2p_check_correct_zeros(data_bl_lpj_irrig.garr_xv, which_file, getbasenamei(data_bl_lpj_irrig.varNames))
+
+data_fu_lpj_irrig = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj, ...
+    which_file, data_bl_lpj_irrig.varNames, get_unneeded, gridlist_target) ;
+e2p_check_correct_zeros(data_fu_lpj_irrig.garr_xvt, which_file, getbasenamei(data_fu_lpj_irrig.varNames))
+
+[varNames_lpj, cropList_lpj, ...
+    varNames_lpj_basei, cropList_lpj_basei, ...
+    Nlist_lpj, ~] = ...
+    e2p_get_names(data_bl_lpj_irrig.varNames, data_fu_lpj_irrig.varNames, ...
+    getbasename, getbasenamei, getN) ;
+
+if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
+    error('Mismatch between cropIrrNlist_out and varNames_lpj')
+end
+
+
 
 disp('Done.')
 
