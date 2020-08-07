@@ -8,7 +8,7 @@ which_file = 'yield' ;
 % Development vs. production
 save_interp_figs = false ;
 save_out_figs = true ;
-load_existing_file = true ;
+load_existing_file = false ;
 
 % Behaviors
 excl_lowBL_agmerra = true ;
@@ -17,35 +17,36 @@ interp_infs = true ;
 remove_outliers = true ;
 
 % Run info
-gcm = 'IPSL-CM5A-MR_r1i1p1' ;
+gcm = 'GFDL-ESM4' ;
 % ggcm_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT', 'EPIC-TAMU'} ;
 % ggcm_list = {'EPIC-TAMU'} ;
-ggcm_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT'} ;
-rcp = 'rcp45' ;
-thisVer = '20200310' ;
+ggcm_list = {'LPJ-GUESS', 'LPJmL'} ;
+ssp = 'ssp126' ;
+thisVer = '20200806' ;
 
 baseline_y1 = 2001 ;
 baseline_yN = 2010 ;
 future_ts = 10 ; % Number of years in future time step
-future_yN_lpj = 2100 ;
-future_yN_emu = 2099 ;
+future_yN_emu = 2084 ;
 
 
 %% Setup 
 
 cd '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB/emulation/matlab/emu2plum'
 
+tmp_rcp = 'rcp45' ;
+warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP6 runs.', ...
+    tmp_rcp)
 topDir_lpj = sprintf( ...
     '/Users/Shared/GGCMI2PLUM_sh/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
-    rcp) ;
-topDir_emu_bl = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcropsBaseline_%s', thisVer) ;
-topDir_emu_fu = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_GGCMIcrops_%s', thisVer) ;
-outDir = sprintf('/Users/Shared/GGCMI2PLUM_sh/send_to_plum/%s_%s_v%s', gcm, rcp, thisVer) ;
+    tmp_rcp) ;
+topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
+outDir = sprintf('/Volumes/Reacher/GGCMI/CMIP_emulated_forPLUM/%s_%s_v%s', gcm, ssp, thisVer) ;
 if remove_outliers
     outDir = [outDir '_rmol'] ;
 end
 
-if ~contains(topDir_lpj, rcp)
+if ~contains(topDir_lpj, tmp_rcp)
     error('~contains(topDir_lpj, rcp)')
 elseif ~exist(topDir_lpj, 'dir')
     error('topDir_lpj does not exist:\n %s', topDir_lpj)
@@ -69,17 +70,67 @@ if ~exist(outDir_lpj, 'dir')
     mkdir(outDir_lpj) ;
 end
 
+Nlist = [10 60 200] ;
+NN = length(Nlist) ;
+
+irrList_in = {'rf', 'ir'} ;
+irrList_out = {'', 'i'} ;
+
+gridlist_file = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/gridlist.txt' ;
+gridlist = lpjgu_matlab_readTable_then2map(gridlist_file, ...
+    'force_mat_nosave', true, 'force_mat_save', false) ;
+gridlist_target = {gridlist.lonlats gridlist.list_to_map} ;
+
+% Figure out timesteps
+Nyears_ts = future_ts ;
+ts1_y1 = ceil(baseline_yN/Nyears_ts)*Nyears_ts+1 ;
+tsN_y1 = floor(future_yN_emu/Nyears_ts)*Nyears_ts ;
+ts1_list = ts1_y1:Nyears_ts:tsN_y1 ;
+tsN_list = ts1_list + Nyears_ts - 1 ;
+Ntpers = length(ts1_list) ;
+
+% What is the last year of the last time period that should be read of the
+% LPJ-GUESS run?
+future_yN_lpj = max(tsN_list) ;
+
+
+
+%% Set up crop lists
+
+cropList_in = {'spring_wheat', 'winter_wheat', 'maize', 'soy', 'rice'} ;
+cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Oilcrops', 'Pulses', 'StarchyRoots'} ;
+Ncrops_in = length(cropList_in) ;
+Ncrops_out = length(cropList_out) ;
+
+% Get output file header
+cropIrrList_out = [cropList_out strcat(cropList_out, 'i')] ;
+header_out = 'Lon\tLat' ;
+format_out = '%0.2f\t%0.2f' ;
+cropIrrNlist_out = {} ;
+for c = 1:length(cropIrrList_out)
+    thisCropIrr = cropIrrList_out{c} ;
+    for n = 1:NN
+        thisN = pad(num2str(Nlist(n)), 3, 'left', '0') ;
+        thisCropIrrN = [thisCropIrr thisN] ;
+        cropIrrNlist_out{end+1} = thisCropIrrN ; %#ok<SAGROW>
+        header_out = [header_out '\t' thisCropIrrN] ; %#ok<AGROW>
+        format_out = [format_out '\t%0.3f'] ; %#ok<AGROW>
+    end
+end
+header_out = [header_out '\n'] ;
+format_out = [format_out '\n'] ;
+
 
 %% Import LPJ-GUESS
 
 disp('Importing LPJ-GUESS...')
 
 data_bl_lpj = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj, ...
-    which_file, get_unneeded) ;
+    which_file, get_unneeded, gridlist_target) ;
 e2p_check_correct_zeros(data_bl_lpj.garr_xv, which_file, getbasenamei(data_bl_lpj.varNames))
 
 data_fu_lpj = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj, ...
-    which_file, data_bl_lpj.varNames, get_unneeded) ;
+    which_file, data_bl_lpj.varNames, get_unneeded, gridlist_target) ;
 e2p_check_correct_zeros(data_fu_lpj.garr_xvt, which_file, getbasenamei(data_fu_lpj.varNames))
 
 [varNames_lpj, cropList_lpj, ...
@@ -87,6 +138,10 @@ e2p_check_correct_zeros(data_fu_lpj.garr_xvt, which_file, getbasenamei(data_fu_l
     Nlist_lpj, ~] = ...
     e2p_get_names(data_bl_lpj.varNames, data_fu_lpj.varNames, ...
     getbasename, getbasenamei, getN) ;
+
+if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
+    error('Mismatch between cropIrrNlist_out and varNames_lpj')
+end
 
 disp('Done.')
 
