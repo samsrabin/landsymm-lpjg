@@ -36,9 +36,11 @@ current_dir = pwd ;
 if strcmp(current_dir(1:6), '/Users')
     topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
     topdir_sh = '/Users/Shared/GGCMI2PLUM_sh/' ;
+    topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
 elseif strcmp(current_dir(1:3), '/pd')
     topdir_db = '/pd/data/lpj/sam/ggcmi2plum' ;
     topdir_sh = topdir_db ;
+    topDir_emu = '/pd/data/lpj/sam/ggcmi2plum/CMIP_emulated' ;
 else
     error('Failed to interpret what system you''re on')
 end
@@ -51,8 +53,9 @@ warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP
 topDir_lpj = sprintf( ...
     '%s/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
     topdir_sh, tmp_rcp) ;
-topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
-outDir = sprintf('/Volumes/Reacher/GGCMI/CMIP_emulated_forPLUM/%s_%s_v%s', gcm, ssp, thisVer) ;
+
+outDir = sprintf('%s_forPLUM/%s_%s_v%s', ...
+    topDir_emu, gcm, ssp, thisVer) ;
 if remove_outliers
     outDir = [outDir '_rmol'] ;
 end
