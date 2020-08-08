@@ -4,7 +4,7 @@ for g = 1:length(gcm_list)
     for s = 1:length(ssp_list)
         ssp = ssp_list{s} ;
 
-        outDir = sprintf('%s_forPLUM/%s_%s_v%s', ...
+        outDir = sprintf('%s_work/%s_%s_v%s', ...
             topDir_emu, gcm, ssp, thisVer) ;
         if remove_outliers
             outDir = [outDir '_rmol'] ; %#ok<AGROW>
