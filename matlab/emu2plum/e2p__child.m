@@ -199,8 +199,8 @@ for g = 1:length(gcm_list)
                             error('Mismatch between winter wheat lists')
                         end
                     elseif strcmp(which_file, 'gsirrigation')
-                        data_bl_emu = e2p_apply_max_wheat(data_bl_emu, outDir) ;
-                        data_fu_emu = e2p_apply_max_wheat(data_fu_emu, outDir) ;
+                        data_bl_emu = e2p_apply_max_wheat(data_bl_emu, outDir_ggcm) ;
+                        data_fu_emu = e2p_apply_max_wheat(data_fu_emu, outDir_ggcm) ;
                     elseif ~strcmp(which_file, 'anpp')
                         error('which_file (%s) not recognized', which_file)
                     else
