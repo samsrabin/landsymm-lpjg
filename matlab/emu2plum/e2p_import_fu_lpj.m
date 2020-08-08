@@ -15,7 +15,7 @@ while y1 < future_yN
     ii = ii + 1 ;
     
     % Get this directory
-    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, future_yN) ;
+    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, future_yN, which_file) ;
 %     fprintf('%d-%d\n', y1, yN) ;
     thisDir_path = sprintf('%s/%s', thisDir.folder, thisDir.name) ;
     subdirs = dir([thisDir_path '/out*']) ;

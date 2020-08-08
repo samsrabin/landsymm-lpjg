@@ -9,7 +9,7 @@ while yN < baseline_yN
     ii = ii + 1 ;
     
     % Get this directory
-    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, baseline_yN) ;
+    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, baseline_yN, which_file) ;
     
     thisDir_path = sprintf('%s/%s', thisDir.folder, thisDir.name) ;
     subdirs = dir([thisDir_path '/out*']) ;
