@@ -1,6 +1,7 @@
 function e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
     ggcm, getbasename, getbasenamei, getN, outDir_figs, ...
-    which_file, cropList_lpj_asEmu, figure_visibility)
+    which_file, cropList_lpj_asEmu, figure_visibility, ...
+	 figure_extension)
 
 this_colormap = 'parula' ;
 % this_colormap = 'jet' ;
@@ -65,6 +66,12 @@ for v = 1:length(data_fu_out.varNames)
     thisVar_out = data_fu_out.varNames{v} ;
     thisCrop_out = getbasename(thisVar_out) ;
     thisCropi_out = getbasenamei(thisVar_out) ;
+	 % Skip if looking at irrigation of a rainfed crop
+	 if strcmp(which_file, 'gsirrigation') && strcmp(thisCrop_out, thisCropi_out)
+		 continue
+	 end
+	 fprintf('        %s %s...\n', thisVar_out, which_file)
+	 tic
     thisCropi_emu = strrep(thisCropi_out, thisCrop_out, ...
         cropList_lpj_asEmu{strcmp(cropList_lpj, thisCrop_out)}) ;
     title_center = sprintf('Raw %s emu (%s)', ggcm, strrep(thisCropi_emu, '_', '\_')) ;
@@ -192,14 +199,25 @@ for v = 1:length(data_fu_out.varNames)
         '\downarrow Color axis: Limited', ...
         'FontSize', fontSize) ;
     hold off
+
+%	 fprintf('%s... ', toc_hms(toc))
     
     % Save
+	 tic
     filename = sprintf('%s/max%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisVar_out) ;
     if ~exist(outDir_figs, 'dir')
         mkdir(outDir_figs)
     end
-    export_fig(filename, '-r100')
+	 if strcmp(figure_extension, 'png')
+        export_fig(filename, '-r100')
+	 elseif strcmp(figure_extension, 'fig')
+	     filename_fig = strrep(filename, '.png', '.fig') ;
+	     savefig(filename_fig)
+	 else
+	     error('figure_extension %s not recognized', figure_extension)
+	 end
     close
+%	 fprintf('%s.\n ', toc_hms(toc))
     
 end
     
