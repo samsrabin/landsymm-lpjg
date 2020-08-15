@@ -128,10 +128,10 @@ for g = 1:length(gcm_list)
                                 error('All cells excluded because of low AgMERRA yield')
                             end
 
-                            % Where do we exclude based on low baseline-year emulated yield at
+                            % Where do we exclude based on NaN or low baseline-year emulated yield at
                             % max N (or existing exclusions)?
                             if excl_lowBL_emu
-                                disp('    Excluding based on low baseline-year emulated yield...')
+                                disp('    Excluding based on NaN/low baseline-year emulated yield at max N...')
                                 exclude_xc = e2p_exclude_lowBLyield_atMaxN( ...
                                     varNames_emu, cropList_emu_basei, Nlist_emu, ...
                                     data_bl_emu.garr_xv, 0.01, exclude_xc) ;
@@ -155,6 +155,31 @@ for g = 1:length(gcm_list)
                             thisCrop_i = find(strcmp(varNames_emu_basei,thisCrop)) ;
                             if length(thisCrop_i)~=length(Nlist_emu)
                                 error('Error finding isThisCrop (%d found)', length(thisCrop_i))
+                            end
+                            
+                            % If processing irrigation files, we don't care
+                            % about rainfed crops. We know they're all zero
+                            % anyway because of checks in
+                            % e2p_check_correct_zeros() above.
+                            if strcmp(which_file,'gsirrigation') && ...
+                               ~strcmp(thisCrop(end), 'i')
+                                continue
+                            end
+                            
+                            % If irrigation, check for any missing cells
+                            % that weren't missing in yield even after
+                            % exclusions
+                            if strcmp(which_file,'gsirrigation')
+                                isbad = isnan(data_bl_emu.garr_xv(:,thisCrop_i)) & ~exclude_xc(:,c) ;
+                                if any(any(isbad))
+                                    warning('%s: %d cells that were included in yield are NaN in irrig baseline emulation', ...
+                                        thisCrop, length(find(isbad)))
+                                end
+                                isbad = isnan(data_fu_emu.garr_xvt(:,thisCrop_i,:)) & repmat(~exclude_xc(:,c),[1 length(thisCrop_i) Ntpers]) ;
+                                if any(any(any(isbad)))
+                                    warning('%s: %d cells that were included in yield are NaN in irrig future emulation', ...
+                                        thisCrop, length(find(isbad)))
+                                end
                             end
 
                             % Apply to emulated baseline
@@ -328,7 +353,7 @@ for g = 1:length(gcm_list)
                         fprintf('    %d/%d...\n', t, Ntpers)
                         y1 = data_fu_out.y1s(t) ;
                         yN = data_fu_out.yNs(t) ;
-
+                        
                         if strcmp(ggcm, ggcm_list{1})
                             e2p_save(outDir_lpj, y1, yN, out_header_cell, ...
                                 data_fu_lpj.lonlats, data_fu_lpj.garr_xvt(:,:,t), which_file, ...
@@ -337,7 +362,7 @@ for g = 1:length(gcm_list)
                         e2p_save(outDir_ggcm, y1, yN, out_header_cell, ...
                             data_fu_out.lonlats, data_fu_out.garr_xvt(:,:,t), which_file, ...
                             interp_infs, remove_outliers, true)
-
+                        
                     end
 
                     % For yield, save is_ww_max_bl_gW*
