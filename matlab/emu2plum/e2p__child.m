@@ -348,21 +348,23 @@ for g = 1:length(gcm_list)
                     save(out_file, 'exclude_xc')
 
                     % Save outputs (for PLUM)
-                    out_header_cell = [{'Lon', 'Lat'} data_fu_out.varNames] ;
-                    for t = 1:Ntpers
-                        fprintf('    %d/%d...\n', t, Ntpers)
-                        y1 = data_fu_out.y1s(t) ;
-                        yN = data_fu_out.yNs(t) ;
-                        
-                        if strcmp(ggcm, ggcm_list{1})
-                            e2p_save(outDir_lpj, y1, yN, out_header_cell, ...
-                                data_fu_lpj.lonlats, data_fu_lpj.garr_xvt(:,:,t), which_file, ...
-                                interp_infs, remove_outliers, false)
+                    if save_txt_files
+                        out_header_cell = [{'Lon', 'Lat'} data_fu_out.varNames] ;
+                        for t = 1:Ntpers
+                            fprintf('    %d/%d...\n', t, Ntpers)
+                            y1 = data_fu_out.y1s(t) ;
+                            yN = data_fu_out.yNs(t) ;
+
+                            if strcmp(ggcm, ggcm_list{1})
+                                e2p_save(outDir_lpj, y1, yN, out_header_cell, ...
+                                    data_fu_lpj.lonlats, data_fu_lpj.garr_xvt(:,:,t), which_file, ...
+                                    interp_infs, remove_outliers, false)
+                            end
+                            e2p_save(outDir_ggcm, y1, yN, out_header_cell, ...
+                                data_fu_out.lonlats, data_fu_out.garr_xvt(:,:,t), which_file, ...
+                                interp_infs, remove_outliers, true)
+
                         end
-                        e2p_save(outDir_ggcm, y1, yN, out_header_cell, ...
-                            data_fu_out.lonlats, data_fu_out.garr_xvt(:,:,t), which_file, ...
-                            interp_infs, remove_outliers, true)
-                        
                     end
 
                     % For yield, save is_ww_max_bl_gW*

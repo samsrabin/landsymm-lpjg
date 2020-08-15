@@ -9,6 +9,7 @@ figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are show
 figure_extension = 'fig' ; % fig or png
 save_interp_figs = true ;
 save_out_figs = true ;
+save_txt_files = false ;
 load_existing_file = true ;
 
 % Behaviors
