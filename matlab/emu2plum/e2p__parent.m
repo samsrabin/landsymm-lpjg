@@ -5,12 +5,13 @@
 whichfile_list = {'yield', 'gsirrigation'} ;
 
 % Development vs. production
-figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
-figure_extension = 'fig' ; % fig or png
-save_interp_figs = true ;
+figure_visibility = 'on' ; % 'off' or 'on'. Determines whether figures are shown on screen
+figure_extension = 'png' ; % fig or png
+save_excl_figs = true ;
+save_interp_figs = false ;
 save_out_figs = true ;
 save_txt_files = false ;
-load_existing_file = true ;
+load_existing_file = false ;
 
 % Behaviors
 excl_lowBL_agmerra = true ;
@@ -19,9 +20,12 @@ interp_infs = true ;
 remove_outliers = true ;
 
 % Run info
-gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
-ggcm_list = {'EPIC-TAMU', 'LPJ-GUESS', 'LPJmL', 'pDSSAT'} ;
-ssp_list = {'ssp245', 'ssp126', 'ssp370', 'ssp585'} ;
+% gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
+% ggcm_list = {'EPIC-TAMU', 'LPJ-GUESS', 'LPJmL', 'pDSSAT'} ;
+% ssp_list = {'ssp245', 'ssp126', 'ssp370', 'ssp585'} ;
+gcm_list = {'GFDL-ESM4'} ;
+ggcm_list = {'LPJ-GUESS'} ;
+ssp_list = {'ssp126'} ;
 thisVer = '20200806' ;
 
 baseline_y1 = 2001 ;

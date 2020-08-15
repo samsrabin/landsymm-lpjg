@@ -10,6 +10,8 @@ for g = 1:length(gcm_list)
             outDir = [outDir '_rmol'] ; %#ok<AGROW>
         end
         outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
+        outDir_excl_figs_inCrops = sprintf('%s/excl_figs_GGCMIcrops', outDir) ;
+        outDir_excl_figs_outCrops = sprintf('%s/excl_figs_PLUMcrops', outDir) ;
         outDir_interp_figs = sprintf('%s/interp_figs', outDir) ;
         outDir_yield_figs = sprintf('%s/yield_figs', outDir) ;
         outDir_irrig_figs = sprintf('%s/irrig_figs', outDir) ;
@@ -101,106 +103,147 @@ for g = 1:length(gcm_list)
 
 
                     %% Get and apply exclusions, if doing so
-
-                    if contains(which_file, {'yield','gsirrigation'}) && (excl_lowBL_agmerra || excl_lowBL_emu)
-                        if strcmp(which_file, 'yield')
-
-                            % Set up exclusion array
-                            exclude_xc = false(length(data_bl_emu.list2map),length(cropList_emu_basei)) ;
-
-                            % Where do we exclude based on low AgMERRA yield at max N
-                            % (or existing exclusions)?
-                            if excl_lowBL_agmerra
-                                disp('    Excluding based on low AgMERRA yield...')
-                                %% Get AgMERRA yield
-                                yield_agmerraBL_xv = e2p_get_agmerra_yield(...
-                                    varNames_emu, topDir_phase2, ggcm, data_bl_emu.list2map, getbasenamei, getN) ;
-                                if ~any(any(~isnan(yield_agmerraBL_xv)))
-                                    error('yield_agmerraBL_xv is all NaN')
-                                end
-                                % Exclude
-                                exclude_xc = e2p_exclude_lowBLyield_atMaxN( ...
-                                    varNames_emu, cropList_emu_basei, Nlist_emu, ...
-                                    yield_agmerraBL_xv, 0.01, exclude_xc) ;
+                    
+                    % Where do we exclude based on missing
+                    % emulation?
+                    missing_emu_bl_xc = e2p_exclude_missing( ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist, ...
+                        data_bl_emu.garr_xv) ;
+                    missing_emu_fu_xc = e2p_exclude_missing( ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist, ...
+                        data_fu_emu.garr_xvt) ;
+                    missing_emu_xc = missing_emu_bl_xc | missing_emu_fu_xc ;
+                    
+                    if strcmp(which_file, 'yield')
+                        
+                        false_xc = false(length(data_bl_emu.list2map),length(cropList_emu_basei)) ;
+                        missing_agmerra_xc = false_xc ;
+                        isexcl_lowBL_agmerra_xc = false_xc ;
+                        isexcl_lowBL_emu_xc = false_xc ;
+                        
+                        % Where do we exclude based on low AgMERRA yield at max N
+                        % (or existing exclusions)?
+                        if excl_lowBL_agmerra
+                            disp('    Excluding based on low AgMERRA yield...')
+                            % Get AgMERRA yield
+                            yield_agmerraBL_xv = e2p_get_agmerra_yield(...
+                                varNames_emu, topDir_phase2, ggcm, data_bl_emu.list2map, getbasenamei, getN) ;
+                            if ~any(any(~isnan(yield_agmerraBL_xv)))
+                                error('yield_agmerraBL_xv is all NaN')
                             end
-
-                            if ~any(any(~exclude_xc))
-                                error('All cells excluded because of low AgMERRA yield')
-                            end
-
-                            % Where do we exclude based on NaN or low baseline-year emulated yield at
-                            % max N (or existing exclusions)?
-                            if excl_lowBL_emu
-                                disp('    Excluding based on NaN/low baseline-year emulated yield at max N...')
-                                exclude_xc = e2p_exclude_lowBLyield_atMaxN( ...
-                                    varNames_emu, cropList_emu_basei, Nlist_emu, ...
-                                    data_bl_emu.garr_xv, 0.01, exclude_xc) ;
-                            end
-
-                            if ~any(any(~exclude_xc))
-                                error('All cells excluded because of low AgMERRA yield and/or low baseline-year emulated yield')
-                            end
-
-                            % Error checks
-                        elseif strcmp(which_file, 'gsirrigation')
-                            disp('    Applying yield-based exclusions...')
-                            exclude_xc_file = sprintf('%s/exclude_xc.mat', outDir_ggcm) ;
-                            load(exclude_xc_file) ;
-                        else
-                            error('which_file (%s) not recognized', which_file)
+                            % Find missing crops
+                            missing_agmerra_xc = e2p_exclude_missing( ...
+                                varNames_emu_basei, cropList_emu_basei, Nlist, ...
+                                yield_agmerraBL_xv) ;
+                            % Exclude
+                            isexcl_lowBL_agmerra_xc = e2p_exclude_lowBLyield_atMaxN( ...
+                                varNames_emu, cropList_emu_basei, Nlist_emu, ...
+                                yield_agmerraBL_xv, 0.01) ;
                         end
-
-                        for c = 1:length(cropList_emu_basei)
-                            thisCrop = cropList_emu_basei{c} ;
-                            thisCrop_i = find(strcmp(varNames_emu_basei,thisCrop)) ;
-                            if length(thisCrop_i)~=length(Nlist_emu)
-                                error('Error finding isThisCrop (%d found)', length(thisCrop_i))
-                            end
-                            
-                            % If processing irrigation files, we don't care
-                            % about rainfed crops. We know they're all zero
-                            % anyway because of checks in
-                            % e2p_check_correct_zeros() above.
-                            if strcmp(which_file,'gsirrigation') && ...
-                               ~strcmp(thisCrop(end), 'i')
-                                continue
-                            end
-                            
-                            % If irrigation, check for any missing cells
-                            % that weren't missing in yield even after
-                            % exclusions
-                            if strcmp(which_file,'gsirrigation')
-                                isbad = isnan(data_bl_emu.garr_xv(:,thisCrop_i)) & ~exclude_xc(:,c) ;
-                                if any(any(isbad))
-                                    warning('%s: %d cells that were included in yield are NaN in irrig baseline emulation', ...
-                                        thisCrop, length(find(isbad)))
-                                end
-                                isbad = isnan(data_fu_emu.garr_xvt(:,thisCrop_i,:)) & repmat(~exclude_xc(:,c),[1 length(thisCrop_i) Ntpers]) ;
-                                if any(any(any(isbad)))
-                                    warning('%s: %d cells that were included in yield are NaN in irrig future emulation', ...
-                                        thisCrop, length(find(isbad)))
-                                end
-                            end
-
-                            % Apply to emulated baseline
-                            tmp = data_bl_emu.garr_xv(:,thisCrop_i) ;
-                            tmp(exclude_xc(:,c),:) = NaN ;
-                            data_bl_emu.garr_xv(:,thisCrop_i) = tmp ;
-                            clear tmp
-
-                            % Apply to emulated future
-                            tmp = data_fu_emu.garr_xvt(:,thisCrop_i,:) ;
-                            tmp(exclude_xc(:,c),:,:) = NaN ;
-                            data_fu_emu.garr_xvt(:,thisCrop_i,:) = tmp ;
-                            clear tmp
+                        
+                        if ~any(any(~isexcl_lowBL_agmerra_xc))
+                            error('All cells excluded because of low AgMERRA yield')
                         end
-
-                        disp('    Done.')
-
-                    elseif ~strcmp(which_file,'anpp')
+                        
+                        % Where do we exclude based on NaN or low baseline-year emulated yield at
+                        % max N (or existing exclusions)?
+                        if excl_lowBL_emu
+                            disp('    Excluding based on NaN/low baseline-year emulated yield at max N...')
+                            isexcl_lowBL_emu_xc = e2p_exclude_lowBLyield_atMaxN( ...
+                                varNames_emu, cropList_emu_basei, Nlist_emu, ...
+                                data_bl_emu.garr_xv, 0.01) ;
+                        end
+                        
+                        if ~any(any(~isexcl_lowBL_emu_xc))
+                            error('All cells excluded because of low AgMERRA yield and/or low baseline-year emulated yield')
+                        end
+                        
+                        exclude_lowBLyield_xc = isexcl_lowBL_agmerra_xc | isexcl_lowBL_emu_xc ;
+                        missing_yield_xc = missing_emu_xc | missing_agmerra_xc ;
+                        
+                        % Set up for figures
+                        excl_vecs{1} = missing_emu_xc ;
+                        excl_vecs{2} = missing_agmerra_xc ;
+                        excl_vecs{3} = isexcl_lowBL_emu_xc ;
+                        excl_vecs{4} = isexcl_lowBL_agmerra_xc ;
+                        
+                    elseif strcmp(which_file, 'gsirrigation')
+                        disp('    Applying yield-based exclusions...')
+                        exclude_xc_file = sprintf('%s/missing_or_excluded.mat', outDir_ggcm) ;
+                        load(exclude_xc_file) ;
+                        
+                        % Set up for figures
+                        excl_vecs{1} = missing_emu_xc ;
+                        excl_vecs{2} = missing_yield_xc ;
+                        excl_vecs{3} = exclude_lowBLyield_xc ;
+                    else
                         error('which_file (%s) not recognized', which_file)
                     end
-
+                    
+                    % Save exclusion figures, if doing so
+                    if save_excl_figs
+                        e2p_save_excl_figs_outCrops( ...
+                            ggcm, which_file, gridlist, excl_vecs, ...
+                            cropList_lpj, cropList_lpj_basei, ...
+                            cropList_emu, cropList_emu_basei, ...
+                            figure_visibility, figure_extension, ...
+                            outDir_excl_figs_outCrops)
+                        e2p_save_excl_figs_inCrops(...
+                            ggcm, which_file, gridlist, excl_vecs, ...
+                            cropList_emu_basei, figure_visibility, ...
+                            figure_extension, outDir_excl_figs)
+                    end
+                    
+                    exclude_xc = missing_yield_xc | missing_emu_xc ...
+                        | exclude_lowBLyield_xc  ;
+                    
+                    for c = 1:length(cropList_emu_basei)
+                        thisCrop = cropList_emu_basei{c} ;
+                        thisCrop_i = find(strcmp(varNames_emu_basei,thisCrop)) ;
+                        if length(thisCrop_i)~=length(Nlist_emu)
+                            error('Error finding isThisCrop (%d found)', length(thisCrop_i))
+                        end
+                        
+                        % If processing irrigation files, we don't care
+                        % about rainfed crops. We know they're all zero
+                        % anyway because of checks in
+                        % e2p_check_correct_zeros() above.
+                        if strcmp(which_file,'gsirrigation') && ...
+                                ~strcmp(thisCrop(end), 'i')
+                            continue
+                        end
+                        
+                        %% If irrigation, check for any missing cells
+                        % that weren't missing in yield even after
+                        % exclusions
+                        if strcmp(which_file,'gsirrigation')
+                            isbad = isnan(data_bl_emu.garr_xv(:,thisCrop_i)) & ~exclude_xc(:,c) ;
+                            if any(any(isbad))
+                                warning('%s: %d cells that were included in yield are NaN in irrig baseline emulation', ...
+                                    thisCrop, length(find(isbad)))
+                            end
+                            isbad = isnan(data_fu_emu.garr_xvt(:,thisCrop_i,:)) & repmat(~exclude_xc(:,c),[1 length(thisCrop_i) Ntpers]) ;
+                            if any(any(any(isbad)))
+                                warning('%s: %d cells that were included in yield are NaN in irrig future emulation', ...
+                                    thisCrop, length(find(isbad)))
+                            end
+                        end
+                        
+                        % Apply to emulated baseline
+                        tmp = data_bl_emu.garr_xv(:,thisCrop_i) ;
+                        tmp(exclude_xc(:,c),:) = NaN ;
+                        data_bl_emu.garr_xv(:,thisCrop_i) = tmp ;
+                        clear tmp
+                        
+                        % Apply to emulated future
+                        tmp = data_fu_emu.garr_xvt(:,thisCrop_i,:) ;
+                        tmp(exclude_xc(:,c),:,:) = NaN ;
+                        data_fu_emu.garr_xvt(:,thisCrop_i,:) = tmp ;
+                        clear tmp
+                    end
+                    
+                    disp('    Done.')
+                    
                     % Sanity checks
                     if ~any(any(~isnan(data_bl_emu.garr_xv)))
                         error('data_bl_emu.garr_xv is all NaN!')
@@ -344,8 +387,11 @@ for g = 1:length(gcm_list)
                     save(out_file, 'data_fu_lpj', 'data_fu_emu', 'data_fu_out')
 
                     % Save exclusion info
-                    out_file = sprintf('%s/exclude_xc.mat', outDir_ggcm) ;
-                    save(out_file, 'exclude_xc')
+                    if strcmp(which_file, 'yield')
+                        out_file = sprintf('%s/missing_or_excluded.mat', outDir_ggcm) ;
+                        save(out_file, 'exclude_lowBLyield_xc', 'missing_yield_xc')
+                    end
+                    clear exclude_xc exclude_lowBLyield_xc missing_yield_xc
 
                     % Save outputs (for PLUM)
                     if save_txt_files
