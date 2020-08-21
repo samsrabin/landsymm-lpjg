@@ -140,7 +140,6 @@ for ci_lpj = 1:length(cropList_lpj_basei)
     if length(c) ~= 1
         error('Error finding index of thisCropi_emu %s', thisCropi_emu)
     end
-%     keyboard
     
     filename = sprintf('%s/exclusions_%s_%s_%s.png', ...
         outDir_excl_figs_outCrops, ggcm, thisCropi, thisFile) ;
@@ -149,9 +148,9 @@ for ci_lpj = 1:length(cropList_lpj_basei)
     elseif ~strcmp(figure_extension, 'png')
         error('figure_extension %s not recognized', figure_extension)
     end
-%     if exist(filename, 'file')
-%         continue
-%     end
+     if exist(filename, 'file')
+         continue
+     end
     
     ngreen = 0 ;
     
