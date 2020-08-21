@@ -1,6 +1,6 @@
 function [varNames, cropList, varNames_basei, cropList_basei, Nlist, maxN] = ...
     e2p_get_names(varNames_bl, varNames_fu, ...
-    getbasename, getbasenamei, getN)
+    getbasename, getbasenamei, getN, get_unneeded)
 
 % Make sure baseline and future variable names match (if varNames_bl is
 % included)
@@ -13,8 +13,7 @@ varNames = varNames_fu ;
 
 % Make sure any non-experimental names (e.g., CerealsC3 as opposed to
 % CerealsC3060) have been stripped
-is_nonexp = ~cellfun(@isempty,regexp(varNames, '.*\d\d+')) ;
-if any(~is_nonexp)
+if any(get_unneeded(varNames))
     error('Non-experimental variables need to already have been stripped')
 end
 

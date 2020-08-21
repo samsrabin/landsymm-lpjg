@@ -1,4 +1,5 @@
-function e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
+function e2p_save_out_figs(data_fu_lpj, data_fu_lpj0, ...
+    data_fu_emu, data_fu_out, ...
     ggcm, getbasename, getbasenamei, getN, outDir_figs, ...
     which_file, cropList_lpj_asEmu, figure_visibility, ...
     figure_extension, which_out_figs)
@@ -8,7 +9,18 @@ if ~exist(outDir_figs, 'dir')
 end
 
 do_max = any(strcmp(which_out_figs, 'max')) ;
-do_first = any(strcmp(which_out_figs, 'first')) ;
+do_first = any(strcmp(which_out_figs, 'first') | strcmp(which_out_figs, 'first0')) ;
+do_first0 = any(strcmp(which_out_figs, 'first0')) ;
+
+if do_first0
+    if isempty(data_fu_lpj0)
+        error('do_first0 but isempty(data_fu_lpj0)')
+    end
+    Nlist_str = unique(cellfun(getN, data_fu_lpj.varNames, 'UniformOutput', false)) ;
+    Nlist0_str = unique(cellfun(getN, data_fu_lpj0.varNames, 'UniformOutput', false)) ;
+    Nlist_num = str2double(Nlist_str) ;
+    Nlist0_num = str2double(Nlist0_str) ;
+end
 
 this_colormap = 'parula' ;
 % this_colormap = 'jet' ;
@@ -16,17 +28,26 @@ this_colormap = 'parula' ;
 % Convert kg/m2 to tons/ha
 if strcmp(which_file, 'yield')
     data_fu_lpj.garr_xvt = 10 * data_fu_lpj.garr_xvt ;
+    if do_first0
+        data_fu_lpj0.garr_xvt = 10 * data_fu_lpj0.garr_xvt ;
+    end
     data_fu_emu.garr_xvt = 10 * data_fu_emu.garr_xvt ;
     data_fu_out.garr_xvt = 10 * data_fu_out.garr_xvt ;
 end
 
 % Get arrays for "max" figures
 yield_fu_lpj_max_xv = max(data_fu_lpj.garr_xvt,[],3) ;
+if do_first0
+    yield_fu_lpj0_max_xv = max(data_fu_lpj0.garr_xvt,[],3) ;
+end
 yield_fu_emu_max_xv = max(data_fu_emu.garr_xvt,[],3) ;
 yield_fu_out_max_xv = max(data_fu_out.garr_xvt,[],3) ;
 
 % Get arrays for "first" figures
 yield1_lpj_xv = data_fu_lpj.garr_xvt(:,:,1) ;
+if do_first0
+    yield1_lpj0_xv = data_fu_lpj0.garr_xvt(:,:,1) ;
+end
 yield1_out_xv = data_fu_out.garr_xvt(:,:,1) ;
 
 % Apply calibration factors used in ES paper
@@ -53,6 +74,18 @@ if strcmp(which_file, 'yield')
             cf_lpj(c) * yield_fu_lpj_max_xv(:,isThisCrop) ;
         yield1_lpj_xv(:,isThisCrop) = ...
             cf_lpj(c) * yield1_lpj_xv(:,isThisCrop) ;
+        
+        % Apply to ORIGINAL LPJ-GUESS sim
+        if do_first0
+            isThisCrop = contains(data_fu_lpj0.varNames, thisCrop) ;
+            if length(find(isThisCrop)) ~= Ncrops
+                error('length(find(isThisCrop)) ~= Ncrops')
+            end
+            yield_fu_lpj0_max_xv(:,isThisCrop) = ...
+                cf_lpj(c) * yield_fu_lpj0_max_xv(:,isThisCrop) ;
+            yield1_lpj0_xv(:,isThisCrop) = ...
+                cf_lpj(c) * yield1_lpj0_xv(:,isThisCrop) ;
+        end
         
         % Apply to final outputs
         isThisCrop = contains(data_fu_out.varNames, thisCrop) ;
@@ -82,10 +115,10 @@ title_right_max = sprintf('LPJ-GUESS sim bl + %s emu %ss', ggcm, '\Delta') ;
 
 % Set up titles for "first timestep" figure
 title_left_first = 'LPJ-GUESS sim' ;
+title_left_first0 = 'LPJ-GUESS sim (original N%d)' ;
 
 % Set up figure properties
 spacing_max = [0.025 0.025] ; % v h
-spacing_first = [0.025 0.025] ; % v h
 yrange = 65:360 ;
 fontSize = 14 ;
 thisPos = figurePos ;
@@ -267,6 +300,16 @@ for v = 1:length(data_fu_out.varNames)
     %%% First timestep %%%
     %%%%%%%%%%%%%%%%%%%%%%
     if do_first && ~exist(filename_first, 'file')
+        
+        if do_first0
+            Ny = 2 ;
+            thisPos = figurePos ;
+            spacing_first = [0.1 0.025] ; % v h
+        else
+            Ny = 1 ;
+            thisPos = [1 325 1440 480] ;
+            spacing_first = [0.025 0.025] ; % v h
+        end
 
         % Get maps
         yield1_lpj_YX = lpjgu_vector2map( ...
@@ -278,14 +321,52 @@ for v = 1:length(data_fu_out.varNames)
 
         % Set up figure
         figure('Color', 'w', ...
-            'Position',[1 325 1440 480], ...
+            'Position', thisPos, ...
             'Visible', figure_visibility) ;
         new_caxis = [0 max(max(max(yield1_lpj_YX)), max(max(yield1_out_YX)))] ;
         title_right_first = sprintf('Emulated %s (%s) after processing', ...
             ggcm, strrep(thisCropi_emu, '_', '\_')) ;
+        
+        % ORIGINAL LPJ-GUESS simulation
+        if do_first0
+            N_out_num = str2double(getN(thisVar_out)) ;
+            N_match = any(Nlist0_num==N_out_num) ;
+            if N_match || N_out_num==min(Nlist_num)
+                if N_out_num==min(Nlist_num)
+                    N_orig_num = min(Nlist0_num) ;
+                else
+                    N_orig_num = N_out_num ;
+                end
+                N_orig_ind = find(Nlist0_num==N_orig_num) ;
+                N_orig_str = Nlist0_str{N_orig_ind} ; %#ok<FNDSB>
+                thisVar_orig = [thisCropi_out N_orig_str] ;
+                yield1_lpj0_YX = lpjgu_vector2map( ...
+                    yield1_lpj0_xv(:,strcmp(data_fu_lpj0.varNames, thisVar_orig)), ...
+                    [360 720], data_fu_lpj0.list2map) ;
+                new_caxis = [0 max(new_caxis(end), max(max(yield1_lpj0_YX)))] ;
+                    
+                subplot_tight(Ny, 2, 3, spacing_first) ;
+                pcolor(yield1_lpj0_YX(yrange,:)); shading flat; axis equal tight off
+                hcb = colorbar('Location','SouthOutside') ;
+                colormap(gca, this_colormap) ;
+                caxis(new_caxis) ;
+                xlabel(hcb, units)
+                title(sprintf(title_left_first0, N_orig_num))
+                set(gca, 'FontSize', fontSize)
+            else
+                subplot_tight(Ny, 2, 3, spacing_first) ;
+                pcolor(NaN*yield1_lpj_YX(yrange,:)); shading flat; axis equal tight off
+                hcb = colorbar('Location','SouthOutside') ;
+                colormap(gca, this_colormap) ;
+                caxis(new_caxis) ;
+                xlabel(hcb, units)
+                title('No original LPJ-GUESS sim with similar N')
+                set(gca, 'FontSize', fontSize)
+            end
+        end
 
         % LPJ-GUESS simulation
-        subplot_tight(1, 2, 1, spacing_first) ;
+        subplot_tight(Ny, 2, 1, spacing_first) ;
         pcolor(yield1_lpj_YX(yrange,:)); shading flat; axis equal tight off
         hcb = colorbar('Location','SouthOutside') ;
         colormap(gca, this_colormap) ;
@@ -293,9 +374,9 @@ for v = 1:length(data_fu_out.varNames)
         xlabel(hcb, units)
         title(title_left_first)
         set(gca, 'FontSize', fontSize)
-
+        
         % Emulator
-        subplot_tight(1, 2, 2, spacing_first) ;
+        subplot_tight(Ny, 2, 2, spacing_first) ;
         pcolor(yield1_out_YX(yrange,:)); shading flat; axis equal tight off
         hcb = colorbar('Location','SouthOutside') ;
         colormap(gca, this_colormap) ;
@@ -315,7 +396,7 @@ for v = 1:length(data_fu_out.varNames)
         ht.Units = 'normalized' ;
         ht.Position(1) = 0.5 ;
         ax2.Visible = 'off' ;
-
+        
         % Save
         tic
         if strcmp(figure_extension, 'png')
