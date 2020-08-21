@@ -3,6 +3,13 @@ function e2p_save_out_figs(data_fu_lpj, data_fu_emu, data_fu_out, ...
     which_file, cropList_lpj_asEmu, figure_visibility, ...
     figure_extension, which_out_figs)
 
+if ~exist(outDir_figs, 'dir')
+    mkdir(outDir_figs)
+end
+
+do_max = any(contains(which_out_figs, 'max')) ;
+do_first = any(contains(which_out_figs, 'first')) ;
+
 this_colormap = 'parula' ;
 % this_colormap = 'jet' ;
 
@@ -89,20 +96,39 @@ for v = 1:length(data_fu_out.varNames)
     thisVar_out = data_fu_out.varNames{v} ;
     thisCrop_out = getbasename(thisVar_out) ;
     thisCropi_out = getbasenamei(thisVar_out) ;
-    % Skip if looking at irrigation of a rainfed crop
-    if strcmp(which_file, 'gsirrigation') && strcmp(thisCrop_out, thisCropi_out)
-        continue
-    end
-    fprintf('        %s %s...\n', thisVar_out, which_file)
-    tic
     thisCropi_emu = strrep(thisCropi_out, thisCrop_out, ...
         cropList_lpj_asEmu{strcmp(cropList_lpj, thisCrop_out)}) ;
     thisVar_emu = sprintf('%s%s', thisCropi_emu, getN(thisVar_out)) ;
     
+    % Skip if looking at irrigation of a rainfed crop
+    if strcmp(which_file, 'gsirrigation') && strcmp(thisCrop_out, thisCropi_out)
+        continue
+    end
+    
+    % Get filenames
+    filename_max = sprintf('%s/max%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisVar_out) ;
+    if strcmp(figure_extension, 'fig')
+        filename_max = strrep(filename_max, '.png', '.fig') ;
+    end
+    filename_first = sprintf('%s/first%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisVar_out) ;
+    if strcmp(figure_extension, 'fig')
+        filename_first = strrep(filename_first, '.png', '.fig') ;
+    end
+    
+    % Skip if figure files already exist
+    if ((do_max && exist(filename_max, 'file')) || ~do_max) ...
+    && ((do_first && exist(filename_first, 'file')) || ~do_first)
+        fprintf('        %s %s skipped (exists)\n', thisVar_out, which_file)
+        continue
+    end
+    
+    fprintf('        %s %s...\n', thisVar_out, which_file)
+    tic
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Maximum yield over future %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if any(contains(which_out_figs, 'max'))
+    if do_max && ~exist(filename_max, 'file')
     
         title_center_max = sprintf('Raw %s emu (%s)', ggcm, strrep(thisCropi_emu, '_', '\_')) ;
 
@@ -224,15 +250,10 @@ for v = 1:length(data_fu_out.varNames)
 
         % Save
         tic
-        filename = sprintf('%s/max%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisVar_out) ;
-        if ~exist(outDir_figs, 'dir')
-            mkdir(outDir_figs)
-        end
         if strcmp(figure_extension, 'png')
-            export_fig(filename, '-r100')
+            export_fig(filename_max, '-r100')
         elseif strcmp(figure_extension, 'fig')
-            filename_fig = strrep(filename, '.png', '.fig') ;
-            savefig(filename_fig)
+            savefig(filename_max)
         else
             error('figure_extension %s not recognized', figure_extension)
         end
@@ -245,7 +266,7 @@ for v = 1:length(data_fu_out.varNames)
     %%%%%%%%%%%%%%%%%%%%%%
     %%% First timestep %%%
     %%%%%%%%%%%%%%%%%%%%%%
-    if any(contains(which_out_figs, 'first'))
+    if do_first && ~exist(filename_first, 'file')
 
         % Get maps
         yield1_lpj_YX = lpjgu_vector2map( ...
@@ -297,15 +318,10 @@ for v = 1:length(data_fu_out.varNames)
 
         % Save
         tic
-        filename = sprintf('%s/first%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisVar_out) ;
-        if ~exist(outDir_figs, 'dir')
-            mkdir(outDir_figs)
-        end
         if strcmp(figure_extension, 'png')
-            export_fig(filename, '-r100')
+            export_fig(filename_first, '-r100')
         elseif strcmp(figure_extension, 'fig')
-            filename_fig = strrep(filename, '.png', '.fig') ;
-            savefig(filename_fig)
+            savefig(filename_first)
         else
             error('figure_extension %s not recognized', figure_extension)
         end
