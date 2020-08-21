@@ -70,6 +70,15 @@ for v = 1:length(data_fu_out.varNames)
 	 if strcmp(which_file, 'gsirrigation') && strcmp(thisCrop_out, thisCropi_out)
 		 continue
 	 end
+	 % Skip if figure file already exists
+    filename = sprintf('%s/max%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisVar_out) ;
+	 if strcmp(figure_extension, 'fig')
+        filename = strrep(filename, '.png', '.fig') ;
+    end
+	 if exist(filename, 'file')
+    	 fprintf('        %s %s skipped (exists)\n', thisVar_out, which_file)
+		 continue
+	 end
 	 fprintf('        %s %s...\n', thisVar_out, which_file)
 	 tic
     thisCropi_emu = strrep(thisCropi_out, thisCrop_out, ...
@@ -204,15 +213,13 @@ for v = 1:length(data_fu_out.varNames)
     
     % Save
 	 tic
-    filename = sprintf('%s/max%ss_%s_%s.png', outDir_figs, tmp_which_file, ggcm, thisVar_out) ;
     if ~exist(outDir_figs, 'dir')
         mkdir(outDir_figs)
     end
 	 if strcmp(figure_extension, 'png')
         export_fig(filename, '-r100')
 	 elseif strcmp(figure_extension, 'fig')
-	     filename_fig = strrep(filename, '.png', '.fig') ;
-	     savefig(filename_fig)
+	     savefig(filename)
 	 else
 	     error('figure_extension %s not recognized', figure_extension)
 	 end
