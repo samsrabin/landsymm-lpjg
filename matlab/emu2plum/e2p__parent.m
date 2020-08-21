@@ -10,6 +10,7 @@ figure_extension = 'png' ; % fig or png
 save_excl_figs = true ;
 save_interp_figs = false ;
 save_out_figs = true ;
+which_out_figs = {'first'} ; % {'max', 'first'}
 save_txt_files = false ;
 load_existing_file = false ;
 
@@ -92,6 +93,11 @@ Ntpers = length(ts1_list) ;
 % What is the last year of the last time period that should be read of the
 % LPJ-GUESS run?
 future_yN_lpj = max(tsN_list) ;
+
+if save_out_figs && isempty(which_out_figs)
+    warning('save_out_figs is true but which_out_figs is empty. Will not make figures.')
+    save_out_figs = false ;
+end
 
 
 
