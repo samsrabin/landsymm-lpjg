@@ -7,8 +7,8 @@ if ~exist(outDir_figs, 'dir')
     mkdir(outDir_figs)
 end
 
-do_max = any(contains(which_out_figs, 'max')) ;
-do_first = any(contains(which_out_figs, 'first')) ;
+do_max = any(strcmp(which_out_figs, 'max')) ;
+do_first = any(strcmp(which_out_figs, 'first')) ;
 
 this_colormap = 'parula' ;
 % this_colormap = 'jet' ;
