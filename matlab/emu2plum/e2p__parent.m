@@ -10,7 +10,7 @@ figure_extension = 'png' ; % fig or png
 save_excl_figs = false ;
 save_interp_figs = false ;
 save_out_figs = true ;
-which_out_figs = {'first0'} ; % {'max', 'first', 'first0'}
+which_out_figs = {'4th0'} ; % {'max', 'first', 'first0', '4th', '4th0'}
 save_txt_files = false ;
 load_existing_file = true ;
 
@@ -52,7 +52,9 @@ end
 
 cd(sprintf('%s/emulation/matlab/emu2plum', topdir_db))
 
-save_out_figs_first0 = save_out_figs & any(strcmp(which_out_figs, 'first0')) ;
+save_out_figs_Nth0 = save_out_figs & any( ...
+    strcmp(which_out_figs, 'first0') ...
+    | strcmp(which_out_figs, '4th0')) ;
 
 tmp_rcp = 'rcp45' ;
 warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP6 runs.', ...
@@ -68,7 +70,7 @@ if ~contains(topDir_lpj, tmp_rcp)
     error('~contains(topDir_lpj, rcp)')
 elseif ~exist(topDir_lpj, 'dir')
     error('topDir_lpj does not exist:\n %s', topDir_lpj)
-elseif save_out_figs_first0 && ~exist(topDir_lpj0, 'dir')
+elseif save_out_figs_Nth0 && ~exist(topDir_lpj0, 'dir')
     error('topDir_lpj0 does not exist:\n %s', topDir_lpj0)
 end
 
@@ -202,7 +204,7 @@ disp('Done.')
 
 %% Import LPJ-GUESS-0 yield
 
-if save_out_figs_first0
+if save_out_figs_Nth0
     disp('Importing LPJ-GUESS-0 yield...')
     
     which_file = 'yield' ;
@@ -230,7 +232,7 @@ end
 
 %% Import LPJ-GUESS-0 irrigation
 
-if save_out_figs_first0
+if save_out_figs_Nth0
     disp('Importing LPJ-GUESS-0 irrigation...')
     
     which_file = 'gsirrigation' ;
