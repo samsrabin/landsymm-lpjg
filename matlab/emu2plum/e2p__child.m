@@ -7,7 +7,7 @@ for g = 1:length(gcm_list)
         outDir = sprintf('%s_work/%s_%s_v%s', ...
             topDir_emu, gcm, ssp, thisVer) ;
         if remove_outliers
-            outDir = [outDir '_rmol'] ; %#ok<AGROW>
+            outDir = [outDir '_rmol' when_remove_outliers] ; %#ok<AGROW>
         end
         outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
         outDir_excl_figs_inCrops = sprintf('%s/excl_figs_GGCMIcrops', outDir) ;
@@ -327,7 +327,8 @@ for g = 1:length(gcm_list)
                             data_bl_emu, data_fu_emu, interp_infs, cropList_emu, ...
                             getbasename, getbasenamei, which_file, ...
                             used_emuCrops, list2map, ...
-                            save_interp_figs, outDir_interp_figs, ggcm, figure_visibility) ;
+                            save_interp_figs, outDir_interp_figs, ggcm, figure_visibility, ...
+                            when_remove_outliers, outDir_ggcm) ;
                         e2p_check_correct_zeros(deltas_emu_xvt, which_file, getbasenamei(data_fu_emu.varNames))
                         disp('    Done.')
 
@@ -346,33 +347,18 @@ for g = 1:length(gcm_list)
                         list2map, getbasename, getbasenamei, which_file, figure_visibility) ;
                     e2p_check_correct_zeros(data_fu_out.garr_xvt, which_file, getbasenamei(data_fu_out.varNames))
 
-                    if remove_outliers
+                    if strcmp(when_remove_outliers, 'end')
                         disp('    Removing outliers...')
 
-                        if strcmp(which_file,'yield')
-                            smad_mult = 3 ;
-                        elseif strcmp(which_file,'gsirrigation')
-                            warning('Might have to change gsirrigation smad_mult once properly pre-thresholding')
-                            smad_mult = 3 ;
-                        else
-                            error('which_file (%s) not recognized', which_file)
-                        end
-
-                        [data_fu_lpj, outlier_info_lpj] = e2p_remove_outliers(data_fu_lpj, smad_mult) ;
+                        [data_fu_lpj, outlier_info_lpj] = e2p_remove_outliers(data_fu_lpj, which_file) ;
                         e2p_check_correct_zeros(data_fu_lpj.garr_xvt, which_file, getbasenamei(data_fu_lpj.varNames))
 
-                        [data_fu_out, outlier_info_out] = e2p_remove_outliers(data_fu_out, smad_mult) ;
+                        [data_fu_out, outlier_info_out] = e2p_remove_outliers(data_fu_out, which_file) ;
                         e2p_check_correct_zeros(data_fu_out.garr_xvt, which_file, getbasenamei(data_fu_out.varNames))
 
                         %% Save info
-                        outlier_info_cols = string([ ...
-                            repmat('y',[Ntpers 1]) ...
-                            num2str(shiftdim(data_fu_out.y1s)) ...
-                            repmat('_',[Ntpers 1]) ...
-                            num2str(shiftdim(data_fu_out.yNs))]) ;
-                        e2p_save_outlier_info(outlier_info_lpj, outDir_lpj, which_file, outlier_info_cols)
-                        e2p_save_outlier_info(outlier_info_out, outDir_ggcm, which_file, outlier_info_cols)
-                        clear outlier_info_cols
+                        e2p_save_outlier_info(outlier_info_lpj, outDir_lpj, which_file, data_fu_out.y1s, data_fu_out.yNs)
+                        e2p_save_outlier_info(outlier_info_out, outDir_ggcm, which_file, data_fu_out.y1s, data_fu_out.yNs)
                     end
 
                 end

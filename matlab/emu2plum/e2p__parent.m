@@ -10,7 +10,7 @@ figure_extension = 'png' ; % fig or png
 save_excl_figs = false ;
 save_interp_figs = false ;
 save_out_figs = true ;
-which_out_figs = {'4th0'} ; % {'max', 'first', 'first0', '4th', '4th0'}
+which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
 save_txt_files = false ;
 load_existing_file = true ;
 
@@ -18,16 +18,16 @@ load_existing_file = true ;
 excl_lowBL_agmerra = true ;
 excl_lowBL_emu = true ;
 interp_infs = true ;
-remove_outliers = true ;
+when_remove_outliers = 'before_interp' ; % end, before_interp, off
 
 % Run info
 % gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
-% ggcm_list = {'EPIC-TAMU', 'LPJ-GUESS', 'LPJmL', 'pDSSAT'} ;
+ggcm_list = {'pDSSAT', 'EPIC-TAMU', 'LPJmL'} ;
 % ssp_list = {'ssp245', 'ssp126', 'ssp370', 'ssp585'} ;
 gcm_list = {'GFDL-ESM4'} ;
-ggcm_list = {'LPJmL'} ;
+% ggcm_list = {'LPJmL'} ;
 ssp_list = {'ssp126'} ;
-thisVer = '20200821' ;
+thisVer = '20200825' ;
 
 baseline_y1 = 2001 ;
 baseline_yN = 2010 ;
@@ -55,6 +55,13 @@ cd(sprintf('%s/emulation/matlab/emu2plum', topdir_db))
 save_out_figs_Nth0 = save_out_figs & any( ...
     strcmp(which_out_figs, 'first0') ...
     | strcmp(which_out_figs, '4th0')) ;
+
+% Check outlier removal setting
+if ~any(strcmp({'off', '', 'end', 'before_interp'}, when_remove_outliers))
+    error('when_remove_outliers not recognized: %s', when_remove_outliers)
+end
+remove_outliers = ~strcmp(when_remove_outliers, 'off') ...
+    & ~isempty(when_remove_outliers) ;
 
 tmp_rcp = 'rcp45' ;
 warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP6 runs.', ...

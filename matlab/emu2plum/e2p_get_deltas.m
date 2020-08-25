@@ -2,7 +2,8 @@ function deltas_emu_xvt = e2p_get_deltas(...
     data_bl_emu, data_fu_emu, interp_infs, cropList_emu, ...
     getbasename, getbasenamei, which_file, ...
     used_emuCrops, list2map, ...
-    save_interp_figs, outDir_interp_figs, ggcm, figure_visibility)
+    save_interp_figs, outDir_interp_figs, ggcm, figure_visibility, ...
+    when_remove_outliers, outDir_ggcm)
 
 verbose = false ;
 
@@ -31,6 +32,27 @@ if ~isempty(isbad) && ~interp_infs
 elseif ~isempty(isbad) && interp_infs
     fprintf('Interpolating %d elements of deltas_emu_xvt where baseline was 0 but future is positive...\n', ...
         length(find(isbad)))
+    
+    
+    if strcmp(when_remove_outliers, 'before_interp')
+        disp('    Removing outliers...')
+        
+        data_tmp.garr_xvt = deltas0_emu_xvt ;
+        is_inf_xvt = isinf(data_tmp.garr_xvt) ;
+        data_tmp.garr_xvt(is_inf_xvt) = 0 ;
+        data_tmp.varNames = data_fu_emu.varNames ;
+        [data_tmp, outlier_info] = e2p_remove_outliers(data_tmp, which_file) ;
+        data_tmp.garr_xvt(is_inf_xvt) = Inf ;
+        deltas0_emu_xvt = data_tmp.garr_xvt ;
+        clear data_tmp
+        e2p_check_correct_zeros(deltas0_emu_xvt, which_file, getbasenamei(data_fu_emu.varNames))
+                
+        % Save outlier info
+        e2p_save_outlier_info(outlier_info, outDir_ggcm, which_file, data_fu_emu.y1s, data_fu_emu.yNs)
+    end
+    
+    
+    
     deltas_emu_xvt = deltas0_emu_xvt ;
     for v = 1:length(data_fu_emu.varNames)
         thisVar_emu = data_fu_emu.varNames{v} ;
