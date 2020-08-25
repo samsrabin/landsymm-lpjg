@@ -78,7 +78,7 @@ getbasename = @(x) regexprep(x,'i?\d\d\d$','') ;
 getbasenamei = @(x) regexprep(x,'\d\d\d$','') ;
 getbasename0 = @(x) regexprep(regexprep(regexprep(x,'i?\d\d\d\d$',''),'i0$',''),'0$','') ;
 getbasename0i = @(x) regexprep(regexprep(x,'\d\d\d\d$',''),'0$','') ;
-getN = @(x) regexprep(regexprep(x, 'CerealsC[34]', ''), '^[a-zA-Z]+', '') ;
+getN = @(x) regexprep(regexprep(x, 'CerealsC[34]', ''), '^[a-zA-Z_]+', '') ;
 get_unneeded = @(x)cellfun(@isempty, ...
     regexp(regexprep(x,'CerealsC[34]','CerealsC'),'.*\d+')) | contains(x,'G_ic') ;
 

@@ -32,6 +32,9 @@ end
 
 % Get N levels
 Nlist = unique(cellfun(getN, varNames, 'UniformOutput', false)) ;
+if any(isnan(str2double(Nlist)))
+    error('Problem getting Nlist: Translates to NaN')
+end
 maxN = max(str2double(Nlist)) ;
 
 
