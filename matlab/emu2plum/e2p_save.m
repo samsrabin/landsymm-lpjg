@@ -24,8 +24,7 @@ if remove_outliers
 end
 outfile = [outfile '.out'] ;
 
-% Save file (convert NaN to zeros)
-garr_xv(isnan(garr_xv)) = 0 ;
+% Save file
 out_array = cat(2, lonlats, garr_xv) ;
 lpjgu_matlab_saveTable(out_header_cell, out_array, outfile,...
     'outPrec', outPrec, ...

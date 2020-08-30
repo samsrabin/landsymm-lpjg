@@ -27,7 +27,7 @@ for w = 1:Nww
     % make sure that winter wheat is correctly registered as maximum if it
     % has a yield and spring wheat has NaN.
     tmp = is_ww_max(:,w,:) ;
-    tmp(:,isnan(data_in(:,i_thisSW,:)) & ~isnan(data_in(:,i_thisSW,:)),:) = true ;
+    tmp(isnan(data_in(:,i_thisSW,:)) & ~isnan(data_in(:,i_thisWW,:))) = true ;
     is_ww_max(:,w,:) = tmp ;
     
     % Assign max to i_thisMW

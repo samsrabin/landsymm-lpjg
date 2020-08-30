@@ -1,5 +1,13 @@
 function [cropList_lpj_asEmu, used_emuCrops] = e2p_translate_crops(...
-    cropList_lpj, cropList_emu)
+    cropList_lpj, cropList_emu, varargin)
+
+verbose = true ;
+if ~isempty(varargin)
+    verbose = varargin{1} ;
+    if length(varargin)>1
+        error('At most 1 optional argument accepted in e2p_translate_crops')
+    end
+end
 
 cropList_lpj_asEmu = cell(size(cropList_lpj)) ;
 
@@ -37,8 +45,10 @@ for c = 1:length(cropList_lpj_asEmu)
 end
 
 % Display results
-disp(' ')
-disp(table(cropList_lpj', cropList_lpj_asEmu', 'VariableNames', {'LPJ', 'GCCMIequiv'}))
+if verbose
+    disp(' ')
+    disp(table(cropList_lpj', cropList_lpj_asEmu', 'VariableNames', {'LPJ', 'GCCMIequiv'}))
+end
 
 
 end

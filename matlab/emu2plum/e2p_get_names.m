@@ -1,17 +1,19 @@
 function [varNames, cropList, varNames_basei, cropList_basei, Nlist, maxN] = ...
     e2p_get_names(varNames_bl, varNames_fu, ...
-    getbasename, getbasenamei, getN)
+    getbasename, getbasenamei, getN, get_unneeded)
 
-% Make sure baseline and future variable names match
-if ~isequal(varNames_bl, varNames_fu)
-    error('Mismatch between variable names in baseline and future.')
+% Make sure baseline and future variable names match (if varNames_bl is
+% included)
+if ~isempty(varNames_bl)
+    if ~isequal(varNames_bl, varNames_fu)
+        error('Mismatch between variable names in baseline and future.')
+    end
 end
-varNames = varNames_bl ;
+varNames = varNames_fu ;
 
 % Make sure any non-experimental names (e.g., CerealsC3 as opposed to
 % CerealsC3060) have been stripped
-is_nonexp = ~cellfun(@isempty,regexp(varNames, '.*\d\d+')) ;
-if any(~is_nonexp)
+if any(get_unneeded(varNames))
     error('Non-experimental variables need to already have been stripped')
 end
 
@@ -30,6 +32,9 @@ end
 
 % Get N levels
 Nlist = unique(cellfun(getN, varNames, 'UniformOutput', false)) ;
+if any(isnan(str2double(Nlist)))
+    error('Problem getting Nlist: Translates to NaN')
+end
 maxN = max(str2double(Nlist)) ;
 
 

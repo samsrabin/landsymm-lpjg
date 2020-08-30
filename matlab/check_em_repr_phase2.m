@@ -233,6 +233,49 @@ end
 disp('Done')
 
 
+%% Maps of Phase II results
+
+spacing = [0.025 0.025] ;
+% thisPos = [1    34   628   771] ;
+thisPos = [1         373        1440         432] ;
+hs = [] ;
+min_yield = 1 ; % t/ha
+
+emu_YX_old = [] ;
+ph2_YX_old = [] ;
+for c = 1:length(cropList)
+    thisCrop = cropList{c} ;
+    figure('Color','w','Position',thisPos) ;
+    for ii = 1:2
+        thisIrr = irrList_emu{ii} ;
+        for N = 1:length(N_list)
+            thisN = N_list{N} ;
+            thisVar = [thisCrop thisIrr thisN] ;
+            thisIndex = find(strcmp(emu.varNames,thisVar)) ;
+            
+            ph2_YX = nan(360,720) ;
+            ph2_YX(emu.list2map) = ph2_xv(:,thisIndex) ;
+            
+            hs(end+1) = subplot_tight(2,3,(ii-1)*3+N,spacing) ;
+            pcolor(ph2_YX(30:end,:)) ;
+            shading flat; axis equal tight off
+            colormap(gca,'jet')
+            colorbar
+            title(sprintf('%s: Phase II', thisVar))
+            set(gca,'FontSize',14)
+                        
+        end
+    end
+    pause(0.1)
+    filename = sprintf('%s/%s_%s_phase2.png', outdir, thisModel, thisCrop) ;
+    export_fig(filename, '-r150')
+    close
+end
+
+disp('Done.')
+
+
+
 %% Spring wheat vs. rice?
 
 spacing = [0.025 0.025] ;

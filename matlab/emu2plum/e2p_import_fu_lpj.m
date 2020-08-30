@@ -1,6 +1,6 @@
 function data_fu_lpj = e2p_import_fu_lpj( ...
     baseline_yN, future_ts, future_yN, topDir_lpj, which_file, ...
-    varNames_bl_lpj, get_unneeded)
+    varNames_bl_lpj, get_unneeded, gridlist_target)
 
 % Future: Set up
 y1 = baseline_yN + 1 ;
@@ -15,7 +15,7 @@ while y1 < future_yN
     ii = ii + 1 ;
     
     % Get this directory
-    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, future_yN) ;
+    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, future_yN, which_file) ;
 %     fprintf('%d-%d\n', y1, yN) ;
     thisDir_path = sprintf('%s/%s', thisDir.folder, thisDir.name) ;
     subdirs = dir([thisDir_path '/out*']) ;
@@ -40,7 +40,8 @@ while y1 < future_yN
 %     fprintf('tper_i %d\n', tper_i)
     
     filename = sprintf('%s/%s.out', thisDir, which_file) ;
-    tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false) ;
+    tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
+        'target', gridlist_target) ;
     if ii==1
         data_fu_lpj.garr_xvt = zeros([size(tmp.garr_xv) Ntpers]) ;
         data_fu_lpj.lonlats = tmp.lonlats ;

@@ -1,5 +1,6 @@
 function data_bl_lpj = e2p_import_bl_lpj( ...
-    baseline_y1, baseline_yN, topDir_lpj, which_file, get_unneeded)
+    baseline_y1, baseline_yN, topDir_lpj, which_file, get_unneeded, ...
+    gridlist_target)
 
 ii = 0 ;
 y1 = baseline_y1 ;
@@ -8,7 +9,7 @@ while yN < baseline_yN
     ii = ii + 1 ;
     
     % Get this directory
-    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, baseline_yN) ;
+    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, baseline_yN, which_file) ;
     
     thisDir_path = sprintf('%s/%s', thisDir.folder, thisDir.name) ;
     subdirs = dir([thisDir_path '/out*']) ;
@@ -22,9 +23,11 @@ while yN < baseline_yN
     % Import
     filename = sprintf('%s/%s.out', thisDir, which_file) ;
     if ii==1
-        data_bl_lpj = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false) ;
+        data_bl_lpj = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
+            'target', gridlist_target) ;
     else
-        tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false) ;
+        tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
+            'target', gridlist_target) ;
         data_bl_lpj.garr_xv = data_bl_lpj.garr_xv * (ii-1)/ii + tmp.garr_xv * 1/ii ;
         clear tmp
     end
