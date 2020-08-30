@@ -79,7 +79,7 @@ end
 function smad_mult = get_smad_mult(which_file)
 
 if strcmp(which_file,'yield')
-    smad_mult = 30 ;
+    smad_mult = 3 ;
 elseif strcmp(which_file,'gsirrigation')
     warning('Might have to change gsirrigation smad_mult once properly pre-thresholding')
     smad_mult = 3 ;
