@@ -1,5 +1,5 @@
 function yield_agmerraBL_xv = e2p_get_agmerra_yield(...
-    varNames_emu, topDir_phase2, ggcm, list2map, getbasenamei, getN)
+    varNames_emu, topDir_phase2, ggcm, list2map, getN)
 
 % Get info
 Nvars_emu = length(varNames_emu) ;
