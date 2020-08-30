@@ -508,7 +508,6 @@ end
 
 % Rearrange
 if ~isequal(1:Nvars, new_order)
-    disp('Sorting')
     S.garr_xvt = S.garr_xvt(:,new_order,:) ;
     S.varNames = S.varNames(new_order) ;
 end
