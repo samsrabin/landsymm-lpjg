@@ -170,7 +170,7 @@ for v = 1:length(data_fu_out.varNames)
     if ((do_max && exist(filename_max, 'file')) || ~do_max) ...
     && ((do_first && exist(filename_first, 'file')) || ~do_first) ...
     && ((do_4th && exist(filename_4th, 'file')) || ~do_4th)
-        fprintf('        %s %s skipped (exists)\n', thisVar_out, which_file)
+        fprintf('        %s %s figure skipped (exists)\n', thisVar_out, which_file)
         continue
     end
     

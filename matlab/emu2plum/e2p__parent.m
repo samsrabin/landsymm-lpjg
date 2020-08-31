@@ -5,7 +5,7 @@
 whichfile_list = {'yield', 'gsirrigation'} ;
 
 % Development vs. production
-figure_visibility = 'on' ; % 'off' or 'on'. Determines whether figures are shown on screen
+figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
 figure_extension = 'png' ; % fig or png
 save_excl_figs = false ;
 save_interp_figs = false ;
@@ -20,13 +20,13 @@ excl_lowBL_emu = true ;
 interp_infs = true ;
 when_remove_outliers = 'end' ; % end, before_interp, off
 fake1k = true ;
+overwrite_existing_txt = false ;
 
 % Run info
 % gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
-ggcm_list = {'pDSSAT', 'EPIC-TAMU', 'LPJmL'} ;
+ggcm_list = {'EPIC-TAMU', 'LPJmL'} ;
 % ssp_list = {'ssp245', 'ssp126', 'ssp370', 'ssp585'} ;
 gcm_list = {'GFDL-ESM4'} ;
-% ggcm_list = {'LPJmL'} ;
 ssp_list = {'ssp126'} ;
 thisVer = '20200830' ;
 
@@ -147,7 +147,7 @@ header_out = [header_out '\n'] ;
 format_out = [format_out '\n'] ;
 
 
-%% Import LPJ-GUESS yield
+%% Import LPJ-GUESS yield and irrigation
 
 disp('Importing LPJ-GUESS yield...')
 
@@ -171,10 +171,6 @@ if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
     error('Mismatch between cropIrrNlist_out and varNames_lpj')
 end
 
-disp('Done.')
-
-
-%% Import LPJ-GUESS irrigation
 
 disp('Importing LPJ-GUESS irrigation...')
 
@@ -210,7 +206,7 @@ clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj2
 disp('Done.')
 
 
-%% Import LPJ-GUESS-0 yield
+%% Import LPJ-GUESS-0 yield and irrigation
 
 if save_out_figs_Nth0 || fake1k
     disp('Importing LPJ-GUESS-0 yield...')
@@ -231,14 +227,13 @@ if save_out_figs_Nth0 || fake1k
         e2p_get_names(data_bl_lpj0_yield.varNames, data_fu_lpj0_yield.varNames, ...
         getN, get_unneeded) ;
     
-    disp('Done.')
 else
     data_bl_lpj0_yield = [] ;
     data_fu_lpj0_yield = [] ;
 end
 
 
-%% Import LPJ-GUESS-0 irrigation
+% Import LPJ-GUESS-0 irrigation
 
 if save_out_figs_Nth0 || fake1k
     disp('Importing LPJ-GUESS-0 irrigation...')
