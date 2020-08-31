@@ -1,5 +1,6 @@
 function data_fu_out = e2p_fake_1000( ...
-    data_fu_out, data_bl_lpj0, cropList_lpj, Nlist_lpj0, Nlist_emu)
+    data_fu_out, data_bl_lpj0, cropList_lpj, Nlist_lpj0, Nlist_emu, ...
+    which_file)
 
 % Set up array of fake 1000s
 Ncells = length(data_fu_out.list2map) ;
@@ -49,9 +50,18 @@ for c = 1:Ncrops
         delta_x = data_bl_lpj0.garr_xv(:,ind_lpj_1000) ./ data_bl_lpj0.garr_xv(:,ind_lpj_200) ;
         delta_x(data_bl_lpj0.garr_xv(:,ind_lpj_200)==0 & data_bl_lpj0.garr_xv(:,ind_lpj_1000)==0) = 1 ;
         
-        % If any infinite, first try excluding very small yields
+        % If any infinite, first try excluding very small values
         if any(isinf(delta_x))
-            delta_x(isinf(delta_x) & data_bl_lpj0.garr_xv(:,ind_lpj_1000)<=0.001) = 1 ;
+            if strcmp(which_file, 'yield')
+                small_thresh = 0.001 ; % 0.001 kgC/m2 yield
+            elseif strcmp(which_file, 'gsirrigation')
+                small_thresh = 20 ; % 20 mm irrigation
+            else
+                error('which_file (%s) not recognized for e2p_fake_1000().', which_file)
+            end
+            is_small = isinf(delta_x) & ...
+                data_bl_lpj0.garr_xv(:,ind_lpj_1000) <= small_thresh ;
+            delta_x(is_small) = 1 ;
         end
         if any(isinf(delta_x))
             error('Infs remain in delta_x. Deal with these.')

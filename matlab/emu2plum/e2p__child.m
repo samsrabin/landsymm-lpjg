@@ -355,9 +355,9 @@ for g = 1:length(gcm_list)
                     %% Get fake N1000 values
                     if fake1k
                         data_fu_lpj = e2p_fake_1000(data_fu_lpj, data_bl_lpj0, ...
-                            cropList_lpj, Nlist_lpj0, Nlist_emu) ;
+                            cropList_lpj, Nlist_lpj0, Nlist_emu, which_file) ;
                         data_fu_out = e2p_fake_1000(data_fu_out, data_bl_lpj0, ...
-                            cropList_lpj, Nlist_lpj0, Nlist_emu) ;
+                            cropList_lpj, Nlist_lpj0, Nlist_emu, which_file) ;
                     end
                     
                     %% Remove outliers
