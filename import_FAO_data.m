@@ -31,6 +31,8 @@ elseif calib_ver==17
     fao_filename_trimmed = 'Production_Crops_E_All_Data_(Normalized).csv' ;
 elseif calib_ver==21
     fao_filename_trimmed = 'Production_Crops_E_All_Data_(Normalized).csv' ;
+elseif calib_ver==22
+    fao_filename_trimmed = 'FAOSTAT_data_10-19-2020_forGGCMI3.csv' ;
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
@@ -93,6 +95,16 @@ else
             'Unit', 'Flag', 'YearCode'} ;
         fao(:, contains(fao.Properties.VariableNames, extraneous_columns)) = [] ;
         fao = fao(:,[1 3 2 4 5]) ;
+        fao.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
+        twofiles = false ;
+    elseif calib_ver==22
+        disp('Reading FAO data from TXT file...')
+        fao = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOSTAT_data_10-19-2020_forGGCMI3.csv') ;
+        extraneous_columns = {'DomainCode', 'Domain', 'AreaCode', ...
+            'ElementCode', 'ItemCode', 'YearCode', 'Unit', ...
+            'Flag', 'FlagDescription'} ;
+        fao(:, contains(fao.Properties.VariableNames, extraneous_columns)) = [] ;
+%         fao = fao(:,[1 3 2 4 5]) ;
         fao.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
         twofiles = false ;
     else
@@ -170,6 +182,19 @@ end
 
 % What countries, crops, and years are in the dataset?
 if ~twofiles
+    
+    % If any of these names are present, rename to match equivalent in
+    % external country list
+    fao.AreaName(strcmp(fao.AreaName, ...
+        'United Kingdom of Great Britain and Northern Ireland')) = { ...
+        'United Kingdom'} ;
+    fao.AreaName(strcmp(fao.AreaName, ...
+        'Palestine')) = { ...
+        'Occupied Palestinian Territory'} ;
+    fao.AreaName(strcmp(fao.AreaName, ...
+        'Ethiopia PDR')) = { ...
+        'Ethiopia'} ; % "Ethiopia PDR" was the name pre-1993
+        
     % listCrops_fao = unique(fao.ItemName) ;
     listCountries_fao = unique(fao.AreaName) ;
     listYears_fao = unique(fao.Year) ;

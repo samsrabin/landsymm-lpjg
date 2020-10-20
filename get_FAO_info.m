@@ -387,13 +387,26 @@ elseif calib_ver==20
         %    Sugar non-centrifugal
     FAO_to_FAO_key2{getFi('FruitAndVeg')}    = {'Fruits - Excluding Wine','Vegetables'} ;
 elseif calib_ver==21
-%     error('Do this')
     listCrops_fa2o = {'Faba bean','Sorghum','Soybean'} ;
     getFi = @(x)find(strcmp(listCrops_fa2o,x)) ;
     FAO_to_FAO_key{getFi('Faba bean')}         = {'Pulses Total'} ;
 %     FAO_to_FAO_key{getFi('Faba bean')}         = {'Broad beans horse beans dry','Vegetables leguminous nes'} ;
     FAO_to_FAO_key{getFi('Sorghum')}           = {'Sorghum'} ;
     FAO_to_FAO_key{getFi('Soybean')}           = {'Soybeans'} ;
+elseif calib_ver==22
+    % GGCMI phase 3 / ISIMIP3
+    listCrops_fa2o = {'bea', 'mai', 'mil', 'ric', 'sor', 'soy', 'whe'} ;
+    getFi = @(x)find(strcmp(listCrops_fa2o,x)) ;
+    FAO_to_FAO_key{getFi('bea')}         = {'Beans, dry'} ;
+%     FAO_to_FAO_key{getFi('bea')}         = {'Beans, dry', 'Beans, green'} ;
+    FAO_to_FAO_key{getFi('mai')}           = {'Maize'} ;
+%     FAO_to_FAO_key{getFi('mai')}           = {'Maize', 'Maize, green'} ;
+    FAO_to_FAO_key{getFi('mil')}           = {'Millet'} ;
+    FAO_to_FAO_key{getFi('ric')}           = {'Rice, paddy'} ;
+%     FAO_to_FAO_key{getFi('ric')}           = {'Rice, paddy (rice milled equivalent'} ;
+    FAO_to_FAO_key{getFi('sor')}           = {'Sorghum'} ;
+    FAO_to_FAO_key{getFi('soy')}           = {'Soybeans'} ;
+    FAO_to_FAO_key{getFi('whe')}           = {'Wheat'} ;
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end

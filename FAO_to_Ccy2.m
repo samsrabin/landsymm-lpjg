@@ -15,7 +15,7 @@ Ncrops_in = length(listCrops_fa2i) ;
 Ncrops_out = length(listCrops_fa2o) ;
 croparea_fao_Ccy = nan(Ncountries,Ncrops_out,Nyears_fao) ;
 total_fao_Ccy = nan(Ncountries,Ncrops_out,Nyears_fao) ;
-found_in_fao = false(size(listCountries_map_present)) ;
+found_in_fao_Cc = false(length(listCountries_map_present), Ncrops_in) ;
 % found_crops = false(
 for c = 1:Ncrops_in
     thisCrop_FAO = listCrops_fa2i{c} ;
@@ -64,18 +64,25 @@ for c = 1:Ncrops_in
     end
     
     % Put into _Ccy table
-    [croparea_fao_Ccy, total_fao_Ccy, found_in_fao] = fill_Ccy( ...
+    [croparea_fao_Ccy, total_fao_Ccy, found_in_fao_Cc] = fill_Ccy( ...
         Ncountries, listCountries_map_present, i, ...
         croparea_fao_Ccy, total_fao_Ccy, croparea_thisCrop, total_thisCrop, ...
-        found_in_fao, listYears_fao) ;
+        found_in_fao_Cc, listYears_fao, c) ;
     
     clear i *thisCrop*
 end ; clear c   % Crop loop
 
 for C = 1:Ncountries
-    if ~found_in_fao(C)
-        thisCountry = listCountries_map_present{C} ;
-        warning([thisCountry ' not found in FAO data.'])
+    thisCountry = listCountries_map_present{C} ;
+    if ~any(found_in_fao_Cc(C,:))
+        if any(strcmp(unique(fao.AreaName),thisCountry))
+            warning('%s not found in FAO data for any included crops (but is in FAO data for something else).', thisCountry )
+        else
+            warning('%s not found in FAO data.', thisCountry )
+        end
+%     elseif ~all(found_in_fao_Cc(C,:))
+%         warning('%s not found in FAO data for %d/%d crops.', ...
+%             thisCountry, Ncrops_in - length(find(found_in_fao_Cc(C,:))), Ncrops_in) ;
     end
 end ; clear C
 
@@ -105,7 +112,8 @@ if any(isinf(yield2_fao_Ccy(:)))
     if ~ignoreInfYield
         error('At least one member of yield2_fao_Ccy is Inf!')
     else
-        warning('At least one member of yield2_fao_Ccy is Inf! IGNORING')
+        warning('At least one member of yield2_fao_Ccy is Inf! Max production = %0.1g. IGNORING', ...
+            max(total_fao_Ccy(isinf(yield2_fao_Ccy))))
     end
 end
 
@@ -114,10 +122,10 @@ end
 
 
 
-function [croparea_fao_Ccy, total_fao_Ccy, found_in_fao] = fill_Ccy( ...
+function [croparea_fao_Ccy, total_fao_Ccy, found_in_fao_Cc] = fill_Ccy( ...
     Ncountries, listCountries_map_present, i, ...
     croparea_fao_Ccy, total_fao_Ccy, croparea_thisCrop, total_thisCrop, ...
-    found_in_fao, listYears_fao)
+    found_in_fao_Cc, listYears_fao, cropIndex)
 
 for C = 1:Ncountries
     thisCountry = listCountries_map_present{C} ;
@@ -134,7 +142,7 @@ for C = 1:Ncountries
         tmp = tmp + tmp_thisCountry.Value ;
         croparea_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year)) = tmp ;
         clear tmp*
-        found_in_fao(C) = true ;
+        found_in_fao_Cc(C,cropIndex) = true ;
     end
     
     % Total production
@@ -149,7 +157,7 @@ for C = 1:Ncountries
         tmp = tmp + tmp_thisCountry.Value ;
         total_fao_Ccy(C,i,ismember(listYears_fao,tmp_thisCountry.Year)) = tmp ;
         clear tmp*
-        found_in_fao(C) = true ;
+        found_in_fao_Cc(C,cropIndex) = true ;
     end
     
     clear thisCountry*
