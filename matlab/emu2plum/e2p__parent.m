@@ -23,12 +23,11 @@ fake1k = true ;
 overwrite_existing_txt = false ;
 
 % Run info
-% gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
-ggcm_list = {'EPIC-TAMU', 'LPJmL'} ;
-% ssp_list = {'ssp245', 'ssp126', 'ssp370', 'ssp585'} ;
-gcm_list = {'GFDL-ESM4'} ;
-ssp_list = {'ssp126'} ;
-thisVer = '20200830' ;
+gcm_list = {'UKESM1-0-LL'} ;
+ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
+ssp_list = {'ssp126', 'ssp585'} ;
+thisVer = '20201204' ;
+emuVer = 'v2.0' ;
 
 baseline_y1 = 2001 ;
 baseline_yN = 2010 ;
