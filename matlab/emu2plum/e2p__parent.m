@@ -5,14 +5,14 @@
 whichfile_list = {'yield', 'gsirrigation'} ;
 
 % Development vs. production
-figure_visibility = 'on' ; % 'off' or 'on'. Determines whether figures are shown on screen
+figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
 figure_extension = 'png' ; % fig or png
 save_excl_figs = false ;
 save_interp_figs = false ;
-save_out_figs = true ;
+save_out_figs = false ;
 which_out_figs = {'max'} ; % {'max', 'first'}
-save_txt_files = false ;
-load_existing_file = true ;
+save_txt_files = true ;
+load_existing_file = false ;
 
 % Behaviors
 excl_lowBL_agmerra = true ;
@@ -24,10 +24,11 @@ remove_outliers = true ;
 % gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
 % ggcm_list = {'EPIC-TAMU', 'LPJ-GUESS', 'LPJmL', 'pDSSAT'} ;
 % ssp_list = {'ssp245', 'ssp126', 'ssp370', 'ssp585'} ;
-gcm_list = {'GFDL-ESM4'} ;
-ggcm_list = {'LPJmL'} ;
-ssp_list = {'ssp126'} ;
-thisVer = '20200821' ;
+gcm_list = {'UKESM1-0-LL'} ;
+ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
+ssp_list = {'ssp126', 'ssp585'} ;
+thisVer = '20201204' ;
+emuVer = 'v2.0' ;
 
 baseline_y1 = 2001 ;
 baseline_yN = 2010 ;

@@ -1,7 +1,8 @@
 function [data_bl_emu, data_fu_emu] = e2p_import_emu( ...
     topDir_emu, thisGCM, thisEmu, thisSSP, which_file, ...
     cropList_in, gridlist, ts1_list, tsN_list, Nlist, ...
-    baseline_yN, future_yN_emu, irrList_in, irrList_out)
+    baseline_yN, future_yN_emu, irrList_in, irrList_out, ...
+	 emuVer)
 
 % Translate which_file to Christoph's tokens
 if strcmp(which_file, 'yield')
@@ -41,12 +42,12 @@ for c = 1:Ncrops_in
 end
 
 % Which crops does this emulator have for this GCM-SSP?
-cropList_in_this = dir(sprintf('%s/**/*%s_%s*%s*iwd_baseline*.nc4', ...
-    topDir_emu, thisSSP, thisGCM, thisEmu)) ;
+cropList_in_this = dir(sprintf('%s/**/*_%s/**/*%s_%s*%s*iwd_baseline*.nc4', ...
+    topDir_emu, emuVer, thisSSP, thisGCM, thisEmu)) ;
 if isempty(cropList_in_this)
     msgStruct.messsage = sprintf( ...
-        'No files found matching %s/**/*%s_%s*%s*iwd_baseline*.nc4', ...
-        topDir_emu, thisSSP, thisGCM, thisEmu) ;
+        'No files found matching %s/**/*_%s/**/*%s_%s*%s*iwd_baseline*.nc4', ...
+        topDir_emu, emuVer, thisSSP, thisGCM, thisEmu) ;
     msgStruct.identifier = 'e2p:e2p_import_emu:noFilesFound' ;
 %     error(msgStruct)
     error(msgStruct.identifier, msgStruct.messsage)
@@ -92,8 +93,8 @@ for c = 1:Ncrops_in_this
         thisN = Nlist(n) ;
         
         % Get file with data for baseline
-        thisDir = sprintf('%s/%s/CMIP6/A0_N%d/%s/%s', ...
-            topDir_emu, which_file, thisN, thisSSP, thisEmu) ;
+        thisDir = sprintf('%s/%s/CMIP6/A0_N%d_%s/%s/%s', ...
+            topDir_emu, which_file, thisN, emuVer, thisSSP, thisEmu) ;
         if ~exist(thisDir, 'dir')
             error('thisDir does not exist: %s', thisDir)
         end
