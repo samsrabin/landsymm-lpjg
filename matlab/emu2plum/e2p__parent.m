@@ -20,7 +20,8 @@ excl_lowBL_emu = true ;
 interp_infs = true ;
 when_remove_outliers = 'end' ; % end, before_interp, off
 fake1k = true ;
-overwrite_existing_txt = false ;
+overwrite_existing_txt = true ;
+overwrite_existing_figs = true ;
 
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
