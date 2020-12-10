@@ -40,7 +40,7 @@ future_yN_emu = 2084 ;
 %% Setup 
 
 current_dir = pwd ;
-if strcmp(current_dir(1:6), '/Users')
+if strcmp(current_dir(1:6), '/Users') || strcmp(current_dir(1:6), '/Volum')
     topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
     topdir_sh = '/Users/Shared/GGCMI2PLUM_sh/' ;
     topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
