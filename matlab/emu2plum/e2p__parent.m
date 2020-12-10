@@ -29,6 +29,7 @@ ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
 ssp_list = {'ssp126', 'ssp585'} ;
 thisVer = '20201204' ;
 emuVer = 'v2.5' ;
+adaptation = 1 ;
 
 baseline_y1 = 2001 ;
 baseline_yN = 2010 ;

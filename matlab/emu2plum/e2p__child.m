@@ -4,8 +4,8 @@ for g = 1:length(gcm_list)
     for s = 1:length(ssp_list)
         ssp = ssp_list{s} ;
 
-        outDir = sprintf('%s_work/%s_%s_v%s', ...
-            topDir_emu, gcm, ssp, thisVer) ;
+        outDir = sprintf('%s_work/A%d_%s_%s_%s_%s', ...
+            topDir_emu, adaptation, emuVer, gcm, ssp, thisVer) ;
         if remove_outliers
             outDir = [outDir '_rmol' when_remove_outliers] ; %#ok<AGROW>
         end
@@ -83,7 +83,7 @@ for g = 1:length(gcm_list)
                                 topDir_emu, gcm, ggcm, ssp, which_file, ...
                                 cropList_in, gridlist, ts1_list, tsN_list, Nlist, ...
                                 baseline_yN, future_yN_emu, irrList_in, irrList_out, ...
-										  emuVer) ;
+								emuVer, adaptation) ;
                         catch ME
                             if strcmp(ME.identifier, 'e2p:e2p_import_emu:noFilesFound')
                                 warning('No files found for %s %s %s; skipping', ...
