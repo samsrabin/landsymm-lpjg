@@ -36,6 +36,9 @@ baseline_yN = 2010 ;
 future_ts = 10 ; % Number of years in future time step
 future_yN_emu = 2084 ;
 
+tmp_rcp = 'rcp45' ;
+warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP6 runs.', ...
+    tmp_rcp)
 
 %% Setup 
 
@@ -44,10 +47,16 @@ if strcmp(current_dir(1:6), '/Users') || strcmp(current_dir(1:6), '/Volum')
     topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
     topdir_sh = '/Users/Shared/GGCMI2PLUM_sh/' ;
     topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
+    topDir_lpj0 = sprintf( ...
+        '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_%s_forED', ...
+        tmp_rcp) ;
 elseif strcmp(current_dir(1:3), '/pd')
     topdir_db = '/pd/data/lpj/sam/ggcmi2plum' ;
     topdir_sh = topdir_db ;
     topDir_emu = '/pd/data/lpj/sam/ggcmi2plum/CMIP_emulated' ;
+    topDir_lpj0 = sprintf( ...
+        '/pd/data/lpj/sam/ggcmi2plum/lpj-guess_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_%s_forED', ...
+        tmp_rcp) ;
 else
     error('Failed to interpret what system you''re on')
 end
@@ -73,21 +82,15 @@ end
 remove_outliers = ~strcmp(when_remove_outliers, 'off') ...
     & ~isempty(when_remove_outliers) ;
 
-tmp_rcp = 'rcp45' ;
-warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP6 runs.', ...
-    tmp_rcp)
 topDir_lpj = sprintf( ...
     '%s/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
     topdir_sh, tmp_rcp) ;
-topDir_lpj0 = sprintf( ...
-    '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_%s_forED', ...
-    tmp_rcp) ;
 
 if ~contains(topDir_lpj, tmp_rcp)
     error('~contains(topDir_lpj, rcp)')
 elseif ~exist(topDir_lpj, 'dir')
     error('topDir_lpj does not exist:\n %s', topDir_lpj)
-elseif save_out_figs_Nth0 && ~exist(topDir_lpj0, 'dir')
+elseif ~exist(topDir_lpj0, 'dir')
     error('topDir_lpj0 does not exist:\n %s', topDir_lpj0)
 end
 
