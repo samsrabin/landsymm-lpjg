@@ -1,5 +1,7 @@
 function yield_agmerraBL_xv = e2p_get_agmerra_yield(...
-    varNames_emu, topDir_phase2, ggcm, list2map, getN)
+    varNames_emu, topDir_phase2, ggcm, list2map, getN, adaptation)
+
+warning('on','all')
 
 % Get info
 Nvars_emu = length(varNames_emu) ;
@@ -27,13 +29,47 @@ for v = 1:Nvars_emu
         case 'winter_wheat'; thisCrop_short = 'wwh' ;
         otherwise; error('thisCrop (%s) not recognized', thisCrop)
     end
-    thisFile = sprintf('%s/%s/A0/yield/%s_agmerra_fullharm_yield_%s_global_annual_1980_2010_C360_T0_W0_N%d_A0.nc4', ...
-        topDir_phase2, thisCrop, lower(ggcm), thisCrop_short, thisN) ;
+    thisFile = sprintf('%s/%s/A%d/yield/%s_agmerra_fullharm_yield_%s_global_annual_1980_2010_C360_T0_W0_N%d_A%d.nc4', ...
+        topDir_phase2, thisCrop, adaptation, lower(ggcm), thisCrop_short, thisN, ...
+        adaptation) ;
     if isirrig
         thisFile = strrep(thisFile, 'W0', 'Winf') ;
     end
     if ~exist(thisFile, 'file')
-        error('thisFile (%s) not found', thisFile)
+        % Try A[other]
+        tmp_thisAdapt = ~adaptation ;
+        tmp_thisN = thisN ;
+        thisFile = sprintf('%s/%s/A%d/yield/%s_agmerra_fullharm_yield_%s_global_annual_1980_2010_C360_T0_W0_N%d_A%d.nc4', ...
+            topDir_phase2, thisCrop, tmp_thisAdapt, lower(ggcm), thisCrop_short, thisN, ...
+            tmp_thisAdapt) ;
+        if ~exist(thisFile, 'file')
+            % Try NNA
+            tmp_thisAdapt = adaptation ;
+            tmp_thisN = NaN ;
+            thisFile = sprintf('%s/%s/A%d/yield/%s_agmerra_fullharm_yield_%s_global_annual_1980_2010_C360_T0_W0_NNA_A%d.nc4', ...
+                topDir_phase2, thisCrop, tmp_thisAdapt, lower(ggcm), thisCrop_short, ...
+                tmp_thisAdapt) ;
+            if ~exist(thisFile, 'file')
+                % Try A[other] NNA
+                tmp_thisAdapt = ~adaptation ;
+                thisFile = sprintf('%s/%s/A%d/yield/%s_agmerra_fullharm_yield_%s_global_annual_1980_2010_C360_T0_W0_NNA_A%d.nc4', ...
+                    topDir_phase2, thisCrop, tmp_thisAdapt, lower(ggcm), thisCrop_short, ...
+                    tmp_thisAdapt) ;
+                if ~exist(thisFile, 'file')
+                    error('thisFile (%s) not found, nor A%d_NNA', thisFile)
+                end
+            end
+        end
+        
+        % Warn
+        missingAN = sprintf('A%d_N%d', adaptation, thisN) ;
+        if isnan(tmp_thisN)
+            replacementAN = sprintf('A%d_NNA', tmp_thisAdapt) ;
+        else
+            replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
+        end
+        warning('%s %s not found, using %s instead', ...
+            thisCrop_short, missingAN, replacementAN) ;
     end
     
     % Import (exclude last timestep to avoid incomplete final seasons)

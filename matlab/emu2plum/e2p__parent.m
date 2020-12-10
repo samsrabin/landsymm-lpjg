@@ -25,7 +25,8 @@ overwrite_existing_figs = true ;
 
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
-ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
+% ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
+ggcm_list = {'CARAIB', 'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
 ssp_list = {'ssp126', 'ssp585'} ;
 thisVer = '20201204' ;
 emuVer = 'v2.5' ;
