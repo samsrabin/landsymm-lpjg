@@ -5,29 +5,31 @@
 whichfile_list = {'yield', 'gsirrigation'} ;
 
 % Development vs. production
-figure_visibility = 'on' ; % 'off' or 'on'. Determines whether figures are shown on screen
+figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
 figure_extension = 'png' ; % fig or png
-save_excl_figs = false ;
-save_interp_figs = false ;
+save_excl_figs = true ;
+save_interp_figs = true ;
 save_out_figs = true ;
 which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
-save_txt_files = false ;
-load_existing_file = true ;
+save_txt_files = true ;
+load_existing_file = false ;
 
 % Behaviors
 excl_lowBL_agmerra = true ;
 excl_lowBL_emu = true ;
 interp_infs = true ;
-when_remove_outliers = 'before_interp' ; % end, before_interp, off
+when_remove_outliers = 'end' ; % end, before_interp, off
+fake1k = true ;
+overwrite_existing_txt = true ;
+overwrite_existing_figs = true ;
 
 % Run info
-% gcm_list = {'GFDL-ESM4', 'IPSL-CM6A-LR', 'MPI-ESM1-2-HR', 'MRI-ESM2-0', 'UKESM1-0-LL'} ;
-ggcm_list = {'pDSSAT', 'EPIC-TAMU', 'LPJmL'} ;
-% ssp_list = {'ssp245', 'ssp126', 'ssp370', 'ssp585'} ;
-gcm_list = {'GFDL-ESM4'} ;
-% ggcm_list = {'LPJmL'} ;
-ssp_list = {'ssp126'} ;
-thisVer = '20200825' ;
+gcm_list = {'UKESM1-0-LL'} ;
+ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
+ssp_list = {'ssp126', 'ssp585'} ;
+thisVer = '20201204' ;
+emuVer = 'v2.5' ;
+adaptation = 1 ;
 
 baseline_y1 = 2001 ;
 baseline_yN = 2010 ;
@@ -38,7 +40,7 @@ future_yN_emu = 2084 ;
 %% Setup 
 
 current_dir = pwd ;
-if strcmp(current_dir(1:6), '/Users')
+if strcmp(current_dir(1:6), '/Users') || strcmp(current_dir(1:6), '/Volum')
     topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
     topdir_sh = '/Users/Shared/GGCMI2PLUM_sh/' ;
     topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
@@ -81,10 +83,10 @@ elseif save_out_figs_Nth0 && ~exist(topDir_lpj0, 'dir')
     error('topDir_lpj0 does not exist:\n %s', topDir_lpj0)
 end
 
-getbasename = @(x) regexprep(x,'i?\d\d\d$','') ;
-getbasenamei = @(x) regexprep(x,'\d\d\d$','') ;
-getbasename0 = @(x) regexprep(regexprep(regexprep(x,'i?\d\d\d\d$',''),'i0$',''),'0$','') ;
-getbasename0i = @(x) regexprep(regexprep(x,'\d\d\d\d$',''),'0$','') ;
+% getbasename = @(x) regexprep(x,'i?\d\d\d$','') ;
+% getbasenamei = @(x) regexprep(x,'\d\d\d$','') ;
+% getbasename0 = @(x) regexprep(regexprep(regexprep(x,'i?\d\d\d\d$',''),'i0$',''),'0$','') ;
+% getbasename0i = @(x) regexprep(regexprep(x,'\d\d\d\d$',''),'0$','') ;
 getN = @(x) regexprep(regexprep(x, 'CerealsC[34]', ''), '^[a-zA-Z_]+', '') ;
 get_unneeded = @(x)cellfun(@isempty, ...
     regexp(regexprep(x,'CerealsC[34]','CerealsC'),'.*\d+')) | contains(x,'G_ic') ;
@@ -146,7 +148,7 @@ header_out = [header_out '\n'] ;
 format_out = [format_out '\n'] ;
 
 
-%% Import LPJ-GUESS yield
+%% Import LPJ-GUESS yield and irrigation
 
 disp('Importing LPJ-GUESS yield...')
 
@@ -164,16 +166,12 @@ e2p_check_correct_zeros(data_fu_lpj_yield.garr_xvt, which_file, getbasenamei(dat
     varNames_lpj_basei, cropList_lpj_basei, ...
     Nlist_lpj, ~] = ...
     e2p_get_names(data_bl_lpj_yield.varNames, data_fu_lpj_yield.varNames, ...
-    getbasename, getbasenamei, getN, get_unneeded) ;
+    getN, get_unneeded) ;
 
 if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
     error('Mismatch between cropIrrNlist_out and varNames_lpj')
 end
 
-disp('Done.')
-
-
-%% Import LPJ-GUESS irrigation
 
 disp('Importing LPJ-GUESS irrigation...')
 
@@ -191,7 +189,7 @@ e2p_check_correct_zeros(data_fu_lpj_irrig.garr_xvt, which_file, getbasenamei(dat
     varNames_lpj_basei2, cropList_lpj_basei2, ...
     Nlist_lpj2, ~] = ...
     e2p_get_names(data_bl_lpj_irrig.varNames, data_fu_lpj_irrig.varNames, ...
-    getbasename, getbasenamei, getN, get_unneeded) ;
+    getN, get_unneeded) ;
 
 if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
     error('Mismatch between cropIrrNlist_out and varNames_lpj')
@@ -209,54 +207,53 @@ clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj2
 disp('Done.')
 
 
-%% Import LPJ-GUESS-0 yield
+%% Import LPJ-GUESS-0 yield and irrigation
 
-if save_out_figs_Nth0
+if save_out_figs_Nth0 || fake1k
     disp('Importing LPJ-GUESS-0 yield...')
     
     which_file = 'yield' ;
     
     data_bl_lpj0_yield = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj0, ...
         which_file, get_unneeded, gridlist_target) ;
-    e2p_check_correct_zeros(data_bl_lpj0_yield.garr_xv, which_file, getbasename0i(data_bl_lpj0_yield.varNames))
+    e2p_check_correct_zeros(data_bl_lpj0_yield.garr_xv, which_file, getbasenamei(data_bl_lpj0_yield.varNames))
     
     data_fu_lpj0_yield = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj0, ...
         which_file, data_bl_lpj0_yield.varNames, get_unneeded, gridlist_target) ;
-    e2p_check_correct_zeros(data_fu_lpj0_yield.garr_xvt, which_file, getbasename0i(data_fu_lpj0_yield.varNames))
+    e2p_check_correct_zeros(data_fu_lpj0_yield.garr_xvt, which_file, getbasenamei(data_fu_lpj0_yield.varNames))
     
     [varNames_lpj0, cropList_lpj0, ...
         varNames_lpj0_basei, cropList_lpj0_basei, ...
         Nlist_lpj0, ~] = ...
         e2p_get_names(data_bl_lpj0_yield.varNames, data_fu_lpj0_yield.varNames, ...
-        getbasename0, getbasename0i, getN, get_unneeded) ;
+        getN, get_unneeded) ;
     
-    disp('Done.')
 else
     data_bl_lpj0_yield = [] ;
     data_fu_lpj0_yield = [] ;
 end
 
 
-%% Import LPJ-GUESS-0 irrigation
+% Import LPJ-GUESS-0 irrigation
 
-if save_out_figs_Nth0
+if save_out_figs_Nth0 || fake1k
     disp('Importing LPJ-GUESS-0 irrigation...')
     
     which_file = 'gsirrigation' ;
     
     data_bl_lpj0_irrig = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj0, ...
         which_file, get_unneeded, gridlist_target) ;
-    e2p_check_correct_zeros(data_bl_lpj0_irrig.garr_xv, which_file, getbasename0i(data_bl_lpj0_irrig.varNames))
+    e2p_check_correct_zeros(data_bl_lpj0_irrig.garr_xv, which_file, getbasenamei(data_bl_lpj0_irrig.varNames))
     
     data_fu_lpj0_irrig = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj0, ...
         which_file, data_bl_lpj0_irrig.varNames, get_unneeded, gridlist_target) ;
-    e2p_check_correct_zeros(data_fu_lpj0_irrig.garr_xvt, which_file, getbasename0i(data_fu_lpj0_irrig.varNames))
+    e2p_check_correct_zeros(data_fu_lpj0_irrig.garr_xvt, which_file, getbasenamei(data_fu_lpj0_irrig.varNames))
     
     [varNames_lpj0, cropList_lpj02, ...
         varNames_lpj0_basei2, cropList_lpj0_basei2, ...
         Nlist_lpj02, ~] = ...
         e2p_get_names(data_bl_lpj0_irrig.varNames, data_fu_lpj0_irrig.varNames, ...
-        getbasename0, getbasename0i, getN, get_unneeded) ;
+        getN, get_unneeded) ;
     
     if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj0))
         warning('Mismatch between cropIrrNlist_out and varNames_lpj0')

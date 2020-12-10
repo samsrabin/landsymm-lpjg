@@ -4,10 +4,13 @@ for g = 1:length(gcm_list)
     for s = 1:length(ssp_list)
         ssp = ssp_list{s} ;
 
-        outDir = sprintf('%s_work/%s_%s_v%s', ...
-            topDir_emu, gcm, ssp, thisVer) ;
+        outDir = sprintf('%s_work/A%d_%s_%s_%s_%s', ...
+            topDir_emu, adaptation, emuVer, gcm, ssp, thisVer) ;
         if remove_outliers
             outDir = [outDir '_rmol' when_remove_outliers] ; %#ok<AGROW>
+        end
+        if fake1k
+            outDir = [outDir '_fake1k'] ; %#ok<AGROW>
         end
         outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
         outDir_excl_figs_inCrops = sprintf('%s/excl_figs_GGCMIcrops', outDir) ;
@@ -40,10 +43,12 @@ for g = 1:length(gcm_list)
                 if strcmp(which_file, 'yield')
                     data_bl_lpj = data_bl_lpj_yield ;
                     data_fu_lpj = data_fu_lpj_yield ;
+                    data_bl_lpj0 = data_bl_lpj0_yield ;
                     data_fu_lpj0 = data_fu_lpj0_yield ;
                 elseif strcmp(which_file, 'gsirrigation')
                     data_bl_lpj = data_bl_lpj_irrig ;
                     data_fu_lpj = data_fu_lpj_irrig ;
+                    data_bl_lpj0 = data_bl_lpj0_irrig ;
                     data_fu_lpj0 = data_fu_lpj0_irrig ;
                 else
                     error('which_file (%s) not recognized', which_file)
@@ -62,7 +67,7 @@ for g = 1:length(gcm_list)
                             varNames_emu_basei, cropList_emu_basei, ...
                             Nlist_emu, ~] = ...
                             e2p_get_names([], data_fu_emu.varNames, ...
-                            getbasename, getbasenamei, getN, get_unneeded) ;
+                            getN, get_unneeded) ;
                     [cropList_lpj_asEmu, used_emuCrops] = e2p_translate_crops( ...
                         cropList_lpj, cropList_emu) ;
                 else
@@ -77,7 +82,8 @@ for g = 1:length(gcm_list)
                             [data_bl_emu, data_fu_emu] = e2p_import_emu( ...
                                 topDir_emu, gcm, ggcm, ssp, which_file, ...
                                 cropList_in, gridlist, ts1_list, tsN_list, Nlist, ...
-                                baseline_yN, future_yN_emu, irrList_in, irrList_out) ;
+                                baseline_yN, future_yN_emu, irrList_in, irrList_out, ...
+								emuVer, adaptation) ;
                         catch ME
                             if strcmp(ME.identifier, 'e2p:e2p_import_emu:noFilesFound')
                                 warning('No files found for %s %s %s; skipping', ...
@@ -95,7 +101,7 @@ for g = 1:length(gcm_list)
                             varNames_emu_basei, cropList_emu_basei, ...
                             Nlist_emu, ~] = ...
                             e2p_get_names(data_bl_emu.varNames, data_fu_emu.varNames, ...
-                            getbasename, getbasenamei, getN, get_unneeded) ;
+                            getN, get_unneeded) ;
 
                         disp('    Done.')
 
@@ -129,7 +135,7 @@ for g = 1:length(gcm_list)
                             disp('    Excluding based on low AgMERRA yield...')
                             % Get AgMERRA yield
                             yield_agmerraBL_xv = e2p_get_agmerra_yield(...
-                                varNames_emu, topDir_phase2, ggcm, data_bl_emu.list2map, getbasenamei, getN) ;
+                                varNames_emu, topDir_phase2, ggcm, data_bl_emu.list2map, getN) ;
                             if ~any(any(~isnan(yield_agmerraBL_xv)))
                                 error('yield_agmerraBL_xv is all NaN')
                             end
@@ -190,11 +196,13 @@ for g = 1:length(gcm_list)
                             cropList_lpj, cropList_lpj_basei, ...
                             cropList_emu, cropList_emu_basei, ...
                             figure_visibility, figure_extension, ...
-                            outDir_excl_figs_outCrops)
+                            outDir_excl_figs_outCrops, ...
+                            overwrite_existing_figs)
                         e2p_save_excl_figs_inCrops(...
                             ggcm, which_file, gridlist, excl_vecs, ...
                             cropList_emu_basei, figure_visibility, ...
-                            figure_extension, outDir_excl_figs_inCrops)
+                            figure_extension, outDir_excl_figs_inCrops, ...
+                            overwrite_existing_figs)
                     end
                     
                     exclude_xc = missing_yield_xc | missing_emu_xc ...
@@ -287,7 +295,7 @@ for g = 1:length(gcm_list)
                             varNames_emu_basei, cropList_emu_basei, ...
                             Nlist_emu, ~] = ...
                             e2p_get_names(data_bl_emu.varNames, data_fu_emu.varNames, ...
-                            getbasename, getbasenamei, getN, get_unneeded) ; %#ok<ASGLU>
+                            getN, get_unneeded) ; %#ok<ASGLU>
                     end
 
                     disp('    Done.')
@@ -318,14 +326,13 @@ for g = 1:length(gcm_list)
                     disp('    Done.')
 
 
-                    %% Get and apply deltas (and remove outliers, if doing so)
-
+                    %% Get and apply deltas
                     if contains(which_file, {'yield','gsirrigation'})
                         disp('    Getting deltas...')
 
                         deltas_emu_xvt = e2p_get_deltas(...
                             data_bl_emu, data_fu_emu, interp_infs, cropList_emu, ...
-                            getbasename, getbasenamei, which_file, ...
+                            which_file, ...
                             used_emuCrops, list2map, ...
                             save_interp_figs, outDir_interp_figs, ggcm, figure_visibility, ...
                             when_remove_outliers, outDir_ggcm) ;
@@ -344,9 +351,19 @@ for g = 1:length(gcm_list)
                     [data_fu_lpj, data_fu_out] = e2p_apply_deltas( ...
                         data_bl_lpj, data_fu_lpj, data_bl_emu, data_fu_emu, deltas_emu_xvt, ...
                         cropList_lpj, cropList_lpj_asEmu, varNames_lpj, ...
-                        list2map, getbasename, getbasenamei, which_file, figure_visibility) ;
+                        list2map, which_file, figure_visibility) ;
                     e2p_check_correct_zeros(data_fu_out.garr_xvt, which_file, getbasenamei(data_fu_out.varNames))
 
+                    
+                    %% Get fake N1000 values
+                    if fake1k
+                        data_fu_lpj = e2p_fake_1000(data_fu_lpj, data_bl_lpj0, ...
+                            cropList_lpj, Nlist_lpj0, Nlist_emu, which_file) ;
+                        data_fu_out = e2p_fake_1000(data_fu_out, data_bl_lpj0, ...
+                            cropList_lpj, Nlist_lpj0, Nlist_emu, which_file) ;
+                    end
+                    
+                    %% Remove outliers
                     if strcmp(when_remove_outliers, 'end')
                         disp('    Removing outliers...')
 
@@ -356,12 +373,17 @@ for g = 1:length(gcm_list)
                         [data_fu_out, outlier_info_out] = e2p_remove_outliers(data_fu_out, which_file) ;
                         e2p_check_correct_zeros(data_fu_out.garr_xvt, which_file, getbasenamei(data_fu_out.varNames))
 
-                        %% Save info
+                        % Save info
                         e2p_save_outlier_info(outlier_info_lpj, outDir_lpj, which_file, data_fu_out.y1s, data_fu_out.yNs)
                         e2p_save_outlier_info(outlier_info_out, outDir_ggcm, which_file, data_fu_out.y1s, data_fu_out.yNs)
                     end
 
                 end
+                
+                % Sort. Technically unnecessary, but maybe PLUM isn't
+                % robust to non-sorted crops.
+                data_fu_lpj = do_sort(data_fu_lpj, getN) ;
+                data_fu_out = do_sort(data_fu_out, getN) ;
 
                 disp('    Done.')
 
@@ -369,7 +391,7 @@ for g = 1:length(gcm_list)
                 %% Save outputs
 
                 if ~did_load_existing
-                    disp('    Saving...')
+                    disp('    Saving MAT file(s)...')
 
                     % Save outputs (one file)
                     out_file = sprintf('%s/future_%s.mat', outDir_ggcm, which_file) ;
@@ -393,42 +415,50 @@ for g = 1:length(gcm_list)
 
                 % Save outputs (for PLUM)
                 if save_txt_files
+                    disp('    Saving txt files for PLUM...')
                     out_header_cell = [{'Lon', 'Lat'} data_fu_out.varNames] ;
                     for t = 1:Ntpers
-                        fprintf('    %d/%d...\n', t, Ntpers)
                         y1 = data_fu_out.y1s(t) ;
                         yN = data_fu_out.yNs(t) ;
 
                         if strcmp(ggcm, ggcm_list{1})
+                            fprintf('    %d/%d lpj', t, Ntpers)
                             e2p_save(outDir_lpj, y1, yN, out_header_cell, ...
                                 data_fu_lpj.lonlats, data_fu_lpj.garr_xvt(:,:,t), which_file, ...
                                 interp_infs, remove_outliers, false)
                         end
+                        fprintf('    %d/%d emu', t, Ntpers)
                         e2p_save(outDir_ggcm, y1, yN, out_header_cell, ...
                             data_fu_out.lonlats, data_fu_out.garr_xvt(:,:,t), which_file, ...
-                            interp_infs, remove_outliers, true)
+                            interp_infs, remove_outliers, overwrite_existing_txt)
 
                     end
                 end
 
-                %% Save yield diagnostic figures, if doing so
+                % Save yield diagnostic figures, if doing so
                 if save_out_figs
                     disp('    Saving output figures...')
+                    if ~isempty(data_fu_lpj0) && ~save_out_figs_Nth0
+                        tmp = [] ;
+                    else
+                        tmp = data_fu_lpj0 ;
+                    end
                     if strcmp(which_file, 'yield')
-                        e2p_save_out_figs(data_fu_lpj, data_fu_lpj0, ...
+                        e2p_save_out_figs(data_fu_lpj, tmp, ...
                             data_fu_emu, data_fu_out, ...
-                            ggcm, getbasename, getbasenamei, getN, outDir_yield_figs, ...
+                            ggcm, getN, outDir_yield_figs, ...
                             which_file, cropList_lpj_asEmu, figure_visibility, figure_extension, ...
-                            which_out_figs)
+                            which_out_figs, overwrite_existing_figs)
                     elseif strcmp(which_file, 'gsirrigation')
-                        e2p_save_out_figs(data_fu_lpj, data_fu_lpj0, ...
+                        e2p_save_out_figs(data_fu_lpj, tmp, ...
                             data_fu_emu, data_fu_out, ...
-                            ggcm, getbasename, getbasenamei, getN, outDir_irrig_figs, ...
+                            ggcm, getN, outDir_irrig_figs, ...
                             which_file, cropList_lpj_asEmu, figure_visibility, figure_extension, ...
-                            which_out_figs)
+                            which_out_figs, overwrite_existing_figs)
                     else
                         warning('which_file (%s) not recognized for save_yield_figs; skipping.', which_file)
                     end
+                    clear tmp
                 end
 
                 fprintf('Done with %s %s %s %s.\n', gcm, ssp, ggcm, which_file)
@@ -448,5 +478,48 @@ end
 
 disp(' ')
 disp('All done!')
+
+
+%% FUNCTIONS
+
+function S = do_sort(S, getN)
+
+% Sort N strings
+Nlist = unique(getN(S.varNames)) ;
+Nlist_num = str2double(Nlist) ;
+[Nlist_num, I] = sort(Nlist_num) ; %#ok<ASGLU>
+Nlist = Nlist(I) ;
+
+% Sort crop names (with irrig indicator)
+cropList = unique(getbasenamei(S.varNames)) ;
+cropList = sort(cropList) ;
+
+% Get new index order
+Nn = length(Nlist) ;
+Ncrops = length(cropList) ;
+Nvars = Nn*Ncrops ;
+new_order = nan(1,Nvars) ;
+for c = 1:Ncrops
+    thisCrop = cropList{c} ;
+    for n = 1:Nn
+        thisCropN = [thisCrop Nlist{n}] ;
+        thisInd = find(strcmp(S.varNames, thisCropN)) ;
+        if length(thisInd) ~= 1
+            error('Error finding thisCropN: %d found', length(thisInd))
+        end
+        new_order((c-1)*Nn+n) = thisInd ;
+    end
+end
+
+% Rearrange
+if ~isequal(1:Nvars, new_order)
+    S.garr_xvt = S.garr_xvt(:,new_order,:) ;
+    S.varNames = S.varNames(new_order) ;
+end
+
+end
+
+
+
 
 

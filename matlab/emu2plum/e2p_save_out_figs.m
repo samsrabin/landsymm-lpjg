@@ -1,8 +1,8 @@
 function e2p_save_out_figs(data_fu_lpj, data_fu_lpj0, ...
     data_fu_emu, data_fu_out, ...
-    ggcm, getbasename, getbasenamei, getN, outDir_figs, ...
+    ggcm, getN, outDir_figs, ...
     which_file, cropList_lpj_asEmu, figure_visibility, ...
-    figure_extension, which_out_figs)
+    figure_extension, which_out_figs, overwrite_existing_figs)
 
 if ~exist(outDir_figs, 'dir')
     mkdir(outDir_figs)
@@ -77,9 +77,6 @@ if strcmp(which_file, 'yield')
         
         % Apply to LPJ-GUESS sim
         isThisCrop = contains(data_fu_lpj.varNames, thisCrop) ;
-        if length(find(isThisCrop)) ~= Ncrops
-            error('length(find(isThisCrop)) ~= Ncrops')
-        end
         yield_fu_lpj_max_xv(:,isThisCrop) = ...
             cf_lpj(c) * yield_fu_lpj_max_xv(:,isThisCrop) ;
         yield1_lpj_xv(:,isThisCrop) = ...
@@ -107,9 +104,6 @@ if strcmp(which_file, 'yield')
         
         % Apply to final outputs
         isThisCrop = contains(data_fu_out.varNames, thisCrop) ;
-        if length(find(isThisCrop)) ~= Ncrops
-            error('length(find(isThisCrop)) ~= Ncrops')
-        end
         yield_fu_out_max_xv(:,isThisCrop) = ...
             cf_lpj(c) * yield_fu_out_max_xv(:,isThisCrop) ;
         yield1_out_xv(:,isThisCrop) = ...
@@ -175,8 +169,9 @@ for v = 1:length(data_fu_out.varNames)
     % Skip if figure files already exist
     if ((do_max && exist(filename_max, 'file')) || ~do_max) ...
     && ((do_first && exist(filename_first, 'file')) || ~do_first) ...
-    && ((do_4th && exist(filename_4th, 'file')) || ~do_4th)
-        fprintf('        %s %s skipped (exists)\n', thisVar_out, which_file)
+    && ((do_4th && exist(filename_4th, 'file')) || ~do_4th) ...
+    && ~overwrite_existing_figs
+        fprintf('        %s %s figure skipped (exists)\n', thisVar_out, which_file)
         continue
     end
     

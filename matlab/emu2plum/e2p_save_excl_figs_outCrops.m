@@ -3,7 +3,7 @@ function e2p_save_excl_figs_outCrops( ...
     cropList_lpj, cropList_lpj_basei, ...
     cropList_emu, cropList_emu_basei, ...
     figure_visibility, figure_extension, ...
-    outDir_excl_figs_outCrops)
+    outDir_excl_figs_outCrops, overwrite_existing_figs)
 
 % Unpack
 missing_emu_xc = excl_vecs{1} ;
@@ -148,9 +148,10 @@ for ci_lpj = 1:length(cropList_lpj_basei)
     elseif ~strcmp(figure_extension, 'png')
         error('figure_extension %s not recognized', figure_extension)
     end
-     if exist(filename, 'file')
-         continue
-     end
+    if exist(filename, 'file') && ~overwrite_existing_figs
+        fprintf('        %s %s exclusions figure skipped (exists)\n', thisCropi, which_file)
+        continue
+    end
     
     ngreen = 0 ;
     

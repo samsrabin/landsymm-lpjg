@@ -1,6 +1,6 @@
 function [varNames, cropList, varNames_basei, cropList_basei, Nlist, maxN] = ...
     e2p_get_names(varNames_bl, varNames_fu, ...
-    getbasename, getbasenamei, getN, get_unneeded)
+    getN, get_unneeded)
 
 % Make sure baseline and future variable names match (if varNames_bl is
 % included)
@@ -18,11 +18,11 @@ if any(get_unneeded(varNames))
 end
 
 % Get list of crops (not distinguishing rainfed vs. irrigated)
-cropList = unique(cellfun(getbasename, varNames, 'UniformOutput', false)) ;
+cropList = unique(getbasename(varNames)) ;
 Ncrops = length(cropList) ;
 
 % Get list of rainfed and irrigated crops
-varNames_basei = cellfun(getbasenamei, varNames, 'UniformOutput', false) ;
+varNames_basei = getbasenamei(varNames) ;
 cropList_basei = unique(varNames_basei) ;
 
 % Make sure that each crop has irrigated and rainfed versions

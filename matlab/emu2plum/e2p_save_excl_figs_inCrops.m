@@ -1,7 +1,7 @@
 function e2p_save_excl_figs_inCrops( ...
     ggcm, which_file, gridlist, excl_vecs, cropList_emu_basei, ...
     figure_visibility, figure_extension, ...
-    outDir_excl_figs_inCrops)
+    outDir_excl_figs_inCrops, overwrite_existing_figs)
 
 % Unpack
 missing_emu_xc = excl_vecs{1} ;
@@ -58,7 +58,9 @@ for c = 1:length(cropList_emu_basei)
     elseif ~strcmp(figure_extension, 'png')
         error('figure_extension %s not recognized', figure_extension)
     end
-    if exist(filename, 'file')
+    
+    if exist(filename, 'file') && ~overwrite_existing_figs
+        fprintf('        %s %s exclusions figure skipped (exists)\n', thisCrop, which_file)
         continue
     end
     

@@ -1,7 +1,8 @@
 function [data_bl_emu, data_fu_emu] = e2p_import_emu( ...
     topDir_emu, thisGCM, thisEmu, thisSSP, which_file, ...
     cropList_in, gridlist, ts1_list, tsN_list, Nlist, ...
-    baseline_yN, future_yN_emu, irrList_in, irrList_out)
+    baseline_yN, future_yN_emu, irrList_in, irrList_out, ...
+	emuVer, adaptation)
 
 % Translate which_file to Christoph's tokens
 if strcmp(which_file, 'yield')
@@ -41,12 +42,11 @@ for c = 1:Ncrops_in
 end
 
 % Which crops does this emulator have for this GCM-SSP?
-cropList_in_this = dir(sprintf('%s/**/*%s_%s*%s*iwd_baseline*.nc4', ...
-    topDir_emu, thisSSP, thisGCM, thisEmu)) ;
+pattern = sprintf('%s/**/*_%s/**/*%s_%s*%s_A%d*iwd_baseline*.nc4', ...
+    topDir_emu, emuVer, thisSSP, thisGCM, thisEmu, adaptation) ;
+cropList_in_this = dir(pattern) ;
 if isempty(cropList_in_this)
-    msgStruct.messsage = sprintf( ...
-        'No files found matching %s/**/*%s_%s*%s*iwd_baseline*.nc4', ...
-        topDir_emu, thisSSP, thisGCM, thisEmu) ;
+    msgStruct.messsage = ['No files found matching ' pattern] ;
     msgStruct.identifier = 'e2p:e2p_import_emu:noFilesFound' ;
 %     error(msgStruct)
     error(msgStruct.identifier, msgStruct.messsage)
@@ -55,8 +55,10 @@ end
 cropList_in_this = {cropList_in_this.name}' ;
 cropList_in_this = regexprep(cropList_in_this, ...
     ['cmip6_' thisSSP '_' thisGCM '_r\di\dp\d_'], '') ;
+expression = sprintf('_%s_A%d_N%s_emulated_iwd_baseline_1980_2010_average_%s.nc4', ...
+    thisEmu, adaptation, '\d+', emuVer) ;
 cropList_in_this = unique(regexprep(cropList_in_this, ...
-    ['_' thisEmu '_A0_N\d+_emulated_iwd_baseline_1980_2010_average_v2.0.nc4'],'')) ;
+    expression, '')) ;
 if any(~startsWith(cropList_in_this, cropList_in) | ~endsWith(cropList_in_this, cropList_in))
     cropList_in_this %#ok<NOPRT>
     error('Error parsing crops present in %s for %s %s', ...
@@ -92,8 +94,8 @@ for c = 1:Ncrops_in_this
         thisN = Nlist(n) ;
         
         % Get file with data for baseline
-        thisDir = sprintf('%s/%s/CMIP6/A0_N%d/%s/%s', ...
-            topDir_emu, which_file, thisN, thisSSP, thisEmu) ;
+        thisDir = sprintf('%s/%s/CMIP6/A%d_N%d_%s/%s/%s', ...
+            topDir_emu, which_file, adaptation, thisN, emuVer, thisSSP, thisEmu) ;
         if ~exist(thisDir, 'dir')
             error('thisDir does not exist: %s', thisDir)
         end
