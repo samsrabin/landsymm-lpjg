@@ -64,27 +64,6 @@ data_fu_out.garr_xvt = deltas_tmp_xvt .* byield_tmp_xvt ;
 
 e2p_check_correct_zeros(data_fu_out.garr_xvt, which_file, getbasenamei(data_fu_out.varNames(tmp_i_lpj)))
 
-% warning('TROUBLESHOOTING')
-% for v = 1:size(data_fu_out.garr_xvt,2)
-%     for t = 1:length(data_fu_emu.y1s)
-%         
-%         if ~isequal(data_bl_lpj.varNames{v}, data_fu_out.varNames{v})
-%             error('varname mismatch')
-%         end
-%         make_fig( ...
-%             data_bl_lpj.garr_xv(:,v), ...
-%             data_fu_lpj.garr_xvt(:,v,t), ...
-%             data_fu_out.garr_xvt(:,v,t), ...
-%             data_bl_lpj.varNames{v}, data_fu_out.y1s(t), data_fu_out.yNs(t))
-%         keyboard
-% % % %         %     export_fig(sprintf('%s/%s_%s_%d-%d.pdf', ...
-% % % %         %         outDir_ggcm, ggcm, data_bl_lpj.varNames{v},
-%         close
-%         
-%         
-%     end
-% end
-
 % Sort variable names
 [data_fu_out.varNames, I] = sort(data_fu_out.varNames) ;
 data_fu_out.garr_xvt = data_fu_out.garr_xvt(:,I,:) ;
