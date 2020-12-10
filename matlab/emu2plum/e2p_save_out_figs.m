@@ -2,7 +2,7 @@ function e2p_save_out_figs(data_fu_lpj, data_fu_lpj0, ...
     data_fu_emu, data_fu_out, ...
     ggcm, getN, outDir_figs, ...
     which_file, cropList_lpj_asEmu, figure_visibility, ...
-    figure_extension, which_out_figs, overwrite_existing_figs)
+    figure_extension, which_out_figs, overwrite_existing_figs, renderer)
 
 if ~exist(outDir_figs, 'dir')
     mkdir(outDir_figs)
@@ -304,7 +304,7 @@ for v = 1:length(data_fu_out.varNames)
         % Save
         tic
         if strcmp(figure_extension, 'png')
-            export_fig(filename_max, '-r100')
+            export_fig(filename_max, '-r100', renderer)
         elseif strcmp(figure_extension, 'fig')
             savefig(filename_max)
         else
@@ -420,7 +420,7 @@ for v = 1:length(data_fu_out.varNames)
         % Save
         tic
         if strcmp(figure_extension, 'png')
-            export_fig(filename_first, '-r100')
+            export_fig(filename_first, '-r100', renderer)
         elseif strcmp(figure_extension, 'fig')
             savefig(filename_first)
         else
@@ -536,7 +536,7 @@ for v = 1:length(data_fu_out.varNames)
         % Save
         tic
         if strcmp(figure_extension, 'png')
-            export_fig(filename_4th, '-r100')
+            export_fig(filename_4th, '-r100', renderer)
         elseif strcmp(figure_extension, 'fig')
             savefig(filename_4th)
         else

@@ -52,6 +52,14 @@ else
     error('Failed to interpret what system you''re on')
 end
 
+% If started with -nodisplay option, you have to specify '-painters' in the
+% export_fig() call.
+if ~usejava('desktop')
+    renderer = '-painters' ;
+else
+    renderer = '-opengl' ;
+end
+
 cd(sprintf('%s/emulation/matlab/emu2plum', topdir_db))
 
 save_out_figs_Nth0 = save_out_figs & any( ...

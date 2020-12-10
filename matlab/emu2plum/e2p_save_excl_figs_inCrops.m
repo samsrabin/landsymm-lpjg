@@ -1,7 +1,7 @@
 function e2p_save_excl_figs_inCrops( ...
     ggcm, which_file, gridlist, excl_vecs, cropList_emu_basei, ...
     figure_visibility, figure_extension, ...
-    outDir_excl_figs_inCrops, overwrite_existing_figs)
+    outDir_excl_figs_inCrops, overwrite_existing_figs, renderer)
 
 % Unpack
 missing_emu_xc = excl_vecs{1} ;
@@ -263,7 +263,7 @@ for c = 1:length(cropList_emu_basei)
     end
     
     if strcmp(figure_extension, 'png')
-        export_fig(filename, '-r100')
+        export_fig(filename, '-r100', renderer)
     elseif strcmp(figure_extension, 'fig')
         savefig(filename)
     else

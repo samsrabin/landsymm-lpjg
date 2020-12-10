@@ -3,7 +3,7 @@ function e2p_save_excl_figs_outCrops( ...
     cropList_lpj, cropList_lpj_basei, ...
     cropList_emu, cropList_emu_basei, ...
     figure_visibility, figure_extension, ...
-    outDir_excl_figs_outCrops, overwrite_existing_figs)
+    outDir_excl_figs_outCrops, overwrite_existing_figs, renderer)
 
 % Unpack
 missing_emu_xc = excl_vecs{1} ;
@@ -352,7 +352,7 @@ for ci_lpj = 1:length(cropList_lpj_basei)
     end
     
     if strcmp(figure_extension, 'png')
-        export_fig(filename, '-r100')
+        export_fig(filename, '-r100', renderer)
     elseif strcmp(figure_extension, 'fig')
         savefig(filename)
     else
