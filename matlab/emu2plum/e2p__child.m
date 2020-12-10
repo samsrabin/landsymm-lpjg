@@ -135,7 +135,8 @@ for g = 1:length(gcm_list)
                             disp('    Excluding based on low AgMERRA yield...')
                             % Get AgMERRA yield
                             yield_agmerraBL_xv = e2p_get_agmerra_yield(...
-                                varNames_emu, topDir_phase2, ggcm, data_bl_emu.list2map, getN) ;
+                                varNames_emu, topDir_phase2, ggcm, data_bl_emu.list2map, getN, ...
+										  adaptation) ;
                             if ~any(any(~isnan(yield_agmerraBL_xv)))
                                 error('yield_agmerraBL_xv is all NaN')
                             end
