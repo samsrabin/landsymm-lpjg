@@ -57,12 +57,18 @@ end
 
 % Actually apply the deltas
 deltas_tmp_xvt = deltas_emu_xvt(:,tmp_i_emu,:) ;
-e2p_check_correct_zeros(deltas_tmp_xvt, which_file, getbasenamei(data_fu_emu.varNames(tmp_i_emu)))
+e2p_check_correct_zeros(deltas_tmp_xvt, ...
+    which_file, data_fu_emu.varNames(tmp_i_emu), ...
+    'Future', @getbasenamei)
 byield_tmp_xvt = repmat(data_bl_lpj.garr_xv(:,tmp_i_lpj), [1 1 Ntpers]) ;
-e2p_check_correct_zeros(byield_tmp_xvt, which_file, getbasenamei(data_bl_emu.varNames(tmp_i_emu)))
+e2p_check_correct_zeros(byield_tmp_xvt, ...
+    which_file, data_bl_emu.varNames(tmp_i_emu), ...
+    'Baseline', @getbasenamei)
 data_fu_out.garr_xvt = deltas_tmp_xvt .* byield_tmp_xvt ;
 
-e2p_check_correct_zeros(data_fu_out.garr_xvt, which_file, getbasenamei(data_fu_out.varNames(tmp_i_lpj)))
+e2p_check_correct_zeros(data_fu_out.garr_xvt, ...
+    which_file, data_fu_out.varNames(tmp_i_lpj), ...
+    'Future', @getbasenamei)
 
 % Sort variable names
 [data_fu_out.varNames, I] = sort(data_fu_out.varNames) ;
@@ -72,8 +78,12 @@ clear I
 data_fu_lpj.garr_xvt = data_fu_lpj.garr_xvt(:,I,:) ;
 clear I
 
-e2p_check_correct_zeros(data_fu_out.garr_xvt, which_file, getbasenamei(data_fu_out.varNames))
-e2p_check_correct_zeros(data_fu_lpj.garr_xvt, which_file, getbasenamei(data_fu_lpj.varNames))
+e2p_check_correct_zeros(data_fu_out.garr_xvt, ...
+    which_file, data_fu_out.varNames, ...
+    'Future', @getbasenamei)
+e2p_check_correct_zeros(data_fu_lpj.garr_xvt, ...
+    which_file, data_fu_lpj.varNames, ...
+    'Baseline', @getbasenamei)
 
 % Test for consistent deltas
 a = data_fu_out.garr_xvt(:,strcmp(data_fu_out.varNames,'CerealsC4200'),4) ./ ...
