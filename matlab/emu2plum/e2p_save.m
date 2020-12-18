@@ -1,5 +1,5 @@
 function e2p_save(outDir, y1, yN, out_header_cell, lonlats, garr_xv, which_file, ...
-    interp_infs, remove_outliers, overwrite)
+    overwrite)
 
 outPrec = 6 ;
 outWidth = 1 ;
@@ -15,14 +15,7 @@ if ~exist(outDir_thisT, 'dir')
 end
 
 % Get output file name
-outfile = sprintf('%s/%s', outDir_thisT, which_file) ;
-if interp_infs
-    outfile = [outfile '_intpinfs'] ;
-end
-if remove_outliers
-    outfile = [outfile '_rmol'] ;
-end
-outfile = [outfile '.out'] ;
+outfile = sprintf('%s/%s.out', outDir_thisT, which_file) ;
 
 % Check for existence; skip if exists and not overwriting
 out_gz = [outfile '.gz'] ;

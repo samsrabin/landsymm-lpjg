@@ -8,6 +8,9 @@ for g = 1:length(gcm_list)
 
         outDir = sprintf('%s_work/A%d_%s_%s_%s_%s', ...
             topDir_emu, adaptation, emuVer, gcm, ssp, thisVer) ;
+        if interp_infs
+            outDir = [outDir '_intpinfs'] ;
+        end
         if remove_outliers
             outDir = [outDir '_rmol' when_remove_outliers] ; %#ok<AGROW>
         end
@@ -455,12 +458,12 @@ for g = 1:length(gcm_list)
                             fprintf('    %d/%d lpj', t, Ntpers)
                             e2p_save(outDir_lpj, y1, yN, out_header_cell, ...
                                 data_fu_lpj.lonlats, data_fu_lpj.garr_xvt(:,:,t), which_file, ...
-                                interp_infs, remove_outliers, false)
+                                false)
                         end
                         fprintf('    %d/%d emu', t, Ntpers)
                         e2p_save(outDir_ggcm, y1, yN, out_header_cell, ...
                             data_fu_out.lonlats, data_fu_out.garr_xvt(:,:,t), which_file, ...
-                            interp_infs, remove_outliers, overwrite_existing_txt)
+                            overwrite_existing_txt)
 
                     end
                 end
