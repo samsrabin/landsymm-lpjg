@@ -24,46 +24,32 @@ Nyears = length(yearList_in) ;
 cropList_in_short = cropList_in ;
 for c = 1:Ncrops_in
     thisCrop = cropList_in{c} ;
-    switch thisCrop
-        case 'spring_wheat'
-            thisCrop_short = 'swh' ;
-        case 'winter_wheat'
-            thisCrop_short = 'wwh' ;
-        case 'maize'
-            thisCrop_short = 'mai' ;
-        case 'soy'
-            thisCrop_short = 'soy' ;
-        case 'rice'
-            thisCrop_short = 'ric' ;
-        otherwise
-            error('Can''t parse %s into shortname', thisCrop)
-    end
+    thisCrop_short = get_thisCrop_short(thisCrop) ;
     cropList_in_short(strcmp(cropList_in_short, thisCrop)) = {thisCrop_short} ;
 end
 
 % Which crops does this emulator have for this GCM-SSP?
-pattern = sprintf('%s/**/*_%s/**/*%s_%s*%s_A%d*iwd_baseline*.nc4', ...
-    topDir_emu, emuVer, thisSSP, thisGCM, thisEmu, adaptation) ;
-cropList_in_this = dir(pattern) ;
-if isempty(cropList_in_this)
-    msgStruct.messsage = ['No files found matching ' pattern] ;
-    msgStruct.identifier = 'e2p:e2p_import_emu:noFilesFound' ;
-%     error(msgStruct)
-    error(msgStruct.identifier, msgStruct.messsage)
-    stop
+cropList_in_this_yield = get_cropList_in_this('yield', ...
+    topDir_emu, emuVer, thisSSP, thisGCM, thisEmu, adaptation, ...
+    cropList_in)  ;
+cropList_in_this_iwd = get_cropList_in_this('iwd', ...
+    topDir_emu, emuVer, thisSSP, thisGCM, thisEmu, adaptation, ...
+    cropList_in)  ;
+if ~isequal(sort(cropList_in_this_yield), sort(cropList_in_this_iwd))
+    msg = 'yield and iwd files have different crop lists:' ;
+    msg = sprintf('%s\n          yield   iwd', msg) ;
+    cropList_in_this = unique([cropList_in_this_yield ; cropList_in_this_iwd]) ;
+    for c = 1:length(cropList_in_this)
+        thisCrop = cropList_in_this{c} ;
+        thisCrop_short = get_thisCrop_short(thisCrop) ;
+        msg = sprintf('%s\n    %s       %d     %d', ...
+            msg, thisCrop_short, ...
+            any(strcmp(cropList_in_this_yield, thisCrop)), ...
+            any(strcmp(cropList_in_this_iwd, thisCrop))) ;
+    end
+    error(msg)
 end
-cropList_in_this = {cropList_in_this.name}' ;
-cropList_in_this = regexprep(cropList_in_this, ...
-    ['cmip6_' thisSSP '_' thisGCM '_r\di\dp\d_'], '') ;
-expression = sprintf('_%s_A%d_N%s_emulated_iwd_baseline_1980_2010_average_%s.nc4', ...
-    thisEmu, adaptation, '\d+', emuVer) ;
-cropList_in_this = unique(regexprep(cropList_in_this, ...
-    expression, '')) ;
-if any(~startsWith(cropList_in_this, cropList_in) | ~endsWith(cropList_in_this, cropList_in))
-    cropList_in_this %#ok<NOPRT>
-    error('Error parsing crops present in %s for %s %s', ...
-        thisEmu, thisGCM, thisSSP)
-end
+cropList_in_this = cropList_in_this_iwd ;
 Ncrops_in_this = length(cropList_in_this) ;
 
 % Set up input arrays
@@ -228,6 +214,57 @@ for t = 1:Nts
     okyrs = yearList_in>=thisY1 & yearList_in<=thisYN ;
     tmp_YX = mean(in_YXy(:,:,okyrs),3) ;
     out_xt(:,t) = tmp_YX(gridlist.list_to_map) ;
+end
+
+end
+
+
+function cropList_in_this = get_cropList_in_this(iwd_or_yield, ...
+    topDir_emu, emuVer, thisSSP, thisGCM, thisEmu, adaptation, ...
+    cropList_in)
+
+pattern = sprintf('%s/**/*_%s/**/*%s_%s*%s_A%d*%s_baseline*.nc4', ...
+    topDir_emu, emuVer, thisSSP, thisGCM, thisEmu, adaptation, iwd_or_yield) ;
+cropList_in_this = dir(pattern) ;
+if isempty(cropList_in_this)
+    msgStruct.messsage = ['No files found matching ' pattern] ;
+    msgStruct.identifier = 'e2p:e2p_import_emu:noFilesFound' ;
+%     error(msgStruct)
+    error(msgStruct.identifier, msgStruct.messsage)
+    stop
+end
+cropList_in_this = {cropList_in_this.name}' ;
+cropList_in_this = regexprep(cropList_in_this, ...
+    ['cmip6_' thisSSP '_' thisGCM '_r\di\dp\d_'], '') ;
+expression = sprintf('_%s_A%d_N%s_emulated_%s_baseline_1980_2010_average_%s.nc4', ...
+    thisEmu, adaptation, '\d+', iwd_or_yield, emuVer) ;
+cropList_in_this = unique(regexprep(cropList_in_this, ...
+    expression, '')) ;
+if any(~startsWith(cropList_in_this, cropList_in) | ~endsWith(cropList_in_this, cropList_in))
+    cropList_in_this %#ok<NOPRT>
+    error('Error parsing crops present in %s for %s %s', ...
+        thisEmu, thisGCM, thisSSP)
+end
+
+
+end
+
+
+function thisCrop_short = get_thisCrop_short(thisCrop)
+
+switch thisCrop
+    case 'spring_wheat'
+        thisCrop_short = 'swh' ;
+    case 'winter_wheat'
+        thisCrop_short = 'wwh' ;
+    case 'maize'
+        thisCrop_short = 'mai' ;
+    case 'soy'
+        thisCrop_short = 'soy' ;
+    case 'rice'
+        thisCrop_short = 'ric' ;
+    otherwise
+        error('Can''t parse %s into shortname', thisCrop)
 end
 
 end
