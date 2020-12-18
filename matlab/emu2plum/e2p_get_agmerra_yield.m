@@ -13,9 +13,10 @@ yield_agmerraBL_xv = nan(length(list2map),Nvars_emu) ;
 for v = 1:Nvars_emu
     
     % Get info about this crop
-    thisCrop = getbasenamei(varNames_emu{v}) ;
+    thisCropIrr = getbasenamei(varNames_emu{v}) ;
     thisN = str2double(getN(varNames_emu{v})) ;
-    isirrig = strcmp(thisCrop(end),'i') ;
+    isirrig = strcmp(thisCropIrr(end),'i') ;
+    thisCrop = thisCropIrr ;
     if isirrig
         thisCrop = thisCrop(1:end-1) ;
     end
@@ -35,7 +36,13 @@ for v = 1:Nvars_emu
     if isirrig
         thisFile = strrep(thisFile, 'W0', 'Winf') ;
     end
+    nofilefound = false ;
     if ~exist(thisFile, 'file')
+        thisAN = sprintf('A%d_N%d', adaptation, thisN) ;
+        msg = sprintf('Phase 2 AgMERRA %s %s not found, nor were any substitutes', ...
+            thisCropIrr, thisAN) ;
+        msg = sprintf('%s (A%d_N%d, A%d_NNA, or A%d_NNA)', ...
+            msg, ~adaptation, thisN, adaptation, ~adaptation) ;
         % Try A[other]
         tmp_thisAdapt = ~adaptation ;
         tmp_thisN = thisN ;
@@ -56,30 +63,37 @@ for v = 1:Nvars_emu
                     topDir_phase2, thisCrop, tmp_thisAdapt, lower(ggcm), thisCrop_short, ...
                     tmp_thisAdapt) ;
                 if ~exist(thisFile, 'file')
-                    error('thisFile (%s) not found, nor A%d_NNA', thisFile)
+                    nofilefound = true ;
+                    warning('%s\n  Will not check for missing or low baseline AgMERRA yield!', ...
+                        msg) ;
                 end
             end
         end
         
-        % Warn
-        missingAN = sprintf('A%d_N%d', adaptation, thisN) ;
-        if isnan(tmp_thisN)
-            replacementAN = sprintf('A%d_NNA', tmp_thisAdapt) ;
-        else
-            replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
+        % Warn if using a substitute file
+        if ~nofilefound
+            if isnan(tmp_thisN)
+                replacementAN = sprintf('A%d_NNA', tmp_thisAdapt) ;
+            else
+                replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
+            end
+            warning('Phase 2 AgMERRA %s %s not found; using %s instead', ...
+                thisCropIrr, thisAN, replacementAN) ;
         end
-        warning('%s %s not found, using %s instead', ...
-            thisCrop_short, missingAN, replacementAN) ;
     end
     
     % Import (exclude last timestep to avoid incomplete final seasons)
-    tmp_XYt = ncread(thisFile,['yield_' thisCrop_short]) ;
-    tmp_YX = flipud(transpose(nanmean(tmp_XYt(:,:,1:end-1), 3))) ;
-    tmp = tmp_YX(list2map) ;
-    if ~any(~isnan(tmp))
-        warning('%s is all NaN', thisCrop)
+    if nofilefound
+        yield_agmerraBL_xv(:,v) = Inf ;
+    else
+        tmp_XYt = ncread(thisFile,['yield_' thisCrop_short]) ;
+        tmp_YX = flipud(transpose(nanmean(tmp_XYt(:,:,1:end-1), 3))) ;
+        tmp = tmp_YX(list2map) ;
+        if ~any(~isnan(tmp))
+            warning('%s is all NaN', thisCrop)
+        end
+        yield_agmerraBL_xv(:,v) = tmp ;
     end
-    yield_agmerraBL_xv(:,v) = tmp ;
     
 end
 
