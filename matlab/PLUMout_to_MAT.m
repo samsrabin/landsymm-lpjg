@@ -124,6 +124,13 @@ for y = 1:Nyears
             fert.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
             fert.yearList = yearList ;
         end
+        if any(strcmp(fileList, 'yield'))
+            yield.lonlats = lonlats ;
+            yield.list2map = list2map ;
+            yield.varNames = cropList ;
+            yield.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
+            yield.yearList = yearList ;
+        end
     else
         if ~isequal(lonlats, detailed_tmp.lonlats)
             error('lonlats mismatch')
