@@ -193,67 +193,37 @@ fprintf('\nDone importing.\n')
 % Save land uses
 thisFile = 'landuse' ;
 if any(strcmp(fileList, thisFile))
-    fprintf('Saving %s... ', thisFile)
-    out_struct = landuse ;
-    outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
-    save(outFile, 'out_struct', '-v7.3') ;
-    clear out_struct
-    disp('Done.')
+    do_save(landuse, thisFile, outDir)
 end
 
 % Save "etc" land uses
 thisFile = 'landuse_etc' ;
 if any(strcmp(fileList, thisFile))
-    fprintf('Saving %s... ', thisFile)
-    out_struct = landuse_etc ;
-    outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
-    save(outFile, 'out_struct', '-v7.3') ;
-    clear out_struct
-    disp('Done.')
+    do_save(landuse_etc, thisFile, outDir)
 end
 
 % Save crop fractions
 thisFile = 'cropfracs' ;
 if any(strcmp(fileList, thisFile))
-    fprintf('Saving %s... ', thisFile)
-    out_struct = cropfracs ;
-    outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
-    save(outFile, 'out_struct', '-v7.3') ;
-    clear out_struct
-    disp('Done.')
+    do_save(cropfracs, thisFile, outDir)
 end
 
 % Save irrigation
 thisFile = 'irrig' ;
 if any(strcmp(fileList, thisFile))
-    fprintf('Saving %s... ', thisFile)
-    out_struct = irrig ;
-    outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
-    save(outFile, 'out_struct', '-v7.3') ;
-    clear out_struct
-    disp('Done.')
+    do_save(irrig, thisFile, outDir)
 end
 
 % Save fertilizer
 thisFile = 'fert' ;
 if any(strcmp(fileList, thisFile))
-    fprintf('Saving %s... ', thisFile)
-    out_struct = fert ;
-    outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
-    save(outFile, 'out_struct', '-v7.3') ;
-    clear out_struct
-    disp('Done.')
+    do_save(fert, thisFile, outDir)
 end
 
 % Save yield
 thisFile = 'yield' ;
 if any(strcmp(fileList, thisFile))
-    fprintf('Saving %s... ', thisFile)
-    out_struct = yield ;
-    outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
-    save(outFile, 'out_struct', '-v7.3') ;
-    clear out_struct
-    disp('Done.')
+    do_save(yield, thisFile, outDir)
 end
 
 
@@ -321,6 +291,17 @@ out_struct.list2map = list2map ;
 out_struct.varNames = varList ;
 out_struct.yearList = yearList ;
 
+
+end
+
+
+function do_save(out_struct, thisFile, outDir)
+
+fprintf('Saving %s... ', thisFile)
+outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
+save(outFile, 'out_struct', '-v7.3') ;
+clear out_struct
+disp('Done.')
 
 end
     
