@@ -101,24 +101,28 @@ for y = 1:Nyears
             landuse.list2map = list2map ;
             landuse.varNames = luList_out ;
             landuse.garr_xvy = nan(Ncells, Nlu_out, Nyears) ;
+            landuse.yearList = yearList ;
         end
         if any(strcmp(fileList, 'cropfracs'))
             cropfracs.lonlats = lonlats ;
             cropfracs.list2map = list2map ;
             cropfracs.varNames = cropList ;
             cropfracs.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
+            cropfracs.yearList = yearList ;
         end
         if any(strcmp(fileList, 'irrig'))
             irrig.lonlats = lonlats ;
             irrig.list2map = list2map ;
             irrig.varNames = cropList ;
             irrig.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
+            irrig.yearList = yearList ;
         end
         if any(strcmp(fileList, 'fert'))
             fert.lonlats = lonlats ;
             fert.list2map = list2map ;
             fert.varNames = cropList ;
             fert.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
+            fert.yearList = yearList ;
         end
     else
         if ~isequal(lonlats, detailed_tmp.lonlats)
