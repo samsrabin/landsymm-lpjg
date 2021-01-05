@@ -2,9 +2,11 @@
 %%% Convert a PLUM run's outputs to MAT files %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-inDir = '/Volumes/Reacher/G2P/outputs_PLUM/ggcmi/gepic_emu/s1_26' ;
+inDir = '/Volumes/Reacher/G2P/outputs_PLUM/ggcmi/epictamu_emu/s1_26' ;
+% inDir = '/Volumes/Reacher/G2P/outputs_PLUM/ggcmi/gepic_emu/s1_26' ;
+% inDir = '/Volumes/Reacher/G2P/outputs_PLUM/ggcmi/lpjguess_sim/s1_26' ;
 
-fileList = {'landuse', 'cropfracs', 'fert', 'irrig', 'yield'} ;
+fileList = {'landuse', 'landuse_etc', 'cropfracs', 'fert', 'irrig', 'yield'} ;
 
 
 %% Setup
@@ -32,6 +34,9 @@ if ~isequal(yearList, y1:yStep:yN)
 end
 Nyears = length(yearList) ;
 
+etcList = {'area', 'suitable', 'protected', 'pa_fraction'} ;
+Netc = length(etcList) ;
+
 
 %% Import
 
@@ -58,7 +63,7 @@ for y = 1:Nyears
         
         % Get LU list
         if any(strcmp(fileList, 'landuse'))
-            isincl = get_incl_lu(detailed_tmp.varNames) ;
+            isincl = get_incl_lu(detailed_tmp.varNames, etcList, false) ;
             luList_in = detailed_tmp.varNames(isincl) ;
             Nlu_in = length(luList_in) ;
             nonnat_list = {'cropland', 'pasture', 'barren', 'urban'} ;
@@ -98,23 +103,27 @@ for y = 1:Nyears
         Ncells = length(list2map) ;
         if any(strcmp(fileList, 'landuse'))
             landuse = setup_struct(lonlats, list2map, luList_out, yearList) ;
-            landuse.garr_xvy = nan(Ncells, Nlu_out, Nyears) ;
+            landuse.garr_xvy = nan(Ncells, length(landuse.varNames), Nyears) ;
+        end
+        if any(strcmp(fileList, 'landuse_etc'))
+            landuse_etc = setup_struct(lonlats, list2map, etcList, yearList) ;
+            landuse_etc.garr_xvy = nan(Ncells, length(landuse_etc.varNames), Nyears) ;
         end
         if any(strcmp(fileList, 'cropfracs'))
             cropfracs = setup_struct(lonlats, list2map, cropList, yearList) ;
-            cropfracs.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
+            cropfracs.garr_xvy = nan(Ncells, length(cropfracs.varNames), Nyears) ;
         end
         if any(strcmp(fileList, 'irrig'))
             irrig = setup_struct(lonlats, list2map, cropList, yearList) ;
-            irrig.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
+            irrig.garr_xvy = nan(Ncells, length(irrig.varNames), Nyears) ;
         end
         if any(strcmp(fileList, 'fert'))
             fert = setup_struct(lonlats, list2map, cropList, yearList) ;
-            fert.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
+            fert.garr_xvy = nan(Ncells, length(fert.varNames), Nyears) ;
         end
         if any(strcmp(fileList, 'yield'))
             yield = setup_struct(lonlats, list2map, cropList, yearList) ;
-            yield.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
+            yield.garr_xvy = nan(Ncells, length(yield.varNames), Nyears) ;
         end
     else
         if ~isequal(lonlats, detailed_tmp.lonlats)
@@ -124,14 +133,15 @@ for y = 1:Nyears
     
     % Save this year's land uses
     if any(strcmp(fileList, 'landuse'))
-        isincl = get_incl_lu(detailed_tmp.varNames) ;
+        isincl = get_incl_lu(detailed_tmp.varNames, etcList, false) ;
         if length(find(isincl)) ~= Nlu_in
             error('LU mismatch')
         end
+        detailed_tmp_varNames_incl = detailed_tmp.varNames(isincl) ;
         [~, ~, IB] = intersect(luList_in, ...
-            detailed_tmp.varNames(isincl), ...
+            detailed_tmp_varNames_incl, ...
             'stable') ;
-        if length(IB) ~= Nlu_in
+        if ~isequal(detailed_tmp_varNames_incl(IB), luList_in)
             error('LU mismatch')
         end
         tmp_xv = detailed_tmp.garr_xv(:,isincl) ;
@@ -143,32 +153,34 @@ for y = 1:Nyears
         clear tmp_xv
     end
     
+    % Save this year's "etc" land uses
+    if any(strcmp(fileList, 'landuse_etc'))
+        [~, ~, isincl_reordered] = get_incl_lu(detailed_tmp.varNames, etcList, true) ;
+        landuse_etc.garr_xvy(:,:,y) = detailed_tmp.garr_xv(:,isincl_reordered) ;
+    end
+    
     % Save this year's crop fractions
     if any(strcmp(fileList, 'cropfracs'))
-        [isincl, IB] = get_incl_suffix(detailed_tmp.varNames, '_A', cropList) ;
-        tmp_xv = detailed_tmp.garr_xv(:,isincl) ;
-        cropfracs.garr_xvy(:,:,y) = tmp_xv(:,IB) ;
+        [~, ~, isincl_reordered] = get_incl_suffix(detailed_tmp.varNames, '_A', cropList) ;
+        cropfracs.garr_xvy(:,:,y) = detailed_tmp.garr_xv(:,isincl_reordered) ;
     end
     
     % Save this year's irrigation
     if any(strcmp(fileList, 'irrig'))
-        [isincl, IB] = get_incl_suffix(detailed_tmp.varNames, '_II', cropList) ;
-        tmp_xv = detailed_tmp.garr_xv(:,isincl) ;
-        irrig.garr_xvy(:,:,y) = tmp_xv(:,IB) ;
+        [~, ~, isincl_reordered] = get_incl_suffix(detailed_tmp.varNames, '_II', cropList) ;
+        irrig.garr_xvy(:,:,y) = detailed_tmp.garr_xv(:,isincl_reordered) ;
     end
     
     % Save this year's fertilizer
     if any(strcmp(fileList, 'fert'))
-        [isincl, IB] = get_incl_suffix(detailed_tmp.varNames, '_FQ', cropList) ;
-        tmp_xv = detailed_tmp.garr_xv(:,isincl) ;
-        fert.garr_xvy(:,:,y) = tmp_xv(:,IB) ;
+        [~, ~, isincl_reordered] = get_incl_suffix(detailed_tmp.varNames, '_FQ', cropList) ;
+        fert.garr_xvy(:,:,y) = detailed_tmp.garr_xv(:,isincl_reordered) ;
     end
     
     % Save this year's yield
     if any(strcmp(fileList, 'yield'))
-        [isincl, IB] = get_incl_suffix(detailed_tmp.varNames, '_Y', cropList) ;
-        tmp_xv = detailed_tmp.garr_xv(:,isincl) ;
-        yield.garr_xvy(:,:,y) = tmp_xv(:,IB) ;
+        [~, ~, isincl_reordered] = get_incl_suffix(detailed_tmp.varNames, '_Y', cropList) ;
+        yield.garr_xvy(:,:,y) = detailed_tmp.garr_xv(:,isincl_reordered) ;
     end
         
     clear detailed_tmp isincl IB
@@ -183,6 +195,17 @@ thisFile = 'landuse' ;
 if any(strcmp(fileList, thisFile))
     fprintf('Saving %s... ', thisFile)
     out_struct = landuse ;
+    outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
+    save(outFile, 'out_struct', '-v7.3') ;
+    clear out_struct
+    disp('Done.')
+end
+
+% Save "etc" land uses
+thisFile = 'landuse_etc' ;
+if any(strcmp(fileList, thisFile))
+    fprintf('Saving %s... ', thisFile)
+    out_struct = landuse_etc ;
     outFile = sprintf('%s/%s.garr.mat', outDir, thisFile) ;
     save(outFile, 'out_struct', '-v7.3') ;
     clear out_struct
@@ -237,31 +260,56 @@ end
 
 %% FUNCTIONS
 
-function isincl = get_incl_lu(varNames)
+function [isincl, IB, isincl_reordered] = get_incl_lu(varNames, etcList, is_etc)
 
 isincl = ~endsWith(varNames, ...
     {'_A', '_FI', '_FQ', '_II', '_IQ', '_OI', '_Y'}) ;
-[~,IA] = intersect(varNames, ...
-    {'area', 'suitable', 'protected', 'pa_fraction'}) ;
+
+if is_etc
+    [~, IA] = setdiff(varNames, etcList) ;
+else
+    [~, IA] = intersect(varNames, etcList) ;
+end
 isincl(IA) = false ;
+
+[~, ~, IB] = intersect(etcList, ...
+    varNames(isincl), ...
+    'stable') ;
+
+if is_etc
+    if ~isequal(varNames(IB), etcList)
+        error('etcList mismatch')
+    end
+else
+    if ~isempty(intersect(varNames(IB), etcList))
+        error('~isempty(intersect(varNames(IB), etcList))')
+    end
+end
+
+isincl_reordered = find(isincl) ;
+isincl_reordered = isincl_reordered(IB) ;
 
 end
 
 
-function [isincl, IB] = get_incl_suffix(varNames, suffix, cropList)
+function [isincl, IB, isincl_reordered] = get_incl_suffix(varNames, suffix, cropList)
 
 isincl = endsWith(varNames, suffix) ...
     & ~contains(varNames, 'pasture') ;
 
 IB = [] ;
 if ~isempty(cropList)
+    varNames_incl = strrep(varNames(isincl), suffix, '') ;
     [~, ~, IB] = intersect(cropList, ...
-        strrep(varNames(isincl), suffix, ''), ...
+        varNames_incl, ...
         'stable') ;
-    if length(IB) ~= length(cropList)
+    if ~isequal(varNames_incl(IB), cropList)
         error('cropList mismatch')
     end
 end
+
+isincl_reordered = find(isincl) ;
+isincl_reordered = isincl_reordered(IB) ;
 
 end
 
