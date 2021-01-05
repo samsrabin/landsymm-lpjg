@@ -97,39 +97,24 @@ for y = 1:Nyears
         list2map = detailed_tmp.list2map ;
         Ncells = length(list2map) ;
         if any(strcmp(fileList, 'landuse'))
-            landuse.lonlats = lonlats ;
-            landuse.list2map = list2map ;
-            landuse.varNames = luList_out ;
+            landuse = setup_struct(lonlats, list2map, luList_out, yearList) ;
             landuse.garr_xvy = nan(Ncells, Nlu_out, Nyears) ;
-            landuse.yearList = yearList ;
         end
         if any(strcmp(fileList, 'cropfracs'))
-            cropfracs.lonlats = lonlats ;
-            cropfracs.list2map = list2map ;
-            cropfracs.varNames = cropList ;
+            cropfracs = setup_struct(lonlats, list2map, cropList, yearList) ;
             cropfracs.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
-            cropfracs.yearList = yearList ;
         end
         if any(strcmp(fileList, 'irrig'))
-            irrig.lonlats = lonlats ;
-            irrig.list2map = list2map ;
-            irrig.varNames = cropList ;
+            irrig = setup_struct(lonlats, list2map, cropList, yearList) ;
             irrig.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
-            irrig.yearList = yearList ;
         end
         if any(strcmp(fileList, 'fert'))
-            fert.lonlats = lonlats ;
-            fert.list2map = list2map ;
-            fert.varNames = cropList ;
+            fert = setup_struct(lonlats, list2map, cropList, yearList) ;
             fert.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
-            fert.yearList = yearList ;
         end
         if any(strcmp(fileList, 'yield'))
-            yield.lonlats = lonlats ;
-            yield.list2map = list2map ;
-            yield.varNames = cropList ;
+            yield = setup_struct(lonlats, list2map, cropList, yearList) ;
             yield.garr_xvy = nan(Ncells, Ncrops, Nyears) ;
-            yield.yearList = yearList ;
         end
     else
         if ~isequal(lonlats, detailed_tmp.lonlats)
@@ -277,6 +262,17 @@ if ~isempty(cropList)
         error('cropList mismatch')
     end
 end
+
+end
+
+
+function out_struct = setup_struct(lonlats, list2map, varList, yearList)
+
+out_struct.lonlats = lonlats ;
+out_struct.list2map = list2map ;
+out_struct.varNames = varList ;
+out_struct.yearList = yearList ;
+
 
 end
     
