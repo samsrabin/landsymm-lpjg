@@ -167,7 +167,7 @@ for y = 1:Nyears
     
     % Save this year's irrigation
     if any(strcmp(fileList, 'irrig'))
-        [~, ~, isincl_reordered] = get_incl_suffix(detailed_tmp.varNames, '_II', cropList) ;
+        [~, ~, isincl_reordered] = get_incl_suffix(detailed_tmp.varNames, '_IQ', cropList) ;
         irrig.garr_xvy(:,:,y) = detailed_tmp.garr_xv(:,isincl_reordered) ;
     end
     
