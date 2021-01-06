@@ -17,6 +17,12 @@ for g = 1:length(gcm_list)
         if fake1k
             outDir = [outDir '_fake1k'] ; %#ok<AGROW>
         end
+        if ~excl_lowBL_agmerra
+            outDir = [outDir '_ignLoPh2'] ; %#ok<AGROW>
+        end
+        if ~excl_lowBL_emu
+            outDir = [outDir '_ignLoEm'] ; %#ok<AGROW>
+        end
         outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
         outDir_excl_figs_inCrops = sprintf('%s/excl_figs_GGCMIcrops', outDir) ;
         outDir_excl_figs_outCrops = sprintf('%s/excl_figs_PLUMcrops', outDir) ;
