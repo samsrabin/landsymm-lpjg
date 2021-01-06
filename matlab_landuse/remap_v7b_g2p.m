@@ -16,7 +16,7 @@ thisVer = 'WithFruitVegSugar_b' ;
 
 force_all_rainfed = false ;
 
-remapVer = '7b_g2p' ;
+remapVer = '7b' ;
 out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/',remapVer) ;
 
 
@@ -41,7 +41,7 @@ end
 
 % Get output gridlist
 gridlist = lpjgu_matlab_readTable_then2map(...
-    '/Volumes/Reacher/G2P/inputs/gridlist_ggcmi_v1.1.gapfilled.lpjg.txt', ...
+    '/Volumes/Reacher/G2P/inputs/gridlist/gridlist_62892.runAEclimOK.txt', ...
     'verboseIfNoMat',true) ;
 
 % Get info for reading input files
