@@ -2,20 +2,22 @@
 %%% Convert LU file to just CPB %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% file_in = '/Users/Shared/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% out_file = '/Users/Shared/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.justCPB.txt' ;
-
-file_in = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.txt' ;
-out_file = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.justCPB_1yr.txt' ;
+file_in = '/Volumes/Reacher/G2P/inputs/LU/remaps_v7b/LU.remapv7b.txt' ;
 
 
 %% Import
 
+disp('Importing...')
+
 lu_in = lpjgu_matlab_readTable(file_in) ;
 in_header_cell = lu_in.Properties.VariableNames ;
 
+disp('Done.')
+
 
 %% Convert
+
+disp('Converting...')
 
 % Extract last year
 lu_out = table2array(lu_in(lu_in.Year==max(lu_in.Year),:)) ;
@@ -31,6 +33,8 @@ tmp = lu_out(:,contains(in_header_cell,{'CROPLAND','PASTURE','NATURAL','BARREN'}
 thisSum = sum(tmp,2) ;
 lu_out(:,contains(in_header_cell,{'CROPLAND','PASTURE','NATURAL','BARREN'})) = tmp ./ repmat(thisSum,[1 4]) ;
 
+disp('Done.')
+
 
 %% Save
 
@@ -42,6 +46,9 @@ overwrite = true ;
 fancy = false ;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
+disp('Saving...')
+
+out_file = strrep(file_in, '.txt', '.justCPB_1yr.txt') ;
 
 lpjgu_matlab_saveTable(in_header_cell, lu_out, out_file,...
         'outPrec', outPrec, ...
@@ -51,7 +58,7 @@ lpjgu_matlab_saveTable(in_header_cell, lu_out, out_file,...
         'fancy', fancy, ...
         'justZeroCols', find(strcmp(in_header_cell,'NATURAL'))) ;
     
-    
+disp('Done.')
     
     
     
