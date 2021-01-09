@@ -2,6 +2,11 @@
 %%% Re-map area/fert data to PLUM crops, and generate extra LU file %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Which files to save?
+save_lu = false ;
+save_cropfracs = false ;
+save_nfert = true ;
+
 %%%%% Sam Rabin, 2019-01-24
 % See previous notes for remap_v7a, with the following changes:
 % - Added OtherAnnuals and OtherPerennials to DateCitGrape
@@ -91,7 +96,11 @@ carea_hd_XY = coarsen_res(carea_XY,0.25,0.5) ;
 carea_hd_XYy = repmat(carea_hd_XY,[1 1 Nyears_out]) ;
 
 % Land use
-lu_out_XYyv = zeros([size(carea_hd_XY) Nyears_out Nlu_out]) ;
+if save_lu
+    lu_out_XYyv = zeros([size(carea_hd_XY) Nyears_out Nlu_out]) ;
+else
+    lu_out_XYyv = false([size(carea_hd_XY) Nyears_out Nlu_out]) ;
+end
 for v = 1:Nlu_in
     thisLU_in = list_LU_in{v} ;
     thisLU_out = map_LU_in2out{v} ;
@@ -104,22 +113,28 @@ for v = 1:Nlu_in
         error('Some element(s) of lu_out_XYy > 1!')
     end
     clear lu_in_XYy
-    lu_out_XYyv(:,:,:,i) = lu_out_XYyv(:,:,:,i) + lu_out_XYy ;
-    if any(any(any(any(lu_out_XYyv-1 > 1e-6))))
-        error('Some element(s) of lu_out_XYyv > 1!')
+    if save_lu
+        lu_out_XYyv(:,:,:,i) = lu_out_XYyv(:,:,:,i) + lu_out_XYy ;
+        if any(any(any(any(lu_out_XYyv-1 > 1e-6))))
+            error('Some element(s) of lu_out_XYyv > 1!')
+        end
+    else
+        lu_out_XYyv(:,:,:,i) = lu_out_XYyv(:,:,:,i) | lu_out_XYy > 0 ;
     end
     clear lu_out_XYy
 end
-clear carea*_YXy
+clear carea*_YXy carea_hd_XYy
 
 disp('Finishing...')
 
 % Add water fraction to BARREN
-icwtr_XY = ncread(file_luh2_etc,'icwtr') ;
-icwtr_XY(icwtr_XY==1) = 0 ;
-i = strcmp(list_LU_out,'BARREN') ;
-lu_out_XYyv(:,:,:,i) = lu_out_XYyv(:,:,:,i) ...
-    + repmat(coarsen_res(icwtr_XY.*carea_XY,0.25,0.5)./carea_hd_XY,[1 1 Nyears_out]) ;
+if save_lu
+    icwtr_XY = ncread(file_luh2_etc,'icwtr') ;
+    icwtr_XY(icwtr_XY==1) = 0 ;
+    i = strcmp(list_LU_out,'BARREN') ;
+    lu_out_XYyv(:,:,:,i) = lu_out_XYyv(:,:,:,i) ...
+        + repmat(coarsen_res(icwtr_XY.*carea_XY,0.25,0.5)./carea_hd_XY,[1 1 Nyears_out]) ;
+end
 
 % Shift to correct orientation
 out_lu.varNames = list_LU_out ;
@@ -129,19 +144,28 @@ clear lu_out_XYyv
 
 % Mask cells with no vegetated land
 bad_YX = sum(out_lu.maps_YXyv(:,:,1,:),4)==0 ;
-out_lu.maps_YXyv(repmat(bad_YX,[1 1 Nyears_out Nlu_out])) = NaN ;
+if save_lu
+    bad_YX = sum(out_lu.maps_YXyv(:,:,1,:),4)==0 ;
+    out_lu.maps_YXyv(repmat(bad_YX,[1 1 Nyears_out Nlu_out])) = NaN ;
+else
+    bad_YX = ~any(out_lu.maps_YXyv(:,:,1,:),4) ;
+    out_lu.maps_YXyv(repmat(bad_YX,[1 1 Nyears_out Nlu_out])) = false ;
+end
 
 % Force all land cells to sum to 1
-lu_out_YXySum = sum(out_lu.maps_YXyv,4) ;
-j = 0 ;
-while any(any(any(abs(lu_out_YXySum-1)>1e-6)))
-    j = j + 1;
-    if j > 50
-        error('Possible infinite loop in "Force all land cells to sum to 1".')
-    end
-    out_lu.maps_YXyv = out_lu.maps_YXyv ./ repmat(lu_out_YXySum,[1 1 1 Nlu_out]) ;
+if save_lu
     lu_out_YXySum = sum(out_lu.maps_YXyv,4) ;
+    j = 0 ;
+    while any(any(any(abs(lu_out_YXySum-1)>1e-6)))
+        j = j + 1;
+        if j > 50
+            error('Possible infinite loop in "Force all land cells to sum to 1".')
+        end
+        out_lu.maps_YXyv = out_lu.maps_YXyv ./ repmat(lu_out_YXySum,[1 1 1 Nlu_out]) ;
+        lu_out_YXySum = sum(out_lu.maps_YXyv,4) ;
+    end
 end
+
 disp('Done.')
 
 
@@ -169,17 +193,14 @@ if force_all_rainfed
         croparea_in.maps_YXv(:,:,thisIR) = 0*croparea_in.maps_YXv(:,:,thisIR) ;
     end
 end
-% Calculate total area of each crop
-cropareaCombined_in.maps_YXv = nan(size(croparea_in.maps_YXv,1),size(croparea_in.maps_YXv,2),NcropsCombined_frac_in) ;
+% Check names
 for c = 1:NcropsCombined_frac_in
     thisCrop = list_cropsCombined_frac_in{c} ;
     isThisCrop = not(cellfun(@isempty,strfind(croparea_in.varNames,thisCrop))) ;
     if length(find(isThisCrop))~=2
         error('length(find(isThisCrop))~=2')
     end
-    cropareaCombined_in.maps_YXv(:,:,c) = sum(croparea_in.maps_YXv(:,:,isThisCrop),3) ;
 end
-cropareaCombined_in.varNames = list_cropsCombined_frac_in ;
 
 % Get mappings
 [list_cropsCombined_out, in2out_keyCombined_frac, ...
@@ -248,6 +269,7 @@ croparea_mid.varNames = list_crops_out ;
 % Move ignored area (unhandled crops) and setAside area into ExtraCrop
 I = contains(croparea_in.varNames,list_ignore_frac) ;
 map_ignore_area_YX = sum(croparea_in.maps_YXv(:,:,I),3) ;
+clear croparea_in
 map_setaside_area_YX = sum(croparea_mid.maps_YXv * PLUMsetAside_frac,3) ;
 croparea_mid.maps_YXv = croparea_mid.maps_YXv * (1-PLUMsetAside_frac) ;
 map_extra_YX = map_ignore_area_YX + map_setaside_area_YX ;
@@ -259,6 +281,7 @@ Ncrops_out = length(list_crops_out) ;
 
 % Get fractions
 cropfrac_mid.maps_YXv = croparea_mid.maps_YXv ./ repmat(sum(croparea_mid.maps_YXv,3),[1 1 Ncrops_out]) ;
+clear croparea_mid
 
 % Interpolate
 out_cropfrac.varNames = list_crops_out ;
@@ -272,6 +295,7 @@ for c = 1:Ncrops_out
         error('NaN remaining in out_cropfrac.maps_YXv(:,:,c)!')
     end
 end
+clear cropfrac_mid
 
 % % % disp('Interpolating include_frac...')
 % % % map_include_frac_interpd_YX = inpaint_nans(map_include_frac_YX,inpaint_method) ;
@@ -296,7 +320,6 @@ tmp = sum(out_cropfrac.maps_YXv,3) ;
 if any(abs(tmp(:) - 1)>1e-6)
     out_cropfrac.maps_YXv = out_cropfrac.maps_YXv ./ repmat(tmp,[1 1 Ncrops_out]) ;
 end
-
 
 disp('Done.')
 
@@ -364,8 +387,14 @@ end
 % Import LUH2 originals: area, nfert, and irrig
 Ncrops_luh2_in = length(luh2_to_import) ;
 luh2_carea_XYyc = nan([size(carea_hd_XY) Nyears_out Ncrops_luh2_in]) ;
-luh2_nfert_XYyc = nan([size(carea_hd_XY) Nyears_out Ncrops_luh2_in]) ;
-luh2_irrig_XYyc = nan([size(carea_hd_XY) Nyears_out Ncrops_luh2_in]) ;
+if save_nfert
+    luh2_nfert_XYyc = nan([size(carea_hd_XY) Nyears_out Ncrops_luh2_in]) ;
+end
+if save_cropfracs
+    luh2_irrig_XYyc = nan([size(carea_hd_XY) Nyears_out Ncrops_luh2_in]) ;
+else
+    luh2_irrig_XYyc = false([size(carea_hd_XY) Nyears_out Ncrops_luh2_in]) ;
+end
 for c = 1:length(luh2_to_import)
     
     thisVar = luh2_to_import{c} ;
@@ -376,83 +405,120 @@ for c = 1:length(luh2_to_import)
     luh2_carea_XYy = luh2_carea_XYy .* carea_XYy ;
     luh2_carea_XYyc(:,:,:,c) = coarsen_res(luh2_carea_XYy,0.25,0.5) ;
     
-    fprintf('nfert... ') ;
-    thisVar = ['fertl_' luh2_to_import{c}] ;
-    tmp = ncread(file_luh2_mgmts,thisVar,starts_luh2_mgmts,counts_luh2_mgmts) ;
-    % Multiply by 1/(1-PLUMsetAside_frac) because LUH2 gets good global
-    % total N applied without considering setAside area, and we're assuming
-    % setAside area gets no N application.
-    luh2_nfert_XYyc(:,:,:,c) = ...
-        (1/(1-PLUMsetAside_frac)) * coarsen_res_mgmt(tmp,luh2_carea_XYy,0.25,0.5) ;
-    clear tmp
+    if save_nfert
+        fprintf('nfert... ') ;
+        thisVar = ['fertl_' luh2_to_import{c}] ;
+        tmp = ncread(file_luh2_mgmts,thisVar,starts_luh2_mgmts,counts_luh2_mgmts) ;
+        % Multiply by 1/(1-PLUMsetAside_frac) because LUH2 gets good global
+        % total N applied without considering setAside area, and we're assuming
+        % setAside area gets no N application.
+        luh2_nfert_XYyc(:,:,:,c) = ...
+            (1/(1-PLUMsetAside_frac)) * coarsen_res_mgmt(tmp,luh2_carea_XYy,0.25,0.5) ;
+        clear tmp
+    end
     
     fprintf('irrig... ') ;
     thisVar = ['irrig_' luh2_to_import{c}] ;
     tmp = ncread(file_luh2_mgmts,thisVar,starts_luh2_mgmts,counts_luh2_mgmts) ;
-    luh2_irrig_XYyc(:,:,:,c) = coarsen_res_mgmt(tmp,luh2_carea_XYy,0.25,0.5) ;
+    if save_cropfracs
+        luh2_irrig_XYyc(:,:,:,c) = coarsen_res_mgmt(tmp,luh2_carea_XYy,0.25,0.5) ;
+    else
+        luh2_irrig_XYyc(:,:,:,c) = coarsen_res_mgmt(tmp,luh2_carea_XYy,0.25,0.5) > 0 ;
+    end
     clear tmp
     
     fprintf('\n') ;
     clear luh2_carea_XYy
 end
+clear carea_XYy
 
 disp('Processing...')
 
 luh2_carea_YXyc = flip(permute(luh2_carea_XYyc,[2 1 3 4]),1) ; clear luh2_carea_XYyc
-luh2_nfert_YXyc = flip(permute(luh2_nfert_XYyc,[2 1 3 4]),1) ; clear luh2_nfert_XYyc
+if save_nfert
+    luh2_nfert_YXyc = flip(permute(luh2_nfert_XYyc,[2 1 3 4]),1) ; clear luh2_nfert_XYyc
+end
 luh2_irrig_YXyc = flip(permute(luh2_irrig_XYyc,[2 1 3 4]),1) ; clear luh2_irrig_XYyc
 
 % Convert to output equivalents
-out_nfert.varNames = list_crops_out ;
+if save_nfert
+    out_nfert.varNames = list_crops_out ;
+    out_nfert.yearList = shiftdim(yearList_out) ;
+    out_nfert.maps_YXyc = nan(360,720,Nyears_out,Ncrops_out) ;
+end
 out_irrig.varNames = list_crops_out ;
-out_nfert.yearList = shiftdim(yearList_out) ;
 out_irrig.yearList = shiftdim(yearList_out) ;
-out_nfert.maps_YXyc = nan(360,720,Nyears_out,Ncrops_out) ;
-out_irrig.maps_YXyc = nan(360,720,Nyears_out,NcropsCombined_out) ;
+if save_cropfracs
+    out_irrig.maps_YXyc = nan(360,720,Nyears_out,NcropsCombined_out) ;
+else
+    out_irrig.maps_YXyc = false(360,720,Nyears_out,NcropsCombined_out) ;
+end
 for c = 1:NcropsCombined_out
     thisCrop = list_cropsCombined_out{c} ;
     if strcmp(thisCrop,'ExtraCrop')
         ind_ExtraCrop = find(strcmp(list_crops_out,'ExtraCrop')) ;
-        out_nfert.maps_YXyc(:,:,:,ind_ExtraCrop) = zeros(360,720,Nyears_out) ;
-        out_irrig.maps_YXyc(:,:,:,c) = zeros(360,720,Nyears_out) ;
+        if save_nfert
+            out_nfert.maps_YXyc(:,:,:,ind_ExtraCrop) = zeros(360,720,Nyears_out) ;
+        end
+        if save_cropfracs
+            out_irrig.maps_YXyc(:,:,:,c) = zeros(360,720,Nyears_out) ;
+        else
+            % (Already false)
+        end
     else
         these_equivs = luh2_equivs_in{c} ;
-        is_match_nfert = contains(list_crops_out,thisCrop) ;
+        if save_nfert
+            is_match_nfert = contains(list_crops_out,thisCrop) ;
+            Nmatch_nfert = length(find(is_match_nfert)) ;
+        end
         is_match_irrig = strcmp(list_cropsCombined_out,thisCrop) ;
-        Nmatch_nfert = length(find(is_match_nfert)) ;
         Nmatch_irrig = length(find(is_match_irrig)) ;
         if length(unique(these_equivs))==1
-            out_nfert.maps_YXyc(:,:,:,is_match_nfert) = ...
+            if save_nfert
+                out_nfert.maps_YXyc(:,:,:,is_match_nfert) = ...
+                    repmat(...
+                    luh2_nfert_YXyc(:,:,:,strcmp(luh2_to_import,these_equivs{1})),...
+                    [1 1 1 Nmatch_nfert]) ;
+            end
+            out_irrig.maps_YXyc(:,:,:,is_match_irrig) = ...
                 repmat(...
-                luh2_nfert_YXyc(:,:,:,strcmp(luh2_to_import,these_equivs{1})),...
-                [1 1 1 Nmatch_nfert]) ;
-            out_irrig.maps_YXyc(:,:,:,is_match_irrig) = repmat(luh2_irrig_YXyc(:,:,:,strcmp(luh2_to_import,these_equivs{1})),[1 1 1 Nmatch_irrig]) ;
+                luh2_irrig_YXyc(:,:,:,strcmp(luh2_to_import,these_equivs{1})),...
+                [1 1 1 Nmatch_irrig]) ;
         else
             %%% Need to weight constituent crop types
             % Setup
             i_luh2 = cellfun(@(x) find(strcmp(luh2_to_import,x)),these_equivs) ;
             weightsDenom_YXyc = repmat(sum(luh2_carea_YXyc(:,:,:,i_luh2),4),[1 1 1 length(i_luh2)]) ;
             weights_YXyc = luh2_carea_YXyc(:,:,:,i_luh2) ./ weightsDenom_YXyc ;
+            any_YX1c = weightsDenom_YXyc(:,:,:,1)==0 ;
+            clear weightsDenom_YXyc
             if any(any(any(abs(sum(weights_YXyc,4)-1)>1e-6)))
                 error('Something went wrong with weighting in converting to %s.',thisCrop) ;
             end
-
+            
             % Nfert
-            tmp_YXy = sum(luh2_nfert_YXyc(:,:,:,i_luh2) .* weights_YXyc,4) ;
-            tmp_YXy(weightsDenom_YXyc(:,:,:,1)==0) = 0 ;
-            out_nfert.maps_YXyc(:,:,:,is_match_nfert) = repmat(tmp_YXy,[1 1 1 Nmatch_nfert]) ;
-            clear tmp_YXy
-
+            if save_nfert
+                tmp_YXy = sum(luh2_nfert_YXyc(:,:,:,i_luh2) .* weights_YXyc,4) ;
+                tmp_YXy(any_YX1c) = 0 ;
+                out_nfert.maps_YXyc(:,:,:,is_match_nfert) = repmat(tmp_YXy,[1 1 1 Nmatch_nfert]) ;
+                clear tmp_YXy
+            end
+            
             % Irrigation
             tmp_YXy = sum(luh2_irrig_YXyc(:,:,:,i_luh2) .* weights_YXyc,4) ;
-            tmp_YXy(weightsDenom_YXyc(:,:,:,1)==0) = 0 ;
-            out_irrig.maps_YXyc(:,:,:,is_match_irrig) = repmat(tmp_YXy,[1 1 1 Nmatch_irrig]) ;
+            tmp_YXy(any_YX1c) = 0 ;
+            if save_cropfracs
+                out_irrig.maps_YXyc(:,:,:,is_match_irrig) = repmat(tmp_YXy,[1 1 1 Nmatch_irrig]) ;
+            else
+                out_irrig.maps_YXyc(:,:,:,is_match_irrig) = repmat(tmp_YXy,[1 1 1 Nmatch_irrig]) > 0 ;
+            end
             clear tmp_YXy
 
             clear weights_YXyc
         end
     end
 end
+clear luh2_carea_YXyc luh2_irrig_YXyc luh2_nfert_YXyc
 
 % Get indices of irrigated crops (for troubleshooting)
 ir_inds = [] ;
@@ -468,39 +534,45 @@ isRf = ~isIr ;
 rf_inds = find(isRf) ;
 
 % Make sure that rainfed and irrigated fertilization is equal
-for i = rf_inds
-    thisCrop = out_nfert.varNames{i} ;
-    thisCropI = [thisCrop 'i'] ;
-    if any(strcmp(out_nfert.varNames,thisCropI))
-        j = find(strcmp(out_nfert.varNames,thisCropI)) ;
-        tmpRF = out_nfert.maps_YXyc(:,:,:,i) ;
-        tmpIR = out_nfert.maps_YXyc(:,:,:,j) ;
-        tmpRF(isnan(tmpRF)) = -1 ;
-        tmpIR(isnan(tmpIR)) = -1 ;
-        nbad = length(find(tmpRF ~= tmpIR)) ;
-        if nbad>0
-            errMsg = sprintf('%s (%d,%d):\t %d\n', ...
-                pad(thisCrop,max(cellfun(@length,out_nfert.varNames))), ...
-                i,j,nbad) ;
-            error(errMsg) ;
+if save_nfert
+    for i = rf_inds
+        thisCrop = out_nfert.varNames{i} ;
+        thisCropI = [thisCrop 'i'] ;
+        if any(strcmp(out_nfert.varNames,thisCropI))
+            j = find(strcmp(out_nfert.varNames,thisCropI)) ;
+            tmpRF = out_nfert.maps_YXyc(:,:,:,i) ;
+            tmpIR = out_nfert.maps_YXyc(:,:,:,j) ;
+            tmpRF(isnan(tmpRF)) = -1 ;
+            tmpIR(isnan(tmpIR)) = -1 ;
+            nbad = length(find(tmpRF ~= tmpIR)) ;
+            if nbad>0
+                errMsg = sprintf('%s (%d,%d):\t %d\n', ...
+                    pad(thisCrop,max(cellfun(@length,out_nfert.varNames))), ...
+                    i,j,nbad) ;
+                error(errMsg) ;
+            end
+            clear tmpRF tmpIR
+        else
+%             fprintf('Skipping %s.\n',thisCrop) ;
         end
-        clear tmpRF tmpIR
-    else
-%         fprintf('Skipping %s.\n',thisCrop) ;
+        clear thisCrop thisCropI tmp*
     end
-    clear thisCrop thisCropI tmp*
+    disp('Rainfed and irrigated fertilization is equal.')
 end
-disp('Rainfed and irrigated fertilization is equal.')
 
 % Reconcile NaN masks
-out_nfert.maps_YXyc(isnan(out_nfert.maps_YXyc) & ~repmat(bad_YX,[1 1 Nyears_out Ncrops_out])) = 0 ;
+if save_nfert
+    out_nfert.maps_YXyc(isnan(out_nfert.maps_YXyc) & ~repmat(bad_YX,[1 1 Nyears_out Ncrops_out])) = 0 ;
+end
 out_irrig.maps_YXyc(isnan(out_irrig.maps_YXyc) & ~repmat(bad_YX,[1 1 Nyears_out NcropsCombined_out])) = 0 ;
 
 % Reshape
-out_nfert_maps_YXvy = permute(out_nfert.maps_YXyc,[1 2 4 3]) ;
-out_nfert = rmfield(out_nfert,'maps_YXyc') ;
-out_nfert.maps_YXvy = out_nfert_maps_YXvy ;
-clear out_nfert_maps_YXvy
+if save_nfert
+    out_nfert_maps_YXvy = permute(out_nfert.maps_YXyc,[1 2 4 3]) ;
+    out_nfert = rmfield(out_nfert,'maps_YXyc') ;
+    out_nfert.maps_YXvy = out_nfert_maps_YXvy ;
+    clear out_nfert_maps_YXvy
+end
 out_irrig_maps_YXvy = permute(out_irrig.maps_YXyc,[1 2 4 3]) ;
 out_irrig = rmfield(out_irrig,'maps_YXyc') ;
 out_irrig.maps_YXvy = out_irrig_maps_YXvy ;
@@ -522,48 +594,80 @@ for c = 1:NcropsCombined_out
         thisCrop_irrFrac_YX1y = out_irrig.maps_YXvy(:,:,c,:) ;
         out_cropfrac2.maps_YXvy(:,:,strcmp(list_crops_out,thisCrop),:)  = repmat(thisCrop_YX,[1 1 1 Nyears_out]) .* (1-thisCrop_irrFrac_YX1y) ;
         out_cropfrac2.maps_YXvy(:,:,strcmp(list_crops_out,thisCropI),:) = repmat(thisCrop_YX,[1 1 1 Nyears_out]) .*    thisCrop_irrFrac_YX1y ;
+        clear thisCrop_YX
     end
+    clear thisCrop_irrFrac_YX1y
+end
+clear out_cropfrac
+
+% No longer needed
+if ~save_cropfracs
+    clear out_irrig
 end
 
-% Convert from kg/ha to kg/m2
-out_nfert.maps_YXvy = out_nfert.maps_YXvy * 1e-4 ;
-
-% Add manure N (already in kg/m2), assuming even distribution to all crops
-disp('Adding manure to Nfert...')
-load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
-yearList_manure = 1860:2014 ;
-yearList_manure_missing = setdiff(yearList_out,yearList_manure) ;
-if ~isempty(yearList_manure_missing)
-    manure2crop_hd_YXy = cat(3, ...
-        repmat(manure2crop_hd_YXy(:,:,1),[1 1 length(find(yearList_manure_missing<min(yearList_manure)))]), ...
-        manure2crop_hd_YXy, ...
-        repmat(manure2crop_hd_YXy(:,:,end),[1 1 length(find(yearList_manure_missing>max(yearList_manure)))]) ...
-        ) ;
-    yearList_manure = cat(2, ...
-        yearList_manure_missing(yearList_manure_missing<min(yearList_manure)), ...
-        yearList_manure, ...
-        yearList_manure_missing(yearList_manure_missing>max(yearList_manure)) ...
-        ) ;
+% No longer needed except to know whether it's positive
+if ~save_cropfracs
+    out_cropfrac2.maps_YXvy = out_cropfrac2.maps_YXvy > 0 ;
 end
-[~,IA,~] = intersect(yearList_manure,yearList_out) ;
-manure2crop_hd_YXy = manure2crop_hd_YXy(:,:,IA) ;
-clear IA
-manure2crop_hd_YXy(manure2crop_hd_YXy<1e-6) = 0 ;
-missing_manure_YXy = out_lu.maps_YXyv(:,:,:,strcmp(list_LU_out,'CROPLAND'))>0 & isnan(manure2crop_hd_YXy) ;
-if any(any(any(missing_manure_YXy)))
-    warning('%d cells with CROPLAND have NaN manure. Assuming 0 manure there.',length(find(missing_manure_YXy)))
+
+
+if save_nfert
+    % Convert from kg/ha to kg/m2
+    out_nfert.maps_YXvy = out_nfert.maps_YXvy * 1e-4 ;
+
+    % Add manure N (already in kg/m2), assuming even distribution to all crops
+    disp('Adding manure to Nfert...')
+    load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
+    yearList_manure = 1860:2014 ;
+    yearList_manure_missing = setdiff(yearList_out,yearList_manure) ;
+    if ~isempty(yearList_manure_missing)
+        manure2crop_hd_YXy = cat(3, ...
+            repmat(manure2crop_hd_YXy(:,:,1),[1 1 length(find(yearList_manure_missing<min(yearList_manure)))]), ...
+            manure2crop_hd_YXy, ...
+            repmat(manure2crop_hd_YXy(:,:,end),[1 1 length(find(yearList_manure_missing>max(yearList_manure)))]) ...
+            ) ;
+        yearList_manure = cat(2, ...
+            yearList_manure_missing(yearList_manure_missing<min(yearList_manure)), ...
+            yearList_manure, ...
+            yearList_manure_missing(yearList_manure_missing>max(yearList_manure)) ...
+            ) ;
+    end
+    [~,IA,~] = intersect(yearList_manure,yearList_out) ;
+    manure2crop_hd_YXy = manure2crop_hd_YXy(:,:,IA) ;
+    clear IA
+    manure2crop_hd_YXy(manure2crop_hd_YXy<1e-6) = 0 ;
+    missing_manure_YXy = out_lu.maps_YXyv(:,:,:,strcmp(list_LU_out,'CROPLAND'))>0 & isnan(manure2crop_hd_YXy) ;
+    if any(any(any(missing_manure_YXy)))
+        warning('%d cells with CROPLAND have NaN manure. Assuming 0 manure there.',length(find(missing_manure_YXy)))
+    end
+    clear missing_manure_YXy
+    manure2crop_hd_YXy(isnan(manure2crop_hd_YXy)) = 0 ;
+    isExtraCrop = strcmp(list_crops_out,'ExtraCrop') ;
+    
+    manure2crop_hd_YXvy = repmat(permute(manure2crop_hd_YXy,[1 2 4 3]),[1 1 Ncrops_out 1]) ;
+    clear manure2crop_hd_YXy
+    out_nfert.maps_YXvy(:,:,~isExtraCrop,:) = out_nfert.maps_YXvy(:,:,~isExtraCrop,:) ...
+        + manure2crop_hd_YXvy(:,:,~isExtraCrop,:) ;
+
+    % Ensure no fertilization where no area
+    out_nfert.maps_YXvy(out_cropfrac2.maps_YXvy==0) = 0 ;
+
+    % Get manure fraction
+    out_manurefrac = rmfield(out_nfert, 'maps_YXvy') ;
+    out_manurefrac.maps_YXvy = manure2crop_hd_YXvy ./ out_nfert.maps_YXvy ;
+    clear manure2crop_hd_YXvy
+    out_manurefrac.maps_YXvy(out_nfert.maps_YXvy==0) = 0 ;
 end
-manure2crop_hd_YXy(isnan(manure2crop_hd_YXy)) = 0 ;
-isExtraCrop = strcmp(list_crops_out,'ExtraCrop') ;
-out_nfert.maps_YXvy(:,:,~isExtraCrop,:) = out_nfert.maps_YXvy(:,:,~isExtraCrop,:) + repmat(permute(manure2crop_hd_YXy,[1 2 4 3]),[1 1 length(find(~isExtraCrop)) 1]) ;
 
-% Ensure no fertilization where no area
-out_nfert.maps_YXvy(out_cropfrac2.maps_YXvy==0) = 0 ;
-
-% Permute LU
-tmp = permute(out_lu.maps_YXyv,[1 2 4 3]) ;
-out_lu = rmfield(out_lu,'maps_YXyv') ;
-out_lu.maps_YXvy = tmp ;
+% Permute LU (or clear, if not needed)
+if save_lu
+    tmp = permute(out_lu.maps_YXyv,[1 2 4 3]) ;
+    out_lu = rmfield(out_lu,'maps_YXyv') ;
+    out_lu.maps_YXvy = tmp ;
+    clear tmp
+else
+    clear out_lu
+end
 
 disp('Done.')
 
@@ -571,29 +675,54 @@ disp('Done.')
 %% Part 4: Set up for save
 
 % Array-ify
-disp('Array-ifying out_lu...')
-[out_lu_array, out_lu_header_cell] = lpjgu_matlab_maps2table(out_lu,gridlist.list_to_map) ;
-disp('Array-ifying out_cropfrac...')
-[out_cropfrac_array, out_cropfrac_header_cell] = lpjgu_matlab_maps2table(out_cropfrac2,gridlist.list_to_map) ;
-disp('Array-ifying out_nfert...')
-[out_nfert_array, out_nfert_header_cell] = lpjgu_matlab_maps2table(out_nfert,gridlist.list_to_map) ;
+if save_lu
+    disp('Array-ifying out_lu...')
+    [out_lu_array, out_lu_header_cell] = lpjgu_matlab_maps2table(out_lu,gridlist.list_to_map) ;
+    out_lu = rmfield(out_lu.maps_YXyv) ;
+end
+if save_cropfracs || save_nfert
+    disp('Array-ifying out_cropfrac2...')
+    [out_cropfrac_array, out_cropfrac_header_cell] = lpjgu_matlab_maps2table(out_cropfrac2,gridlist.list_to_map) ;
+    out_cropfrac2 = rmfield(out_cropfrac2, 'maps_YXvy') ;
+else
+    clear out_cropfrac2
+end
+%%
+if save_nfert
+    disp('Array-ifying out_nfert...')
+    [out_nfert_array, out_nfert_header_cell] = lpjgu_matlab_maps2table(out_nfert,gridlist.list_to_map) ;
+    out_nfert = rmfield(out_nfert, 'maps_YXvy') ;
+    disp('Array-ifying out_manurefrac...')
+    [out_manurefrac_array, out_manurefrac_header_cell] = lpjgu_matlab_maps2table(out_manurefrac,gridlist.list_to_map) ;
+    out_manurefrac = rmfield(out_manurefrac, 'maps_YXvy') ;
+else
+    clear out_nfert out_manurefrac
+end
 
 % Add zeros for Miscanthus(i)
-disp('Adding zeros for Miscanthus(i)...')
-out_cropfrac_array = cat(2,out_cropfrac_array,zeros(size(out_cropfrac_array,1),2)) ;
-out_cropfrac_header_cell = [out_cropfrac_header_cell {'Miscanthus','Miscanthusi'}] ;
-out_nfert_array = cat(2,out_nfert_array,zeros(size(out_nfert_array,1),2)) ;
-out_nfert_header_cell = [out_nfert_header_cell {'Miscanthus','Miscanthusi'}] ;
+if save_cropfracs || save_nfert
+    disp('Adding zeros for Miscanthus(i)...')
+    out_cropfrac_array = cat(2,out_cropfrac_array,zeros(size(out_cropfrac_array,1),2)) ;
+    out_cropfrac_header_cell = [out_cropfrac_header_cell {'Miscanthus','Miscanthusi'}] ;
+    if save_nfert
+        out_nfert_array = cat(2,out_nfert_array,zeros(size(out_nfert_array,1),2)) ;
+        out_nfert_header_cell = [out_nfert_header_cell {'Miscanthus','Miscanthusi'}] ;
+        out_manurefrac_array = cat(2,out_manurefrac_array,zeros(size(out_manurefrac_array,1),2)) ;
+        out_manurefrac_header_cell = [out_manurefrac_header_cell {'Miscanthus','Miscanthusi'}] ;
+    end
+end
 
 % Get filenames
-if force_all_rainfed
-    allRF_txt = '.noIrr' ;
-else
-    allRF_txt = '' ;
+if save_lu
+    out_file_lu = [out_dir 'LU.remapv' remapVer '.txt'] ;
 end
-out_file_lu = [out_dir 'LU.remapv' remapVer '.txt'] ;
-out_file_cropfrac = [out_dir 'cropfracs.remapv' remapVer '.txt'] ;
-out_file_nfert = [out_dir 'nfert.remapv' remapVer '.txt'] ;
+if save_cropfracs
+    out_file_cropfrac = [out_dir 'cropfracs.remapv' remapVer '.txt'] ;
+end
+if save_nfert
+    out_file_nfert = [out_dir 'nfert.remapv' remapVer '.txt'] ;
+    out_file_manurefrac = [out_dir 'manurefrac.remapv' remapVer '.txt'] ;
+end
 
 disp('Done.')
 
@@ -609,31 +738,36 @@ fancy = false ;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Check that nfert is the same for rainfed and irrigated
-for i = rf_inds
-    thisCrop = list_crops_out{i} ;
-    thisCropI = [thisCrop 'i'] ;
-    if any(strcmp(list_crops_out,thisCropI))
-        j = find(strcmp(list_crops_out,thisCropI)) ;
-        tmpRF_nf = out_nfert_array(:,strcmp(out_nfert_header_cell,thisCrop)) ;
-        tmpIR_nf = out_nfert_array(:,strcmp(out_nfert_header_cell,thisCropI)) ;
-        tmpRF_cf = out_cropfrac_array(:,strcmp(out_cropfrac_header_cell,thisCrop)) ;
-        tmpIR_cf = out_cropfrac_array(:,strcmp(out_cropfrac_header_cell,thisCropI)) ;
-        if any(isnan(tmpRF_nf)) || any(isnan(tmpIR_nf))
-            error('NaN in out_nfert_array!')
+if save_nfert
+    for i = rf_inds
+        thisCrop = list_crops_out{i} ;
+        thisCropI = [thisCrop 'i'] ;
+        if any(strcmp(list_crops_out,thisCropI))
+            j = find(strcmp(list_crops_out,thisCropI)) ;
+            tmpRF_nf = out_nfert_array(:,strcmp(out_nfert_header_cell,thisCrop)) ;
+            tmpIR_nf = out_nfert_array(:,strcmp(out_nfert_header_cell,thisCropI)) ;
+            tmpRF_cf = out_cropfrac_array(:,strcmp(out_cropfrac_header_cell,thisCrop)) ;
+            tmpIR_cf = out_cropfrac_array(:,strcmp(out_cropfrac_header_cell,thisCropI)) ;
+            if any(isnan(tmpRF_nf)) || any(isnan(tmpIR_nf))
+                error('NaN in out_nfert_array!')
+            end
+            nbad = length(find((tmpRF_cf>0)==(tmpIR_cf>0) & tmpRF_nf~=tmpIR_nf)) ;
+            if nbad > 0
+                errMsg = sprintf('%s (%d,%d):\t %d\n', ...
+                    pad(thisCrop,max(cellfun(@length,out_nfert.varNames))), ...
+                    i,j,nbad) ;
+                error(errMsg)
+            end
+            clear tmp*
+        else
+            fprintf('Skipping %s.\n',thisCrop) ;
         end
-        nbad = length(find((tmpRF_cf>0)==(tmpIR_cf>0) & tmpRF_nf~=tmpIR_nf)) ;
-        if nbad > 0
-            errMsg = sprintf('%s (%d,%d):\t %d\n', ...
-                pad(thisCrop,max(cellfun(@length,out_nfert.varNames))), ...
-                i,j,nbad) ;
-            error(errMsg)
-        end
-        clear tmpRF tmpIR
-    else
-        fprintf('Skipping %s.\n',thisCrop) ;
     end
+    disp('Nfert is the same for rainfed and irrigated.')
 end
-disp('Nfert is the same for rainfed and irrigated.')
+if ~save_cropfracs
+    clear out_cropfrac_array
+end
 
 if ~exist(out_dir,'dir')
     mkdir(out_dir) ;
@@ -665,33 +799,52 @@ fid1_gridlist = fopen(strrep(outFile_gridlist,'\ ',' '),'a+') ;
 fprintf(fid1_gridlist,'%s','') ;
 fclose(fid1_gridlist) ;
 
-disp('Saving LU...')
-check_existing_lu(thisVer, out_file_lu, allVer_names, allVer_ignore_types) ;
-lpjgu_matlab_saveTable(out_lu_header_cell, out_lu_array, out_file_lu,...
-    'outPrec', outPrec, ...
-    'outWidth', outWidth, ...
-    'delimiter', delimiter, ...
-    'overwrite', overwrite, ...
-    'fancy', fancy, ...
-    'progress_step_pct', 1) ;
+if save_lu
+    disp('Saving LU...')
+    check_existing_lu(thisVer, out_file_lu, allVer_names, allVer_ignore_types) ;
+    lpjgu_matlab_saveTable(out_lu_header_cell, out_lu_array, out_file_lu,...
+        'outPrec', outPrec, ...
+        'outWidth', outWidth, ...
+        'delimiter', delimiter, ...
+        'overwrite', overwrite, ...
+        'fancy', fancy, ...
+        'progress_step_pct', 1) ;
+    clear out_lu_array
+end
 
-disp('Saving cropfracs...')
-lpjgu_matlab_saveTable(out_cropfrac_header_cell, out_cropfrac_array, out_file_cropfrac,...
-    'outPrec', outPrec, ...
-    'outWidth', outWidth, ...
-    'delimiter', delimiter, ...
-    'overwrite', overwrite, ...
-    'fancy', fancy, ...
-    'progress_step_pct', 20) ;
+if save_cropfracs
+    disp('Saving cropfracs...')
+    lpjgu_matlab_saveTable(out_cropfrac_header_cell, out_cropfrac_array, out_file_cropfrac,...
+        'outPrec', outPrec, ...
+        'outWidth', outWidth, ...
+        'delimiter', delimiter, ...
+        'overwrite', overwrite, ...
+        'fancy', fancy, ...
+        'progress_step_pct', 20) ;
+    clear out_cropfrac_array
+end
 
-disp('Saving nfert...')
-lpjgu_matlab_saveTable(out_nfert_header_cell, out_nfert_array, out_file_nfert,...
-    'outPrec', outPrec, ...
-    'outWidth', outWidth, ...
-    'delimiter', delimiter, ...
-    'overwrite', overwrite, ...
-    'fancy', fancy, ...
-    'progress_step_pct', 20) ;
+if save_nfert
+    disp('Saving nfert...')
+    lpjgu_matlab_saveTable(out_nfert_header_cell, out_nfert_array, out_file_nfert,...
+        'outPrec', outPrec, ...
+        'outWidth', outWidth, ...
+        'delimiter', delimiter, ...
+        'overwrite', overwrite, ...
+        'fancy', fancy, ...
+        'progress_step_pct', 20) ;
+    clear out_nfert_array
+    
+    disp('Saving manurefrac...')
+    lpjgu_matlab_saveTable(out_manurefrac_header_cell, out_manurefrac_array, out_file_manurefrac,...
+        'outPrec', outPrec, ...
+        'outWidth', outWidth, ...
+        'delimiter', delimiter, ...
+        'overwrite', overwrite, ...
+        'fancy', fancy, ...
+        'progress_step_pct', 20) ;
+    clear out_manurefrac_array
+end
 
 
  %% FUNCTIONS
