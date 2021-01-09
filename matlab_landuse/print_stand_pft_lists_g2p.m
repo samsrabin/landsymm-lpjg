@@ -70,6 +70,9 @@ for c = 1:Ncrops
                 fprintf(fid, '\thydrology "irrigated_sat"') ;
                 fprintf(fid, '\n') ;
             end
+            if n > 0
+                fprintf(fid, '\tisforpotyield 1\n') ;
+            end
             fprintf(fid, ')\n\n') ;
         end
     end
@@ -106,10 +109,11 @@ for c = 1:Ncrops
             
             % Generate CFT file text
             fprintf(fid, 'pft "%s" (\n', thisCropIrrN) ;
-            fprintf(fid, '\t%s\n', thisCFT) ;
+            fprintf(fid, '\t%s_nlim\n', thisCFT) ;
             fprintf(fid, '\tinclude 1\n') ;
             if n > 0
                 fprintf(fid, ['\tN_appfert ' Nformat_appfert '\n'], thisN*1e-4) ;
+                fprintf(fid, '\tisforpotyield 1\n') ;
             end
             fprintf(fid, ')\n\n') ;
         end
