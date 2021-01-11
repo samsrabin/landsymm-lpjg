@@ -235,6 +235,59 @@ export_fig(sprintf('%s/ts_crops_%s.pdf', outDir, strrep(lower(thisTitle), ' ', '
 % close
 
 
+%% Difference maps
+
+thisYear = 2080 ;
+
+% Options %%%%%%%%%%%%%%%%%%%%
+thisPos = figurePos ;
+spacing = [0.025 0.02] ; % y x
+yrange = 65:360 ;
+fontSize = 14 ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure('Color', 'w', 'Position', thisPos) ;
+
+[~,IA] = intersect(landuse.varNames, {'cropland', 'pasture'}) ;
+isThisYear = landuse.yearList==thisYear ;
+
+for r = 1:Nruns
+    subplot_tight(3,1,r,spacing) ;
+    data_1_x = sum(landuse.garr_xvyr(:,IA,1,r),2) ...
+        ./ sum(landuse.garr_xvyr(:,:,1,r),2) ;
+    data_thisYear_x = sum(landuse.garr_xvyr(:,IA,isThisYear,r),2) ...
+        ./ sum(landuse.garr_xvyr(:,:,isThisYear,r),2) ;
+    data_x = data_thisYear_x - data_1_x ;
+    map_YX = lpjgu_vector2map(data_x, [360 720], landuse.list2map) ;
+    pcolor(map_YX(yrange,:)); shading flat; axis equal tight off
+    caxis([-1 1]*max(abs(data_x)))
+    colorbar('EastOutside')
+    
+    thisTitle = runList{r,1} ;
+    title(thisTitle) ;
+    set(gca, ...
+        'FontSize', fontSize)
+end
+
+% % Add main title
+% hold on
+% hat = axes ;
+% hat.Position = [0 0 1 1] ;
+% ht = text(hat, 100, 100, ...
+%     'Agricultural fraction', ...
+%     'FontSize', fontSize+4, 'FontWeight', 'bold') ;
+% ht.Units = 'normalized' ;
+% ht.HorizontalAlignment = 'center' ;
+% ht.Position(1) = 0.5 ;
+% ht.Position(2) = 0.97 ;
+% hat.Visible = 'off' ;
+% hold off
+
+% Save figure
+export_fig(sprintf('%s/maps.pdf', outDir), gcf)
+% close
+
+
 %% FUNCTIONS
 
 function make_percrop_fig(data_vyr, cropList, models_legend, yearList, ...
