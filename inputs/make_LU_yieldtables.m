@@ -17,50 +17,29 @@ dir_out = '/Volumes/Reacher/LandSyMM/inputs/LU' ;
 
 Ntrans = size(transitions,1) ;
 
-
-%% Get gridlist
-
-% Import previous LandSyMM gridlist and ISIMIP3 gridlist
-gridlist_prev = lpjgu_matlab_read2geoArray('/Users/Shared/PLUM/input/gridlists/gridlist_62892.runAEclimOK.txt') ;
-gridlist_isimip = lpjgu_matlab_read2geoArray('/Volumes/Reacher/GGCMI/inputs/phase3/ISIMIP3/landseamask-lpjg/gridlist_ggcmi_v1.1.gapfilled.lpjg.txt') ;
-
-% Merge
-gridlist.mask_YX = gridlist_prev.mask_YX | gridlist_isimip.mask_YX ;
-gridlist.list2map = union(gridlist_prev.list2map, gridlist_isimip.list2map, 'stable') ;
-gridlist.lonlats = union(gridlist_prev.lonlats, gridlist_isimip.lonlats, 'rows', 'stable') ;
-clear gridlist_prev gridlist_isimip
-Ncells = length(gridlist.list2map) ;
-
-
-%% Generate LU array for a single cell
-
 LU_list = unique([{'NATURAL'} ; transitions(:,2)], 'stable') ;
 Nlu = length(LU_list) ;
 
-yearList = nan(2*Ntrans,1) ;
+yearList = ((transitions{1,1}-1):transitions{end,1})' ;
 Nyears = length(yearList) ;
 
+
+%% Generate LU array
+
 LU_yv = zeros(Nyears,Nlu) ;
-for t = 1:Ntrans
-    y1 = (t-1)*2+1 ;
-    y2 = (t-1)*2+2 ;
-    
-    if t==1
-        LU_yv(y1, strcmp(LU_list, 'NATURAL')) = 1 ;
+for t = 0:Ntrans
+    if t==0
+        LU_yv(1, strcmp(LU_list, 'NATURAL')) = 1 ;
+    elseif t==Ntrans
+        LU_yv(end, strcmp(LU_list, transitions{t,2})) = 1 ;
     else
-        LU_yv(y1, strcmp(LU_list, transitions{t-1,2})) = 1 ;
+        [~,IA] = intersect(yearList,transitions{t,1}:(transitions{t+1,1})-1) ;
+        LU_yv(IA, strcmp(LU_list, transitions{t,2})) = 1 ;
     end
-    LU_yv(y2, strcmp(LU_list, transitions{t,2})) = 1 ;
-    
-    yearList(y1) = transitions{t,1} - 1 ;
-    yearList(y2) = transitions{t,1} ;
 end
 
-LU_yv(1, strcmp(LU_list, 'NATURAL')) = 1 ;
-LU_yv(2:3, strcmp(LU_list, 'CROPLAND')) = 1 ;
-LU_yv(4, strcmp(LU_list, 'FOREST')) = 1 ;
-
 data_YV = cat(2, yearList, LU_yv) ;
+% array2table(data_YV, 'VariableNames', [{'Year'} LU_list'])
 
 
 %% Save LU file
@@ -74,38 +53,27 @@ for t = 1:Ntrans
         file_out, sep, lower(thisLU(1)), transitions{t,1}) ;
     sep = '-' ;
 end
-file_out = sprintf('%s.%d.txt', ...
-    file_out, Ncells) ;
+file_out = sprintf('%s.txt', ...
+    file_out) ;
 
 % Get output header and data-row format
-header_out = 'Lon\tLat\tYear' ;
+header_out = 'Year' ;
 for L = 1:Nlu
     header_out = [header_out '\t' LU_list{L}] ; %#ok<AGROW>
 end
 header_out = [header_out '\n'] ;
-format_out = ['%0.2f\t%0.2f\t%d' repmat('\t%d', [1 Nlu]) '\n'] ;
+format_out = ['%d' repmat('\t%d', [1 Nlu]) '\n'] ;
 
 % Open file and save header
 fid = fopen(file_out,'w') ;
 fprintf(fid, header_out) ;
 
-% Write to file gridcell-by-gridcell
-for g = 1:Ncells
-    thisInd = gridlist.list2map(g) ;
-    out_YV = cat(2, ...
-        repmat(gridlist.lonlats(g,:), [Nyears 1]), ...
-        data_YV) ;
-    fprintf(fid, ...
-        format_out, ...
-        out_YV' ...
-        ) ;
-    if rem(g,10000)==0 || g==Ncells
-        fclose(fid) ;
-        disp(num2str(g))
-        if g<Ncells
-            fid = fopen(file_out,'a') ;
-        end
-    end
-end
+% Write data
+fprintf(fid, ...
+    format_out, ...
+    data_YV' ...
+    ) ;
+fclose(fid) ;
+disp('Done saving')
 
-disp('Done')
+
