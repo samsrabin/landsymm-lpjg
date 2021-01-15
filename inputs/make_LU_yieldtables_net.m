@@ -36,6 +36,7 @@ Nyears = length(yearList) ;
 %% Generate LU array
 
 LU_yv = zeros(Nyears,Nlu) ;
+Nlu_now_max = -Inf ;
 for t = 0:Ntrans
     if t==0
         LU_yv(1, strcmp(LU_list, 'NATURAL')) = 1 ;
@@ -46,6 +47,7 @@ for t = 0:Ntrans
             LU_list_now = {LU_list_now} ;
         end
         Nlu_now = length(LU_list_now) ;
+        Nlu_now_max = max(Nlu_now, Nlu_now_max) ;
         if length(Ilu) ~= Nlu_now
             error('Error finding land uses: Found %d, expected %d', ...
                 length(Ilu), Nlu_now)
@@ -92,7 +94,14 @@ for L = 1:Nlu
     header_out = [header_out '\t' LU_list{L}] ; %#ok<AGROW>
 end
 header_out = [header_out '\n'] ;
-format_out = ['%d' repmat('\t%d', [1 Nlu]) '\n'] ;
+if Nlu_now_max==1
+    tmp = '%d' ;
+elseif Nlu_now_max==2
+    tmp = '%0.1f' ;
+else
+    tmp = '%0.6f' ;
+end
+format_out = ['%d' repmat(['\t' tmp], [1 Nlu]) '\n'] ;
 
 % Open file and save header
 fid = fopen(file_out,'w') ;
