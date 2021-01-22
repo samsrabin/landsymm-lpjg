@@ -181,7 +181,7 @@ for v = 1:length(data_fu_out.varNames)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Maximum yield over future %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if do_max && ~exist(filename_max, 'file')
+    if do_max && (overwrite_existing_figs || ~exist(filename_max, 'file'))
     
         title_center_max = sprintf('Raw %s emu (%s)', ggcm, strrep(thisCropi_emu, '_', '\_')) ;
 
@@ -319,7 +319,7 @@ for v = 1:length(data_fu_out.varNames)
     %%%%%%%%%%%%%%%%%%%%%%
     %%% First timestep %%%
     %%%%%%%%%%%%%%%%%%%%%%
-    if do_first && ~exist(filename_first, 'file')
+    if do_first && (overwrite_existing_figs || ~exist(filename_first, 'file'))
         
         if do_first0
             Ny = 2 ;
@@ -435,7 +435,7 @@ for v = 1:length(data_fu_out.varNames)
     %%%%%%%%%%%%%%%%%%%%%%%
     %%% Fourth timestep %%%
     %%%%%%%%%%%%%%%%%%%%%%%
-    if do_4th && ~exist(filename_4th, 'file')
+    if do_4th && (overwrite_existing_figs || ~exist(filename_4th, 'file'))
         
         if do_4th0
             Ny = 2 ;
