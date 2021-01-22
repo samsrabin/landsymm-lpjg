@@ -2,7 +2,8 @@ function e2p_save_out_figs(data_fu_lpj, data_fu_lpj0, ...
     data_fu_emu, data_fu_out, ...
     ggcm, getN, outDir_figs, ...
     which_file, cropList_lpj_asEmu, figure_visibility, ...
-    figure_extension, which_out_figs, overwrite_existing_figs, renderer)
+    figure_extension, which_out_figs, overwrite_existing_figs, renderer, ...
+    use_lpjg_baseline, use_ph2_baseline)
 
 if ~exist(outDir_figs, 'dir')
     mkdir(outDir_figs)
@@ -125,7 +126,18 @@ end
 
 % Set up titles for "max over future" figure
 title_left_max = 'LPJ-GUESS sim' ;
-title_right_max = sprintf('LPJ-GUESS sim bl + %s emu %ss', ggcm, '\Delta') ;
+if use_lpjg_baseline
+    title_right_max = sprintf('LPJ-GUESS sim bl + %s emu %ss', ...
+        ggcm, '\Delta') ;
+elseif use_ph2_baseline
+    if strcmp(ggcm, 'GEPIC')
+        error('Need special handling here for GEPIC N60, which wasn''t actually simulated in phase 2')
+    end
+    title_right_max = sprintf('Phase 2 %s sim bl + emu %ss', ...
+        ggcm, '\Delta') ;
+else
+    error('Which baseline am I using?')
+end
 
 % Set up titles for "Nth timestep" figures
 title_left_Nth = 'LPJ-GUESS sim' ;

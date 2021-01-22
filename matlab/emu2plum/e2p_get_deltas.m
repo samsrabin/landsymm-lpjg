@@ -29,6 +29,11 @@ e2p_check_correct_zeros(deltas0_emu_xvt, ...
 % Might want to instead limit to (e.g.) 99.9th percentile of deltas
 isbad = find(data_fu_emu.garr_xvt>0 & emu_bl_xvt==0) ;
 
+% Sanity check
+if ~isequal(size(shiftdim(cropList_emu)), size(shiftdim(used_emuCrops)))
+    error('Size mismatch between cropList_emu and used_emuCrops')
+end
+
 if ~isempty(isbad) && ~interp_infs
     warning('%d elements of data_fu_emu.garr_xvt are positive but were 0 in baseline, resulting in delta=Inf. Will NOT fix.', ...
         length(find(isbad)))

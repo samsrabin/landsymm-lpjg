@@ -1,15 +1,21 @@
 function [varNames, cropList, varNames_basei, cropList_basei, Nlist, maxN] = ...
-    e2p_get_names(varNames_bl, varNames_fu, ...
+    e2p_get_names(varNames_A, varNames_B, ...
     getN, get_unneeded)
 
-% Make sure baseline and future variable names match (if varNames_bl is
-% included)
-if ~isempty(varNames_bl)
-    if ~isequal(varNames_bl, varNames_fu)
-        error('Mismatch between variable names in baseline and future.')
+% Make sure A and B variable lists match (if A is included)
+if ~isempty(varNames_A) && ~isempty(varNames_B)
+    if ~isequal(varNames_A, varNames_B)
+        error('Mismatch between variable lists A and B.')
     end
+    varNames = varNames_B ;
+elseif ~isempty(varNames_A)
+    varNames = varNames_A ;
+elseif ~isempty(varNames_B)
+    varNames = varNames_B ;
+else
+    error('You must supply at least one of varNames_A or varNames_B')
 end
-varNames = varNames_fu ;
+
 
 % Make sure any non-experimental names (e.g., CerealsC3 as opposed to
 % CerealsC3060) have been stripped

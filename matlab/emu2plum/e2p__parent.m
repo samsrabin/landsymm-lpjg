@@ -22,12 +22,17 @@ when_remove_outliers = 'end' ; % end, before_interp, off
 fake1k = true ;
 overwrite_existing_txt = true ;
 overwrite_existing_figs = true ;
+use_lpjg_baseline = false ;
+use_ph2_baseline = true ;
 
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
-% ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
-ggcm_list = {'CARAIB', 'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
-ssp_list = {'ssp126', 'ssp585'} ;
+% ggcm_list = {'LPJmL', 'CARAIB', 'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
+% ggcm_list = {'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
+% ggcm_list = {'EPIC-TAMU', 'GEPIC'} ;
+ggcm_list = {'EPIC-TAMU'} ;
+% ssp_list = {'ssp126', 'ssp585'} ;
+ssp_list = {'ssp126'} ;
 thisVer = '20201204' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
@@ -42,7 +47,7 @@ warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP
     tmp_rcp)
 
 
-%% Setup 
+%% Setup
 
 current_dir = pwd ;
 if strcmp(current_dir(1:6), '/Users') || strcmp(current_dir(1:6), '/Volum')
@@ -133,6 +138,14 @@ if save_out_figs && isempty(which_out_figs)
     save_out_figs = false ;
 end
 
+% Ensure you have these options set correctly
+if use_lpjg_baseline == use_ph2_baseline
+    error('Choose either use_lpjg_baseline or use_ph2_baseline')
+end
+
+% Exclude cells with <0.1 t/ha yield in Phase 2 baseline simulations,
+% as Jim did
+low_yield_threshold_kgm2 = 0.01 ;
 
 
 %% Set up crop lists
@@ -184,6 +197,10 @@ e2p_check_correct_zeros(data_fu_lpj_yield.garr_xvt, ...
     Nlist_lpj, ~] = ...
     e2p_get_names(data_bl_lpj_yield.varNames, data_fu_lpj_yield.varNames, ...
     getN, get_unneeded) ;
+varNames_out = varNames_lpj ;
+cropList_out = cropList_lpj ;
+varNames_out_basei = varNames_lpj_basei ;
+cropList_out_basei = cropList_lpj_basei ;
 
 if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
     error('Mismatch between cropIrrNlist_out and varNames_lpj')

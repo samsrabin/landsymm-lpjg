@@ -1,11 +1,11 @@
-function [cropList_lpj_asEmu, used_emuCrops] = e2p_translate_crops(...
+function [cropList_lpj_asEmu, used_emuCrops] = e2p_translate_crops_lpj2emu(...
     cropList_lpj, cropList_emu, varargin)
 
 verbose = true ;
 if ~isempty(varargin)
     verbose = varargin{1} ;
     if length(varargin)>1
-        error('At most 1 optional argument accepted in e2p_translate_crops')
+        error('At most 1 optional argument accepted in e2p_translate_crops_lpj2emu')
     end
 end
 
