@@ -28,6 +28,17 @@ for g = 1:length(gcm_list)
         if ~excl_lowBL_emu
             outDir = [outDir '_ignLoEm'] ; %#ok<AGROW>
         end
+        if ~exist(outDir, 'dir')
+            mkdir(outDir) ;
+        end
+        
+        % Copy log to file
+        diaryfile = sprintf('%s/matlab_log.txt', outDir) ;
+        if exist(diaryfile, 'file')
+            delete(diaryfile) ;
+        end
+        diary(diaryfile)
+        diary('on')
             
         outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
         outDir_excl_figs_inCrops = sprintf('%s/excl_figs_GGCMIcrops', outDir) ;
@@ -35,10 +46,7 @@ for g = 1:length(gcm_list)
         outDir_interp_figs = sprintf('%s/interp_figs', outDir) ;
         outDir_yield_figs = sprintf('%s/yield_figs', outDir) ;
         outDir_irrig_figs = sprintf('%s/irrig_figs', outDir) ;
-
-        if ~exist(outDir, 'dir')
-            mkdir(outDir) ;
-        end
+        
         if ~exist(outDir_lpj, 'dir')
             mkdir(outDir_lpj) ;
         end
@@ -140,7 +148,7 @@ for g = 1:length(gcm_list)
                     missing_agmerra_xc = false_xc ;
                     if (excl_lowBL_agmerra && strcmp(which_file, 'yield')) ...
                             || use_ph2_baseline
-                        fprintf('    Importing AgMERRA %s...', which_file)
+                        fprintf('    Importing AgMERRA %s...\n', which_file)
                         if ~isequal(data_fu_lpj.list2map, data_bl_emu.list2map)
                             error('gridlist mismatch')
                         end
@@ -169,7 +177,7 @@ for g = 1:length(gcm_list)
                             data_bl_agm.garr_xv) ;
                     end
 
-
+                    
                     %% Get and apply exclusions, if doing so
                     
                     % Where do we exclude based on missing
@@ -511,6 +519,12 @@ for g = 1:length(gcm_list)
                         e2p_save_outlier_info(outlier_info_lpj, outDir_lpj, which_file, data_fu_out.y1s, data_fu_out.yNs)
                         e2p_save_outlier_info(outlier_info_out, outDir_ggcm, which_file, data_fu_out.y1s, data_fu_out.yNs)
                     end
+                    
+                    % Consistency check
+                    if isfield(data_fu_out, 'actually_emu_char') ...
+                    && ~isequal(size(shiftdim(data_fu_out.varNames)), size(shiftdim(data_fu_out.actually_emu_char)))
+                        error('data_fu_out.actually_emu_char must be the same size as data_fu_out.varNames')
+                    end
 
                 end
                 
@@ -598,12 +612,6 @@ for g = 1:length(gcm_list)
                 end
                 fprintf('Done with %s %s %s %s.\n', gcm, ssp, ggcm, which_file)
                 
-                    % Consistency check
-                    if isfield(data_fu_out, 'actually_emu_char') ...
-                    && ~isequal(size(shiftdim(data_fu_out.varNames)), size(shiftdim(data_fu_out.actually_emu_char)))
-                        error('data_fu_out.actually_emu_char must be the same size as data_fu_out.varNames')
-                    end
-
             end
             
             fprintf('Done with %s %s %s.\n', gcm, ssp, ggcm)
@@ -611,6 +619,7 @@ for g = 1:length(gcm_list)
         end
 
         fprintf('Done with %s %s.\n', gcm, ssp)
+        diary('off')
 
     end
     
