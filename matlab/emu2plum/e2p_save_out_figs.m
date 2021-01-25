@@ -127,13 +127,10 @@ end
 % Set up titles for "max over future" figure
 title_left_max = 'LPJ-GUESS sim' ;
 if use_lpjg_baseline
-    title_right_max = sprintf('LPJ-GUESS sim bl + %s emu %ss', ...
+    title_right_max_orig = sprintf('LPJ-GUESS sim bl + %s emu %ss', ...
         ggcm, '\Delta') ;
 elseif use_ph2_baseline
-    if strcmp(ggcm, 'GEPIC')
-        error('Need special handling here for GEPIC N60, which wasn''t actually simulated in phase 2')
-    end
-    title_right_max = sprintf('Phase 2 %s sim bl + emu %ss', ...
+    title_right_max_orig = sprintf('Phase 2 %s sim bl + emu %ss', ...
         ggcm, '\Delta') ;
 else
     error('Which baseline am I using?')
@@ -150,6 +147,14 @@ fontSize = 14 ;
 thisPos = figurePos ;
 
 for v = 1:length(data_fu_out.varNames)
+    
+    if isfield(data_fu_out, 'actually_emu_char') ...
+    && ~strcmp('sim', data_fu_out.actually_emu_char{v})
+        title_right_max = strrep(title_right_max_orig, ...
+            'sim bl', [data_fu_out.actually_emu_char{v} ' bl']) ;
+    else
+        title_right_max = title_right_max_orig ;
+    end
     
     % What crop?
     thisVar_out = data_fu_out.varNames{v} ;

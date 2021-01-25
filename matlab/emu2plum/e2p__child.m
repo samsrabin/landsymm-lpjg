@@ -151,7 +151,7 @@ for g = 1:length(gcm_list)
                         if ~any(any(~isnan(data_bl_agm.garr_xv)))
                             error('data_bl_agm.garr_xv is all NaN')
                         end
-                        %% Translate to output crops
+                        % Translate to output crops
                         [varNames_agm, cropList_agm, ...
                             varNames_agm_basei, cropList_agm_basei, ...
                             Nlist_agm, ~] = ...
@@ -235,7 +235,7 @@ for g = 1:length(gcm_list)
                         error('which_file (%s) not recognized', which_file)
                     end
                     
-                    %% Save exclusion figures, if doing so
+                    % Save exclusion figures, if doing so
                     if save_excl_figs
                         disp('    Saving exclusion figures...')
                         e2p_save_excl_figs_outCrops( ...
@@ -252,9 +252,9 @@ for g = 1:length(gcm_list)
                             overwrite_existing_figs, renderer)
                     end
                     
+                    % Apply exclusions
                     exclude_xc = missing_yield_xc | missing_emu_xc ...
                         | exclude_lowBLyield_xc  ;
-                    
                     for c = 1:length(cropList_emu_basei)
                         thisCrop = cropList_emu_basei{c} ;
                         thisCrop_i = find(strcmp(varNames_emu_basei,thisCrop)) ;
@@ -271,7 +271,7 @@ for g = 1:length(gcm_list)
                             continue
                         end
                         
-                        %% If irrigation, check for any missing cells
+                        % If irrigation, check for any missing cells
                         % that weren't missing in yield even after
                         % exclusions
                         if strcmp(which_file,'gsirrigation')
@@ -287,13 +287,13 @@ for g = 1:length(gcm_list)
                             end
                         end
                         
-                        % Apply to emulated baseline
+                        % Apply exclusions to emulated baseline
                         tmp = data_bl_emu.garr_xv(:,thisCrop_i) ;
                         tmp(exclude_xc(:,c),:) = NaN ;
                         data_bl_emu.garr_xv(:,thisCrop_i) = tmp ;
                         clear tmp
                         
-                        % Apply to emulated future
+                        % Apply exclusions to emulated future
                         tmp = data_fu_emu.garr_xvt(:,thisCrop_i,:) ;
                         tmp(exclude_xc(:,c),:,:) = NaN ;
                         data_fu_emu.garr_xvt(:,thisCrop_i,:) = tmp ;
@@ -325,8 +325,11 @@ for g = 1:length(gcm_list)
                             error('Mismatch between winter wheat lists from data_bl_emu vs. data_fu_emu')
                         end
                         if use_ph2_baseline
-                            [data_bl_agm.garr_xv, data_bl_agm.varNames, is_ww_max_bl_gW, winter_wheats_test] = ...
-                                e2p_get_max_wheat(data_bl_agm.garr_xv, data_bl_agm.varNames) ;
+                            [data_bl_agm.garr_xv, data_bl_agm.varNames, ...
+                                is_ww_max_bl_gW, winter_wheats_test, ...
+                                data_bl_agm.actually_emu_char] = ...
+                                e2p_get_max_wheat(data_bl_agm.garr_xv, data_bl_agm.varNames, ...
+                                data_bl_agm.actually_emu) ;
                             if ~isequal(winter_wheats, winter_wheats_test)
                                 error('Mismatch between winter wheat lists from data_bl_emu vs. data_bl_agm')
                             end
@@ -382,6 +385,8 @@ for g = 1:length(gcm_list)
                         I = e2p_translate_crops_agm2out(...
                             varNames_agm, varNames_out) ;
                         data_bl_out.varNames = varNames_out ;
+                        data_bl_out.actually_emu_char = ...
+                            data_bl_agm.actually_emu_char(I) ;
                         data_bl_out.garr_xv = data_bl_agm.garr_xv(:,I) ;
                     elseif ~(use_lpjg_baseline || use_ph2_baseline)
                         error('Which baseline are you using? I can''t set up data_bl_out.')
@@ -564,7 +569,7 @@ for g = 1:length(gcm_list)
                     end
                 end
 
-                % Save yield diagnostic figures, if doing so
+                %% Save yield diagnostic figures, if doing so
                 if save_out_figs
                     disp('    Saving output figures...')
                     if ~isempty(data_fu_lpj0) && ~save_out_figs_Nth0
@@ -591,9 +596,14 @@ for g = 1:length(gcm_list)
                     end
                     clear tmp
                 end
-
                 fprintf('Done with %s %s %s %s.\n', gcm, ssp, ggcm, which_file)
                 
+                    % Consistency check
+                    if isfield(data_fu_out, 'actually_emu_char') ...
+                    && ~isequal(size(shiftdim(data_fu_out.varNames)), size(shiftdim(data_fu_out.actually_emu_char)))
+                        error('data_fu_out.actually_emu_char must be the same size as data_fu_out.varNames')
+                    end
+
             end
             
             fprintf('Done with %s %s %s.\n', gcm, ssp, ggcm)

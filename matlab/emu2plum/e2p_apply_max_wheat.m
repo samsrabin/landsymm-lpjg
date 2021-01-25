@@ -2,6 +2,13 @@ function Sout = e2p_apply_max_wheat(Sin, outDir)
 
 Sout = Sin ;
 
+actually_emu_char = {} ;
+if isfield(Sin, 'actually_emu')
+    actually_emu_char = cell(size(Sin.actually_emu)) ;
+    actually_emu_char(~Sin.actually_emu) = {'sim'} ;
+    actually_emu_char(Sin.actually_emu) = {'*EMU*'} ;
+end
+
 % Load existing info
 is_ww_max_file = sprintf('%s/is_ww_max.mat', outDir) ;
 load(is_ww_max_file, 'is_ww_max_bl_gW', 'is_ww_max_fu_gWt', 'winter_wheats') ;
@@ -39,6 +46,21 @@ for w = 1:Nww
     tmp_x1t_out(is_ww_max_gWt(:,w,:)) = tmpWW_x1t_in(is_ww_max_gWt(:,w,:)) ;
     tmp_x1t_out(~is_ww_max_gWt(:,w,:)) = tmpSW_x1t_in(~is_ww_max_gWt(:,w,:)) ;
     out_xvt(:,i_thisMW,:) = tmp_x1t_out ;
+    
+    % Assign character-based designator for whether it was simulated or
+    % emulated
+    if isfield(Sin, 'actually_emu')
+        if Sin.actually_emu(i_thisWW) == Sin.actually_emu(i_thisSW)
+            actually_emu_char{i_thisMW} = Sin.actually_emu_char{i_thisWW} ;
+        else
+            actually_emu_char{i_thisMW} = ...
+                [Sin.actually_emu_char{i_thisWW} Sin.actually_emu_char{i_thisSW}] ;
+        end
+    end
+end
+
+if isfield(Sin, 'actually_emu')
+    Sout.actually_emu_char = actually_emu_char ;
 end
 
 if isfield(Sin,'garr_xv')

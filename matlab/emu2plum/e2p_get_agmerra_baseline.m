@@ -12,6 +12,7 @@ S_out.varNames = varNames_emu ;
 S_out.list2map = list2map ;
 S_out.lonlats = lonlats ;
 S_out.garr_xv = nan(length(list2map),Nvars_emu) ;
+S_out.actually_emu = false(size(varNames_emu)) ;
 
 % Set up conversion factor
 if strcmp(which_file, 'yield')
@@ -144,6 +145,7 @@ for v = 1:Nvars_emu
     else
         varname = sprintf('%s_%s', fileVar, thisCrop_short) ;
         if using_emulated == 1
+            S_out.actually_emu(v) = true ;
             if isirrig
                 varname = strrep(varname, '_', '_ir_') ;
             else

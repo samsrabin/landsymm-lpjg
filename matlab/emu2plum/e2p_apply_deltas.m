@@ -14,6 +14,9 @@ data_fu_out.lonlats = data_bl_thisBL.lonlats ;
 data_fu_out.varNames = varNames_thisBL ;
 data_fu_out.y1s = data_fu_emu.y1s ;
 data_fu_out.yNs = data_fu_emu.yNs ;
+if isfield(data_bl_thisBL, 'actually_emu_char')
+    data_fu_out.actually_emu_char = data_bl_thisBL.actually_emu_char ;
+end
 
 % Get corresponding array indices
 tmp_i_thisBL = nan(size(data_fu_out.varNames)) ;
