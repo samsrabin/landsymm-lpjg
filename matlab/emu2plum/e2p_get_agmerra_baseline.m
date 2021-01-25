@@ -1,12 +1,11 @@
 function S_out = e2p_get_agmerra_baseline(...
-    varNames_emu, topDir_phase2, ggcm, list2map, lonlats, getN, adaptation, ...
-    which_file, required)
+    varNames_emu, topDir_phase2, topDir_emu, ggcm, list2map, lonlats, getN, ...
+    adaptation, which_file, required)
 
 warning('on','all')
 
 % Get info
 Nvars_emu = length(varNames_emu) ;
-fileVar = get_fileVar(which_file, ggcm, adaptation) ;
 
 % Set up output structure
 S_out.varNames = varNames_emu ;
@@ -29,6 +28,7 @@ for v = 1:Nvars_emu
     % Get info about this crop
     thisCropIrr = getbasenamei(varNames_emu{v}) ;
     thisN = str2double(getN(varNames_emu{v})) ;
+    thisAN = sprintf('A%d_N%d', adaptation, thisN) ;
     isirrig = strcmp(thisCropIrr(end),'i') ;
     thisCrop = thisCropIrr ;
     if isirrig
@@ -41,7 +41,6 @@ for v = 1:Nvars_emu
         continue
     end
     
-    % Get filename
     switch thisCrop
         case 'maize'; thisCrop_short = 'mai' ;
         case 'soy'; thisCrop_short = 'soy' ;
@@ -50,54 +49,73 @@ for v = 1:Nvars_emu
         case 'winter_wheat'; thisCrop_short = 'wwh' ;
         otherwise; error('thisCrop (%s) not recognized', thisCrop)
     end
-    fileVar = get_fileVar(which_file, ggcm, adaptation) ;
-    thisFile = sprintf('%s/%s/A%d/%s/%s_agmerra_fullharm_%s_%s_global_annual_1980_2010_C360_T0_W0_N%d_A%d.nc4', ...
-        topDir_phase2, thisCrop, adaptation, fileVar, lower(ggcm), ...
-        fileVar, thisCrop_short, thisN, ...
-        adaptation) ;
-    if isirrig
-        thisFile = strrep(thisFile, 'W0', 'Winf') ;
-    end
+    
+    % Look for file, not allowing emulated version
+    [thisFile, fileVar, using_emulated] = get_file( ...
+        topDir_phase2, topDir_emu, thisCrop, ...
+        adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
+        false) ;
     nofilefound = false ;
-    if ~exist(thisFile, 'file')
-        thisAN = sprintf('A%d_N%d', adaptation, thisN) ;
+    replacementAN = '' ;
+    if isempty(thisFile)
         msg = sprintf('Phase 2 AgMERRA %s %s not found, nor were any substitutes', ...
             thisCropIrr, thisAN) ;
         msg = sprintf('%s (A%d_N%d, A%d_NNA, or A%d_NNA)', ...
             msg, ~adaptation, thisN, adaptation, ~adaptation) ;
-        % Try A[other]
+        
+        % Try A[other], again not allowing emulated version
         tmp_thisAdapt = ~adaptation ;
         tmp_thisN = thisN ;
-        fileVar = get_fileVar(which_file, ggcm, tmp_thisAdapt) ;
-        thisFile = sprintf('%s/%s/A%d/%s/%s_agmerra_fullharm_%s_%s_global_annual_1980_2010_C360_T0_W0_N%d_A%d.nc4', ...
-            topDir_phase2, thisCrop, tmp_thisAdapt, fileVar, lower(ggcm), ...
-            fileVar, thisCrop_short, thisN, ...
-            tmp_thisAdapt) ;
-        if ~exist(thisFile, 'file')
-            % Try NNA
-            tmp_thisAdapt = adaptation ;
-            tmp_thisN = NaN ;
-            fileVar = get_fileVar(which_file, ggcm, tmp_thisAdapt) ;
-            thisFile = sprintf('%s/%s/A%d/%s/%s_agmerra_fullharm_%s_%s_global_annual_1980_2010_C360_T0_W0_NNA_A%d.nc4', ...
-                topDir_phase2, thisCrop, tmp_thisAdapt, fileVar, lower(ggcm), ...
-                fileVar, thisCrop_short, ...
-                tmp_thisAdapt) ;
-            if ~exist(thisFile, 'file')
-                % Try A[other] NNA
+        [thisFile, fileVar, using_emulated] = get_file( ...
+            topDir_phase2, topDir_emu, thisCrop, ...
+            tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
+            false) ;
+        
+        if isempty(thisFile)
+            
+            % Look for canonical file again, this time allowing emulated
+            % version
+            [thisFile, fileVar, using_emulated] = get_file( ...
+                topDir_phase2, topDir_emu, thisCrop, ...
+                adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
+                true) ;
+            
+            if isempty(thisFile)
+                % Try A[other], this time allowing emulated version
                 tmp_thisAdapt = ~adaptation ;
-                fileVar = get_fileVar(which_file, ggcm, tmp_thisAdapt) ;
-                thisFile = sprintf('%s/%s/A%d/%s/%s_agmerra_fullharm_%s_%s_global_annual_1980_2010_C360_T0_W0_NNA_A%d.nc4', ...
-                    topDir_phase2, thisCrop, tmp_thisAdapt, fileVar, lower(ggcm), ...
-                    fileVar, thisCrop_short, ...
-                    tmp_thisAdapt) ;
-                if ~exist(thisFile, 'file')
-                    if required
-                        error('Could not find baseline AgMERRA %s for %s', ...
-                            which_file, thisCrop)
-                    else
-                        nofilefound = true ;
-                        warning('%s\n  Will not check for missing or low baseline AgMERRA %s!', ...
-                            msg, which_file) ;
+                tmp_thisN = thisN ;
+                [thisFile, fileVar, using_emulated] = get_file( ...
+                    topDir_phase2, topDir_emu, thisCrop, ...
+                    tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
+                    true) ;
+                
+                if isempty(thisFile)
+                    % Try NNA
+                    tmp_thisAdapt = adaptation ;
+                    tmp_thisN = NaN ;
+                    [thisFile, fileVar, using_emulated] = get_file( ...
+                        topDir_phase2, topDir_emu, thisCrop, ...
+                        tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
+                        false) ;
+                    
+                    if isempty(thisFile)
+                        % Try A[other] NNA
+                        tmp_thisAdapt = ~adaptation ;
+                        [thisFile, fileVar, using_emulated] = get_file( ...
+                            topDir_phase2, topDir_emu, thisCrop, ...
+                            tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
+                            false) ;
+                        
+                        if isempty(thisFile)
+                            if required
+                                error('Could not find baseline AgMERRA %s for %s', ...
+                                    which_file, thisCropIrr)
+                            else
+                                nofilefound = true ;
+                                warning('%s\n  Will not check for missing or low baseline AgMERRA %s!', ...
+                                    msg, which_file) ;
+                            end
+                        end
                     end
                 end
             end
@@ -110,8 +128,13 @@ for v = 1:Nvars_emu
             else
                 replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
             end
-            warning('Phase 2 AgMERRA %s %s not found; using %s instead', ...
-                thisCropIrr, thisAN, replacementAN) ;
+            if using_emulated == 1
+                warning('Phase 2 simulated %s %s not found; using *EMULATED* %s instead', ...
+                    thisCropIrr, thisAN, replacementAN) ;
+            else
+                warning('Phase 2 simulated %s %s not found; using %s instead', ...
+                    thisCropIrr, thisAN, replacementAN) ;
+            end
         end
     end
     
@@ -119,8 +142,20 @@ for v = 1:Nvars_emu
     if nofilefound
         S_out.garr_xv(:,v) = Inf ;
     else
-        tmp_XYt = ncread(thisFile,sprintf('%s_%s', fileVar, thisCrop_short)) ;
-        tmp_YX = flipud(transpose(nanmean(tmp_XYt(:,:,1:end-1), 3))) ;
+        varname = sprintf('%s_%s', fileVar, thisCrop_short) ;
+        if using_emulated == 1
+            if isirrig
+                varname = strrep(varname, '_', '_ir_') ;
+            else
+                varname = strrep(varname, '_', '_rf_') ;
+            end
+            tmp_YX = flipud(transpose(ncread( ...
+                thisFile, ...
+                varname))) ;
+        else
+            tmp_XYt = ncread(thisFile, varname) ;
+            tmp_YX = flipud(transpose(nanmean(tmp_XYt(:,:,1:end-1), 3))) ;
+        end
         tmp = tmp_YX(list2map) ;
         if ~any(~isnan(tmp))
             warning('%s is all NaN', thisCrop)
@@ -133,7 +168,7 @@ end
 end
 
 
-function fileVar = get_fileVar(which_file, ggcm, adaptation)
+function fileVar = get_fileVar(which_file, ggcm)
 
 if strcmp(which_file, 'yield')
     fileVar = 'yield' ;
@@ -147,6 +182,81 @@ elseif strcmp(which_file, 'gsirrigation')
 else
     error('which_file %s not recognized', which_file)
 end
+
+
+end
+
+
+function [thisFile, fileVar, using_emulated] = get_file(...
+    topDir_phase2, topDir_emu, thisCrop, ...
+    adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
+    allow_emulated)
+
+% Parse filename parts
+fileVar = get_fileVar(which_file, ggcm) ;
+if isnan(thisN)
+    N_char = 'NNA' ;
+else
+    N_char = ['N' num2str(thisN)] ;
+end
+if isirrig
+    W_char = 'Winf' ;
+else
+    W_char = 'W0' ;
+end
+
+% First, try actual phase2 result
+thisDir_phase2 = sprintf('%s/%s/A%d/%s', ...
+    topDir_phase2, thisCrop, adaptation, fileVar) ;
+thisFile = sprintf(['%s/%s_agmerra_fullharm_%s_%s_global_annual_' ...
+    '1980_2010_C360_T0_%s_%s_A%d.nc4'], ...
+    thisDir_phase2, lower(ggcm), ...
+    fileVar, thisCrop_short, W_char, N_char, adaptation) ;
+using_emulated = 0 ;
+
+% If not found, see if there's an emulated version
+if allow_emulated
+    if ~exist(thisFile, 'file')
+        
+        if isnan(thisN)
+            error('Deal with N=NaN when looking for emulated replacement for Phase 2 baseline')
+        end
+        
+        % Different variable name in emulator outputs than in Phase2 sims
+        if ~strcmp(fileVar, 'yield')
+            fileVar = 'iwd' ;
+        end
+        
+        A_N = sprintf('A%d_N%d', adaptation, thisN) ;
+        
+        % Should be the same for any CMIP version, GCM, and SSP
+        thisPattern = sprintf(['%s/%s/CMIP6/%s/ssp126/%s/cmip6_ssp126_' ...
+            'UKESM1-0-LL_r1i1p1_%s_%s_%s_emulated_%s_baseline_1980_2010_average*.nc4'], ...
+            topDir_emu, fileVar, A_N, ggcm, thisCrop, ggcm, A_N, fileVar) ;
+        
+        % Find matches
+        S = dir(thisPattern) ;
+        if isempty(S)
+            % If still not found, save as empty char
+            thisFile = '' ;
+            using_emulated = -1 ;
+        elseif length(S) > 1
+            error('%d matches found for %s (expected 0 or 1)', ...
+                length(S), thisPattern)
+        else
+            using_emulated = 1 ;
+            thisFile = sprintf('%s/%s', S.folder, S.name) ;
+            if ~exist(thisFile, 'file')
+                error('???')
+            end
+        end
+        
+    end
+else
+    thisFile = '' ;
+    using_emulated = -1 ;
+end
+
 
 
 end
