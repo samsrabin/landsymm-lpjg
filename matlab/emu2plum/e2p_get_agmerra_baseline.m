@@ -146,10 +146,12 @@ for v = 1:Nvars_emu
         varname = sprintf('%s_%s', fileVar, thisCrop_short) ;
         if using_emulated == 1
             S_out.actually_emu(v) = true ;
-            if isirrig
-                varname = strrep(varname, '_', '_ir_') ;
-            else
-                varname = strrep(varname, '_', '_rf_') ;
+            if strcmp(which_file, 'yield')
+                if isirrig
+                    varname = strrep(varname, '_', '_ir_') ;
+                else
+                    varname = strrep(varname, '_', '_rf_') ;
+                end
             end
             tmp_YX = flipud(transpose(ncread( ...
                 thisFile, ...
