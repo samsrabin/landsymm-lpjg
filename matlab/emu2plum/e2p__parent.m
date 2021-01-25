@@ -52,14 +52,19 @@ warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP
 current_dir = pwd ;
 if strcmp(current_dir(1:6), '/Users') || strcmp(current_dir(1:6), '/Volum')
     topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
-    topdir_sh = '/Users/Shared/GGCMI2PLUM_sh/' ;
-    topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
+    topDir_lpj = sprintf('%s/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
+        '/Volumes/Reacher/GGCMI/g2p/lpj-guess_runs', ...
+        tmp_rcp) ;
+    topDir_agmipout = '/Volumes/Reacher/GGCMI/AgMIP.output' ;
+    topDir_emu = sprintf('%s/CMIP_emulated', topDir_agmipout) ;
     topDir_lpj0 = sprintf( ...
         '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_%s_forED', ...
         tmp_rcp) ;
 elseif strcmp(current_dir(1:3), '/pd')
     topdir_db = '/pd/data/lpj/sam/ggcmi2plum' ;
-    topdir_sh = topdir_db ;
+    topDir_lpj = sprintf('%s/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
+        topdir_db, tmp_rcp) ;
+    topDir_agmipout = sprintf('%s/AgMIP.output', topdir_db) ;
     topDir_emu = '/pd/data/lpj/sam/ggcmi2plum/CMIP_emulated' ;
     topDir_lpj0 = sprintf( ...
         '/pd/data/lpj/sam/ggcmi2plum/lpj-guess_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_%s_forED', ...
@@ -89,16 +94,17 @@ end
 remove_outliers = ~strcmp(when_remove_outliers, 'off') ...
     & ~isempty(when_remove_outliers) ;
 
-topDir_lpj = sprintf( ...
-    '%s/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
-    topdir_sh, tmp_rcp) ;
-
+% Check that directories exist
 if ~contains(topDir_lpj, tmp_rcp)
     error('~contains(topDir_lpj, rcp)')
 elseif ~exist(topDir_lpj, 'dir')
     error('topDir_lpj does not exist:\n %s', topDir_lpj)
 elseif ~exist(topDir_lpj0, 'dir')
     error('topDir_lpj0 does not exist:\n %s', topDir_lpj0)
+elseif ~exist(topDir_emu, 'dir')
+    error('topDir_emu does not exist:\n %s', topDir_emu)
+elseif ~exist(topDir_agmipout, 'dir')
+    error('topDir_agmipout does not exist:\n %s', topDir_agmipout)
 end
 
 % getbasename = @(x) regexprep(x,'i?\d\d\d$','') ;
@@ -115,8 +121,8 @@ NN = length(Nlist) ;
 irrList_in = {'rf', 'ir'} ;
 irrList_out = {'', 'i'} ;
 
-gridlist_file = sprintf('%s/lpj-guess_runs/gridlist_62892.runAEclimOK.txt', ...
-    topdir_sh) ;
+gridlist_file = sprintf('%s/../gridlist_62892.runAEclimOK.txt', ...
+    topDir_lpj) ;
 gridlist = lpjgu_matlab_readTable_then2map(gridlist_file, ...
     'force_mat_nosave', true, 'force_mat_save', false) ;
 gridlist_target = {gridlist.lonlats gridlist.list_to_map} ;

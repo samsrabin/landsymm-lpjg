@@ -46,7 +46,7 @@ for g = 1:length(gcm_list)
         for ggcm_counter = 1:length(ggcm_list)
 
             ggcm = ggcm_list{ggcm_counter} ;
-            topDir_phase2 = sprintf('%s/AgMIP.output/%s/phase2', topdir_sh, ggcm) ;
+            topDir_phase2 = sprintf('%s/%s/phase2', topDir_agmipout, ggcm) ;
             outDir_ggcm = sprintf('%s/emu_%s', outDir, ggcm) ;
             if ~exist(outDir_ggcm, 'dir')
                 mkdir(outDir_ggcm) ;
