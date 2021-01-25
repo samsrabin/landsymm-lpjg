@@ -51,10 +51,10 @@ for w = 1:Nww
     % emulated
     if isfield(Sin, 'actually_emu')
         if Sin.actually_emu(i_thisWW) == Sin.actually_emu(i_thisSW)
-            actually_emu_char{i_thisMW} = Sin.actually_emu_char{i_thisWW} ;
+            actually_emu_char{i_thisMW} = actually_emu_char{i_thisWW} ; %#ok<AGROW>
         else
             actually_emu_char{i_thisMW} = ...
-                [Sin.actually_emu_char{i_thisWW} Sin.actually_emu_char{i_thisSW}] ;
+                [actually_emu_char{i_thisWW} actually_emu_char{i_thisSW}] ; %#ok<AGROW>
         end
     end
 end
