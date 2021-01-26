@@ -38,7 +38,7 @@ dir_code = '/Users/Shared/PLUM/crop_calib_code/' ;
 dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
 
 % Path to figure output directory
-dir_outfigs = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/calib_figs/' ;
+dir_outfigs = '/Volumes/Reacher/G2P/outputs_calibration/' ;
 
 % Add code files to path (just for this session)
 addpath(genpath(dir_code))
