@@ -11,7 +11,7 @@ for c = 1:length(varNames_out)
     switch thisCrop_out
         case {'CerealsC3'}
             thisCrop_agm = 'max_wheat' ;
-        case {'CerealsC4'}
+        case {'CerealsC4', 'Miscanthus'}
             thisCrop_agm = 'maize' ;
         case {'Oilcrops','Pulses'}
             thisCrop_agm = 'soy' ;
