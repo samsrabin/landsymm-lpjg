@@ -2,6 +2,25 @@
 
 These MATLAB scripts and functions read LPJ-GUESS crop yield outputs and calibrate them against FAO yield data at the country level, according to a mapping of crop types specified by the user. The calibration factors are the result of a slope-only regression (i.e., with Y-intercept set to 0).
 
+## Calibration versions
+
+1. As Peter Alexander described
+2. Looking at each crop separately. NOT ACTUALLY USEFUL FOR CALIBRATION
+3. As 1, but with oil+cakes equivalent
+4. As 1, but using oil crops as in Commodity Balance "Oilcrops"
+5. As 4, but using Commodity Balance for Production
+6. As 1, but with pre-processing as 5
+7. As 6, but with oil+cakes equivalent
+8. As 6, but with updated FAOSTAT data (2017-02-17)
+9. As 5, but with Peter's old FAOSTAT data (2015-12)
+10. As 9, but without rye
+11. As 9, but with Stijn's new crops
+12. As 10, but with PLUM6
+13. As 9, but with only exact crop matches (for pure6 runs)
+14. As 13, but without Soybeans or Pulses (for pure4 runs)
+15. ~9 for FAO data, plus Rye, and with PLUM6 types (PLUM6xtra)
+16. As 15, but correctly with Rye instead of Oats in Products
+
 
 ## Master script
 
