@@ -42,14 +42,7 @@ for v = 1:Nvars_emu
         continue
     end
     
-    switch thisCrop
-        case 'maize'; thisCrop_short = 'mai' ;
-        case 'soy'; thisCrop_short = 'soy' ;
-        case 'rice'; thisCrop_short = 'ric' ;
-        case 'spring_wheat'; thisCrop_short = 'swh' ;
-        case 'winter_wheat'; thisCrop_short = 'wwh' ;
-        otherwise; error('thisCrop (%s) not recognized', thisCrop)
-    end
+    thisCrop_short = e2p_get_thisCrop_short(thisCrop) ;
     
     % Look for file, not allowing emulated version
     [thisFile, fileVar, using_emulated] = get_file( ...

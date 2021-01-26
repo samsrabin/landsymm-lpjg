@@ -24,7 +24,7 @@ Nyears = length(yearList_in) ;
 cropList_in_short = cropList_in ;
 for c = 1:Ncrops_in
     thisCrop = cropList_in{c} ;
-    thisCrop_short = get_thisCrop_short(thisCrop) ;
+    thisCrop_short = e2p_get_thisCrop_short(thisCrop) ;
     cropList_in_short(strcmp(cropList_in_short, thisCrop)) = {thisCrop_short} ;
 end
 
@@ -41,7 +41,7 @@ if ~isequal(sort(cropList_in_this_yield), sort(cropList_in_this_iwd))
     cropList_in_this = unique([cropList_in_this_yield ; cropList_in_this_iwd]) ;
     for c = 1:length(cropList_in_this)
         thisCrop = cropList_in_this{c} ;
-        thisCrop_short = get_thisCrop_short(thisCrop) ;
+        thisCrop_short = e2p_get_thisCrop_short(thisCrop) ;
         msg = sprintf('%s\n    %s       %d     %d', ...
             msg, thisCrop_short, ...
             any(strcmp(cropList_in_this_yield, thisCrop)), ...
@@ -246,25 +246,5 @@ if any(~startsWith(cropList_in_this, cropList_in) | ~endsWith(cropList_in_this, 
         thisEmu, thisGCM, thisSSP)
 end
 
-
-end
-
-
-function thisCrop_short = get_thisCrop_short(thisCrop)
-
-switch thisCrop
-    case 'spring_wheat'
-        thisCrop_short = 'swh' ;
-    case 'winter_wheat'
-        thisCrop_short = 'wwh' ;
-    case 'maize'
-        thisCrop_short = 'mai' ;
-    case 'soy'
-        thisCrop_short = 'soy' ;
-    case 'rice'
-        thisCrop_short = 'ric' ;
-    otherwise
-        error('Can''t parse %s into shortname', thisCrop)
-end
 
 end
