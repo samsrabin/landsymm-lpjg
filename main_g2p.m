@@ -4,30 +4,29 @@
 
 %% Information about this calibration run
 
-% version_name = 'LPJ-GUESS_ggcmi_remap5e' ;   % calib_ver = 18
-% filename_guess_yield = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/LPJ-GUESS.out' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
-% filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
-% calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
+model_name = 'pDSSAT' ;
 
-% version_name = 'LPJmL_ggcmi_remap5e' ;   % calib_ver = 18
-% filename_guess_yield = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/LPJmL.out' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
-% filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
-% calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
+remapVer = '20210126' ;
+calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
 
-version_name = 'pDSSAT_ggcmi_remap5e' ;   % calib_ver = 18
-filename_guess_yield = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/pDSSAT.out' ;
 filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
 filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
 filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
-calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
-
 
 
 %% Other options and setup
+
+% Get version name
+version_name = sprintf('%s_ggcmi_remap%s', model_name, remapVer) ;
+
+% Path to emulated baseline outputs for whatever N inputs Christoph used
+dirname_emuBL_yields = sprintf( ...
+    '/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated/yields/CMIP6/A1/ssp126/%s', ...
+    model_name) ;
+if ~exist(dirname_emuBL_yields, 'dir')
+    error('Phase 2 yield directory not found (%s)', dirname_emuBL_yields)
+end
+adaptation = 1 ;
 
 % Years for calibration
 year1 = 1980 ;
@@ -42,6 +41,7 @@ dir_outfigs = '/Volumes/Reacher/G2P/outputs_calibration/' ;
 
 % Add code files to path (just for this session)
 addpath(genpath(dir_code))
+addpath(genpath('/Users/sam/Documents/git_repos/g2p_emulation/matlab/emu2plum'))
 
 regression_type = 'slope-only' ;
 

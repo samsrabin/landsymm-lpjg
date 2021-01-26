@@ -1,3 +1,6 @@
+% Setup
+crops2remove = {'CC3G','CC4G','OtHr','ExtraCrop'} ;
+
 if strcmp(version_name,'stijn_20180119')
     if calib_ver~=11
         error('When doing stijn_20180119, you must use calib_ver=11.')
@@ -30,15 +33,86 @@ else
     error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb (version_name '  ').']) ;
 end
 
-% Trim names
-if strcmp(filename_guess_yield(end-2:end),'.gz')
-    filename_guess_yield = filename_guess_yield(1:end-3) ;
-end
-
-% Import yields and land uses
-yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
+% Import land uses
+disp('Importing land uses and crop fractions...')
 cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
 landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
+
+% Import yield
+disp('Importing simulated yield...')
+if exist('filename_guess_yield', 'var')
+    % LPJ-GUESS style
+    if strcmp(filename_guess_yield(end-2:end),'.gz')
+        filename_guess_yield = filename_guess_yield(1:end-3) ;
+    end
+    yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
+    
+    % Convert yield from kgDM/m2 to tDM/ha
+    if isfield(yield_lpj,'maps_YXvy')
+        yield_lpj.maps_YXvy = yield_lpj.maps_YXvy * 1e4 * 1e-3 ;
+    else
+        yield_lpj.maps_YXv = yield_lpj.maps_YXv * 1e4 * 1e-3 ;
+    end
+elseif exist('dirname_emuBL_yields', 'var')
+    % GGCMI phase 2
+    cropList_ggcmi = {'maize', 'rice', 'soy', 'spring_wheat', 'winter_wheat'} ;
+    irrList_ggcmi = {'rf', 'ir'} ;
+    NcropIrr_ggcmi = length(cropList_ggcmi)*length(irrList_ggcmi) ;
+    listCrops_ggcmi = cell(NcropIrr_ggcmi, 1) ;
+    yield_ggcmi.maps_YXv = nan(360, 720, NcropIrr_ggcmi) ;
+    
+    % Import (already in tDM/ha)
+    for c = 1:length(cropList_ggcmi)
+        thisCrop = cropList_ggcmi{c} ;
+        thisCrop_short = e2p_get_thisCrop_short(thisCrop) ;
+        thisPattern = sprintf('%s/*%s*', ...
+            dirname_emuBL_yields, thisCrop) ;
+        filelist = dir(thisPattern) ;
+        if length(filelist) ~= 1
+            error('Error finding emulated outputs for %s: expected 1, found %d', ...
+                thisCrop, length(filelist))
+        end
+        thisFile = sprintf('%s/%s', filelist.folder, filelist.name) ;
+        clear filelist
+        for ii = 1:2
+            v = (c-1)*2+ii ;
+            listCrops_ggcmi{v} = sprintf('%s_%s', ...
+                thisCrop, irrList_ggcmi{ii}) ;
+            thisVar = sprintf('yield_%s_%s', irrList_ggcmi{ii}, thisCrop_short) ;
+            yield_ggcmi.maps_YXv(:,:,v) = flipud(transpose(ncread(thisFile, thisVar))) ;
+        end
+    end
+    yield_ggcmi.varNames = listCrops_ggcmi ;
+    
+    % Add max wheats
+    I_wheats_rf = contains(yield_ggcmi.varNames, 'wheat_rf') ;
+    I_wheats_ir = contains(yield_ggcmi.varNames, 'wheat_ir') ;
+    maxWheat_rf_YX = max(yield_ggcmi.maps_YXv(:,:,I_wheats_rf), [], 3) ;
+    maxWheat_ir_YX = max(yield_ggcmi.maps_YXv(:,:,I_wheats_ir), [], 3) ;
+    cropList_ggcmi = [cropList_ggcmi {'max_wheat'}] ;
+    yield_ggcmi.varNames = [yield_ggcmi.varNames ;
+        {'max_wheat_rf'; 'max_wheat_ir'}] ;
+    NcropIrr_ggcmi = length(yield_ggcmi.varNames) ;
+    yield_ggcmi.maps_YXv = cat(3, yield_ggcmi.maps_YXv, ...
+        maxWheat_rf_YX, maxWheat_ir_YX) ;
+    
+    % Translate crops
+    I_toRemove = ~contains(cropfrac_lpj.varNames, crops2remove) ;
+    varNames_out = cropfrac_lpj.varNames( ...
+        ~contains(cropfrac_lpj.varNames, crops2remove)) ;
+    varNames_ggcmi_lpjIrr = yield_ggcmi.varNames ;
+    varNames_ggcmi_lpjIrr = regexprep(varNames_ggcmi_lpjIrr, '_rf$', '') ;
+    varNames_ggcmi_lpjIrr = regexprep(varNames_ggcmi_lpjIrr, '_ir$', 'i') ;
+    I_out = e2p_translate_crops_agm2out(...
+        varNames_ggcmi_lpjIrr, varNames_out) ;
+    [varNames_out' yield_ggcmi.varNames(I_out)]
+    yield_lpj.varNames = varNames_out ;
+    yield_lpj.maps_YXv = yield_ggcmi.maps_YXv(:,:,I_out) ;
+else
+    error('How am I supposed to import yields?')
+end
+
+disp('Processing...')
 
 % For GGCMI, we're not comparing individual years, so find means for years
 % of interest
@@ -77,14 +151,14 @@ end
 % toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic')) ;
 % toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic') ...
 %     | strcmp(yield_lpj.varNames,'OtHr') | strcmp(yield_lpj.varNames,'OtHri')) ;
-toRemove = find(contains(yield_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
+toRemove = find(contains(yield_lpj.varNames,crops2remove)) ;
 if ~isempty(toRemove)
     yield_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
     yield_lpj.varNames(toRemove) = [] ;
 end
 % toRemove = find(strcmp(cropfrac_lpj.varNames,'CC3G_ic') | strcmp(cropfrac_lpj.varNames,'CC4G_ic') ...
 %     | strcmp(cropfrac_lpj.varNames,'OtHr') | strcmp(cropfrac_lpj.varNames,'OtHri')) ;
-toRemove = find(contains(cropfrac_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
+toRemove = find(contains(cropfrac_lpj.varNames,crops2remove)) ;
 if ~isempty(toRemove)
     if isfield(cropfrac_lpj,'maps_YXvy')
         cropfrac_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
@@ -219,13 +293,6 @@ end
 
 % Get year info
 Nyears_lpj = length(landuse_lpj.yearList) ;
-
-% Convert yield from kgDM/m2 to tDM/ha
-if isfield(yield_lpj,'maps_YXvy')
-    yield_lpj.maps_YXvy = yield_lpj.maps_YXvy * 1e4 * 1e-3 ;
-else
-    yield_lpj.maps_YXv = yield_lpj.maps_YXv * 1e4 * 1e-3 ;
-end
 
 % Convert cropfrac from fraction of CROPLAND to fraction of ALL LAND
 if isfield(cropfrac_lpj,'maps_YXvy')

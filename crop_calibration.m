@@ -22,7 +22,6 @@ end
 
 script_adjust_countries
 
-
 % %% DIVIDE YIELDS BY 2
 % 
 % yield_lpj.maps_YXvy = yield_lpj.maps_YXvy / 2 ;
