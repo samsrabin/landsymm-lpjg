@@ -310,6 +310,52 @@ else
     end
 end
 
+%% Deal with missing simulated cells
+tmp_croparea_YXvy = cropfrac_lpj.maps_YXvy .* repmat(land_area_YX, ...
+    [1 1 size(cropfrac_lpj.maps_YXvy,3) size(cropfrac_lpj.maps_YXvy,4)]) ;
+removed_area_dueto_NaNsim = ~isempty(find( ...
+    isnan(yield_lpj.maps_YXvy) & ~isnan(tmp_croparea_YXvy), 1)) ;
+if removed_area_dueto_NaNsim
+    croparea_lpj_removed = rmfield(cropfrac_lpj, 'maps_YXvy') ;
+    croparea_lpj_removed.maps_YXvy = zeros(size(cropfrac_lpj.maps_YXvy)) ;
+    
+    % NaN in simulation, but 0 crop area anyway
+    if find(isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy==0, 1)
+        yield_lpj.maps_YXvy(isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy==0) = 0 ;
+    end
+    
+    % NaN in simulation but there is some crop area
+    if find(isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy>0, 1)
+        for c = 1:length(yield_lpj.varNames)
+            thisCrop = yield_lpj.varNames{c} ;
+            tmp_yield_YX1y = yield_lpj.maps_YXvy(:,:,c,:) ;
+            tmp_cropfrac_YX1y = tmp_croparea_YXvy(:,:,c,:) ;
+            I_bad = find(isnan(tmp_yield_YX1y) & tmp_cropfrac_YX1y>0) ;
+            if ~isempty(I_bad)
+                
+                % Track how much area is being removed
+                removed_YX1y = zeros(size(tmp_cropfrac_YX1y)) ;
+                removed_YX1y(I_bad) = tmp_cropfrac_YX1y(I_bad) ;
+                area_removed = sum(removed_YX1y(~isnan(removed_YX1y))) ;
+                pct_removed = 100 * area_removed ...
+                    ./ sum(tmp_cropfrac_YX1y(~isnan(tmp_cropfrac_YX1y))) ;
+                croparea_lpj_removed.maps_YXvy(:,:,c,:) = removed_YX1y ;
+                clear removed_YX1y
+                
+                % Remove it
+                tmp_cropfrac_YX1y(I_bad) = 0 ;
+                tmp_croparea_YXvy(:,:,c,:) = tmp_cropfrac_YX1y ;
+            end
+            clear *_YX1y I_bad
+        end
+    end
+    cropfrac_lpj.maps_YXvy(croparea_lpj_removed.maps_YXvy > 0) = 0 ;
+    yield_lpj.maps_YXvy(croparea_lpj_removed.maps_YXvy > 0) = 0 ;
+else
+    croparea_lpj_removed = [] ;
+end
+clear tmp_croparea_YXvy
+
 % Create combined irrigated+rainfed yields
 Ncrops_lpj_comb = length(listCrops_lpj_comb) ;
 combined_YXcy_yield = nan(size(cropfrac_lpj.maps_YXvy,1),...
@@ -317,11 +363,14 @@ combined_YXcy_yield = nan(size(cropfrac_lpj.maps_YXvy,1),...
                     Ncrops_lpj_comb,...
                     length(cropfrac_lpj.yearList)) ;
 combined_YXcy_cropfrac = combined_YXcy_yield ;
+if removed_area_dueto_NaNsim
+    cropareaRemoved_lpj_YXcy_comb = zeros(size(combined_YXcy_yield)) ;
+else
+    cropareaRemoved_lpj_YXcy_comb = [] ;
+end
 for c = 1:Ncrops_lpj_comb
     thisCropR = listCrops_lpj_comb{c} ;
     thisCropI = [thisCropR 'i'] ;
-%     iR_cropfrac = exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropR) ;
-%     iI_cropfrac = exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropI) ;
     iR_cropfrac = find(strcmp(cropfrac_lpj.varNames,thisCropR)) ;
     iI_cropfrac = find(strcmp(cropfrac_lpj.varNames,thisCropI)) ;
     if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
@@ -335,8 +384,6 @@ for c = 1:Ncrops_lpj_comb
         frac_comb = cropfrac_lpj.maps_YXvy(:,:,exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropR),:) ...
                   + cropfrac_lpj.maps_YXvy(:,:,exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropI),:) ;
     end
-%     iR_yield = exact_string_in_cellarray(yield_lpj.varNames,thisCropR) ;
-%     iI_yield = exact_string_in_cellarray(yield_lpj.varNames,thisCropI) ;
     iR_yield = find(strcmp(yield_lpj.varNames,thisCropR)) ;
     iI_yield = find(strcmp(yield_lpj.varNames,thisCropI)) ;
     if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
@@ -353,30 +400,61 @@ for c = 1:Ncrops_lpj_comb
              + yield_lpj.maps_YXvy(:,:,iI_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:)) ...
             ./ frac_comb ;
     end
+    tmp(frac_comb==0) = 0 ;
     combined_YXcy_yield(:,:,c,:) = tmp ;
+    clear tmp
     combined_YXcy_cropfrac(:,:,c,:) = frac_comb ;
+    clear frac_comb
+    
+    if removed_area_dueto_NaNsim
+        cropareaRemoved_lpj_YXcy_comb(:,:,c,:) = ...
+            sum(croparea_lpj_removed.maps_YXvy(:,:,[iR_cropfrac iI_cropfrac],:),3) ;
+    end
+    clear tmp
 end
 
 if isempty(find(~isnan(combined_YXcy_yield),1))
     error('isempty(find(~isnan(combined_YXcy_yield),1))')
 end
 
+%% Set up "combined" arrays
 if isfield(yield_lpj,'list_to_map')
     yield_lpj_comb.list_to_map = yield_lpj.list_to_map ;
 end
+yield_lpj_comb.yearList = yield_lpj.yearList ;
+% clear yield_lpj
 yield_lpj_comb.varNames = listCrops_lpj_comb ;
 yield_lpj_comb.maps_YXvy = combined_YXcy_yield ;
-yield_lpj_comb.yearList = yield_lpj.yearList ;
-
+% clear combined_YXcy_yield
 cropfrac_lpj_comb.list_to_map = cropfrac_lpj.list_to_map ;
+cropfrac_lpj_comb.yearList = cropfrac_lpj.yearList ;
+% clear cropfrac_lpj
 cropfrac_lpj_comb.varNames = listCrops_lpj_comb ;
 cropfrac_lpj_comb.maps_YXvy = combined_YXcy_cropfrac ;
-cropfrac_lpj_comb.yearList = cropfrac_lpj.yearList ;
-
-clear combined_YXcy*
+% clear combined_YXcy_cropfrac
 
 % Calculate harvested totals
 croparea_lpj_YXcy_comb = cropfrac_lpj_comb.maps_YXvy .* repmat(land_area_YX,[1 1 size(cropfrac_lpj_comb.maps_YXvy,3) size(cropfrac_lpj_comb.maps_YXvy,4)]) ;
 total_lpj_YXcy_comb = yield_lpj_comb.maps_YXvy .* croparea_lpj_YXcy_comb ;
+
+% Warn about removals, if necessary
+if removed_area_dueto_NaNsim
+    tmp_varNames = pad(strcat(listCrops_lpj_comb,':')) ;
+    for c = 1:Ncrops_lpj_comb
+        thisCrop = tmp_varNames{c} ;
+        cropareaRemoved_lpj_YX1y_comb = cropareaRemoved_lpj_YXcy_comb(:,:,c,:) ;
+        croparea_lpj_YX1y_comb = croparea_lpj_YXcy_comb(:,:,c,:) ...
+            + cropareaRemoved_lpj_YX1y_comb;
+        croparea_removed_ha = sum(cropareaRemoved_lpj_YX1y_comb(~isnan(cropareaRemoved_lpj_YX1y_comb))) ;
+        croparea_removed_pct = 100 * croparea_removed_ha ...
+            / sum(croparea_lpj_YX1y_comb(~isnan(croparea_lpj_YX1y_comb))) ;
+
+        warning(['NaN sim yield -> 0 area: %s %0.1f%% area ' ...
+            '(%0.2g ha) '], ...
+            thisCrop, croparea_removed_pct, croparea_removed_ha) ;
+        clear area_removed pct_removed
+    end
+    clear tmp_varNames
+end
 
 disp('Done.')

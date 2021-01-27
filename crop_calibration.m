@@ -100,14 +100,22 @@ if size(total_lpj_YXcy_comb,4) > 1
 else
     okyears = 1 ;
 end
+if ~exist('ctry_excluded_area_thresh', 'var')
+    ctry_excluded_area_thresh = Inf ;
+end
 total_lpj_YXcy_comb2 = total_lpj_YXcy_comb(:,:,:,okyears) ;
 croparea_lpj_YXcy_comb2 = croparea_lpj_YXcy_comb(:,:,:,okyears) ;
-[croparea_lpj_Ccy,total_lpj_Ccy,yield_lpj_Ccy] = ...
+if removed_area_dueto_NaNsim
+    cropareaRemoved_lpj_YXcy_comb2 = cropareaRemoved_lpj_YXcy_comb(:,:,:,okyears) ;
+else
+    cropareaRemoved_lpj_YXcy_comb2 = [] ;
+end
+[croparea_lpj_Ccy,cropareaRemoved_lpj_Ccy,wasRemoved_lpj_Ccy,total_lpj_Ccy,yield_lpj_Ccy] = ...
     YXcy_to_Ccy(total_lpj_YXcy_comb2,croparea_lpj_YXcy_comb2,...
+    cropareaRemoved_lpj_YXcy_comb2, ...
     countries_YX,countries_key,listCountries_map_present_all,...
-    verbose) ;
+    verbose, ctry_excluded_area_thresh) ;
 disp('Done.')
-
 
 
 %% Get calibration factors via slope-only regression; also plot Miscanthus calibration
@@ -525,7 +533,6 @@ if ~any(strcmp(listCrops_4cal,'Pulses'))
     end
     listCrops_fa2o(strcmp(listCrops_fa2o,'Pulses')) = [] ;
 end
-
 
 disp('ALL POINTS')
 [calib_factors_u,calib_factors_w] = ...

@@ -4,20 +4,42 @@
 
 %% Information about this calibration run
 
-model_name = 'pDSSAT' ;
+model_name = 'EPIC-TAMU' ;
+% model_name = 'GEPIC' ;
+% model_name = 'pDSSAT' ;
 
-remapVer = '20210126' ;
-calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
+% remapVer = '5e' ; calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
+remapVer = '8b' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 
-filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
-filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
-filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
+ctry_excluded_area_thresh = 0.1 ; % The fraction of a country's excluded
+% area of a given crop (due to no simulated yield) above which the country
+% will be excluded from that crop's calibration.
+ctrymapVer = 1 ;
 
 
 %% Other options and setup
 
+% Get LU files
+filename_guess_landuse = sprintf( ...
+    '/Users/Shared/PLUM/input/remaps_v%s/LU.remapv%s.txt', ...
+    remapVer, remapVer);
+filename_guess_cropfrac = sprintf( ...
+    '/Users/Shared/PLUM/input/remaps_v%s/cropfracs.remapv%s.txt', ...
+    remapVer, remapVer);
+
+% Get countries map
+if ctrymapVer == 1
+    filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
+else
+    error('ctrymapVer %d not recognized', ctrymapVer)
+end
+if ~exist(filename_countriesMap, 'file')
+    error('filename_countriesMap not found: %s', filename_countriesMap)
+end
+
 % Get version name
-version_name = sprintf('%s_ggcmi_remap%s', model_name, remapVer) ;
+version_name = sprintf('ggcmi_%s_%s%d_ctry%d_caet%g', ...
+    model_name, remapVer, calib_ver, ctrymapVer, ctry_excluded_area_thresh) ;
 
 % Path to emulated baseline outputs for whatever N inputs Christoph used
 dirname_emuBL_yields = sprintf( ...
@@ -55,6 +77,9 @@ crop_calibration
 
 out_file = [dir_outfigs version_name '_v' num2str(calib_ver) '.pdf'] ;
 export_fig(out_file,'-r300')
+close
+
+disp('All done!')
 
 
 %% Do Miscanthus calibration kludge
