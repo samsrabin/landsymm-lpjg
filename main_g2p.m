@@ -4,12 +4,13 @@
 
 %% Information about this calibration run
 
-model_name = 'EPIC-TAMU' ;
+% model_name = 'EPIC-TAMU' ;
 % model_name = 'GEPIC' ;
-% model_name = 'pDSSAT' ;
+model_name = 'pDSSAT' ;
 
 % remapVer = '5e' ; calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
-remapVer = '8b' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
+% remapVer = '8b' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
+remapVer = '9' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 
 ctry_excluded_area_thresh = 0.1 ; % The fraction of a country's excluded
 % area of a given crop (due to no simulated yield) above which the country
@@ -26,15 +27,15 @@ filename_guess_landuse = sprintf( ...
 filename_guess_cropfrac = sprintf( ...
     '/Users/Shared/PLUM/input/remaps_v%s/cropfracs.remapv%s.txt', ...
     remapVer, remapVer);
+filename_guess_sugars = sprintf( ...
+    '/Users/Shared/PLUM/input/remaps_v%s/sugar.mat', ...
+    remapVer);
 
 % Get countries map
 if ctrymapVer == 1
     filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
 else
     error('ctrymapVer %d not recognized', ctrymapVer)
-end
-if ~exist(filename_countriesMap, 'file')
-    error('filename_countriesMap not found: %s', filename_countriesMap)
 end
 
 % Get version name

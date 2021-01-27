@@ -25,6 +25,10 @@ if need_countries
         combine_subChinas, combine_subChinas_map, combine_serbmont] ...
         = get_FAOread_options(calib_ver) ;
     % Import country map and key
+    if ~exist(filename_countriesMap, 'file')
+        error('filename_countriesMap not found: %s', filename_countriesMap)
+    end
+    
     if strcmp(filename_countriesMap,'country_boundaries62892.noNeg99.extrapd.asc')
         PLUM_countries = true ;
     else
