@@ -92,7 +92,7 @@ end
 
 
 if ~pr.separate_figs
-    figure('Color','w') ;
+    figure('Color', 'w', 'Position', get(0,'ScreenSize')) ;
 end
 
 for c_plot = 1:Ncrops_plot

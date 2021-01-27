@@ -108,6 +108,11 @@ addpath(genpath(dir_code))
 % Do slope-only regression
 regression_type = 'slope-only' ;
 
+% Set up figure and diary files
+out_file = [version_name '_v' num2str(calib_ver)] ;
+out_diary = [dir_outfigs out_file '.txt'] ;
+out_figure = [dir_outfigs out_file '.pdf'] ;
+
 
 %% Do it
 
@@ -116,8 +121,7 @@ crop_calibration
 
 %% Save figure
 
-out_file = [dir_outfigs version_name '_v' num2str(calib_ver) '.pdf'] ;
-export_fig(out_file,'-r300')
+export_fig(out_figure,'-r300')
 
 
 %% Do Miscanthus calibration kludge

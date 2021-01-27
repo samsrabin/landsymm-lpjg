@@ -7,6 +7,10 @@
 
 need_countries = true ;
 
+diary('off')
+diary(out_diary)
+diary('on')
+
 script_setup_cropCalibration
 
 
@@ -551,3 +555,4 @@ disp('ALL POINTS')
                                'outlier_thresh', outlier_thresh, ...
                                'regression_type', regression_type) ;
 
+diary('off')
