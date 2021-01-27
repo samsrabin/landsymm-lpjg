@@ -5,6 +5,10 @@
 
 %% Setup
 
+diary('off')
+diary(out_diary)
+diary('on')
+
 % Make sure directory names end with a slash
 if ~strcmp(dir_code(end),'/')
     dir_code = [dir_code '/'] ;
@@ -556,3 +560,4 @@ disp('ALL POINTS')
                                'separate_figs',false, ...
                                'outlier_thresh', outlier_thresh) ;
 
+diary('off')
