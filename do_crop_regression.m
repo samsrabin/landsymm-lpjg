@@ -83,7 +83,7 @@ calib_factors_u = nan(Ncrops_plot,1) ;
 calib_factors_w = nan(Ncrops_plot,1) ;
 
 if ~pr.separate_figs
-    figure('Color','w') ;
+    figure('Color', 'w', 'Position', get(0,'ScreenSize')) ;
 end
 
 for c_plot = 1:Ncrops_plot
