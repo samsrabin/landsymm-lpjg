@@ -23,7 +23,7 @@ PLUMsetAside_frac = 0.103 ;
 inpaint_method = 4 ;
 force_all_rainfed = false ;
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
 
 % Land use
 lu_in = lpjgu_matlab_readTable_then2map('/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt');%,...
@@ -40,6 +40,15 @@ NcropsCombined_fert_in = length(list_cropsCombined_fert_in) ;
 % Crop fractions
 croparea_in = lpjgu_matlab_readTable_then2map('/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
     'verboseIfNoMat',true) ;
+
+% For reference: sugarbeet vs. sugarcane fractions
+disp('Saving MIRCA sugar maps...')
+sugar.cane_rf_YX = croparea_in.maps_YXv(:,:,strcmp(croparea_in.varNames, 'Sugarcane_RF')) ;
+sugar.beet_rf_YX = croparea_in.maps_YXv(:,:,strcmp(croparea_in.varNames, 'Sugarbeet_RF')) ;
+sugar.cane_ir_YX = croparea_in.maps_YXv(:,:,strcmp(croparea_in.varNames, 'Sugarcane_IR')) ;
+sugar.beet_ir_YX = croparea_in.maps_YXv(:,:,strcmp(croparea_in.varNames, 'Sugarbeet_IR')) ;
+save([out_dir 'sugar.mat'], 'sugar') ;
+clear sugar
 
 % Align gridlists
 gridlist = lpjgu_matlab_readTable_then2map('/Users/Shared/PLUM/input/gridlists/gridlist_62892.runAEclimOK.txt');%, 'verboseIfNoMat',true) ;
@@ -90,7 +99,6 @@ manure2crop_hd2_YX(isnan_LUH2) = NaN ;
 nfert_in.maps_YXv = nfert_in.maps_YXv + repmat(manure2crop_hd_YX,[1 1 size(nfert_in.maps_YXv,3)]) ;
 
 disp('Done.')
-
 
 %% Part 2: Set up mapping
 
@@ -425,7 +433,5 @@ lpjgu_matlab_saveTable(nfert_out_header_cell, nfert_out_array, out_file_nfert,..
     'overwrite', overwrite, ...
     'fancy', fancy, ...
     'progress_step_pct', 20) ;
-
-
 
 
