@@ -5,12 +5,6 @@
 
 %% Setup
 
-need_countries = true ;
-
-diary('off')
-diary(out_diary)
-diary('on')
-
 script_setup_cropCalibration
 
 
@@ -18,13 +12,14 @@ script_setup_cropCalibration
 
 if calib_ver<=4
     script_import_lpj_yields
-elseif calib_ver>=5 && calib_ver<=22
+elseif calib_ver>=5 && calib_ver<=21
     script_import_lpj_yields_noCCy
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
 
 script_adjust_countries
+
 
 % %% DIVIDE YIELDS BY 2
 % 
@@ -59,9 +54,8 @@ end
     is_tropical, is_xtratrop, ...
     calib_ver_used, twofiles] ...
     = get_fao_data(year1,yearN,calib_ver,...
-    need_countries, ...
     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
-    faoCommBalElement, is_ggcmi) ;
+    faoCommBalElement) ;
 
 verbose = false ;
 getPi = @(x) find(strcmp(listCrops_lpj_comb,x)) ;
@@ -99,27 +93,14 @@ end
 
 disp('Making LPJ _Ccy datasets... ')
 verbose = false ;
-if size(total_lpj_YXcy_comb,4) > 1
-    okyears = yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN ;
-else
-    okyears = 1 ;
-end
-if ~exist('ctry_excluded_area_thresh', 'var')
-    ctry_excluded_area_thresh = Inf ;
-end
-total_lpj_YXcy_comb2 = total_lpj_YXcy_comb(:,:,:,okyears) ;
-croparea_lpj_YXcy_comb2 = croparea_lpj_YXcy_comb(:,:,:,okyears) ;
-if removed_area_dueto_NaNsim
-    cropareaRemoved_lpj_YXcy_comb2 = cropareaRemoved_lpj_YXcy_comb(:,:,:,okyears) ;
-else
-    cropareaRemoved_lpj_YXcy_comb2 = [] ;
-end
-[croparea_lpj_Ccy,cropareaRemoved_lpj_Ccy,wasRemoved_lpj_Ccy,total_lpj_Ccy,yield_lpj_Ccy] = ...
+total_lpj_YXcy_comb2 = total_lpj_YXcy_comb(:,:,:,yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN) ;
+croparea_lpj_YXcy_comb2 = croparea_lpj_YXcy_comb(:,:,:,yield_lpj_comb.yearList>=year1 & yield_lpj_comb.yearList<=yearN) ;
+[croparea_lpj_Ccy,total_lpj_Ccy,yield_lpj_Ccy] = ...
     YXcy_to_Ccy(total_lpj_YXcy_comb2,croparea_lpj_YXcy_comb2,...
-    cropareaRemoved_lpj_YXcy_comb2, ...
     countries_YX,countries_key,listCountries_map_present_all,...
-    verbose, ctry_excluded_area_thresh) ;
+    verbose) ;
 disp('Done.')
+
 
 
 %% Get calibration factors via slope-only regression; also plot Miscanthus calibration
@@ -229,11 +210,7 @@ elseif (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20)
     end
 %     yield_lpj_4cal_Cyc = nan([size(yield_lpj_4cal_tmp.Rice_Cy) length(listCrops_4cal)]) ;
     tmp = size(total_lpj_Ccy) ;
-    if size(total_lpj_Ccy,3) > 1
-        yield_lpj_4cal_Cyc = nan(tmp([1 3 2])) ;
-    else
-        yield_lpj_4cal_Cyc = nan([tmp(1) 1 tmp(2)]) ;
-    end
+    yield_lpj_4cal_Cyc = nan(tmp([1 3 2])) ;
     for c = 1:length(listCrops_4cal)
         thisCrop = listCrops_4cal{c} ;
         eval(['yield_lpj_4cal_Cyc(:,:,c) = yield_lpj_4cal_tmp.' thisCrop '_Cy ;']) ;
@@ -538,6 +515,7 @@ if ~any(strcmp(listCrops_4cal,'Pulses'))
     listCrops_fa2o(strcmp(listCrops_fa2o,'Pulses')) = [] ;
 end
 
+
 disp('ALL POINTS')
 [calib_factors_u,calib_factors_w] = ...
             do_crop_regression(yield_fa2_4cal_Cyc,yield_lpj_4cal_Cyc,...
@@ -552,7 +530,5 @@ disp('ALL POINTS')
                                'slope_symbol',slope_symbol,...
                                'marker_size',25,...
                                'separate_figs',false, ...
-                               'outlier_thresh', outlier_thresh, ...
-                               'regression_type', regression_type) ;
+                               'outlier_thresh', outlier_thresh) ;
 
-diary('off')

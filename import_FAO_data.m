@@ -2,12 +2,20 @@ function [fao, fao1, fao2, twofiles, ...
     listCountries_map_present_all, ...
     is_tropical, is_xtratrop] = import_FAO_data(...
     calib_ver, year1, yearN, ...
-    countries_YX, countries_key, listCountries_map_present, ...
-    strip_fao_nans, fix_cotedivoire, combine_sudans, ...
-    combine_subChinas, combine_serbmont)
+    need_countries, varargin)
 
-check_country_names = true ;
-Ncountries = length(listCountries_map_present) ;
+if ~isempty(varargin)
+    if length(varargin) ~= 3
+        error('0 or 3 optional arguments required: listCountries_map_present, countries_YX, countries_key')
+    end
+    listCountries_map_present = varargin{1} ;
+    countries_YX = varargin{2} ;
+    countries_key = varargin{3} ;
+end
+
+[strip_fao_nans, fix_cotedivoire, combine_sudans,...
+    combine_subChinas, ~, combine_serbmont] ...
+    = get_FAOread_options(calib_ver) ;
 
 % Import
 if calib_ver <= 4 || calib_ver==6 || calib_ver==7 || calib_ver==11
@@ -23,6 +31,8 @@ elseif calib_ver==17
     fao_filename_trimmed = 'Production_Crops_E_All_Data_(Normalized).csv' ;
 elseif calib_ver==21
     fao_filename_trimmed = 'Production_Crops_E_All_Data_(Normalized).csv' ;
+elseif calib_ver==22
+    fao_filename_trimmed = 'FAOSTAT_data_10-19-2020_forGGCMI3.csv' ;
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
@@ -87,6 +97,16 @@ else
         fao = fao(:,[1 3 2 4 5]) ;
         fao.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
         twofiles = false ;
+    elseif calib_ver==22
+        disp('Reading FAO data from TXT file...')
+        fao = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOSTAT_data_10-19-2020_forGGCMI3.csv') ;
+        extraneous_columns = {'DomainCode', 'Domain', 'AreaCode', ...
+            'ElementCode', 'ItemCode', 'YearCode', 'Unit', ...
+            'Flag', 'FlagDescription'} ;
+        fao(:, contains(fao.Properties.VariableNames, extraneous_columns)) = [] ;
+%         fao = fao(:,[1 3 2 4 5]) ;
+        fao.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
+        twofiles = false ;
     else
         error(['calib_ver not recognized: ' num2str(calib_ver)])
     end
@@ -110,7 +130,7 @@ else
         fao.Value = tmp ;
         clear tmp
         disp('Done forcing numbers to numeric.')
-    end   
+    end
     
     % Restrict data to years of interest
     if ~twofiles
@@ -142,83 +162,39 @@ else
         end
     end
     
-    % Correct country names
-    if fix_cotedivoire
-        if ~twofiles
-            fao.AreaName(strcmp(fao.AreaName,'C么te d''Ivoire')) = {'Cote d''Ivoire'} ;
-            fao.AreaName(strcmp(fao.AreaName,'C魌e d''Ivoire')) = {'Cote d''Ivoire'} ;
-        else
-            fao1.AreaName(strcmp(fao1.AreaName,'C么te d''Ivoire')) = {'Cote d''Ivoire'} ;
-            fao2.AreaName(strcmp(fao2.AreaName,'C么te d''Ivoire')) = {'Cote d''Ivoire'} ;
-        end
-    end
-    if combine_sudans
-        if ~twofiles
-            fao.AreaName(strcmp(fao.AreaName,'Sudan (former)')) = {'Sudan'} ;
-        else
-            fao1.AreaName(strcmp(fao1.AreaName,'Sudan (former)')) = {'Sudan'} ;
-            fao2.AreaName(strcmp(fao2.AreaName,'Sudan (former)')) = {'Sudan'} ;
-        end
-    end
-    if ~twofiles
-        fao.AreaName(strcmp(fao.AreaName,'Czechia')) = {'Czech Republic'} ;
-    else
-        fao2.AreaName(strcmp(fao2.AreaName,'Czechia')) = {'Czech Republic'} ;
-    end
     
-    if combine_subChinas
-        if ~twofiles
-%             fao = fao(~cellstrfind(fao.AreaName,'China,',true,true),:) ;
-            fao = fao(~contains(fao.AreaName,'China,'),:) ;
-        else
-            if calib_ver==5
-                % For PRODUCTION data, get rid of sub-Chinas
-                fao1 = fao1(~cellstrfind(fao1.AreaName,'China,',true,true),:) ;
-                % For COMMODITY BALANCES data, compile Chinese parts into China
-                tmp = fao2(cellstrfind(fao2.AreaName,'China'),:) ;
-                china = grpstats(tmp,{'ElementName','ItemName','Year'},'sum','DataVars','Value') ;
-                china.Properties.RowNames = {} ;
-                china.GroupCount = [] ;
-                china = [table(repmat('China',[size(china,1) 1])) china] ;
-                china.Properties.VariableNames = fao2.Properties.VariableNames ;
-                china.AreaName = cellstr(china.AreaName) ;
-                fao2 = fao2(~cellstrfind(fao2.AreaName,'China',true,true),:) ;
-                fao2 = vertcat(fao2,china) ;
-                clear tmp china
-            elseif calib_ver>=9
-                % Get rid of sub-Chinas
-                fao1 = fao1(~cellstrfind(fao1.AreaName,'China ',true,true),:) ;
-                fao2 = fao2(~cellstrfind(fao2.AreaName,'China ',true,true),:) ;
-            else
-                error(['calib_ver not recognized: ' num2str(calib_ver)])
-            end
-        end
-    end
     
-    % For COMMODITY BALANCE data, combine Serbia and Montenegro,
-    % because PRODUCTION data don't have them as separate.
-    if twofiles
-        serbOrMont = strcmp(fao2.AreaName,'Serbia') | ...
-            strcmp(fao2.AreaName,'Montenegro') ;
-        if combine_serbmont && any(serbOrMont)
-            tmp = fao2(serbOrMont,:) ;
-            serbmont = grpstats(tmp,{'ElementName','ItemName','Year'},'sum','DataVars','Value') ;
-            serbmont.Properties.RowNames = {} ;
-            serbmont.GroupCount = [] ;
-            serbmont = [table(repmat('Serbia and Montenegro',[size(serbmont,1) 1])) serbmont] ;
-            serbmont.Properties.VariableNames = fao2.Properties.VariableNames ;
-            serbmont.AreaName = cellstr(serbmont.AreaName) ;
-            fao2 = fao2(~serbOrMont,:) ;
-            fao2 = vertcat(fao2,serbmont) ;
-            clear tmp serbmont
-        end
-    end
 end
 disp('Done.')
+
+if twofiles
+    fao = [] ;
+else
+    fao1 = [] ;
+    fao2 = [] ;
+end
+if need_countries
+    [fao, fao1, fao2] = correct_countries(fao, fao1, fao2, ...
+        fix_cotedivoire, combine_sudans, twofiles, combine_subChinas, ...
+        calib_ver, combine_serbmont) ;
+end
 
 
 % What countries, crops, and years are in the dataset?
 if ~twofiles
+    
+    % If any of these names are present, rename to match equivalent in
+    % external country list
+    fao.AreaName(strcmp(fao.AreaName, ...
+        'United Kingdom of Great Britain and Northern Ireland')) = { ...
+        'United Kingdom'} ;
+    fao.AreaName(strcmp(fao.AreaName, ...
+        'Palestine')) = { ...
+        'Occupied Palestinian Territory'} ;
+    fao.AreaName(strcmp(fao.AreaName, ...
+        'Ethiopia PDR')) = { ...
+        'Ethiopia'} ; % "Ethiopia PDR" was the name pre-1993
+        
     % listCrops_fao = unique(fao.ItemName) ;
     listCountries_fao = unique(fao.AreaName) ;
     listYears_fao = unique(fao.Year) ;
@@ -228,6 +204,10 @@ if ~twofiles
     if ~isequal(listYears_fao',min(listYears_fao):max(listYears_fao))
         error('Missing year(s)???')
     end
+    listCountries_fao1 = {} ;
+    listCountries_fao2 = {} ;
+    Ncountries_fao1 = [] ;
+    Ncountries_fao2 = [] ;
 else
     listCountries_fao1 = unique(fao1.AreaName) ;
     listYears_fao1 = unique(fao1.Year) ;
@@ -243,102 +223,199 @@ else
     if ~isequal(listYears_fao2',min(listYears_fao2):max(listYears_fao2))
         error('Missing year(s) from 2???')
     end
+    listCountries_fao = {} ;
+    Ncountries_fao = [] ;
 end
 
 % Check for country differences
-if check_country_names
+if need_countries
+    [listCountries_map_present_all, is_tropical, is_xtratrop] = ...
+        do_check_countryNames( twofiles, ...
+        listCountries_map_present, countries_YX, countries_key, ...
+        listCountries_fao, listCountries_fao1, listCountries_fao2, ...
+        Ncountries_fao, Ncountries_fao1, Ncountries_fao2) ;
+end
+
+
+end
+
+
+
+
+function [fao, fao1, fao2] = correct_countries(fao, fao1, fao2, ...
+    fix_cotedivoire, combine_sudans, twofiles, combine_subChinas, ...
+    calib_ver, combine_serbmont)
+
+
+% Correct country names
+if fix_cotedivoire
     if ~twofiles
-        listCountries_map_present_all = listCountries_map_present ;
-        disp('IN MAP BUT NOT FAO DATA:')
-        for c = 1:Ncountries
-            thisCountry = listCountries_map_present{c} ;
-            if isempty(exact_string_in_cellarray(listCountries_fao,thisCountry,false))
-                disp(['   ' thisCountry])
-                listCountries_map_present_all(strcmp(listCountries_map_present_all,thisCountry)) = [] ;
-            end
-        end
-        disp('IN FAO DATA BUT NOT MAP:')
-        for c = 1:Ncountries_fao
-            thisCountry = listCountries_fao{c} ;
-            if isempty(exact_string_in_cellarray(listCountries_map_present,thisCountry,false))
-                disp(['   ' thisCountry])
-            end
-        end
+        fao.AreaName(strcmp(fao.AreaName,'C么te d''Ivoire')) = {'Cote d''Ivoire'} ;
+        fao.AreaName(strcmp(fao.AreaName,'C魌e d''Ivoire')) = {'Cote d''Ivoire'} ;
     else
-        disp('IN MAP BUT NOT FAO DATA1:')
-        for c = 1:Ncountries
-            thisCountry = listCountries_map_present{c} ;
-            %if isempty(exact_string_in_cellarray(listCountries_fao1,thisCountry,false))
-            if ~any(strcmp(listCountries_fao1,thisCountry))
-                disp(['   ' thisCountry])
-            end
+        fao1.AreaName(strcmp(fao1.AreaName,'C么te d''Ivoire')) = {'Cote d''Ivoire'} ;
+        fao2.AreaName(strcmp(fao2.AreaName,'C么te d''Ivoire')) = {'Cote d''Ivoire'} ;
+    end
+end
+if combine_sudans
+    if ~twofiles
+        fao.AreaName(strcmp(fao.AreaName,'Sudan (former)')) = {'Sudan'} ;
+    else
+        fao1.AreaName(strcmp(fao1.AreaName,'Sudan (former)')) = {'Sudan'} ;
+        fao2.AreaName(strcmp(fao2.AreaName,'Sudan (former)')) = {'Sudan'} ;
+    end
+end
+if ~twofiles
+    fao.AreaName(strcmp(fao.AreaName,'Czechia')) = {'Czech Republic'} ;
+else
+    fao2.AreaName(strcmp(fao2.AreaName,'Czechia')) = {'Czech Republic'} ;
+end
+
+if combine_subChinas
+    if ~twofiles
+        %             fao = fao(~cellstrfind(fao.AreaName,'China,',true,true),:) ;
+        fao = fao(~contains(fao.AreaName,'China,'),:) ;
+    else
+        if calib_ver==5
+            % For PRODUCTION data, get rid of sub-Chinas
+            fao1 = fao1(~cellstrfind(fao1.AreaName,'China,',true,true),:) ;
+            % For COMMODITY BALANCES data, compile Chinese parts into China
+            tmp = fao2(cellstrfind(fao2.AreaName,'China'),:) ;
+            china = grpstats(tmp,{'ElementName','ItemName','Year'},'sum','DataVars','Value') ;
+            china.Properties.RowNames = {} ;
+            china.GroupCount = [] ;
+            china = [table(repmat('China',[size(china,1) 1])) china] ;
+            china.Properties.VariableNames = fao2.Properties.VariableNames ;
+            china.AreaName = cellstr(china.AreaName) ;
+            fao2 = fao2(~cellstrfind(fao2.AreaName,'China',true,true),:) ;
+            fao2 = vertcat(fao2,china) ;
+            clear tmp china
+        elseif calib_ver>=9
+            % Get rid of sub-Chinas
+            fao1 = fao1(~cellstrfind(fao1.AreaName,'China ',true,true),:) ;
+            fao2 = fao2(~cellstrfind(fao2.AreaName,'China ',true,true),:) ;
+        else
+            error(['calib_ver not recognized: ' num2str(calib_ver)])
         end
-        disp('IN FAO DATA1 BUT NOT MAP:')
-        for c = 1:Ncountries_fao1
-            thisCountry = listCountries_fao1{c} ;
-            %if isempty(exact_string_in_cellarray(listCountries_map_present,thisCountry,false))
-            if ~any(strcmp(listCountries_map_present,thisCountry))
-                disp(['   ' thisCountry])
-            end
+    end
+end
+
+% For COMMODITY BALANCE data, combine Serbia and Montenegro,
+% because PRODUCTION data don't have them as separate.
+if twofiles
+    serbOrMont = strcmp(fao2.AreaName,'Serbia') | ...
+        strcmp(fao2.AreaName,'Montenegro') ;
+    if combine_serbmont && any(serbOrMont)
+        tmp = fao2(serbOrMont,:) ;
+        serbmont = grpstats(tmp,{'ElementName','ItemName','Year'},'sum','DataVars','Value') ;
+        serbmont.Properties.RowNames = {} ;
+        serbmont.GroupCount = [] ;
+        serbmont = [table(repmat('Serbia and Montenegro',[size(serbmont,1) 1])) serbmont] ;
+        serbmont.Properties.VariableNames = fao2.Properties.VariableNames ;
+        serbmont.AreaName = cellstr(serbmont.AreaName) ;
+        fao2 = fao2(~serbOrMont,:) ;
+        fao2 = vertcat(fao2,serbmont) ;
+        clear tmp serbmont
+    end
+end
+
+
+end
+
+
+function [listCountries_map_present_all, is_tropical, is_xtratrop] = ...
+    do_check_countryNames( twofiles, ...
+    listCountries_map_present, countries_YX, countries_key, ...
+    listCountries_fao, listCountries_fao1, listCountries_fao2, ...
+    Ncountries_fao, Ncountries_fao1, Ncountries_fao2)
+
+Ncountries = length(listCountries_map_present) ;
+
+if ~twofiles
+    listCountries_map_present_all = listCountries_map_present ;
+    disp('IN MAP BUT NOT FAO DATA:')
+    for c = 1:Ncountries
+        thisCountry = listCountries_map_present{c} ;
+        if isempty(exact_string_in_cellarray(listCountries_fao,thisCountry,false))
+            disp(['   ' thisCountry])
+            listCountries_map_present_all(strcmp(listCountries_map_present_all,thisCountry)) = [] ;
         end
-        disp('IN MAP BUT NOT FAO DATA2:')
-        for c = 1:Ncountries
-            thisCountry = listCountries_map_present{c} ;
-            %if isempty(exact_string_in_cellarray(listCountries_fao2,thisCountry,false))
-            if ~any(strcmp(listCountries_fao2,thisCountry))
-                disp(['   ' thisCountry])
-            end
+    end
+    disp('IN FAO DATA BUT NOT MAP:')
+    for c = 1:Ncountries_fao
+        thisCountry = listCountries_fao{c} ;
+        if isempty(exact_string_in_cellarray(listCountries_map_present,thisCountry,false))
+            disp(['   ' thisCountry])
         end
-        disp('IN FAO DATA2 BUT NOT MAP:')
-        for c = 1:Ncountries_fao2
-            thisCountry = listCountries_fao2{c} ;
-            %if isempty(exact_string_in_cellarray(listCountries_map_present,thisCountry,false))
-            if ~any(strcmp(listCountries_map_present,thisCountry))
-                disp(['   ' thisCountry])
-            end
+    end
+else
+    disp('IN MAP BUT NOT FAO DATA1:')
+    for c = 1:Ncountries
+        thisCountry = listCountries_map_present{c} ;
+        %if isempty(exact_string_in_cellarray(listCountries_fao1,thisCountry,false))
+        if ~any(strcmp(listCountries_fao1,thisCountry))
+            disp(['   ' thisCountry])
         end
-        disp('IN FAO DATA1 BUT NOT FAO DATA2:')
-        for c = 1:Ncountries_fao1
-            thisCountry = listCountries_fao1{c} ;
-            %if isempty(exact_string_in_cellarray(listCountries_fao2,thisCountry,false))
-            if ~any(strcmp(listCountries_fao2,thisCountry))
-                disp(['   ' thisCountry])
-            end
+    end
+    disp('IN FAO DATA1 BUT NOT MAP:')
+    for c = 1:Ncountries_fao1
+        thisCountry = listCountries_fao1{c} ;
+        %if isempty(exact_string_in_cellarray(listCountries_map_present,thisCountry,false))
+        if ~any(strcmp(listCountries_map_present,thisCountry))
+            disp(['   ' thisCountry])
         end
-        disp('IN FAO DATA2 BUT NOT FAO DATA1:')
-        for c = 1:Ncountries_fao2
-            thisCountry = listCountries_fao2{c} ;
-            %if isempty(exact_string_in_cellarray(listCountries_fao1,thisCountry,false))
-            if ~any(strcmp(listCountries_fao1,thisCountry))
-                disp(['   ' thisCountry])
-            end
+    end
+    disp('IN MAP BUT NOT FAO DATA2:')
+    for c = 1:Ncountries
+        thisCountry = listCountries_map_present{c} ;
+        %if isempty(exact_string_in_cellarray(listCountries_fao2,thisCountry,false))
+        if ~any(strcmp(listCountries_fao2,thisCountry))
+            disp(['   ' thisCountry])
         end
-        disp('IN MAP BUT NOT BOTH FAO DATA1 AND DATA2:')
-        listCountries_map_present_all = listCountries_map_present ;
-        for c = 1:Ncountries
-            thisCountry = listCountries_map_present{c} ;
-            if ~any(strcmp(listCountries_fao1,thisCountry)) || ~any(strcmp(listCountries_fao2,thisCountry))
-                disp(['   ' thisCountry])
-                listCountries_map_present_all(strcmp(listCountries_map_present_all,thisCountry)) = [] ;
-            end
+    end
+    disp('IN FAO DATA2 BUT NOT MAP:')
+    for c = 1:Ncountries_fao2
+        thisCountry = listCountries_fao2{c} ;
+        %if isempty(exact_string_in_cellarray(listCountries_map_present,thisCountry,false))
+        if ~any(strcmp(listCountries_map_present,thisCountry))
+            disp(['   ' thisCountry])
         end
+    end
+    disp('IN FAO DATA1 BUT NOT FAO DATA2:')
+    for c = 1:Ncountries_fao1
+        thisCountry = listCountries_fao1{c} ;
+        %if isempty(exact_string_in_cellarray(listCountries_fao2,thisCountry,false))
+        if ~any(strcmp(listCountries_fao2,thisCountry))
+            disp(['   ' thisCountry])
+        end
+    end
+    disp('IN FAO DATA2 BUT NOT FAO DATA1:')
+    for c = 1:Ncountries_fao2
+        thisCountry = listCountries_fao2{c} ;
+        %if isempty(exact_string_in_cellarray(listCountries_fao1,thisCountry,false))
+        if ~any(strcmp(listCountries_fao1,thisCountry))
+            disp(['   ' thisCountry])
+        end
+    end
+    disp('IN MAP BUT NOT BOTH FAO DATA1 AND DATA2:')
+    listCountries_map_present_all = listCountries_map_present ;
+    for c = 1:Ncountries
+        thisCountry = listCountries_map_present{c} ;
+        if ~any(strcmp(listCountries_fao1,thisCountry)) || ~any(strcmp(listCountries_fao2,thisCountry))
+            disp(['   ' thisCountry])
+            listCountries_map_present_all(strcmp(listCountries_map_present_all,thisCountry)) = [] ;
+        end
+    end
 %         disp('IN FAO DATA1 :')
 %         disp(listCountries_fao1)
 %         disp('IN FAO DATA2 :')
 %         disp(listCountries_fao2)
-        
-        
-    end
-    [is_tropical,is_xtratrop] = classify_tropical_countries(...
-        listCountries_map_present_all,countries_YX,countries_key) ;
+    
+    
 end
 
-if twofiles
-    fao = [] ;
-else
-    fao1 = [] ;
-    fao2 = [] ;
-end
+[is_tropical,is_xtratrop] = classify_tropical_countries(...
+    listCountries_map_present_all,countries_YX,countries_key) ;
 
 
 end

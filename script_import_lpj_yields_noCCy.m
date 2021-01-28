@@ -1,76 +1,259 @@
-if ~is_ggcmi
-    if strcmp(version_name,'stijn_20180119')
-        if calib_ver~=11
-            error('When doing stijn_20180119, you must use calib_ver=11.')
-        end
-        listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi','TrSo','GlyM','FaBe'} ;
-    elseif calib_ver == 11
-        error('calib_ver 11 only works with stijn_20180119.')
-    elseif calib_ver == 12 || calib_ver == 15 || calib_ver == 16 || calib_ver == 18
-        listCrops_lpj_comb = {'CerealsC3','CerealsC4','Rice','Oilcrops','StarchyRoots','Pulses'} ;
-    elseif calib_ver == 19
-        listCrops_lpj_comb = ...
-            {'CerealsC3','CerealsC4','Rice','Oilcrops',...
-            'StarchyRoots','Pulses','Sugar','DateCitGrape'} ;
-    elseif calib_ver == 20
+% Setup
+crops2remove = {'CC3G','CC4G','OtHr','ExtraCrop'} ;
+
+if strcmp(version_name,'stijn_20180119')
+    if calib_ver~=11
+        error('When doing stijn_20180119, you must use calib_ver=11.')
+    end
+    listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi','TrSo','GlyM','FaBe'} ;
+elseif calib_ver == 11
+    error('calib_ver 11 only works with stijn_20180119.')
+elseif calib_ver == 12 || calib_ver == 15 || calib_ver == 16 || calib_ver == 18
+    listCrops_lpj_comb = {'CerealsC3','CerealsC4','Rice','Oilcrops','StarchyRoots','Pulses'} ;
+elseif calib_ver == 19
+    listCrops_lpj_comb = ...
+        {'CerealsC3','CerealsC4','Rice','Oilcrops',...
+        'StarchyRoots','Pulses','Sugar','DateCitGrape'} ;
+elseif calib_ver == 20
+    if strcmp(remapVer, '8b')
         listCrops_lpj_comb = ...
             {'CerealsC3','CerealsC4','Rice','Oilcrops',...
             'StarchyRoots','Pulses','Sugar','FruitAndVeg'} ;
-    elseif calib_ver == 13
-        listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Pulses','Soybeans','Rice'} ;
-    elseif calib_ver == 14
-        listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Rice'} ;
-    elseif calib_ver <= 10 || calib_ver == 17
-        listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi'} ;
-    elseif contains(version_name,'jianyong_20190128')
-        if calib_ver~=21
-            error('When doing %s, you must use calib_ver= 21.', version_name)
-        end
-        listCrops_lpj_comb = {'FaBe','GlyM','TeCo','TeSW','TeWW','TrRi','TrSo'} ;
+    elseif strcmp(remapVer, '9')
+        listCrops_lpj_comb = ...
+            {'CerealsC3','CerealsC4','Rice','Oilcrops',...
+            'StarchyRoots','Pulses','Sugarbeet','Sugarcane','FruitAndVeg'} ;
     else
-        error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb (version_name '  ').']) ;
+        error('Is sugar split into Sugarbeet+Sugarcane or not?')
     end
+elseif calib_ver == 13
+    listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Pulses','Soybeans','Rice'} ;
+elseif calib_ver == 14
+    listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Rice'} ;
+elseif calib_ver <= 10 || calib_ver == 17
+    listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi'} ;
+elseif contains(version_name,'jianyong_20190128')
+    if calib_ver~=21
+        error('When doing %s, you must use calib_ver= 21.', version_name)
+    end
+    listCrops_lpj_comb = {'FaBe','GlyM','TeCo','TeSW','TeWW','TrRi','TrSo'} ;
+else
+    error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb (version_name '  ').']) ;
 end
 
-% Trim names
-if ~is_ggcmi && strcmp(filename_guess_yield(end-2:end),'.gz')
-    filename_guess_yield = filename_guess_yield(1:end-3) ;
-end
+% Import land uses
+disp('Importing land uses and crop fractions...')
+cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
+landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
 
-% Import yields and land uses
-if ~is_ggcmi
+% Import yield
+disp('Importing simulated yield...')
+if exist('filename_guess_yield', 'var')
+    % LPJ-GUESS style
+    if strcmp(filename_guess_yield(end-2:end),'.gz')
+        filename_guess_yield = filename_guess_yield(1:end-3) ;
+    end
     yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
-    cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
-    landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
+    
+    % Convert yield from kgDM/m2 to tDM/ha
+    if isfield(yield_lpj,'maps_YXvy')
+        yield_lpj.maps_YXvy = yield_lpj.maps_YXvy * 1e4 * 1e-3 ;
+    else
+        yield_lpj.maps_YXv = yield_lpj.maps_YXv * 1e4 * 1e-3 ;
+    end
+elseif exist('dirname_emuBL_yields', 'var')
+    % GGCMI phase 2
+    cropList_ggcmi = {'maize', 'rice', 'soy', 'spring_wheat', 'winter_wheat'} ;
+    irrList_ggcmi = {'rf', 'ir'} ;
+    Nirr_ggcmi = length(irrList_ggcmi) ;
+    NcropIrr_ggcmi = length(cropList_ggcmi)*Nirr_ggcmi ;
+    listCrops_ggcmi = cell(NcropIrr_ggcmi, 1) ;
+    yield_ggcmi.maps_YXv = nan(360, 720, NcropIrr_ggcmi) ;
+    
+    % Import (already in tDM/ha)
+    for c = 1:length(cropList_ggcmi)
+        thisCrop = cropList_ggcmi{c} ;
+        thisCrop_short = e2p_get_thisCrop_short(thisCrop) ;
+        thisPattern = sprintf('%s/*%s*', ...
+            dirname_emuBL_yields, thisCrop) ;
+        filelist = dir(thisPattern) ;
+        if length(filelist) ~= 1
+            error('Error finding emulated outputs for %s: expected 1, found %d', ...
+                thisCrop, length(filelist))
+        end
+        thisFile = sprintf('%s/%s', filelist.folder, filelist.name) ;
+        clear filelist
+        for ii = 1:Nirr_ggcmi
+            v = (c-1)*Nirr_ggcmi+ii ;
+            listCrops_ggcmi{v} = sprintf('%s_%s', ...
+                thisCrop, irrList_ggcmi{ii}) ;
+            thisVar = sprintf('yield_%s_%s', irrList_ggcmi{ii}, thisCrop_short) ;
+            yield_ggcmi.maps_YXv(:,:,v) = flipud(transpose(ncread(thisFile, thisVar))) ;
+        end
+    end
+    yield_ggcmi.varNames = listCrops_ggcmi ;
+    
+    % Add max wheats
+    I_wheats_rf = contains(yield_ggcmi.varNames, 'wheat_rf') ;
+    I_wheats_ir = contains(yield_ggcmi.varNames, 'wheat_ir') ;
+    maxWheat_rf_YX = max(yield_ggcmi.maps_YXv(:,:,I_wheats_rf), [], 3) ;
+    maxWheat_ir_YX = max(yield_ggcmi.maps_YXv(:,:,I_wheats_ir), [], 3) ;
+    cropList_ggcmi = [cropList_ggcmi {'max_wheat'}] ;
+    yield_ggcmi.varNames = [yield_ggcmi.varNames ;
+        {'max_wheat_rf'; 'max_wheat_ir'}] ;
+    NcropIrr_ggcmi = length(yield_ggcmi.varNames) ;
+    yield_ggcmi.maps_YXv = cat(3, yield_ggcmi.maps_YXv, ...
+        maxWheat_rf_YX, maxWheat_ir_YX) ;
+    
+    % Start dealing with sugar, if needed
+    fake_ggcmi_sugar = any(contains(listCrops_lpj_comb, {'Sugar', 'Sugarbeet', 'Sugarcane'})) ;
+    if fake_ggcmi_sugar
+        
+        % Construct sugar types
+        sugreals = {'Sugarbeet', 'Sugarcane'} ;
+        sugfakes = {'spring_wheat', 'maize'} ;
+        Nsug = length(sugreals) ;
+        sugrealsIrr_ggcmi = cell(Nsug*Nirr_ggcmi, 1) ;
+        for c = 1:Nsug
+            thisReal = sugreals{c} ;
+            thisFake = sugfakes{c} ;
+            for ii = 1:Nirr_ggcmi
+                thisIrr = irrList_ggcmi{ii} ;
+                thisRealIrr = sprintf('%s_%s', thisReal, thisIrr) ;
+                thisFakeIrr = sprintf('%s_%s', thisFake, thisIrr) ;
+                v = (c-1)*Nirr_ggcmi + ii ;
+                sugrealsIrr_ggcmi{v} = thisRealIrr ;
+            end
+        end
+        sugrealsIrr_lpj = sugrealsIrr_ggcmi' ;
+        sugrealsIrr_lpj = strrep(sugrealsIrr_lpj, '_rf', '') ;
+        sugrealsIrr_lpj = strrep(sugrealsIrr_lpj, '_ir', 'i') ;
+        
+        % If needed, split area map of Sugar into Sugarbeet and Sugarcane
+        if length(intersect(cropfrac_lpj.varNames, strcat('Sugar', {'', 'i'}))) == 2
+            if ~exist(filename_guess_sugars, 'file')
+                error('Without sugar.mat, unable to weight sugar beet (spring wheat) vs. cane (maize)')
+            end
+            load(filename_guess_sugars) ;
+            if length(intersect(listCrops_lpj_comb, sugreals)) < 2
+                [wt_beet_rf_YX, wt_cane_rf_YX] = get_sugar_wts(...
+                    sugar.beet_rf_YX, sugar.cane_rf_YX) ;
+                [wt_beet_ir_YX, wt_cane_ir_YX] = get_sugar_wts(...
+                    sugar.beet_ir_YX, sugar.cane_ir_YX) ;
+                sugar_rf_YX = cropfrac_lpj.maps_YXv(:,:,strcmp(cropfrac_lpj.varNames, 'Sugar')) ;
+                sugar_ir_YX = cropfrac_lpj.maps_YXv(:,:,strcmp(cropfrac_lpj.varNames, 'Sugari')) ;
+                if any(any(wt_beet_rf_YX+wt_cane_rf_YX==0 & sugar_rf_YX>0))
+                    error('Zero weights but positive area: Rainfed sugar. You probably need to save these maps in remap_v*.m AFTER interpolation instead of before. But then again, this might not actually end up being a problem... Try it and see.')
+                elseif any(any(wt_beet_ir_YX+wt_cane_ir_YX==0 & sugar_ir_YX>0))
+                    error('Zero weights but positive area: Irrigated sugar. You probably need to save these maps in remap_v*.m AFTER interpolation instead of before. But then again, this might not actually end up being a problem... Try it and see.')
+                end
+
+                % Remove Sugar from existing maps and crop lists
+                cropfrac_lpj.maps_YXv(:,:,contains(cropfrac_lpj.varNames, 'Sugar')) = [] ;
+                cropfrac_lpj.varNames(contains(cropfrac_lpj.varNames, 'Sugar')) = [] ;
+                listCrops_lpj_comb(strcmp(listCrops_lpj_comb, 'Sugar')) = [] ;
+
+                % Put Sugarbeet and Sugarcane into maps and crop lists
+                sugfakes_YXv = nan(360, 720, Nsug*length(irrList_ggcmi)) ;
+                sugfakes_YXv(:,:,strcmp(sugrealsIrr_ggcmi, 'Sugarbeet_rf')) = ...
+                    sugar_rf_YX .* wt_beet_rf_YX ;
+                sugfakes_YXv(:,:,strcmp(sugrealsIrr_ggcmi, 'Sugarbeet_ir')) = ...
+                    sugar_ir_YX .* wt_beet_ir_YX ;
+                sugfakes_YXv(:,:,strcmp(sugrealsIrr_ggcmi, 'Sugarcane_rf')) = ...
+                    sugar_rf_YX .* wt_cane_rf_YX ;
+                sugfakes_YXv(:,:,strcmp(sugrealsIrr_ggcmi, 'Sugarcane_ir')) = ...
+                    sugar_ir_YX .* wt_cane_ir_YX ;
+                cropfrac_lpj.maps_YXv = cat(3, ...
+                    cropfrac_lpj.maps_YXv, sugfakes_YXv) ;
+                clear sugfakes_YXv
+                
+                cropfrac_lpj.varNames = [cropfrac_lpj.varNames sugrealsIrr_lpj] ;
+                listCrops_lpj_comb = [listCrops_lpj_comb sugreals] ;
+            end
+        elseif length(intersect(cropfrac_lpj.varNames, sugrealsIrr_lpj)) == length(sugrealsIrr_lpj)
+            if length(intersect(listCrops_lpj_comb, sugreals)) ~= length(sugreals)
+                error('sugreals not found in listCrops_lpj_comb')
+            end
+        else
+            error('Do I need to split area map of Sugar into Sugarbeet and Sugarcane?')
+        end
+    end
+    
+    % Translate crops
+    I_toRemove = ~contains(cropfrac_lpj.varNames, crops2remove) ;
+    varNames_out = cropfrac_lpj.varNames( ...
+        ~contains(cropfrac_lpj.varNames, crops2remove)) ;
+    varNames_ggcmi_lpjIrr = yield_ggcmi.varNames ;
+    varNames_ggcmi_lpjIrr = regexprep(varNames_ggcmi_lpjIrr, '_rf$', '') ;
+    varNames_ggcmi_lpjIrr = regexprep(varNames_ggcmi_lpjIrr, '_ir$', 'i') ;
+    I_out = e2p_translate_crops_agm2out(...
+        varNames_ggcmi_lpjIrr, varNames_out) ;
+    [varNames_out' yield_ggcmi.varNames(I_out)]
+    yield_lpj.varNames = varNames_out ;
+    yield_lpj.maps_YXv = yield_ggcmi.maps_YXv(:,:,I_out) ;
+else
+    error('How am I supposed to import yields?')
 end
 
+disp('Processing...')
+
+% For GGCMI, we're not comparing individual years, so find means for years
+% of interest
+if is_ggcmi 
+    
+    % yield
+    if isfield(yield_lpj,'yearList') || isfield(yield_lpj,'maps_YXvy')
+        error('GGCMI yields have years??')
+    end
+    yield_lpj.maps_YXvy = yield_lpj.maps_YXv ;
+    yield_lpj = rmfield(yield_lpj, 'maps_YXv') ;
+    yield_lpj.yearList = -pi ;
+    
+    % landuse
+    if isfield(landuse_lpj,'maps_YXvy')
+        landuse_lpj.maps_YXvy = nanmean(landuse_lpj.maps_YXvy(:,:,:, ...
+            landuse_lpj.yearList>=year1 & landuse_lpj.yearList<=yearN), 4) ;
+    else
+        landuse_lpj.maps_YXvy = landuse_lpj.maps_YXv ;
+        landuse_lpj = rmfield(landuse_lpj, 'maps_YXv') ;
+    end
+    landuse_lpj.yearList = -pi ;
+    
+    % cropfrac
+    if isfield(cropfrac_lpj,'maps_YXvy')
+        cropfrac_lpj.maps_YXvy = nanmean(cropfrac_lpj.maps_YXvy(:,:,:, ...
+            cropfrac_lpj.yearList>=year1 & cropfrac_lpj.yearList<=yearN), 4) ;
+    else
+        cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXv ;
+        cropfrac_lpj = rmfield(cropfrac_lpj, 'maps_YXv') ;
+    end
+    cropfrac_lpj.yearList = -pi ;
+end
 
 % Trim out CC3G, CC4G, ExtraCrop, and OtHr from yield_lpj
 % toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic')) ;
-if ~is_ggcmi
-%     toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic') ...
-%         | strcmp(yield_lpj.varNames,'OtHr') | strcmp(yield_lpj.varNames,'OtHri')) ;
-    toRemove = find(contains(yield_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
-    if ~isempty(toRemove)
-        yield_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
-        yield_lpj.varNames(toRemove) = [] ;
-    end
-%     toRemove = find(strcmp(cropfrac_lpj.varNames,'CC3G_ic') | strcmp(cropfrac_lpj.varNames,'CC4G_ic') ...
-%         | strcmp(cropfrac_lpj.varNames,'OtHr') | strcmp(cropfrac_lpj.varNames,'OtHri')) ;
-    toRemove = find(contains(cropfrac_lpj.varNames,{'CC3G','CC4G','OtHr','ExtraCrop'})) ;
-    if ~isempty(toRemove)
-        if isfield(cropfrac_lpj,'maps_YXvy')
-            cropfrac_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
-        else
-            cropfrac_lpj.maps_YXv(:,:,toRemove) = [] ;
-        end
-        cropfrac_lpj.varNames(toRemove) = [] ;
-    end
-    clear toRemove
+% toRemove = find(strcmp(yield_lpj.varNames,'CC3G_ic') | strcmp(yield_lpj.varNames,'CC4G_ic') ...
+%     | strcmp(yield_lpj.varNames,'OtHr') | strcmp(yield_lpj.varNames,'OtHri')) ;
+toRemove = find(contains(yield_lpj.varNames,crops2remove)) ;
+if ~isempty(toRemove)
+    yield_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
+    yield_lpj.varNames(toRemove) = [] ;
 end
+% toRemove = find(strcmp(cropfrac_lpj.varNames,'CC3G_ic') | strcmp(cropfrac_lpj.varNames,'CC4G_ic') ...
+%     | strcmp(cropfrac_lpj.varNames,'OtHr') | strcmp(cropfrac_lpj.varNames,'OtHri')) ;
+toRemove = find(contains(cropfrac_lpj.varNames,crops2remove)) ;
+if ~isempty(toRemove)
+    if isfield(cropfrac_lpj,'maps_YXvy')
+        cropfrac_lpj.maps_YXvy(:,:,toRemove,:) = [] ;
+    else
+        cropfrac_lpj.maps_YXv(:,:,toRemove) = [] ;
+    end
+    cropfrac_lpj.varNames(toRemove) = [] ;
+end
+clear toRemove
 
 % Create cropfrac_lpj.YXvy array from YXv, if necessary
-if ~isfield(cropfrac_lpj,'maps_YXvy')
+if ~is_ggcmi && ~isfield(cropfrac_lpj,'maps_YXvy')
     tmp = cropfrac_lpj.maps_YXv ;
     cropfrac_lpj = rmfield(cropfrac_lpj,'maps_YXv') ;
     cropfrac_lpj.yearList = yield_lpj.yearList ;
@@ -167,14 +350,22 @@ for v = 1:length(new_order)
     clear this_from_yield
 end ; clear v
 cropfrac_lpj.varNames = cropfrac_lpj.varNames(new_order) ;
-if ~isfield(cropfrac_lpj,'maps_YXvy')
-    tmp = cropfrac_lpj.maps_YXv ;
-    cropfrac_lpj = rmfield(cropfrac_lpj,'maps_YXv') ;
-    cropfrac_lpj.maps_YXvy = repmat(tmp,[1 1 1 size(yield_lpj.maps_YXvy,4)]) ;
-    clear tmp
-    cropfrac_lpj.yearList = yield_lpj.yearList ;
+if ~is_ggcmi
+    if ~isfield(cropfrac_lpj,'maps_YXvy')
+        tmp = cropfrac_lpj.maps_YXv ;
+        cropfrac_lpj = rmfield(cropfrac_lpj,'maps_YXv') ;
+        cropfrac_lpj.maps_YXvy = repmat(tmp,[1 1 1 size(yield_lpj.maps_YXvy,4)]) ;
+        clear tmp
+        cropfrac_lpj.yearList = yield_lpj.yearList ;
+    end
+    cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
+else
+    if ~isfield(cropfrac_lpj,'maps_YXvy')
+        cropfrac_lpj.maps_YXv = cropfrac_lpj.maps_YXv(:,:,new_order) ;
+    else
+        cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
+    end
 end
-cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
 
 % % % %%%%%%%
 % % % % landuse_lpj_orig = landuse_lpj ;
@@ -186,15 +377,108 @@ cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
 % Get year info
 Nyears_lpj = length(landuse_lpj.yearList) ;
 
-% Convert yield from kgDM/m2 to tDM/ha
-if ~is_ggcmi
-    yield_lpj.maps_YXvy = yield_lpj.maps_YXvy * 1e4 * 1e-3 ;
+% Convert cropfrac from fraction of CROPLAND to fraction of ALL LAND
+if isfield(cropfrac_lpj,'maps_YXvy')
+    for v = 1:size(cropfrac_lpj.maps_YXvy,3)
+        cropfrac_lpj.maps_YXvy(:,:,v,:) = ...
+            cropfrac_lpj.maps_YXvy(:,:,v,:) ...
+            .* landuse_lpj.maps_YXvy(:,:,strcmp(landuse_lpj.varNames,'CROPLAND'),:) ;
+    end
+else
+    ok_years = landuse_lpj.yearList>=year1 & landuse_lpj.yearList<=yearN ;
+    for v = 1:size(cropfrac_lpj.maps_YXvy,3)
+        cropfrac_lpj.maps_YXv(:,:,v) = ...
+            cropfrac_lpj.maps_YXv(:,:,v) ...
+            .* nanmean(landuse_lpj.maps_YXvy(:,:,strcmp(landuse_lpj.varNames,'CROPLAND'),ok_years),4) ;
+    end
 end
 
-% Convert cropfrac from fraction of CROPLAND to fraction of ALL LAND
-for v = 1:size(cropfrac_lpj.maps_YXvy,3)
-    cropfrac_lpj.maps_YXvy(:,:,v,:) = cropfrac_lpj.maps_YXvy(:,:,v,:) ...
-                                       .* landuse_lpj.maps_YXvy(:,:,exact_string_in_cellarray(landuse_lpj.varNames,'CROPLAND'),:) ;
+% Deal with missing simulated cells
+tmp_croparea_YXvy = cropfrac_lpj.maps_YXvy .* repmat(land_area_YX, ...
+    [1 1 size(cropfrac_lpj.maps_YXvy,3) size(cropfrac_lpj.maps_YXvy,4)]) ;
+% NaN in simulation, but 0 crop area anyway
+if find(isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy==0, 1)
+    yield_lpj.maps_YXvy(isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy==0) = 0 ;
+end
+% NaN in simulation but there is some crop area
+removed_area_dueto_NaNsim = find( ...
+    isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy>0, 1) ;
+if removed_area_dueto_NaNsim
+    croparea_lpj_removed = rmfield(cropfrac_lpj, 'maps_YXvy') ;
+    croparea_lpj_removed.maps_YXvy = zeros(size(cropfrac_lpj.maps_YXvy)) ;
+    for c = 1:length(yield_lpj.varNames)
+        thisCrop = yield_lpj.varNames{c} ;
+        tmp_yield_YX1y = yield_lpj.maps_YXvy(:,:,c,:) ;
+        tmp_cropfrac_YX1y = tmp_croparea_YXvy(:,:,c,:) ;
+        I_bad = find(isnan(tmp_yield_YX1y) & tmp_cropfrac_YX1y>0) ;
+        if ~isempty(I_bad)
+            
+            % Track how much area is being removed
+            removed_YX1y = zeros(size(tmp_cropfrac_YX1y)) ;
+            removed_YX1y(I_bad) = tmp_cropfrac_YX1y(I_bad) ;
+            area_removed = sum(removed_YX1y(~isnan(removed_YX1y))) ;
+            pct_removed = 100 * area_removed ...
+                ./ sum(tmp_cropfrac_YX1y(~isnan(tmp_cropfrac_YX1y))) ;
+            croparea_lpj_removed.maps_YXvy(:,:,c,:) = removed_YX1y ;
+            clear removed_YX1y
+            
+            % Remove it
+            tmp_cropfrac_YX1y(I_bad) = 0 ;
+            tmp_croparea_YXvy(:,:,c,:) = tmp_cropfrac_YX1y ;
+        end
+        clear *_YX1y I_bad
+    end
+    cropfrac_lpj.maps_YXvy(croparea_lpj_removed.maps_YXvy > 0) = 0 ;
+    yield_lpj.maps_YXvy(croparea_lpj_removed.maps_YXvy > 0) = 0 ;
+else
+    croparea_lpj_removed = [] ;
+end
+clear tmp_croparea_YXvy
+
+% Combine Sugarbeet and Sugarcane, if needed
+if fake_ggcmi_sugar
+    % Remove Sugarbeet* and Sugarcane*
+    [~, ~, I_sug] = intersect(sugrealsIrr_lpj, cropfrac_lpj.varNames, 'stable') ;
+    sug1_frac_YXvy = cropfrac_lpj.maps_YXvy(:,:,I_sug,:) ;
+    [wt_beet_rf_YX, wt_cane_rf_YX] = get_sugar_wts( ...
+        sug1_frac_YXvy(:,:,strcmp(sugrealsIrr_lpj, 'Sugarbeet')), ...
+        sug1_frac_YXvy(:,:,strcmp(sugrealsIrr_lpj, 'Sugarcane'))) ;
+    [wt_beet_ir_YX, wt_cane_ir_YX] = get_sugar_wts( ...
+        sug1_frac_YXvy(:,:,strcmp(sugrealsIrr_lpj, 'Sugarbeeti')), ...
+        sug1_frac_YXvy(:,:,strcmp(sugrealsIrr_lpj, 'Sugarcanei'))) ;
+    sug1_yield_YXvy = yield_lpj.maps_YXvy(:,:,I_sug,:) ;
+    sug1_areaRemoved_YXvy = croparea_lpj_removed.maps_YXvy(:,:,I_sug,:) ;
+    cropfrac_lpj.maps_YXvy(:,:,I_sug,:) = [] ;
+    cropfrac_lpj.varNames(I_sug) = [] ;
+    yield_lpj.maps_YXvy(:,:,I_sug,:) = [] ;
+    yield_lpj.varNames(I_sug) = [] ;
+    croparea_lpj_removed.maps_YXvy(:,:,I_sug,:) = [] ;
+    croparea_lpj_removed.varNames(I_sug) = [] ;
+    listCrops_lpj_comb(contains(listCrops_lpj_comb, sugreals)) = [] ;
+    % Combine fractions/areas
+    [~, I_rf] = intersect(sugrealsIrr_lpj, sugreals) ;
+    [~, I_ir] = intersect(sugrealsIrr_lpj, strcat(sugreals, 'i')) ;
+    sug2_frac_YXvy = cat(3, ...
+        sum(sug1_frac_YXvy(:,:,I_rf,:),3), ...
+        sum(sug1_frac_YXvy(:,:,I_ir,:),3)) ;
+    sug2_areaRemoved_YXvy = cat(3, ...
+        sum(sug1_areaRemoved_YXvy(:,:,I_rf,:),3), ...
+        sum(sug1_areaRemoved_YXvy(:,:,I_ir,:),3)) ;
+    % Combine yields
+    sug2_yield_YXvy = cat(3, ...
+        sug1_yield_YXvy(:,:,strcmp(sugrealsIrr_lpj, 'Sugarbeet')).*wt_beet_rf_YX + sug1_yield_YXvy(:,:,strcmp(sugrealsIrr_lpj, 'Sugarcane')).*wt_cane_rf_YX, ...
+        sug1_yield_YXvy(:,:,strcmp(sugrealsIrr_lpj, 'Sugarbeeti')).*wt_beet_ir_YX + sug1_yield_YXvy(:,:,strcmp(sugrealsIrr_lpj, 'Sugarcanei')).*wt_cane_ir_YX) ;
+    % Add back
+    cropfrac_lpj.varNames = [cropfrac_lpj.varNames {'Sugar', 'Sugari'}] ;
+    cropfrac_lpj.maps_YXvy = cat(3, ...
+        cropfrac_lpj.maps_YXvy, sug2_frac_YXvy) ;
+    yield_lpj.varNames = [yield_lpj.varNames {'Sugar', 'Sugari'}] ;
+    yield_lpj.maps_YXvy = cat(3, ...
+        yield_lpj.maps_YXvy, sug2_yield_YXvy) ;
+    croparea_lpj_removed.varNames = [croparea_lpj_removed.varNames {'Sugar', 'Sugari'}] ;
+    croparea_lpj_removed.maps_YXvy = cat(3, ...
+        croparea_lpj_removed.maps_YXvy, sug2_areaRemoved_YXvy) ;
+    listCrops_lpj_comb = [listCrops_lpj_comb 'Sugar'] ;
 end
 
 % Create combined irrigated+rainfed yields
@@ -204,11 +488,14 @@ combined_YXcy_yield = nan(size(cropfrac_lpj.maps_YXvy,1),...
                     Ncrops_lpj_comb,...
                     length(cropfrac_lpj.yearList)) ;
 combined_YXcy_cropfrac = combined_YXcy_yield ;
+if removed_area_dueto_NaNsim
+    cropareaRemoved_lpj_YXcy_comb = zeros(size(combined_YXcy_yield)) ;
+else
+    cropareaRemoved_lpj_YXcy_comb = [] ;
+end
 for c = 1:Ncrops_lpj_comb
     thisCropR = listCrops_lpj_comb{c} ;
     thisCropI = [thisCropR 'i'] ;
-%     iR_cropfrac = exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropR) ;
-%     iI_cropfrac = exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropI) ;
     iR_cropfrac = find(strcmp(cropfrac_lpj.varNames,thisCropR)) ;
     iI_cropfrac = find(strcmp(cropfrac_lpj.varNames,thisCropI)) ;
     if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
@@ -222,8 +509,6 @@ for c = 1:Ncrops_lpj_comb
         frac_comb = cropfrac_lpj.maps_YXvy(:,:,exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropR),:) ...
                   + cropfrac_lpj.maps_YXvy(:,:,exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropI),:) ;
     end
-%     iR_yield = exact_string_in_cellarray(yield_lpj.varNames,thisCropR) ;
-%     iI_yield = exact_string_in_cellarray(yield_lpj.varNames,thisCropI) ;
     iR_yield = find(strcmp(yield_lpj.varNames,thisCropR)) ;
     iI_yield = find(strcmp(yield_lpj.varNames,thisCropI)) ;
     if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
@@ -240,30 +525,86 @@ for c = 1:Ncrops_lpj_comb
              + yield_lpj.maps_YXvy(:,:,iI_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:)) ...
             ./ frac_comb ;
     end
+    tmp(frac_comb==0) = 0 ;
     combined_YXcy_yield(:,:,c,:) = tmp ;
+    clear tmp
     combined_YXcy_cropfrac(:,:,c,:) = frac_comb ;
+    clear frac_comb
+    
+    if removed_area_dueto_NaNsim
+        cropareaRemoved_lpj_YXcy_comb(:,:,c,:) = ...
+            sum(croparea_lpj_removed.maps_YXvy(:,:,[iR_cropfrac iI_cropfrac],:),3) ;
+    end
+    clear tmp
 end
 
 if isempty(find(~isnan(combined_YXcy_yield),1))
     error('isempty(find(~isnan(combined_YXcy_yield),1))')
 end
 
+% Set up "combined" arrays
 if isfield(yield_lpj,'list_to_map')
     yield_lpj_comb.list_to_map = yield_lpj.list_to_map ;
 end
+yield_lpj_comb.yearList = yield_lpj.yearList ;
+% clear yield_lpj
 yield_lpj_comb.varNames = listCrops_lpj_comb ;
 yield_lpj_comb.maps_YXvy = combined_YXcy_yield ;
-yield_lpj_comb.yearList = yield_lpj.yearList ;
-
+% clear combined_YXcy_yield
 cropfrac_lpj_comb.list_to_map = cropfrac_lpj.list_to_map ;
+cropfrac_lpj_comb.yearList = cropfrac_lpj.yearList ;
+% clear cropfrac_lpj
 cropfrac_lpj_comb.varNames = listCrops_lpj_comb ;
 cropfrac_lpj_comb.maps_YXvy = combined_YXcy_cropfrac ;
-cropfrac_lpj_comb.yearList = cropfrac_lpj.yearList ;
-
-clear combined_YXcy*
+% clear combined_YXcy_cropfrac
 
 % Calculate harvested totals
 croparea_lpj_YXcy_comb = cropfrac_lpj_comb.maps_YXvy .* repmat(land_area_YX,[1 1 size(cropfrac_lpj_comb.maps_YXvy,3) size(cropfrac_lpj_comb.maps_YXvy,4)]) ;
 total_lpj_YXcy_comb = yield_lpj_comb.maps_YXvy .* croparea_lpj_YXcy_comb ;
 
+% Warn about removals, if necessary
+if removed_area_dueto_NaNsim
+    tmp_varNames = pad(strcat(listCrops_lpj_comb,':')) ;
+    for c = 1:Ncrops_lpj_comb
+        thisCrop = tmp_varNames{c} ;
+        cropareaRemoved_lpj_YX1y_comb = cropareaRemoved_lpj_YXcy_comb(:,:,c,:) ;
+        croparea_lpj_YX1y_comb = croparea_lpj_YXcy_comb(:,:,c,:) ...
+            + cropareaRemoved_lpj_YX1y_comb;
+        croparea_removed_ha = sum(cropareaRemoved_lpj_YX1y_comb(~isnan(cropareaRemoved_lpj_YX1y_comb))) ;
+        croparea_removed_pct = 100 * croparea_removed_ha ...
+            / sum(croparea_lpj_YX1y_comb(~isnan(croparea_lpj_YX1y_comb))) ;
+
+        warning(['NaN sim yield -> 0 area: %s %0.1f%% area ' ...
+            '(%0.2g ha) '], ...
+            thisCrop, croparea_removed_pct, croparea_removed_ha) ;
+        clear area_removed pct_removed
+    end
+    clear tmp_varNames
+end
+
 disp('Done.')
+
+
+%% FUNCTIONS
+
+function [wt_beet_YX, wt_cane_YX] = get_sugar_wts(beet_YX, cane_YX)
+
+total_YX = beet_YX + cane_YX ;
+total_YX(total_YX==0) = 1 ;
+
+wt_beet_YX = beet_YX ./ total_YX ;
+wt_cane_YX = cane_YX ./ total_YX ;
+
+if any(wt_beet_YX(~isnan(wt_beet_YX)) + wt_cane_YX(~isnan(wt_cane_YX)) - 1 > eps) 
+    error('Sugarbeet + Sugarcane weights don''t sum to 1 within eps')
+end
+
+end
+
+
+function out_YX = get_sugar(beet_YX, cane_YX, springwheat_YX, maize_YX)
+
+[wt_beet_YX, wt_cane_YX] = get_sugar_wts(beet_YX, cane_YX) ;
+out_YX = (springwheat_YX .* wt_beet_YX) + (maize_YX .* wt_cane_YX) ;
+
+end
