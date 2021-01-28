@@ -263,8 +263,7 @@ for c_plot = 1:Ncrops_plot
         subplot(nsubp_y,nsubp_x,c_plot)
     end
     if strcmp(scatter_style,'size_uniform')
-% % %         plot(tmpO,tmpS,'.b','MarkerSize',pr.marker_size)
-        plot(tmpS,tmpO,'.b','MarkerSize',pr.marker_size)
+        plot(tmpO,tmpS,'.b','MarkerSize',pr.marker_size)
     elseif strcmp(scatter_style,'size_weighted')
         scatter(tmpO,tmpS,1000*tmpWp,'.b')
     else
@@ -279,8 +278,7 @@ for c_plot = 1:Ncrops_plot
     hold on
     plot([min(newlims) max(newlims)],[min(newlims) max(newlims)],'--k')
     % Plot regression lines
-% % %     regLine_u = plot(regLine_u_x,regLine_u_y,'-m','LineWidth',pr.reg_line_width) ;
-    regLine_u = plot(regLine_u_y,regLine_u_x,'-m','LineWidth',pr.reg_line_width) ;
+    regLine_u = plot(regLine_u_x,regLine_u_y,'-m','LineWidth',pr.reg_line_width) ;
     if do_wtd_reg
         regLine_w = plot(regLine_u_x,regLine_w_y,'-c','LineWidth',pr.reg_line_width) ;
     end
