@@ -128,7 +128,8 @@ disp('Done.')
 
 % Threshold multiple of IQR above/below median to consider something an
 % outlier. To find no outliers, set to Inf. (MATLAB default is 1.5.)
-outlier_thresh = Inf ;
+% outlier_thresh = Inf ;
+outlier_thresh = 3 ;
 
 %%% Base regression weights on FA2 total harvest or crop area? (Empty for no
 %%% weighting)
