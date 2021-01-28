@@ -200,26 +200,29 @@ for c_plot = 1:Ncrops_plot
             disp(['   NaN in obs not sim: ' num2str(length(find(cond1 & ~cond2)))])
             disp(['   NaN in sim not obs: ' num2str(length(find(~cond1 & cond2)))])
             disp(['   Low percentile (obs). :     ' num2str(length(find(cond3)))])
-            disp(['   Outlier (obs). :     ' num2str(length(find(cond4)))])
-            if any(cond4(:))
-                if any(tmpOtmp<LO)
-                    Nlo = length(find(tmpOtmp<LO)) ;
-                    loMin = min(tmpOtmp(tmpOtmp<LO)) ;
-                    if Nlo > 1
-                        loMax = max(tmpOtmp(tmpOtmp<LO)) ;
-                        fprintf('      Below %0.2f: %d (%0.2f to %0.2f)\n', LO, Nup, loMin, loMax) ;
-                    else
-                        fprintf('      Below %0.2f: %d (%0.2f)\n', LO, Nlo, loMin) ;
+            if ~isinf(pr.outlier_thresh)
+                fprintf('   Outliers (ThresholdFactor: %.9g):\n', pr.outlier_thresh)
+                fprintf('      Observations: %d\n', length(find(cond4)))
+                if any(cond4(:))
+                    if any(tmpOtmp<LO)
+                        Nlo = length(find(tmpOtmp<LO)) ;
+                        loMin = min(tmpOtmp(tmpOtmp<LO)) ;
+                        if Nlo > 1
+                            loMax = max(tmpOtmp(tmpOtmp<LO)) ;
+                            fprintf('        Below %0.2f: %d (%0.2f to %0.2f)\n', LO, Nup, loMin, loMax) ;
+                        else
+                            fprintf('        Below %0.2f: %d (%0.2f)\n', LO, Nlo, loMin) ;
+                        end
                     end
-                end
-                if any(tmpOtmp>UP)
-                    Nup = length(find(tmpOtmp>UP)) ;
-                    upMin = min(tmpOtmp(tmpOtmp>UP)) ;
-                    if Nup > 1
-                        upMax = max(tmpOtmp(tmpOtmp>UP)) ;
-                        fprintf('      Above %0.2f: %d (%0.2f to %0.2f)\n', UP, Nup, upMin, upMax) ;
-                    else
-                        fprintf('      Above %0.2f: %d (%0.2f)\n', UP, Nup, upMin) ;
+                    if any(tmpOtmp>UP)
+                        Nup = length(find(tmpOtmp>UP)) ;
+                        upMin = min(tmpOtmp(tmpOtmp>UP)) ;
+                        if Nup > 1
+                            upMax = max(tmpOtmp(tmpOtmp>UP)) ;
+                            fprintf('        Above %0.2f: %d (%0.2f to %0.2f)\n', UP, Nup, upMin, upMax) ;
+                        else
+                            fprintf('        Above %0.2f: %d (%0.2f)\n', UP, Nup, upMin) ;
+                        end
                     end
                 end
             end
