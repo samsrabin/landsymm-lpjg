@@ -170,16 +170,9 @@ for c_plot = 1:Ncrops_plot
             cond1 = isnan(tmpO) ;
             cond2 = isnan(tmpS) ;
             cond3 = tmpO>prctile(tmpO(:),pr.max_prctile) ;
-            tmpOtmp = tmpO(:) ;
-            tmpOtmp(cond1 | cond2 | cond3) = NaN ;
-            [TF,LO,UP] = isoutlier(tmpOtmp,'quartiles','ThresholdFactor',pr.outlier_thresh) ;
-            cond4 = reshape(TF,size(tmpO)) ;
-%             cond4 = TF ; 
-%             cond4(cond1 | cond2 | cond3) = false ;
-%             if any(TF & ~(cond1(:) | cond2(:) | cond3(:)))
-%                 rntnier=1;
-%             end
-            bad = cond1 | cond2 | cond3 | cond4 ;
+            outliersO = get_outliers(tmpO, cond1, cond2, cond3, pr) ;
+            outliersS = get_outliers(tmpS, cond1, cond2, cond3, pr) ;
+            bad = cond1 | cond2 | cond3 | outliersO.cond4 | outliersS.cond4 ;
         end
         if ~any(find(~bad))
 %             error('No cells found!')
@@ -202,28 +195,13 @@ for c_plot = 1:Ncrops_plot
             disp(['   Low percentile (obs). :     ' num2str(length(find(cond3)))])
             if ~isinf(pr.outlier_thresh)
                 fprintf('   Outliers (ThresholdFactor: %.9g):\n', pr.outlier_thresh)
-                fprintf('      Observations: %d\n', length(find(cond4)))
-                if any(cond4(:))
-                    if any(tmpOtmp<LO)
-                        Nlo = length(find(tmpOtmp<LO)) ;
-                        loMin = min(tmpOtmp(tmpOtmp<LO)) ;
-                        if Nlo > 1
-                            loMax = max(tmpOtmp(tmpOtmp<LO)) ;
-                            fprintf('        Below %0.2f: %d (%0.2f to %0.2f)\n', LO, Nup, loMin, loMax) ;
-                        else
-                            fprintf('        Below %0.2f: %d (%0.2f)\n', LO, Nlo, loMin) ;
-                        end
-                    end
-                    if any(tmpOtmp>UP)
-                        Nup = length(find(tmpOtmp>UP)) ;
-                        upMin = min(tmpOtmp(tmpOtmp>UP)) ;
-                        if Nup > 1
-                            upMax = max(tmpOtmp(tmpOtmp>UP)) ;
-                            fprintf('        Above %0.2f: %d (%0.2f to %0.2f)\n', UP, Nup, upMin, upMax) ;
-                        else
-                            fprintf('        Above %0.2f: %d (%0.2f)\n', UP, Nup, upMin) ;
-                        end
-                    end
+                fprintf('      Obs: %d\n', length(find(outliersO.cond4)))
+                if any(outliersO.cond4(:))
+                    print_outlier_info(outliersO)
+                end
+                fprintf('      Sim: %d\n', length(find(outliersS.cond4)))
+                if any(outliersS.cond4(:))
+                    print_outlier_info(outliersS)
                 end
             end
         end
@@ -388,7 +366,41 @@ end
 
 
 
+function S = get_outliers(tmpX, cond1, cond2, cond3, pr)
+
+S.tmp = tmpX(:) ;
+S.tmp(cond1 | cond2 | cond3) = NaN ;
+[S.TF, S.LO, S.UP] = isoutlier(S.tmp, ...
+    'quartiles', ...
+    'ThresholdFactor', pr.outlier_thresh) ;
+S.cond4 = reshape(S.TF, size(tmpX)) ;
 
 
+end
 
+
+function print_outlier_info(S)
+
+if any(S.tmp<S.LO)
+    Nlo = length(find(S.tmp<S.LO)) ;
+    loMin = min(S.tmp(S.tmp<S.LO)) ;
+    if Nlo > 1
+        loMax = max(S.tmp(S.tmp<S.LO)) ;
+        fprintf('        Below %0.2f: %d (%0.2f to %0.2f)\n', S.LO, Nlo, loMin, loMax) ;
+    else
+        fprintf('        Below %0.2f: %d (%0.2f)\n', S.LO, Nlo, loMin) ;
+    end
+end
+if any(S.tmp>S.UP)
+    Nup = length(find(S.tmp>S.UP)) ;
+    upMin = min(S.tmp(S.tmp>S.UP)) ;
+    if Nup > 1
+        upMax = max(S.tmp(S.tmp>S.UP)) ;
+        fprintf('        Above %0.2f: %d (%0.2f to %0.2f)\n', S.UP, Nup, upMin, upMax) ;
+    else
+        fprintf('        Above %0.2f: %d (%0.2f)\n', S.UP, Nup, upMin) ;
+    end
+end
+
+end
 
