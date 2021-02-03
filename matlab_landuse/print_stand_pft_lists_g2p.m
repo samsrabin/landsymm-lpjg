@@ -130,9 +130,9 @@ function cft = get_cft_from_crop(crop)
 switch crop
     case {'CerealsC3', 'ExtraCrop'}
         cft = 'TeWW' ;
-    case {'StarchyRoots', 'FruitAndVeg', 'Sugar'}
+    case {'StarchyRoots', 'FruitAndVeg', 'Sugar', 'Sugarbeet'}
         cft = 'TeSW' ;
-    case {'CerealsC4'}
+    case {'CerealsC4', 'Sugarcane'}
         cft = 'TeCo' ;
     case {'Rice'}
         cft = 'TrRi' ;
