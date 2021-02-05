@@ -10,7 +10,8 @@ model_name = 'pDSSAT' ;
 
 % remapVer = '5e' ; calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
 % remapVer = '8b' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
-remapVer = '9' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
+% remapVer = '9_g2p' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
+remapVer = '10_g2p' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 
 ctry_excluded_area_thresh = 0.1 ; % The fraction of a country's excluded
 % area of a given crop (due to no simulated yield) above which the country
@@ -21,15 +22,22 @@ ctrymapVer = 1 ;
 %% Other options and setup
 
 % Get LU files
+if contains(remapVer, '_g2p')
+    LUdir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s', ...
+        remapVer) ;
+else
+    LUdir = sprintf('/Users/Shared/PLUM/input/remaps_v%s', ...
+        remapVer) ;
+end
 filename_guess_landuse = sprintf( ...
-    '/Users/Shared/PLUM/input/remaps_v%s/LU.remapv%s.txt', ...
-    remapVer, remapVer);
+    '%s/LU.remapv%s.txt', ...
+    LUdir, remapVer);
 filename_guess_cropfrac = sprintf( ...
-    '/Users/Shared/PLUM/input/remaps_v%s/cropfracs.remapv%s.txt', ...
-    remapVer, remapVer);
+    '%s/cropfracs.remapv%s.txt', ...
+    LUdir, remapVer);
 filename_guess_sugars = sprintf( ...
-    '/Users/Shared/PLUM/input/remaps_v%s/sugar.mat', ...
-    remapVer);
+    '%s/sugar.mat', ...
+    LUdir);
 
 % Get countries map
 if ctrymapVer == 1
