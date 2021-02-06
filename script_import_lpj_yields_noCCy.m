@@ -587,6 +587,8 @@ supreal1i = [supreals{1} 'i'] ;
 supreal2 = supreals{2} ;
 supreal2i = [supreals{2} 'i'] ;
 
+removed_area_dueto_NaNsim = ~isempty(croparea_lpj_removed) ;
+
 % Remove subcrops
 [~, ~, I_sup] = intersect(suprealsIrr_lpj, cropfrac_lpj.varNames, 'stable') ;
 sup1_frac_YXvy = cropfrac_lpj.maps_YXvy(:,:,I_sup,:) ;
@@ -599,13 +601,17 @@ sup1_frac_YXvy = cropfrac_lpj.maps_YXvy(:,:,I_sup,:) ;
     sup1_frac_YXvy(:,:,strcmp(suprealsIrr_lpj, supreal2i)), ...
     supreals) ;
 sup1_yield_YXvy = yield_lpj.maps_YXvy(:,:,I_sup,:) ;
-sup1_areaRemoved_YXvy = croparea_lpj_removed.maps_YXvy(:,:,I_sup,:) ;
+if removed_area_dueto_NaNsim
+    sup1_areaRemoved_YXvy = croparea_lpj_removed.maps_YXvy(:,:,I_sup,:) ;
+end
 cropfrac_lpj.maps_YXvy(:,:,I_sup,:) = [] ;
 cropfrac_lpj.varNames(I_sup) = [] ;
 yield_lpj.maps_YXvy(:,:,I_sup,:) = [] ;
 yield_lpj.varNames(I_sup) = [] ;
-croparea_lpj_removed.maps_YXvy(:,:,I_sup,:) = [] ;
-croparea_lpj_removed.varNames(I_sup) = [] ;
+if removed_area_dueto_NaNsim
+    croparea_lpj_removed.maps_YXvy(:,:,I_sup,:) = [] ;
+    croparea_lpj_removed.varNames(I_sup) = [] ;
+end
 listCrops_lpj_comb(contains(listCrops_lpj_comb, supreals)) = [] ;
 
 % Combine fractions/areas
@@ -614,9 +620,11 @@ listCrops_lpj_comb(contains(listCrops_lpj_comb, supreals)) = [] ;
 sup2_frac_YXvy = cat(3, ...
     sum(sup1_frac_YXvy(:,:,I_rf,:),3), ...
     sum(sup1_frac_YXvy(:,:,I_ir,:),3)) ;
-sup2_areaRemoved_YXvy = cat(3, ...
-    sum(sup1_areaRemoved_YXvy(:,:,I_rf,:),3), ...
-    sum(sup1_areaRemoved_YXvy(:,:,I_ir,:),3)) ;
+if removed_area_dueto_NaNsim
+    sup2_areaRemoved_YXvy = cat(3, ...
+        sum(sup1_areaRemoved_YXvy(:,:,I_rf,:),3), ...
+        sum(sup1_areaRemoved_YXvy(:,:,I_ir,:),3)) ;
+end
 
 % Combine yields
 sup2_yield_YXvy = cat(3, ...
@@ -633,9 +641,11 @@ cropfrac_lpj.maps_YXvy = cat(3, ...
 yield_lpj.varNames = [yield_lpj.varNames to_add] ;
 yield_lpj.maps_YXvy = cat(3, ...
     yield_lpj.maps_YXvy, sup2_yield_YXvy) ;
-croparea_lpj_removed.varNames = [croparea_lpj_removed.varNames to_add] ;
-croparea_lpj_removed.maps_YXvy = cat(3, ...
-    croparea_lpj_removed.maps_YXvy, sup2_areaRemoved_YXvy) ;
+if removed_area_dueto_NaNsim
+    croparea_lpj_removed.varNames = [croparea_lpj_removed.varNames to_add] ;
+    croparea_lpj_removed.maps_YXvy = cat(3, ...
+        croparea_lpj_removed.maps_YXvy, sup2_areaRemoved_YXvy) ;
+end
 listCrops_lpj_comb = [listCrops_lpj_comb supercrop] ;
 
 
