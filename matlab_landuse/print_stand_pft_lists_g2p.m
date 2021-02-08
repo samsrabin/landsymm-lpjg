@@ -3,8 +3,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Version for crop mappings
-thisVer = 'WithFruitVegSugar_b' ;
-remapVer = '7b' ;
+% thisVer = 'WithFruitVegSugar_b' ; remapVer = '7b' ;
+% thisVer = 'WithFruitVeg_sepSugar_sepOil' ; remapVer = '10_g2p' ;
+thisVer = 'WithFruitVeg_sepSugar_sepOil_sepC3' ; remapVer = '11_g2p' ;
 
 
 %% Set up
@@ -128,15 +129,16 @@ fclose(fid) ;
 function cft = get_cft_from_crop(crop)
 
 switch crop
-    case {'CerealsC3', 'ExtraCrop'}
+    case {'CerealsC3', 'CerealsC3w'}
         cft = 'TeWW' ;
-    case {'StarchyRoots', 'FruitAndVeg', 'Sugar', 'Sugarbeet'}
+    case {'CerealsC3s', 'StarchyRoots', 'FruitAndVeg', 'Sugar', ...
+            'Sugarbeet', 'OilOther', 'ExtraCrop'}
         cft = 'TeSW' ;
     case {'CerealsC4', 'Sugarcane'}
         cft = 'TeCo' ;
     case {'Rice'}
         cft = 'TrRi' ;
-    case {'Oilcrops', 'Pulses'}
+    case {'Oilcrops', 'Pulses', 'OilNfix'}
         cft = 'TeSo' ;
     otherwise
         error('Crop %s not recognized in get_cft_from_crop()', crop)

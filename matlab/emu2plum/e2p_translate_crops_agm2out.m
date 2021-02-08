@@ -13,9 +13,9 @@ for c = 1:length(varNames_out)
             thisCrop_agm = 'max_wheat' ;
         case {'CerealsC4', 'Miscanthus', 'Sugarcane'}
             thisCrop_agm = 'maize' ;
-        case {'Oilcrops','Pulses'}
+        case {'Oilcrops','Pulses','OilNfix'}
             thisCrop_agm = 'soy' ;
-        case {'StarchyRoots', 'FruitAndVeg', 'Sugarbeet'}
+        case {'StarchyRoots', 'FruitAndVeg', 'Sugarbeet', 'OilOther'}
             thisCrop_agm = 'spring_wheat' ;
         case {'Sugar'}
             thisCrop_agm = 'sugar' ;
