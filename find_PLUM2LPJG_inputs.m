@@ -30,6 +30,13 @@ if ~exist(dir_out,'dir')
             break
         end
     end
+    
+    if isempty(dir_out)
+        testDir = sprintf('/Volumes/Reacher/LandSyMM/inputs/LU/%s/', dir_in) ;
+        if exist(testDir, 'dir')
+            dir_out = testDir ;
+        end
+    end
 
     if isempty(dir_out)
         error(['Input directory not found! (' dir_in ')'])
