@@ -2,11 +2,20 @@
 %%% Convert LU file to just CPB %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% file_in = '/Users/Shared/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% out_file = '/Users/Shared/PLUM/input/remaps_v6/LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.justCPB.txt' ;
+thisVer = '9_g2p' ;
 
-file_in = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.txt' ;
-out_file = '/Users/Shared/PLUM/input/remaps_v6p6/LU.remapv6p6.justCPB_1yr.txt' ;
+
+%% Setup
+
+if contains(thisVer, 'g2p')
+    thisDir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s', thisVer) ;
+else
+    thisDir = sprintf('/Users/Shared/PLUM/input/remaps_v%s', thisVer) ;
+end
+
+file_in = sprintf('%s/LU.remapv%s.txt', ...
+    thisDir, thisVer) ;
+out_file = strrep(file_in, '.txt', '.justCPB_1yr.txt') ;
 
 
 %% Import
