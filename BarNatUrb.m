@@ -57,7 +57,7 @@ if any(round(vegd_new,outPrec_LC) < round(vegd_lpj,outPrec_LC))
     error('Now not enough vegd!')
 end
 if any(barren_lpj - barren_new > 10^-outPrec_LC)
-    warning(['You have some cell(s) with less barren now than in baseline! max=' ...
+    warning(['You have some cell(s) with less barren now than in baseline! max difference = ' ...
         num2str(max(barren_lpj - barren_new))])
 end
 if any(abs(vegd_new+barren_new+urban_new-1)>10^-outPrec_LC)
