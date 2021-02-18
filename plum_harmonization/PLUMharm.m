@@ -2,11 +2,6 @@
 %%% LUH1-style harmonization for PLUM outputs, at cropType level %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Baseline version
-% baseline_ver = 1 ;
-% baseline_ver = 2 ;   % Based on remap_v6
-baseline_ver = 3 ;   % Based on remap_v6p7
-              
 % Save?
 save_halfDeg_mat = true ;
 save_2deg_mat = false ;

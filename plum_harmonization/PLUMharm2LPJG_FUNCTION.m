@@ -17,9 +17,9 @@ function PLUMharm2LPJG_FUNCTION(varargin)
 % yStep = 1 ;
 
 dirList = {...
-                  'halfearth/HEoct/baseline/s1.harm';
-                  'halfearth/HEoct/halfearth/s1.harm';
-                  } ;
+          'halfearth/HEoct/baseline/s1.harm';
+          'halfearth/HEoct/halfearth/s1.harm';
+          } ;
 base_year = 2010 ; %#ok<*NASGU>
 y1 = 2011 ;
 yN = 2060 ;

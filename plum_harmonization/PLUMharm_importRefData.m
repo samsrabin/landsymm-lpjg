@@ -41,6 +41,18 @@ elseif baseline_ver == 3
     cropf_file = [inDir_remap6 'cropfracs.remapv6p7.txt'] ;
     nfert_file = [inDir_remap6 'nfert.remapv6p7.txt'] ;
     inpaint_method = 4 ;
+elseif baseline_ver == 4
+    if onMac
+        inDir_remap = '/Users/Shared/PLUM/input/remaps_v8b2oil/' ;
+        landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+    else
+        inDir_remap = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v8b2oil/' ;
+        landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+    end
+    luh2_file = [inDir_remap 'LU.remapv8b2oil.txt'] ;
+    cropf_file = [inDir_remap 'cropfracs.remapv8b2oil.txt'] ;
+    nfert_file = [inDir_remap 'nfert.remapv8b2oil.txt'] ;
+    inpaint_method = 4 ;
 else
     error('baseline_ver (%d) not recognized!',baseline_ver) ;
 end
@@ -204,14 +216,14 @@ else
     % Get just base year, if needed
     if isfield(base_cropf,'yearList')
         if doHarm
-        tmp = base_cropf.maps_YXvy(:,:,:,base_cropf.yearList==base_year) ;
-        base_cropf = rmfield(base_cropf,{'maps_YXvy','yearList'}) ;
-        base_cropf.maps_YXv = tmp ;
-        base_cropf.maps_YXv(repmat(mask_YX,[1 1 length(base_cropf.varNames)])) = NaN ;
-        clear tmp
-    else
-        base_cropf.maps_YXvy(repmat(mask_YX,[1 1 length(base_cropf.varNames) Nyears_luh2])) = NaN ;
-    end
+            tmp = base_cropf.maps_YXvy(:,:,:,base_cropf.yearList==base_year) ;
+            base_cropf = rmfield(base_cropf,{'maps_YXvy','yearList'}) ;
+            base_cropf.maps_YXv = tmp ;
+            base_cropf.maps_YXv(repmat(mask_YX,[1 1 length(base_cropf.varNames)])) = NaN ;
+            clear tmp
+        else
+            base_cropf.maps_YXvy(repmat(mask_YX,[1 1 length(base_cropf.varNames) Nyears_luh2])) = NaN ;
+        end
     end
     % Combine CC3G and CC4G into ExtraCrop
     if any(strcmp(base_cropf.varNames,'CC3G')) && any(strcmp(base_cropf.varNames,'CC4G'))

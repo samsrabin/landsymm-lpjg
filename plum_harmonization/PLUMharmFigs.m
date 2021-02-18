@@ -2,12 +2,6 @@
 %%% Testing harmonized PLUM land use trajectory %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Baseline version
-% baseline_ver = 1 ;
-% baseline_ver = 2 ;   % Based on remap_v6
-baseline_ver = 3 ;   % Based on remap_v6p7
-
-
 % PLUM_version = 'v12.s1' ;
 % runList = strcat({...
 %            'SSP1' ;
@@ -18,6 +12,9 @@ baseline_ver = 3 ;   % Based on remap_v6p7
 % yearList_harm = 2011:2100 ;
 % fake_fruitveg_sugar = false ;
 % runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
+% % baseline_ver = 1 ;
+% % baseline_ver = 2 ;   % Based on remap_v6
+% baseline_ver = 3 ;   % Based on remap_v6p7
 
 runList = {...
     'halfearth/HEoct/baseline/s1';
@@ -26,6 +23,8 @@ runList = {...
 yearList_harm = 2011:2060 ;
 fake_fruitveg_sugar = true ;
 runList_legend = {'baseline', 'halfearth'} ;
+legend_ts = [{'LUH2'} runList_legend] ;
+baseline_ver = 4 ;   % Based on remap_v8b2oil
 
 % Use combined-crop version?
 combineCrops = false ;
@@ -46,7 +45,7 @@ norm2extra = 0.177 ;
 
 % Determine which system you're on
 tmp = pwd ;
-if strcmp(tmp(1:5),'/User')
+if strcmp(tmp(1:5),'/User') || strcmp(tmp(1:8),'/Volumes')
     onMac = true ;
 elseif strcmp(tmp(1:5),'/pfs/')
     onMac = false ;
@@ -88,12 +87,14 @@ add_baseline_to_harm = ...
     yearList_harm(1)==yearList_orig(1)+1 ...
     && yearList_orig(1)==base_year ...
     && any(yearList_luh2==base_year) ;
-if length(runList) == 1
-    legend_ts = {'LUH2','Orig','Harm'} ;
-else
-    legend_ts = {'LUH2'} ;
-    for s = 1:length(runList)
-        legend_ts = [legend_ts {runList{s}(1:4)}] ;
+if ~exist('legend_ts', 'var')
+    if length(runList) == 1
+        legend_ts = {'LUH2','Orig','Harm'} ;
+    else
+        legend_ts = {'LUH2'} ;
+        for s = 1:length(runList)
+            legend_ts = [legend_ts {runList{s}(1:4)}] ;
+        end
     end
 end
 
@@ -594,13 +595,15 @@ end
 tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
 % y1_list = 2011 ;
 % yN_list= 2012 ;
-y1_list = 2010 ;
+% y1_list = 2010 ;
 % yN_list= yearList_harm(end) ;
-yN_list = 2020:10:2050 ;
 % y1_list = 2011:1:2099 ;
 % yN_list = 2012:1:2100 ;
 % y1_list = 2011:5:2099 ;
 % yN_list = 2015:5:2100 ;
+
+yN_list = 2030:10:2060 ;
+y1_list = 2010*ones(size(yN_list)) ;
 
 % Options %%%%%%%%%
 fontSize = 14 ;
@@ -1090,7 +1093,9 @@ ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
 ts_orig_cyr = cat(1,sum(ts_orig_cyr(isCrop,:,:),1),ts_orig_cyr(~isCrop,:,:)) ;
 ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
 ts_harm_cyr = cat(1,sum(ts_harm_cyr(isCrop,:,:),1),ts_harm_cyr(~isCrop,:,:)) ;
-ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+if ~add_baseline_to_harm
+    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+end
 
 combinedLUs = [{'CROPLAND'} LUnames(~isCrop)] ;
 
@@ -1123,7 +1128,7 @@ close
 ts_base_cy = squeeze(nansum(nansum(base.maps_YXvy,1),2)) ;
 ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
 ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
-if ~isequal(yearList_orig, yearList_harm)
+if ~add_baseline_to_harm
     ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 end
 
@@ -1160,7 +1165,7 @@ else
 end
 ts_orig_cyr = cf_kg2Mt .* squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_nfert_xvyr,1)) ;
 ts_harm_cyr = cf_kg2Mt .* squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_nfert_xvyr,1)) ;
-if ~isequal(yearList_orig, yearList_harm)
+if ~add_baseline_to_harm
     ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 end
 

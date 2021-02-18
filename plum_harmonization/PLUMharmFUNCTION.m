@@ -20,6 +20,9 @@
 % year1 = 2011 ;
 % yearN = 2100 ;
 % fake_fruitveg_sugar = false ;
+% % baseline_ver = 1 ;
+% % baseline_ver = 2 ;   % Based on remap_v6
+% baseline_ver = 3 ;   % Based on remap_v6p7
 
 PLUM_in_toptop = {...
                   'halfearth/HEoct/baseline/s1';
@@ -29,6 +32,7 @@ base_year = 2010 ;
 year1 = 2011 ;
 yearN = 2060 ;
 fake_fruitveg_sugar = true ;
+baseline_ver = 4 ;   % Based on remap_v8b2oil
 
 % Replace PLUM_in_toptop with input, if provided
 % if ~isempty(varargin)
