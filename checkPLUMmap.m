@@ -1,5 +1,13 @@
-function checkPLUMmap(PLUMtoLPJG,PLUMcrops)
+function checkPLUMmap(PLUMtoLPJG,PLUMcrops,varargin)
 % Check that every PLUM crop is mapped
+
+fake_fruitveg_sugar = false ;
+if ~isempty(varargin)
+    fake_fruitveg_sugar = varargin{1} ;
+    if length(varargin) > 1
+        error('checkPLUMmap takes at most 1 optional argument (fake_fruitveg_sugar)')
+    end
+end
 
 wheatfound2x = false ;
 setasidefound2x = false ;
@@ -36,7 +44,7 @@ for cP = 1:Ncfts_plum
             error([thisCrop_plum ' found more than once in PLUMtoLPJG{' num2str(cL) '}!'])
         end
     end ; clear cL
-    if ~found1x
+    if ~found1x && ~(fake_fruitveg_sugar && (strcmp(thisCrop_plum, 'fruitveg') || strcmp(thisCrop_plum, 'sugar')))
         error([thisCrop_plum ' not found in PLUMtoLPJG!']) ;
     end
     clear thisCrop_plum found
