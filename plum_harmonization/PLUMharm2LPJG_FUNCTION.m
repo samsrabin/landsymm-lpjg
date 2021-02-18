@@ -1,16 +1,31 @@
 function PLUMharm2LPJG_FUNCTION(varargin)
 
 % Directories for harmonized PLUM outputs
+% dirList = {...
+% %               'SSP1.v10.s1.harm' ;
+% %               'SSP3.v10.s1.harm' ;
+% %               'SSP4.v10.s1.harm' ;
+% %               'SSP5.v10.s1.harm' ;
+%               'SSP1.v12.s1.harm' ;
+%               'SSP3.v12.s1.harm' ;
+%               'SSP4.v12.s1.harm' ;
+%               'SSP5.v12.s1.harm' ;
+%               } ;
+% base_year = 2010 ;
+% y1 = 2011 ;
+% yN = 2100 ;
+% yStep = 1 ;
+
 dirList = {...
-%               'SSP1.v10.s1.harm' ;
-%               'SSP3.v10.s1.harm' ;
-%               'SSP4.v10.s1.harm' ;
-%               'SSP5.v10.s1.harm' ;
-              'SSP1.v12.s1.harm' ;
-              'SSP3.v12.s1.harm' ;
-              'SSP4.v12.s1.harm' ;
-              'SSP5.v12.s1.harm' ;
-              } ;
+                  'halfearth/HEoct/baseline/s1.harm';
+                  'halfearth/HEoct/halfearth/s1.harm';
+                  } ;
+base_year = 2010 ; %#ok<*NASGU>
+y1 = 2011 ;
+yN = 2060 ;
+yStep = 1 ;
+
+do_gzip = true ;
           
 % Replace dirList with input, if provided
 if ~isempty(varargin)
@@ -34,7 +49,8 @@ else
 end
 clear tmp
 if onMac
-    addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
+    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/')) ;
     landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
     lpjg_in_file = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out.gz' ;
 else

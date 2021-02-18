@@ -2,22 +2,16 @@
 %%% Read MAT-files from harmonization; write as LPJG inputs %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-do_gzip = false ;
-          
-base_year = 2010 ;
-y1 = 2011 ;
-yN = 2100 ;
-yStep = 1 ;
-                        
 % Trying to avoid new crop spinup time
 y1_pre = 2006 ;    % Will repeat first PLUMout year for y1_pre:(y1-1)
 
 % Make it so that each gridcell always has at least some tiny amount of
-% every crop?
+% every crop? Needed to avoid weird first few years after a cell gets its
+% first area of some new crop.
 outPrec = 6 ;
-% mincropfrac = 10^-outPrec ;
-mincropfrac = 0 ;
-someofall = true ; 
+mincropfrac = 10^-outPrec ;
+% mincropfrac = 0 ;
+someofall = true ;
 donation_order = {'PASTURE','NATURAL','BARREN'} ;
               
 
