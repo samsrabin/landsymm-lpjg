@@ -76,12 +76,17 @@ function [hc, hp, ht] = actually_make_fig(...
     do_caps, this_colormap_name, bins_lowBnds, col_titles, ...
     lines_overlay, new_caxis)
 
-if ny ~= 4
-    error('Code for one big colorbar (per column) only tested with ny==4')
+if ny == 4
+    shiftup_base = 0.01 ;
+elseif ny == 2
+    shiftup_base = 0.05 ;
+else
+    shiftup_base = 0.01 ;
+    warning('Code for one big colorbar (per column) not tested with ny = %d', ny)
 end
 
 % Set up for single colorbar and overarching title for each column
-shiftup = 0.01*(i2/2 - 1) ;
+shiftup = shiftup_base*(i2/2 - 1) ;
 if i1 > 2
     shiftup = shiftup * 2 ;
 end
