@@ -202,7 +202,8 @@ else
         'verboseIfNoMat',false,'force_mat_save',true) ;
     
     % Get just base year, if needed
-    if doHarm && isfield(base_cropf,'yearList')
+    if isfield(base_cropf,'yearList')
+        if doHarm
         tmp = base_cropf.maps_YXvy(:,:,:,base_cropf.yearList==base_year) ;
         base_cropf = rmfield(base_cropf,{'maps_YXvy','yearList'}) ;
         base_cropf.maps_YXv = tmp ;
@@ -210,6 +211,7 @@ else
         clear tmp
     else
         base_cropf.maps_YXvy(repmat(mask_YX,[1 1 length(base_cropf.varNames) Nyears_luh2])) = NaN ;
+    end
     end
     % Combine CC3G and CC4G into ExtraCrop
     if any(strcmp(base_cropf.varNames,'CC3G')) && any(strcmp(base_cropf.varNames,'CC4G'))
