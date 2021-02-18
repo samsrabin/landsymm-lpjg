@@ -53,7 +53,7 @@ lats_map = repmat((-90:0.5:89.5)',[1 720]) ;
 
 % Read fraction of VEGETATED protected by...
 %%% Terrain
-resFrac_terr = lpjgu_matlab_readTable_then2map(PLUM_file_res_terr,'verboseIfNoMat',false,'force_mat_nosave',true) ;
+resFrac_terr = lpjgu_matlab_readTable_then2map(PLUM_file_res_terr,'verboseIfNoMat',false,'force_mat_nosave',true,'force_mat_save',false) ;
 resFrac_terr_YX = 1 - resFrac_terr.maps_YXv ;
 resFrac_terr_YX(isnan(resFrac_terr_YX)) = 0 ;
 clear resFrac_terr
@@ -121,7 +121,7 @@ end
 % Harmonize masks
 PLUM_base_in = addslashifneeded([addslashifneeded(PLUM_in_toptop{1}) num2str(base_year)]) ;
 file_in = [PLUM_base_in 'LandCoverFract.txt'] ;
-S = lpjgu_matlab_readTable_then2map(file_in,'verboseIfNoMat',false,'force_mat_nosave',true) ;
+S = lpjgu_matlab_readTable_then2map(file_in,'verboseIfNoMat',false,'force_mat_nosave',true,'force_mat_save',false) ;
 mask_YX = isnan(S.maps_YXv(:,:,1)) ...
     | sum(S.maps_YXv(:,:,contains(S.varNames,{'CROPLAND','PASTURE','NATURAL'})),3)==0 ...
     | landArea_YX==0 ...
@@ -512,11 +512,17 @@ else
     PLUMtoLPJG{strcmp(LPJGcrops,'Oilcrops')} = 'oilcrops' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'Pulses')} = 'pulses' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'StarchyRoots')} = 'starchyRoots' ;
+    if any(strcmp(LPJGcrops,'FruitVeg'))
+        PLUMtoLPJG{strcmp(LPJGcrops,'FruitVeg')} = 'fruitveg' ;
+    end
+    if any(strcmp(LPJGcrops,'Sugar'))
+        PLUMtoLPJG{strcmp(LPJGcrops,'Sugar')} = 'sugar' ;
+    end
     PLUMtoLPJG{strcmp(LPJGcrops,'Miscanthus')} = 'energycrops' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'ExtraCrop')} = 'setaside' ;
     
     % Check that every PLUM crop is mapped
-    checkPLUMmap(PLUMtoLPJG,PLUMcrops) ;
+    checkPLUMmap(PLUMtoLPJG,PLUMcrops,fake_fruitveg_sugar) ;
 end
 
 % Check that there are no non-vegetated gridcells where landArea>0

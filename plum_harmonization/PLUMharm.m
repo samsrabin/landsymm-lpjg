@@ -2,10 +2,6 @@
 %%% LUH1-style harmonization for PLUM outputs, at cropType level %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-base_year = 2010 ;
-year1 = 2011 ;
-yearN = 2100 ;
-
 % Baseline version
 % baseline_ver = 1 ;
 % baseline_ver = 2 ;   % Based on remap_v6
@@ -31,8 +27,10 @@ dbCrop = '' ;
 % Print verbose messages?
 verbose = false ;
 
-% Combine all crops?
-combineCrops = true ;
+% Combine all crops? This is useful only as a test to see how different the
+% area is this way as opposed to the right way (keeping every crop
+% separate). This also may not actually work!
+combineCrops = false ;
 
 
 %% Setup
@@ -125,6 +123,15 @@ for d = 1:length(PLUM_in_toptop)
     end
     unix(['mkdir -p ' PLUM_out_top]) ;
     PLUM_in_top = addslashifneeded(PLUM_in_top) ;
+    
+    % Save diary file
+    diary off
+    diaryfile = sprintf('%s/matlab_log.txt', PLUM_out_top) ;
+    if exist(diaryfile, 'file')
+        delete(diaryfile)
+    end
+    diary(diaryfile)
+    diary on
 
     % Read fraction of VEGETATED protected by...
     %%% PLUM's minimum natural fraction ("rate")
@@ -236,14 +243,16 @@ for d = 1:length(PLUM_in_toptop)
                 [in_y0, ~, ~, in_y0_2deg] = ...
                     PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                     LUnames, bareFrac_y0_YX, [], [], ...
-                    PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+                    PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+                    fake_fruitveg_sugar) ;
             else
                 [in_y0, in_y0_nfert, in_y0_irrig, in_y0_2deg, in_y0_2deg_nfert, in_y0_2deg_irrig, ...
                     latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
                     max_orig_nfert_y0] = ...
                     PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                     LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
-                    PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+                    PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+                    fake_fruitveg_sugar) ;
             end
             bareFrac_y0_YX = in_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
             in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
@@ -262,14 +271,16 @@ for d = 1:length(PLUM_in_toptop)
             [in_y1, ~, ~, in_y1_2deg] = ...
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                 LUnames, bareFrac_y0_YX, [], [], ...
-                PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+                PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+                    fake_fruitveg_sugar) ;
         else
             [in_y1, in_y1_nfert, in_y1_irrig, in_y1_2deg, in_y1_2deg_nfert, in_y1_2deg_irrig, ...
                 latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
                 max_orig_nfert_y1] = ...
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                 LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
-                PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+                PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+                    fake_fruitveg_sugar) ;
         end
         in_y1_agri_YXv = in_y1.maps_YXv(:,:,isAgri) ;
         in_y1_2deg_agri_YXv = in_y1_2deg.maps_YXv(:,:,isAgri) ;
@@ -1097,6 +1108,7 @@ for d = 1:length(PLUM_in_toptop)
     end % years loop
 
     disp('Done')
+    diary off
 
 end
 

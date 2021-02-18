@@ -1,6 +1,6 @@
 % function PLUMharmFUNCTION(varargin)
 
-PLUM_in_toptop = {...
+% PLUM_in_toptop = {...
 %                   'SSP1.v10.s1' ;
 %                   'SSP3.v10.s1' ;
 %                   'SSP4.v10.s1' ;
@@ -11,11 +11,24 @@ PLUM_in_toptop = {...
 %                   'SSP5.v11.s1' ;
 %                   'SSP1.v11.s1test' ;
 %                   'ssp11/SSP5/s3' ;
-                  'SSP1.v12.s1' ;
-                  'SSP3.v12.s1' ;
-                  'SSP4.v12.s1' ;
-                  'SSP5.v12.s1' ;
+%                   'SSP1.v12.s1' ;
+%                   'SSP3.v12.s1' ;
+%                   'SSP4.v12.s1' ;
+%                   'SSP5.v12.s1' ;
+%                   } ;
+% base_year = 2010 ;
+% year1 = 2011 ;
+% yearN = 2100 ;
+% fake_fruitveg_sugar = false ;
+
+PLUM_in_toptop = {...
+                  'halfearth/HEoct/baseline/s1';
+                  'halfearth/HEoct/halfearth/s1';
                   } ;
+base_year = 2010 ;
+year1 = 2011 ;
+yearN = 2060 ;
+fake_fruitveg_sugar = true ;
 
 % Replace PLUM_in_toptop with input, if provided
 % if ~isempty(varargin)
@@ -41,8 +54,9 @@ clear tmp
 
 if onMac
     PLUM_in_toptop = strcat('/Users/Shared/PLUM/PLUM_outputs_for_LPJG/',PLUM_in_toptop) ;
-    addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
-    PLUMharm_top = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/plum_harmonization/' ;
+    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
+    PLUMharm_top = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+    addpath(genpath(PLUMharm_top))
     inDir_protectedAreas = '/Users/Shared/PLUM/input/protected_areas/' ;
 else
     PLUM_in_toptop = strcat('/home/fh1-project-lpjgpi/lr8247/PLUM/input/PLUMouts_2011-2100/',PLUM_in_toptop) ;

@@ -5,7 +5,8 @@ function [S, S_nfert, S_irrig, ...
     PLUMharm_processPLUMin_areaCrops(...
         file_in_lcf, landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
         latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
-        PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method)
+        PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+        fake_fruitveg_sugar)
 
 PUTURBANHERE = 'BARREN' ;
 cf_kgNha_kgNm2 = 1e-4 ;
@@ -85,6 +86,7 @@ else
     S_cropf = lpjgu_matlab_readTable_then2map(file_in_cropfrac,'verboseIfNoMat',false,'force_mat_save',true) ;
     PLUMcrops = S_cropf.varNames ;
     S_cropa.maps_YXv = S_cropf.maps_YXv .* S_lcf.maps_YXv(:,:,strcmp(S_lcf.varNames,'CROPLAND')) ;
+    clear S_cropf
     if ~combineCrops
         file_in_nfert = strrep(file_in_lcf,'LandCoverFract','Fert') ;
         S_nfert = lpjgu_matlab_readTable_then2map(file_in_nfert,'verboseIfNoMat',false,'force_mat_save',true) ;
@@ -100,15 +102,54 @@ if combineCrops
     S_cropa.maps_YXv = sum(S_cropa.maps_YXv, 3) ;
     PLUMcrops = LPJGcrops ;
 else
+    
+    % Move fruitveg and/or sugar into their proxy crops, if needed
+    if fake_fruitveg_sugar
+        fakelist_plum = {'fruitveg', 'sugar'} ;
+        fakelist_lpjg = {'Oilcrops', 'Oilcrops'} ;
+        for c = 1:length(fakelist_lpjg)
+            thisCrop_plum = fakelist_plum{c} ;
+            if ~any(strcmp(PLUMcrops, thisCrop_plum))
+                continue
+            end
+            thisCrop_lpjg = fakelist_lpjg{c} ;
+            fprintf('Moving %s into %s...\n', thisCrop_plum, thisCrop_lpjg)
+            % Do area first so you can get weighting
+            data_real_YX = S_cropa.maps_YXv(:,:,strcmp(PLUMcrops, PLUMtoLPJG{strcmp(LPJGcrops, thisCrop_lpjg)})) ;
+            data_fake_YX = S_cropa.maps_YXv(:,:,strcmp(PLUMcrops, thisCrop_plum)) ;
+            wt_real_YX = data_real_YX ./ (data_real_YX + data_fake_YX) ;
+            wt_fake_YX = data_fake_YX ./ (data_real_YX + data_fake_YX) ;
+            S_cropa.maps_YXv(:,:,strcmp(PLUMcrops, PLUMtoLPJG{strcmp(LPJGcrops, thisCrop_lpjg)})) ...
+                = data_real_YX + data_fake_YX ;
+            S_cropa.maps_YXv(:,:,strcmp(PLUMcrops, thisCrop_plum)) = [] ;
+            % Nfert
+            data_real_YX = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops, PLUMtoLPJG{strcmp(LPJGcrops, thisCrop_lpjg)})) ;
+            data_fake_YX = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops, thisCrop_plum)) ;
+            S_nfert.maps_YXv(:,:,strcmp(PLUMcrops, PLUMtoLPJG{strcmp(LPJGcrops, thisCrop_lpjg)})) ...
+                = data_real_YX.*wt_real_YX + data_fake_YX.*wt_fake_YX ;
+            S_nfert.maps_YXv(:,:,strcmp(PLUMcrops, thisCrop_plum)) = [] ;
+            % Irrigation
+            data_real_YX = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops, PLUMtoLPJG{strcmp(LPJGcrops, thisCrop_lpjg)})) ;
+            data_fake_YX = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops, thisCrop_plum)) ;
+            S_irrig.maps_YXv(:,:,strcmp(PLUMcrops, PLUMtoLPJG{strcmp(LPJGcrops, thisCrop_lpjg)})) ...
+                = data_real_YX.*wt_real_YX + data_fake_YX.*wt_fake_YX ;
+            S_irrig.maps_YXv(:,:,strcmp(PLUMcrops, thisCrop_plum)) = [] ;
+            clear data_real_YX data_fake_YX
+            % Remove fake from PLUMcrops
+            PLUMcrops(strcmp(PLUMcrops, thisCrop_plum)) = [] ;
+        end
+    end
+    
+    % If there is a mismatch in crop lists, throw an error
+    if ~isequal(PLUMcrops, intersect(PLUMcrops, PLUMtoLPJG, 'stable'))
+        error('Mismatch between crops in PLUMcrops and PLUMtoLPJG')
+    end
+    
     % If there is irrigation or fertilization present on SetAside, throw an
     % error!
     tmpN = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
     tmpI = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
-    try
-        isBad = any(any(tmpN>0)) || any(any(tmpI>0)) ;
-    catch ME
-        keyboard
-    end
+    isBad = any(any(tmpN>0)) || any(any(tmpI>0)) ;
     if isBad
         error('Fertilization and/or irrigation on SetAside!')
     end

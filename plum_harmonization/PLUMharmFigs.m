@@ -7,8 +7,25 @@
 % baseline_ver = 2 ;   % Based on remap_v6
 baseline_ver = 3 ;   % Based on remap_v6p7
 
-% Which PLUM version?
-PLUM_version = 'v12.s1' ;
+
+% PLUM_version = 'v12.s1' ;
+% runList = strcat({...
+%            'SSP1' ;
+%            'SSP3' ;
+%            'SSP4' ;
+%            'SSP5';
+%             }, ['.' PLUM_version]) ;
+% yearList_harm = 2011:2100 ;
+% fake_fruitveg_sugar = false ;
+% runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
+
+runList = {...
+    'halfearth/HEoct/baseline/s1';
+    'halfearth/HEoct/halfearth/s1';
+    } ;
+yearList_harm = 2011:2060 ;
+fake_fruitveg_sugar = true ;
+runList_legend = {'baseline', 'halfearth'} ;
 
 % Use combined-crop version?
 combineCrops = false ;
@@ -17,16 +34,7 @@ thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
 
-runList = strcat({...
-           'SSP1' ;
-           'SSP3' ;
-           'SSP4' ;
-           'SSP5';
-            }, ['.' PLUM_version]) ;
-
 base_year = 2010 ;
-
-yearList_harm = 2011:2100 ;
 
 norm2extra = 0.177 ;
 
@@ -48,10 +56,15 @@ end
 clear tmp
 
 if onMac
-    out_dir = sprintf('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harm%dFigs_%s/',baseline_ver,PLUM_version) ;
     topDir = addslashifneeded('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') ;
-    addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
-    PLUMharm_top = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/plum_harmonization/' ;
+    if any(contains(runList, 'halfearth/HEoct'))
+        out_dir = sprintf('%s/halfearth/HEoct/harm_figs/', topDir) ;
+    else
+        out_dir = sprintf('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harm%dFigs_%s/',baseline_ver,PLUM_version) ;
+    end
+    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
+    PLUMharm_top = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+    addpath(genpath(PLUMharm_top))
     inDir_protectedAreas = '/Users/Shared/PLUM/input/protected_areas/' ;
 else
     out_dir = sprintf('/home/fh1-project-lpjgpi/lr8247/PLUM_harmonization_figs/harm%dFigs_%s/',baseline_ver,PLUM_version) ;
@@ -75,7 +88,6 @@ add_baseline_to_harm = ...
     yearList_harm(1)==yearList_orig(1)+1 ...
     && yearList_orig(1)==base_year ...
     && any(yearList_luh2==base_year) ;
-
 if length(runList) == 1
     legend_ts = {'LUH2','Orig','Harm'} ;
 else
@@ -121,6 +133,7 @@ end
 %% Import reference data
 
 doHarm = false ;
+
 run([PLUMharm_top 'PLUMharm_importRefData.m']) ;
 
 biomeID_YX = flipud(imread( ...
@@ -173,7 +186,8 @@ for r = 1:Nruns
         [S_out, ~, ~] = PLUMharm_pp_readPLUM(...
             [topDir thisRun], base_year, yearList_orig, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-            is2deg, [], norm2extra, inpaint_method, '', true) ;
+            is2deg, [], norm2extra, inpaint_method, '', true, ...
+            fake_fruitveg_sugar) ;
         S_out.maps_YXvy = cat(3, ...
             sum(S_out.maps_YXvy(:,:,~contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:), 3), ...
             S_out.maps_YXvy(:,:,contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:)) ;
@@ -182,13 +196,13 @@ for r = 1:Nruns
         [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
             [topDir thisRun], base_year, yearList_orig, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-            is2deg, [], norm2extra, inpaint_method, '', true) ;
+            is2deg, [], norm2extra, inpaint_method, '', true, ...
+            fake_fruitveg_sugar) ;
     end
     [~,~,year_indices] = intersect(S_out.yearList,yearList_orig,'stable') ;
     if length(year_indices)~=length(yearList_orig)
         error('length(year_indices)~=length(yearList_orig)')
     end
-    
     if length(year_indices) ~= size(S_out.maps_YXvy,4)
         S_out.maps_YXvy = S_out.maps_YXvy(:,:,:,year_indices) ;
     end
@@ -300,7 +314,7 @@ for r = 1:Nruns
             [S_out, ~, ~] = PLUMharm_pp_readPLUM(...
                 [topDir thisRun '.harm.combineCrops'],base_year,yearList_harm, ...
                 thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-                is2deg, [], 0, [], thisVer, false) ;
+                is2deg, [], 0, [], thisVer, false, fake_fruitveg_sugar) ;
             S_out.maps_YXvy = cat(3, ...
                 sum(S_out.maps_YXvy(:,:,~contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:), 3), ...
                 S_out.maps_YXvy(:,:,contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:)) ;
@@ -309,7 +323,7 @@ for r = 1:Nruns
             [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
                 [topDir thisRun '.harm'],base_year,yearList_harm, ...
                 thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-                is2deg, [], 0, [], thisVer, false) ;
+                is2deg, [], 0, [], thisVer, false, fake_fruitveg_sugar) ;
         end
         
         if length(year_indices) ~= size(S_out.maps_YXvy,4) && ~add_baseline_to_harm
@@ -320,14 +334,14 @@ for r = 1:Nruns
         clear S_out incl_YXvy
         
         if ~combineCrops
-            if length(year_indices) ~= size(S_nfert_out.maps_YXvy,4)
+            if length(year_indices) ~= size(S_nfert_out.maps_YXvy,4) && ~add_baseline_to_harm
                 S_nfert_out.maps_YXvy = S_nfert_out.maps_YXvy(:,:,:,year_indices) ;
             end
             incl_YXvy = repmat(~mask_YX, [1 1 size(S_nfert_out.maps_YXvy, 3:4)]) ;
             PLUMharm_nfert_xvyr(:,:,:,r) = reshape(S_nfert_out.maps_YXvy(incl_YXvy), size(PLUMharm_nfert_xvyr, 1:3)) ;
             clear S_nfert_out
             
-            if length(year_indices) ~= size(S_irrig_out.maps_YXvy,4)
+            if length(year_indices) ~= size(S_irrig_out.maps_YXvy,4) && ~add_baseline_to_harm
                 S_irrig_out.maps_YXvy = S_irrig_out.maps_YXvy(:,:,:,year_indices) ;
             end
             PLUMharm_irrig_xvyr(:,:,:,r) = reshape(S_irrig_out.maps_YXvy(incl_YXvy), size(PLUMharm_irrig_xvyr, 1:3)) ;
@@ -336,7 +350,7 @@ for r = 1:Nruns
         
     end
     disp(toc_hms(toc))
-
+    
 end
 
 gcelArea_x = gcelArea_YX(list2map) ;
@@ -439,12 +453,12 @@ do_save = true ;
 % Options %%%
 ny = 2 ;
 nx = Nruns ;
-spacing = [0.05 0.05] ; % v h
+spacing = [0.1 0.05] ; % v h
 fontSize = 14 ;
 %%%%%%%%%%%%%
 
 y1 = 2010 ;
-yN = 2100 ;
+yN = yearList_harm(end) ;
 
 thisGray = 0.65*ones(3,1) ;
 
@@ -581,7 +595,8 @@ tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
 % y1_list = 2011 ;
 % yN_list= 2012 ;
 y1_list = 2010 ;
-yN_list= 2100 ;
+% yN_list= yearList_harm(end) ;
+yN_list = 2020:10:2050 ;
 % y1_list = 2011:1:2099 ;
 % yN_list = 2012:1:2100 ;
 % y1_list = 2011:5:2099 ;
@@ -594,11 +609,9 @@ spacing = 0 ;
 textX = 0.115 ;
 textY_1 = 50/360 ;
 textY_2 = 20/360 ;
-% shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
-thisPos = [1    33   770   772] ;
 nx = 2 ;
-ny = 4 ;
+ny = length(runList) ;
 as_frac_land = false ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 units_total = 'Mkm^2' ;
@@ -608,18 +621,14 @@ ntrl_colormap_name = 'PiYG_ssr' ;
 lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
-if strcmp(thisLU, 'CROPLAND')
-    v = isCrop ;
+if ny == 4
+    thisPos = [1    33   770   772] ;
+elseif ny==2
+    thisPos = [1   308   770   497] ;
 else
-    v = contains(LUnames, thisLU) ;
+    error('Set thisPos for ny = %d', ny)
 end
-if ~strcmp(thisLU, 'NATURAL')
-    if strcmp(ntrl_colormap_name(1), '-')
-        this_colormap_name = ntrl_colormap_name(2:end) ;
-    else
-        this_colormap_name = ['-' ntrl_colormap_name] ;
-    end
-end
+textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 
 if length(y1_list) > 1
     this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
@@ -637,8 +646,6 @@ end
 if ~exist(this_outdir_geo, 'dir')
     mkdir(this_outdir_geo) ;
 end
-
-this_runList = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
 
 map_size = size(landArea_YX) ;
 orig_diff_YXrH = nan([map_size Nruns]) ;
@@ -663,6 +670,19 @@ for l = 1:length(tmp_lu_list)
     thisLU_short = lower(thisLU(1:4)) ;
     if strcmp(thisLU_short, 'natu')
         thisLU_short = 'ntrl' ;
+    end
+    
+    if strcmp(thisLU, 'CROPLAND')
+        v = isCrop ;
+    else
+        v = contains(LUnames, thisLU) ;
+    end
+    if ~strcmp(thisLU, 'NATURAL')
+        if strcmp(ntrl_colormap_name(1), '-')
+            this_colormap_name = ntrl_colormap_name(2:end) ;
+        else
+            this_colormap_name = ['-' ntrl_colormap_name] ;
+        end
     end
     
     % Get color map
@@ -726,13 +746,13 @@ for l = 1:length(tmp_lu_list)
         [diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v5(...
             area_orig_bl_r, area_harm_bl_r, total_origDiff_r, total_harmDiff_r, ...
             orig_diff_YXrH, harm_diff_YXrH, ...
-            y1, yN, this_runList, ...
+            y1, yN, runList_legend, ...
             spacing, fontSize, textX, textY_1, textY_2, ...
             nx, ny, ...
             Nruns, thisPos, units_map, units_total, do_caps, ...
             bins_lowBnds, this_colormap_name, col_titles, ...
             lines_overlay) ;
-        
+
         if do_save
             filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
                 this_outdir, thisLU, y1, yN) ;
@@ -746,7 +766,7 @@ for l = 1:length(tmp_lu_list)
                 for r = 1:Nruns
                     filename = sprintf('%s/D%s_%d-%d_%s_orig.tif', ...
                         removeslashifneeded(this_outdir_geo), ...
-                        thisLU_short, y1_list, yN_list, this_runList{r}) ;
+                        thisLU_short, y1_list, yN_list, runList_legend{r}) ;
                     geotiffwrite_ssr(filename,orig_diff_YXrH(:,:,r),R,-999)
                     filename = strrep(filename, 'orig', 'harm') ;
                     geotiffwrite_ssr(filename,harm_diff_YXrH(:,:,r),R,-999)
@@ -1016,7 +1036,6 @@ end
 
 units_map = '%' ;
 units_total = 'Mkm^2' ;
-this_runList = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
 
 map_size = size(landArea_YX) ;
 orig_frac_YXrH = nan([map_size Nruns]) ;
@@ -1048,7 +1067,7 @@ col_titles = {sprintf('Original %s, %d', thisLU, thisYear), ...
 make_LUfrac_fig_v5(...
     area_orig_r, area_harm_r, ...
     orig_frac_YXrH, harm_frac_YXrH, ...
-    this_runList, ...
+    runList_legend, ...
     spacing, fontSize, textX, textY_1, textY_2, ...
     nx, ny, ...
     Nruns, thisPos, units_map, units_total, do_caps, ...
