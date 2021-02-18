@@ -94,6 +94,7 @@ for d = 1:length(dirList)
         if y==1
             list2map = find(~isnan(S_lu.maps_YXv(:,:,1))>0) ;
             Ncells = length(list2map) ;
+            lu_in_varNames = S_lu.varNames ;
             lu_in.varNames = S_lu.varNames ;
             lu_in.yearList = yearList ;
             lu_in.maps_YXvy = nan([size(S_lu.maps_YXv) Nyears]) ;
@@ -121,9 +122,13 @@ for d = 1:length(dirList)
     % Get arrays
     disp('Getting arrays...')
     [lu_out, lu_header_cell] = lpjgu_matlab_maps2table(lu_in,list2map) ;
+    clear lu_in
     [cf_out, cf_header_cell] = lpjgu_matlab_maps2table(cf_in,list2map) ;
+    clear cf_in
     [nf_out, nf_header_cell] = lpjgu_matlab_maps2table(nf_in,list2map) ;
+    clear nf_in
     [ir_out, ir_header_cell] = lpjgu_matlab_maps2table(ir_in,list2map) ;
+    clear ir_in
         
     % Check for NaNs
     disp('Checking arrays...')
@@ -166,7 +171,7 @@ for d = 1:length(dirList)
     if mincropfrac>0
         
         % Some cropland
-        iCrop = find(strcmp(lu_in.varNames,'CROPLAND')) ;
+        iCrop = find(strcmp(lu_in_varNames,'CROPLAND')) ;
         lu_tmp = lu_out(:,4:end) ;
         lu_tmp = round(lu_tmp,outPrec) ;
         no_cropland = lu_tmp(:,iCrop)<mincropfrac ;
@@ -177,7 +182,7 @@ for d = 1:length(dirList)
                 error('GET CROPLAND FROM SOMEWHERE')
             end
             this_donor = donation_order{i} ;
-            iThis = find(strcmp(lu_in.varNames,this_donor)) ;
+            iThis = find(strcmp(lu_in_varNames,this_donor)) ;
             involved = lu_tmp(:,iThis)>=mincropfrac & no_cropland ;
             if any(involved)
                 warning('Giving some from %s to CROPLAND (%d cells).', this_donor, length(find(involved)))
@@ -203,8 +208,7 @@ for d = 1:length(dirList)
             thiscrop = cf_tmp(:,c) ;
             iszerothiscrop = thiscrop<mincropfrac ;
             % Find the crop that currently has the greatest area
-            maxcropfrac_Xv = repmat(max(cf_tmp,[],2),[1 Ncrops]) ;
-            ismaxcropfrac_Xv = cf_tmp==maxcropfrac_Xv ;
+            ismaxcropfrac_Xv = cf_tmp==repmat(max(cf_tmp,[],2),[1 Ncrops]) ;
             % Make sure there's only one ismaxcropfrac in each row
             for i = fliplr(2:Ncrops)
                 tmp = ismaxcropfrac_Xv(:,i) ;
@@ -281,25 +285,33 @@ for d = 1:length(dirList)
         
         years_out = repmat([yearList_xtra';yearList],[Ncells 1]) ;
         
-        Nvar_lu = length(lu_in.varNames) ;
+        Nvar_lu = length(lu_in_varNames) ;
         tmp1_yxv = reshape(lu_out(:,4:end),[Nyears Ncells Nvar_lu]) ;
         tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
         tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_lu]) ;
+        clear tmp1_yxv
         lu_out = [lons_out lats_out years_out tmp1_out] ;
+        clear tmp1_out
         
         Nvar_cf = size(cf_out,2) - 3 ;
         tmp1_yxv = reshape(cf_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
         tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
         tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        clear tmp1_yxv
         cf_out = [lons_out lats_out years_out tmp1_out] ;
+        clear tmp1_out
         tmp1_yxv = reshape(nf_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
         tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
         tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        clear tmp1_yxv
         nf_out = [lons_out lats_out years_out tmp1_out] ;
+        clear tmp1_out
         tmp1_yxv = reshape(ir_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
         tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
         tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        clear tmp1_yxv
         ir_out = [lons_out lats_out years_out tmp1_out] ;
+        clear tmp1_out
         
     end
     
@@ -314,7 +326,7 @@ for d = 1:length(dirList)
         file_out_nfert = strrep(file_out_nfert, '.txt', '.noMinCropFrac.txt') ;
         file_out_irrig = strrep(file_out_irrig, '.txt', '.noMinCropFrac.txt') ;
     end
-            
+    
     % Save land cover
     disp('Saving land cover...')
     lpjgu_matlab_saveTable(lu_header_cell, single(lu_out), file_out_LU,...
@@ -329,6 +341,7 @@ for d = 1:length(dirList)
         disp('gzipping...')
         unix(['gzip ' file_out_LU]) ;
     end
+    clear lu_out
    
     % Save crop fractions
     disp('Saving crop fractions...')
@@ -344,7 +357,7 @@ for d = 1:length(dirList)
         disp('gzipping...')
         unix(['gzip ' file_out_crop]) ;
     end
-    
+    clear cf_out
     
     % Save fertilization
     if mincropfrac==0
@@ -364,6 +377,7 @@ for d = 1:length(dirList)
             unix(['gzip ' file_out_nfert]) ;
         end
     end
+    clear nf_out
     
     % Save irrigation
     if mincropfrac==0
@@ -383,6 +397,7 @@ for d = 1:length(dirList)
             unix(['gzip ' file_out_irrig]) ;
         end
     end
+    clear ir_out
     
 end
 
