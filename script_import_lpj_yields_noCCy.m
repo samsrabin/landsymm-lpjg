@@ -15,6 +15,9 @@ elseif calib_ver == 19
         {'CerealsC3','CerealsC4','Rice','Oilcrops',...
         'StarchyRoots','Pulses','Sugar','DateCitGrape'} ;
 elseif calib_ver == 20
+    if ~exist('remapVer', 'var')
+        remapVer = '8b' ;
+    end
     switch remapVer
         case {'8b'}
             listCrops_lpj_comb = ...
@@ -51,7 +54,7 @@ disp('Importing land uses and crop fractions...')
 cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
 landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
 
-%% Import yield
+% Import yield
 disp('Importing simulated yield...')
 if exist('filename_guess_yield', 'var')
     % LPJ-GUESS style
@@ -65,6 +68,24 @@ if exist('filename_guess_yield', 'var')
         yield_lpj.maps_YXvy = yield_lpj.maps_YXvy * 1e4 * 1e-3 ;
     else
         yield_lpj.maps_YXv = yield_lpj.maps_YXv * 1e4 * 1e-3 ;
+    end
+    
+    % Use Oilcrops as proxy for FruitAndVeg and Sugar
+    if oilcrops_proxy_fruitveg_sugar
+        % Make sure we can handle this setup
+        yieldCrops = get_cropsCombined(yield_lpj.varNames) ;
+        if ~isequal({'FruitAndVeg', 'Sugar'}, setdiff(listCrops_lpj_comb, yieldCrops))
+            error('yield_lpj is missing more crops than can be handled by oilcrops_proxy_fruitveg_sugar')
+        end
+        % Do it
+        disp('Using Oilcrops yield for FruitAndVeg and Sugar...')
+        yield_lpj.maps_YXvy = cat(3, ...
+            yield_lpj.maps_YXvy, ...
+            yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcrops'),:), ...
+            yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcrops'),:), ...
+            yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcropsi'),:), ...
+            yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcropsi'),:)) ;
+        yield_lpj.varNames = [yield_lpj.varNames {'FruitAndVeg', 'Sugar', 'FruitAndVegi', 'Sugari'}] ;
     end
 elseif exist('dirname_emuBL_yields', 'var')
     % GGCMI phase 2
@@ -296,6 +317,9 @@ end
 
 % Rearrange cropfrac_lpj so that variables are in the same order as
 % yield_lpj variables
+if ~isequal(sort(listCrops_lpj_comb), get_cropsCombined(yield_lpj.varNames))
+    error('Crop list mismatch') ;
+end
 new_order = nan(length(yield_lpj.varNames),1) ;
 for v = 1:length(new_order)
     this_from_yield = yield_lpj.varNames{v} ;
@@ -511,6 +535,14 @@ disp('Done.')
 
 
 %% FUNCTIONS
+
+function list_out = get_cropsCombined(list_in)
+
+list_out = list_in(cellfun(@isempty, regexp(list_in, 'i$'))) ;
+list_out = setdiff(list_out, {'CC3G_ic', 'CC4G_ic', 'ExtraCrop', 'Miscanthus'}) ;
+        
+end
+
 
 function [wt_sub1_YX, wt_sub2_YX] = get_subcrop_wts(sub1_YX, sub2_YX, supreals)
 
