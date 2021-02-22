@@ -394,6 +394,10 @@ out_nfert.garr_xv = out_nfert.garr_xv * 1e-4 ;
 % Fill NaNs with zero
 out_nfert.garr_xv(isnan(out_nfert.garr_xv)) = 0 ;
 
+% Add zeros for ExtraCrop
+out_nfert.varNames{end+1} = 'ExtraCrop' ;
+out_nfert.garr_xv(:,end+1) = 0 ;
+
 disp('Done.')
 
 
