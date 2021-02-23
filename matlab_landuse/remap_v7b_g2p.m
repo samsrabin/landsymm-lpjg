@@ -22,7 +22,7 @@ thisVer = 'WithFruitVegSugar_b' ;
 force_all_rainfed = false ;
 
 remapVer = '7b' ;
-out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/',remapVer) ;
+out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s_g2p/',remapVer) ;
 
 
 %% Part 0: Setup
