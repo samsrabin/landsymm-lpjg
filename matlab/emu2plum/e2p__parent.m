@@ -22,12 +22,23 @@ when_remove_outliers = 'end' ; % end, before_interp, off
 fake1k = true ;
 overwrite_existing_txt = true ;
 overwrite_existing_figs = true ;
+use_lpjg_baseline = false ;
+use_ph2_baseline = true ;
 
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
+<<<<<<< HEAD
 % ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
 ggcm_list = {'CARAIB', 'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
 ssp_list = {'ssp126', 'ssp585'} ;
+=======
+% ggcm_list = {'LPJmL', 'CARAIB', 'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
+% ggcm_list = {'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
+% ggcm_list = {'EPIC-TAMU', 'GEPIC'} ;
+ggcm_list = {'EPIC-TAMU'} ;
+% ssp_list = {'ssp126', 'ssp585'} ;
+ssp_list = {'ssp126'} ;
+>>>>>>> e898de88e2abd30a975da860093bcd216a6940b1
 thisVer = '20201204' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
@@ -41,19 +52,25 @@ tmp_rcp = 'rcp45' ;
 warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP6 runs.', ...
     tmp_rcp)
 
-%% Setup 
+
+%% Setup
 
 current_dir = pwd ;
 if strcmp(current_dir(1:6), '/Users') || strcmp(current_dir(1:6), '/Volum')
     topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
-    topdir_sh = '/Users/Shared/GGCMI2PLUM_sh/' ;
-    topDir_emu = '/Volumes/Reacher/GGCMI/CMIP_emulated' ;
+    topDir_lpj = sprintf('%s/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
+        '/Volumes/Reacher/GGCMI/g2p/lpj-guess_runs', ...
+        tmp_rcp) ;
+    topDir_agmipout = '/Volumes/Reacher/GGCMI/AgMIP.output' ;
+    topDir_emu = sprintf('%s/CMIP_emulated', topDir_agmipout) ;
     topDir_lpj0 = sprintf( ...
         '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_%s_forED', ...
         tmp_rcp) ;
 elseif strcmp(current_dir(1:3), '/pd')
     topdir_db = '/pd/data/lpj/sam/ggcmi2plum' ;
-    topdir_sh = topdir_db ;
+    topDir_lpj = sprintf('%s/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
+        topdir_db, tmp_rcp) ;
+    topDir_agmipout = sprintf('%s/AgMIP.output', topdir_db) ;
     topDir_emu = '/pd/data/lpj/sam/ggcmi2plum/CMIP_emulated' ;
     topDir_lpj0 = sprintf( ...
         '/pd/data/lpj/sam/ggcmi2plum/lpj-guess_runs/LPJGPLUM_2001-2100_remap6p7_forPotYields_%s_forED', ...
@@ -83,16 +100,17 @@ end
 remove_outliers = ~strcmp(when_remove_outliers, 'off') ...
     & ~isempty(when_remove_outliers) ;
 
-topDir_lpj = sprintf( ...
-    '%s/lpj-guess_runs/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
-    topdir_sh, tmp_rcp) ;
-
+% Check that directories exist
 if ~contains(topDir_lpj, tmp_rcp)
     error('~contains(topDir_lpj, rcp)')
 elseif ~exist(topDir_lpj, 'dir')
     error('topDir_lpj does not exist:\n %s', topDir_lpj)
 elseif ~exist(topDir_lpj0, 'dir')
     error('topDir_lpj0 does not exist:\n %s', topDir_lpj0)
+elseif ~exist(topDir_emu, 'dir')
+    error('topDir_emu does not exist:\n %s', topDir_emu)
+elseif ~exist(topDir_agmipout, 'dir')
+    error('topDir_agmipout does not exist:\n %s', topDir_agmipout)
 end
 
 % getbasename = @(x) regexprep(x,'i?\d\d\d$','') ;
@@ -109,8 +127,8 @@ NN = length(Nlist) ;
 irrList_in = {'rf', 'ir'} ;
 irrList_out = {'', 'i'} ;
 
-gridlist_file = sprintf('%s/lpj-guess_runs/gridlist_62892.runAEclimOK.txt', ...
-    topdir_sh) ;
+gridlist_file = sprintf('%s/../gridlist_62892.runAEclimOK.txt', ...
+    topDir_lpj) ;
 gridlist = lpjgu_matlab_readTable_then2map(gridlist_file, ...
     'force_mat_nosave', true, 'force_mat_save', false) ;
 gridlist_target = {gridlist.lonlats gridlist.list_to_map} ;
@@ -132,6 +150,14 @@ if save_out_figs && isempty(which_out_figs)
     save_out_figs = false ;
 end
 
+% Ensure you have these options set correctly
+if use_lpjg_baseline == use_ph2_baseline
+    error('Choose either use_lpjg_baseline or use_ph2_baseline')
+end
+
+% Exclude cells with <0.1 t/ha yield in Phase 2 baseline simulations,
+% as Jim did
+low_yield_threshold_kgm2 = 0.01 ;
 
 
 %% Set up crop lists
@@ -168,17 +194,25 @@ which_file = 'yield' ;
 
 data_bl_lpj_yield = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj, ...
     which_file, get_unneeded, gridlist_target) ;
-e2p_check_correct_zeros(data_bl_lpj_yield.garr_xv, which_file, getbasenamei(data_bl_lpj_yield.varNames))
+e2p_check_correct_zeros(data_bl_lpj_yield.garr_xv, ...
+    which_file, data_bl_lpj_yield.varNames, ...
+    'Baseline', @getbasenamei)
 
 data_fu_lpj_yield = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj, ...
     which_file, data_bl_lpj_yield.varNames, get_unneeded, gridlist_target) ;
-e2p_check_correct_zeros(data_fu_lpj_yield.garr_xvt, which_file, getbasenamei(data_fu_lpj_yield.varNames))
+e2p_check_correct_zeros(data_fu_lpj_yield.garr_xvt, ...
+    which_file, data_fu_lpj_yield.varNames, ...
+    'Future', @getbasenamei)
 
 [varNames_lpj, cropList_lpj, ...
     varNames_lpj_basei, cropList_lpj_basei, ...
     Nlist_lpj, ~] = ...
     e2p_get_names(data_bl_lpj_yield.varNames, data_fu_lpj_yield.varNames, ...
     getN, get_unneeded) ;
+varNames_out = varNames_lpj ;
+cropList_out = cropList_lpj ;
+varNames_out_basei = varNames_lpj_basei ;
+cropList_out_basei = cropList_lpj_basei ;
 
 if ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
     error('Mismatch between cropIrrNlist_out and varNames_lpj')
@@ -191,11 +225,15 @@ which_file = 'gsirrigation' ;
 
 data_bl_lpj_irrig = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj, ...
     which_file, get_unneeded, gridlist_target) ;
-e2p_check_correct_zeros(data_bl_lpj_irrig.garr_xv, which_file, getbasenamei(data_bl_lpj_irrig.varNames))
+e2p_check_correct_zeros(data_bl_lpj_irrig.garr_xv, ...
+    which_file, data_bl_lpj_irrig.varNames, ...
+    'Baseline', @getbasenamei)
 
 data_fu_lpj_irrig = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj, ...
     which_file, data_bl_lpj_irrig.varNames, get_unneeded, gridlist_target) ;
-e2p_check_correct_zeros(data_fu_lpj_irrig.garr_xvt, which_file, getbasenamei(data_fu_lpj_irrig.varNames))
+e2p_check_correct_zeros(data_fu_lpj_irrig.garr_xvt, ...
+    which_file, data_fu_lpj_irrig.varNames, ...
+    'Future', @getbasenamei)
 
 [varNames_lpj, cropList_lpj2, ...
     varNames_lpj_basei2, cropList_lpj_basei2, ...
@@ -228,11 +266,15 @@ if save_out_figs_Nth0 || fake1k
     
     data_bl_lpj0_yield = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj0, ...
         which_file, get_unneeded, gridlist_target) ;
-    e2p_check_correct_zeros(data_bl_lpj0_yield.garr_xv, which_file, getbasenamei(data_bl_lpj0_yield.varNames))
+    e2p_check_correct_zeros(data_bl_lpj0_yield.garr_xv, ...
+        which_file, data_bl_lpj0_yield.varNames, ...
+        'Baseline', @getbasenamei)
     
     data_fu_lpj0_yield = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj0, ...
         which_file, data_bl_lpj0_yield.varNames, get_unneeded, gridlist_target) ;
-    e2p_check_correct_zeros(data_fu_lpj0_yield.garr_xvt, which_file, getbasenamei(data_fu_lpj0_yield.varNames))
+    e2p_check_correct_zeros(data_fu_lpj0_yield.garr_xvt, ...
+        which_file, data_fu_lpj0_yield.varNames, ...
+        'Future', @getbasenamei)
     
     [varNames_lpj0, cropList_lpj0, ...
         varNames_lpj0_basei, cropList_lpj0_basei, ...
@@ -255,11 +297,15 @@ if save_out_figs_Nth0 || fake1k
     
     data_bl_lpj0_irrig = e2p_import_bl_lpj(baseline_y1, baseline_yN, topDir_lpj0, ...
         which_file, get_unneeded, gridlist_target) ;
-    e2p_check_correct_zeros(data_bl_lpj0_irrig.garr_xv, which_file, getbasenamei(data_bl_lpj0_irrig.varNames))
+    e2p_check_correct_zeros(data_bl_lpj0_irrig.garr_xv, ...
+        which_file, data_bl_lpj0_irrig.varNames, ...
+        'Baseline', @getbasenamei)
     
     data_fu_lpj0_irrig = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj0, ...
         which_file, data_bl_lpj0_irrig.varNames, get_unneeded, gridlist_target) ;
-    e2p_check_correct_zeros(data_fu_lpj0_irrig.garr_xvt, which_file, getbasenamei(data_fu_lpj0_irrig.varNames))
+    e2p_check_correct_zeros(data_fu_lpj0_irrig.garr_xvt, ...
+        which_file, data_fu_lpj0_irrig.varNames, ...
+        'Future', @getbasenamei)
     
     [varNames_lpj0, cropList_lpj02, ...
         varNames_lpj0_basei2, cropList_lpj0_basei2, ...

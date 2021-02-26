@@ -14,6 +14,7 @@ if strcmp(which_file, 'yield')
 elseif strcmp(which_file,'gsirrigation')
     missing_yield_xc = excl_vecs{2} ;
     isexcl_lowBLyield_xc = excl_vecs{3} ;
+    isexcl_all0_emu_c = excl_vecs{4} ;
 else
     error('which_file (%s) not recognized', which_file)
 end
@@ -88,19 +89,36 @@ end
 spacing = [0.025 0.025] ; % v h
 yrange = 65:360 ;
 fontSize = 14 ;
-this_colormap = 'parula' ;
-x_bgy = 0 ;
-y_bgy_top = 0.3 ;
-down_bgy = 0.055 ;
-y_g = y_bgy_top ;
-y_b = y_g - down_bgy ;
-y_y = y_b - down_bgy ;
+if strcmp(which_file, 'yield')
+    blue = [61 45 165]/255 ;
+    green = [38 190 183]/255 ;
+    yellow = [249 248 59]/255 ;
+    gray = 0.5*[1 1 1] ;
+    this_colormap = [yellow ; blue ; green ; gray];
+    x_bgy = 0 ;
+    y_bgy_top = 0.3 ;
+    down_bgy = 0.055 ;
+    y_b = y_bgy_top ;
+    y_g = y_b - down_bgy ;
+    y_y = y_g - down_bgy ;
+    y_gray = y_y - down_bgy ;
+elseif strcmp(which_file, 'gsirrigation')
+    this_colormap = 'parula' ;
+    x_bgy = 0 ;
+    y_bgy_top = 0.3 ;
+    down_bgy = 0.055 ;
+    y_g = y_bgy_top ;
+    y_b = y_g - down_bgy ;
+    y_y = y_b - down_bgy ;
+else
+    error('which_file (%s) not recognized', which_file)
+end
 fontSize_bgy = fontSize - 2 ;
 fontSize_big = fontSize + 4 ;
 
 % Translate crop names
 verbose = false ;
-cropList_lpj_asEmu = e2p_translate_crops( ...
+cropList_lpj_asEmu = e2p_translate_crops_lpj2emu( ...
     cropList_lpj, cropList_emu, verbose) ;
 
 % Set up for filename
@@ -153,16 +171,15 @@ for ci_lpj = 1:length(cropList_lpj_basei)
         continue
     end
     
-    ngreen = 0 ;
-    
     if strcmp(which_file,'yield')
         
         figure('Color', 'w', 'Position', figurePos, ...
             'Visible', figure_visibility) ;
         legend_text = { ...
-            'Blue: Excluded in this step', ...
-            'Green: Excluded in a previous step', ...
-            'Yellow: Still included after this step'} ;
+            'Blue: Excluded in a previous step', ...
+            'Green: Excluded in a previous step AND this step', ...
+            'Yellow: Excluded in this step', ...
+            'Gray: Still included after this step'} ;
         
         % Where is emulator yield missing?
         h1 = subplot_tight(2,2,1,spacing) ;
@@ -170,109 +187,124 @@ for ci_lpj = 1:length(cropList_lpj_basei)
         missing_emu_YX = lpjgu_vector2map( ...
             missing_emu_xc(:,c), size(gridlist.mask_YX), ...
             gridlist.list_to_map) ;
-        isblue_YX = gridlist.mask_YX & missing_emu_YX==1 ;
-        map_YX(gridlist.mask_YX & missing_emu_YX==0) = 2 ;
-        map_YX(isblue_YX) = 0 ;
+        isyellow_YX = gridlist.mask_YX & missing_emu_YX==1 ;
+        map_YX(gridlist.mask_YX & missing_emu_YX==0) = 3 ;
+        map_YX(isyellow_YX) = 0 ;
         pcolor(map_YX(yrange,:))
         shading flat; axis equal tight off
         colormap(gca, this_colormap)
-        caxis([0 2])
+        caxis([0 3])
         ok_sofar_YX = gridlist.mask_YX & missing_emu_YX==0 ;
         bad_sofar_YX = missing_emu_YX==1 ;
         title('1: Missing yield: Emulator')
         set(gca, 'FontSize', fontSize)
-        nblue = length(find(isblue_YX)) ;
+        nyellow = length(find(isyellow_YX)) ;
+        nblue = length(find(map_YX==1)) ;
+        ngreen = length(find(map_YX==2)) ;
         text_b = sprintf('Blue: %d', nblue) ;
+        text_y = sprintf('Yellow: %d', nyellow) ;
         text_g = sprintf('Green: %d', ngreen) ;
-        ngreen = ngreen + nblue ;
-        text_y = sprintf('Yellow: %d', length(find(ok_sofar_YX))) ;
+        text_gray = sprintf('Gray: %d', length(find(ok_sofar_YX))) ;
         text(x_bgy, y_b, text_b, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         text(x_bgy, y_g, text_g, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         text(x_bgy, y_y, text_y, 'Units', 'normalized', 'FontSize', fontSize_bgy)
+        text(x_bgy, y_gray, text_gray, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         
         % Where there is emulator yield, where is AgMERRA yield missing?
         h2 = subplot_tight(2,2,2,spacing) ;
         map_YX = nan(size(gridlist.mask_YX)) ;
-        map_YX(ok_sofar_YX) = 2 ;
+        map_YX(ok_sofar_YX) = 3 ;
         map_YX(bad_sofar_YX) = 1 ;
         missing_agmerra_YX = lpjgu_vector2map( ...
             missing_agmerra_xc(:,c), size(gridlist.mask_YX), ...
             gridlist.list_to_map) ;
-        isblue_YX = ok_sofar_YX & missing_agmerra_YX==1 ;
-        map_YX(isblue_YX) = 0 ;
+        isyellow_YX = ok_sofar_YX & missing_agmerra_YX==1 ;
+        map_YX(isyellow_YX) = 0 ;
+        map_YX(bad_sofar_YX & missing_agmerra_YX==1) = 2 ;
         pcolor(map_YX(yrange,:))
         shading flat; axis equal tight off
         colormap(gca, this_colormap)
-        caxis([0 2])
+        caxis([0 3])
         ok_sofar_YX = ok_sofar_YX & missing_agmerra_YX==0 ;
         bad_sofar_YX = bad_sofar_YX | missing_agmerra_YX==1 ;
         title('2: Missing yield: Phase 2 baseline sim')
         set(gca, 'FontSize', fontSize)
-        nblue = length(find(isblue_YX)) ;
+        nyellow = length(find(isyellow_YX)) ;
+        nblue = length(find(map_YX==1)) ;
+        ngreen = length(find(map_YX==2)) ;
         text_b = sprintf('Blue: %d', nblue) ;
+        text_y = sprintf('Yellow: %d', nyellow) ;
         text_g = sprintf('Green: %d', ngreen) ;
-        ngreen = ngreen + nblue ;
-        text_y = sprintf('Yellow: %d', length(find(ok_sofar_YX))) ;
+        text_gray = sprintf('Gray: %d', length(find(ok_sofar_YX))) ;
         text(x_bgy, y_b, text_b, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         text(x_bgy, y_g, text_g, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         text(x_bgy, y_y, text_y, 'Units', 'normalized', 'FontSize', fontSize_bgy)
+        text(x_bgy, y_gray, text_gray, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         
         % Where there is emulator and AgMERRA yield, where is there
         % exclusion based on too-low yield in emulator?
         h3 = subplot_tight(2,2,3,spacing) ;
         map_YX = nan(size(gridlist.mask_YX)) ;
-        map_YX(ok_sofar_YX) = 2 ;
+        map_YX(ok_sofar_YX) = 3 ;
         map_YX(bad_sofar_YX) = 1 ;
         excl_emu_YX = lpjgu_vector2map( ...
             isexcl_lowBL_emu_xc(:,c), size(gridlist.mask_YX), ...
             gridlist.list_to_map) ;
-        isblue_YX = ok_sofar_YX & excl_emu_YX==1 ;
-        map_YX(isblue_YX) = 0 ;
+        isyellow_YX = ok_sofar_YX & excl_emu_YX==1 ;
+        map_YX(isyellow_YX) = 0 ;
+        map_YX(bad_sofar_YX & excl_emu_YX==1) = 2 ;
         pcolor(map_YX(yrange,:))
         shading flat; axis equal tight off
         colormap(gca, this_colormap)
-        caxis([0 2])
+        caxis([0 3])
         ok_sofar_YX = ok_sofar_YX & excl_emu_YX==0 ;
         bad_sofar_YX = bad_sofar_YX | excl_emu_YX==1 ;
         title('3: Yield too low: Emulator')
         set(gca, 'FontSize', fontSize)
-        nblue = length(find(isblue_YX)) ;
+        nyellow = length(find(isyellow_YX)) ;
+        nblue = length(find(map_YX==1)) ;
+        ngreen = length(find(map_YX==2)) ;
         text_b = sprintf('Blue: %d', nblue) ;
+        text_y = sprintf('Yellow: %d', nyellow) ;
         text_g = sprintf('Green: %d', ngreen) ;
-        ngreen = ngreen + nblue ;
-        text_y = sprintf('Yellow: %d', length(find(ok_sofar_YX))) ;
+        text_gray = sprintf('Gray: %d', length(find(ok_sofar_YX))) ;
         text(x_bgy, y_b, text_b, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         text(x_bgy, y_g, text_g, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         text(x_bgy, y_y, text_y, 'Units', 'normalized', 'FontSize', fontSize_bgy)
+        text(x_bgy, y_gray, text_gray, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         
         % Where there is emulator and AgMERRA yield, and emulator yield is
         % not too low, where is there exclusion based on too-low yield in
         % AgMERRA?
         h4 = subplot_tight(2,2,4,spacing) ;
         map_YX = nan(size(gridlist.mask_YX)) ;
-        map_YX(ok_sofar_YX) = 2 ;
+        map_YX(ok_sofar_YX) = 3 ;
         map_YX(bad_sofar_YX) = 1 ;
         excl_agmerra_YX = lpjgu_vector2map( ...
             isexcl_lowBL_agmerra_xc(:,c), size(gridlist.mask_YX), ...
             gridlist.list_to_map) ;
-        isblue_YX = ok_sofar_YX & excl_agmerra_YX==1 ;
-        map_YX(isblue_YX) = 0 ;
+        isyellow_YX = ok_sofar_YX & excl_agmerra_YX==1 ;
+        map_YX(isyellow_YX) = 0 ;
+        map_YX(bad_sofar_YX & excl_agmerra_YX==1) = 2 ;
         pcolor(map_YX(yrange,:))
         shading flat; axis equal tight off
         colormap(gca, this_colormap)
-        caxis([0 2])
+        caxis([0 3])
         ok_sofar_YX = ok_sofar_YX & excl_agmerra_YX==0 ;
         bad_sofar_YX = bad_sofar_YX | excl_agmerra_YX==1 ; %#ok<NASGU>
         title('4: Yield too low: Phase 2 baseline sim')
         set(gca, 'FontSize', fontSize)
-        nblue = length(find(isblue_YX)) ;
+        nyellow = length(find(isyellow_YX)) ;
+        nblue = length(find(map_YX==1)) ;
+        ngreen = length(find(map_YX==2)) ;
         text_b = sprintf('Blue: %d', nblue) ;
+        text_y = sprintf('Yellow: %d', nyellow) ;
         text_g = sprintf('Green: %d', ngreen) ;
-        ngreen = ngreen + nblue ; %#ok<NASGU>
-        text_y = sprintf('Yellow: %d', length(find(ok_sofar_YX))) ;
+        text_gray = sprintf('Gray: %d', length(find(ok_sofar_YX))) ;
         text(x_bgy, y_b, text_b, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         text(x_bgy, y_g, text_g, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         text(x_bgy, y_y, text_y, 'Units', 'normalized', 'FontSize', fontSize_bgy)
+        text(x_bgy, y_gray, text_gray, 'Units', 'normalized', 'FontSize', fontSize_bgy)
         
         % Add overall title
         hst = sgtitle( ...
@@ -294,59 +326,67 @@ for ci_lpj = 1:length(cropList_lpj_basei)
         text(ia, hpos, topy, legend_text{1}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
         text(ia, hpos, topy-down, legend_text{2}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
         text(ia, hpos, topy-2*down, legend_text{3}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
+        text(ia, hpos, topy-3*down, legend_text{4}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
         
     elseif strcmp(which_file,'gsirrigation')
         
         figure('Color', 'w', 'Position', [470    42   971   481], ...
             'Visible', figure_visibility) ;
-        legend_text = { ...
-            'Blue: Excluded because missing irrigation emulator', ...
-            'Green: Excluded during yield exclusions', ...
-            'Yellow: Included in yield and irrigation'} ;
                 
-        % Where there was yield, where is irrigation missing?
-        missing_yield_YX = lpjgu_vector2map( ...
-            missing_yield_xc(:,c) | isexcl_lowBLyield_xc(:,c), size(gridlist.mask_YX), ...
-            gridlist.list_to_map) ;
-        ok_sofar_YX = gridlist.mask_YX & missing_yield_YX==0 ;
-        bad_sofar_YX = gridlist.mask_YX & missing_yield_YX==1 ;
-        ngreen = length(find(bad_sofar_YX)) ;
-        map_YX = nan(size(gridlist.mask_YX)) ;
-        map_YX(ok_sofar_YX) = 2 ;
-        map_YX(bad_sofar_YX) = 1 ;
-        missing_emu_YX = lpjgu_vector2map( ...
-            missing_emu_xc(:,c), size(gridlist.mask_YX), ...
-            gridlist.list_to_map) ;
-        isblue_YX = ok_sofar_YX & missing_emu_YX==1 ;
-        map_YX(isblue_YX) = 0 ;
-        pcolor(map_YX(yrange,:))
-        shading flat; axis equal tight off
-        colormap(gca, this_colormap)
-        caxis([0 2])
-        ok_sofar_YX = ok_sofar_YX & missing_emu_YX==0 ;
-        nblue = length(find(isblue_YX)) ;
-        text_b = sprintf('Blue: %d', nblue) ;
-        text_g = sprintf('Green: %d', ngreen) ;
-        text_y = sprintf('Yellow: %d', length(find(ok_sofar_YX))) ;
-        text(x_bgy, y_b, text_b, 'Units', 'normalized', 'FontSize', fontSize_bgy)
-        text(x_bgy, y_g, text_g, 'Units', 'normalized', 'FontSize', fontSize_bgy)
-        text(x_bgy, y_y, text_y, 'Units', 'normalized', 'FontSize', fontSize_bgy)
+        do_excl_check = c <= length(isexcl_all0_emu_c) ;
+        if do_excl_check && isexcl_all0_emu_c(c)
+            error('Add some kind of text in this figure saying there is no irrigation')
+        else
         
-        % Add overall title
-        hst = sgtitle( ...
-            sprintf('Exclusions: %s %s %s', ggcm, thisCropi_title, thisFile), ...
-            'FontWeight', 'bold') ;
-        hst.FontSize = fontSize_big ;
-                
-        % Add legend
-        ia = axes('Position', [0 0 1 1], 'Visible', 'off') ;
-        hpos = 0.13 ;
-        topy = 0.91 ;
-        down = 0.03 ;
-        text(ia, hpos, topy, legend_text{1}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
-        text(ia, hpos, topy-down, legend_text{2}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
-        text(ia, hpos, topy-2*down, legend_text{3}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
-                
+            legend_text = { ...
+                'Blue: Excluded because missing irrigation emulator', ...
+                'Green: Excluded during yield exclusions', ...
+                'Yellow: Included in yield and irrigation'} ;
+
+            % Where there was yield, where is irrigation missing?
+            missing_yield_YX = lpjgu_vector2map( ...
+                missing_yield_xc(:,c) | isexcl_lowBLyield_xc(:,c), size(gridlist.mask_YX), ...
+                gridlist.list_to_map) ;
+            ok_sofar_YX = gridlist.mask_YX & missing_yield_YX==0 ;
+            bad_sofar_YX = gridlist.mask_YX & missing_yield_YX==1 ;
+            ngreen = length(find(bad_sofar_YX)) ;
+            map_YX = nan(size(gridlist.mask_YX)) ;
+            map_YX(ok_sofar_YX) = 2 ;
+            map_YX(bad_sofar_YX) = 1 ;
+            missing_emu_YX = lpjgu_vector2map( ...
+                missing_emu_xc(:,c), size(gridlist.mask_YX), ...
+                gridlist.list_to_map) ;
+            isblue_YX = ok_sofar_YX & missing_emu_YX==1 ;
+            map_YX(isblue_YX) = 0 ;
+            pcolor(map_YX(yrange,:))
+            shading flat; axis equal tight off
+            colormap(gca, this_colormap)
+            caxis([0 2])
+            ok_sofar_YX = ok_sofar_YX & missing_emu_YX==0 ;
+            nblue = length(find(isblue_YX)) ;
+            text_b = sprintf('Blue: %d', nblue) ;
+            text_g = sprintf('Green: %d', ngreen) ;
+            text_y = sprintf('Yellow: %d', length(find(ok_sofar_YX))) ;
+            text(x_bgy, y_b, text_b, 'Units', 'normalized', 'FontSize', fontSize_bgy)
+            text(x_bgy, y_g, text_g, 'Units', 'normalized', 'FontSize', fontSize_bgy)
+            text(x_bgy, y_y, text_y, 'Units', 'normalized', 'FontSize', fontSize_bgy)
+
+            % Add overall title
+            hst = sgtitle( ...
+                sprintf('Exclusions: %s %s %s', ggcm, thisCropi_title, thisFile), ...
+                'FontWeight', 'bold') ;
+            hst.FontSize = fontSize_big ;
+
+            % Add legend
+            ia = axes('Position', [0 0 1 1], 'Visible', 'off') ;
+            hpos = 0.13 ;
+            topy = 0.91 ;
+            down = 0.03 ;
+            text(ia, hpos, topy, legend_text{1}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
+            text(ia, hpos, topy-down, legend_text{2}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
+            text(ia, hpos, topy-2*down, legend_text{3}, 'HorizontalAlignment', 'left', 'FontSize', fontSize)
+        end
+        
     else
         error('which_file (%s) not recognized', which_file)
     end

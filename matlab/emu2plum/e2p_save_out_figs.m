@@ -2,7 +2,8 @@ function e2p_save_out_figs(data_fu_lpj, data_fu_lpj0, ...
     data_fu_emu, data_fu_out, ...
     ggcm, getN, outDir_figs, ...
     which_file, cropList_lpj_asEmu, figure_visibility, ...
-    figure_extension, which_out_figs, overwrite_existing_figs, renderer)
+    figure_extension, which_out_figs, overwrite_existing_figs, renderer, ...
+    use_lpjg_baseline, use_ph2_baseline)
 
 if ~exist(outDir_figs, 'dir')
     mkdir(outDir_figs)
@@ -125,7 +126,15 @@ end
 
 % Set up titles for "max over future" figure
 title_left_max = 'LPJ-GUESS sim' ;
-title_right_max = sprintf('LPJ-GUESS sim bl + %s emu %ss', ggcm, '\Delta') ;
+if use_lpjg_baseline
+    title_right_max_orig = sprintf('LPJ-GUESS sim bl + %s emu %ss', ...
+        ggcm, '\Delta') ;
+elseif use_ph2_baseline
+    title_right_max_orig = sprintf('Phase 2 %s sim bl + emu %ss', ...
+        ggcm, '\Delta') ;
+else
+    error('Which baseline am I using?')
+end
 
 % Set up titles for "Nth timestep" figures
 title_left_Nth = 'LPJ-GUESS sim' ;
@@ -138,6 +147,14 @@ fontSize = 14 ;
 thisPos = figurePos ;
 
 for v = 1:length(data_fu_out.varNames)
+    
+    if isfield(data_fu_out, 'actually_emu_char') ...
+    && ~strcmp('sim', data_fu_out.actually_emu_char{v})
+        title_right_max = strrep(title_right_max_orig, ...
+            'sim bl', [data_fu_out.actually_emu_char{v} ' bl']) ;
+    else
+        title_right_max = title_right_max_orig ;
+    end
     
     % What crop?
     thisVar_out = data_fu_out.varNames{v} ;
@@ -181,7 +198,7 @@ for v = 1:length(data_fu_out.varNames)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Maximum yield over future %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if do_max && ~exist(filename_max, 'file')
+    if do_max && (overwrite_existing_figs || ~exist(filename_max, 'file'))
     
         title_center_max = sprintf('Raw %s emu (%s)', ggcm, strrep(thisCropi_emu, '_', '\_')) ;
 
@@ -319,7 +336,7 @@ for v = 1:length(data_fu_out.varNames)
     %%%%%%%%%%%%%%%%%%%%%%
     %%% First timestep %%%
     %%%%%%%%%%%%%%%%%%%%%%
-    if do_first && ~exist(filename_first, 'file')
+    if do_first && (overwrite_existing_figs || ~exist(filename_first, 'file'))
         
         if do_first0
             Ny = 2 ;
@@ -435,7 +452,7 @@ for v = 1:length(data_fu_out.varNames)
     %%%%%%%%%%%%%%%%%%%%%%%
     %%% Fourth timestep %%%
     %%%%%%%%%%%%%%%%%%%%%%%
-    if do_4th && ~exist(filename_4th, 'file')
+    if do_4th && (overwrite_existing_figs || ~exist(filename_4th, 'file'))
         
         if do_4th0
             Ny = 2 ;

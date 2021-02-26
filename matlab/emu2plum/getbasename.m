@@ -13,7 +13,7 @@ for c = 1:length(crop_names_w_nums_in)
 end
 
 % Remove (i)NNN...
-out = regexprep(mid, 'i?\d+$', '') ;
+out = regexprep(mid, 'i?\d*$', '') ;
 
 % Convert back to actual crop names
 for c = 1:length(crop_names_w_nums_in)

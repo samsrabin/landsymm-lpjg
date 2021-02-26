@@ -1,5 +1,21 @@
-function [data_out, varNames, is_ww_max, winter_wheats] = e2p_get_max_wheat(data_in, varNames)
+function [data_out, varNames, is_ww_max, winter_wheats, actually_emu_char] = ...
+    e2p_get_max_wheat(data_in, varNames, varargin)
 % If tied, goes to spring wheat.
+
+actually_emu = [] ;
+if ~isempty(varargin)
+    actually_emu = varargin{1} ;
+    if length(varargin) > 1
+        error('Maximum 1 optional argument: actually_emu')
+    end
+end
+
+actually_emu_char = {} ;
+if ~isempty(actually_emu)
+    actually_emu_char = cell(size(actually_emu)) ;
+    actually_emu_char(~actually_emu) = {'sim'} ;
+    actually_emu_char(actually_emu) = {'*EMU*'} ;
+end
 
 data_out = data_in ;
 
@@ -33,5 +49,16 @@ for w = 1:Nww
     % Assign max to i_thisMW
     data_out(:,i_thisMW,:) = ...
         max(data_in(:,[i_thisWW i_thisSW],:), [], 2) ;
+    
+    % Assign character-based designator for whether it was simulated or
+    % emulated
+    if ~isempty(actually_emu)
+        if actually_emu(i_thisWW) == actually_emu(i_thisSW)
+            actually_emu_char{i_thisMW} = actually_emu_char{i_thisWW} ;
+        else
+            actually_emu_char{i_thisMW} = ...
+                [actually_emu_char{i_thisWW} actually_emu_char{i_thisSW}] ;
+        end
+    end
     
 end

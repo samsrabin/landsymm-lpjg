@@ -11,6 +11,9 @@ Nts = size(data_fu_out.garr_xvt,3) ;
 Ncrops_fake = Ncrops*Nirr ;
 fake1000_xvt = nan(Ncells, Ncrops_fake, Nts) ;
 fake1000_varNames = cell(1, Ncrops_fake) ;
+if isfield(data_fu_out, 'actually_emu_char')
+    actually_emu_char_1000 = cell(1, Ncrops_fake) ;
+end
 
 % Get strings corresponding to "200" and "1000" for LPJ-GUESS and emulator
 Nlist_num_lpj = str2double(Nlist_lpj0) ;
@@ -73,10 +76,18 @@ for c = 1:Ncrops
         fake1000_xvt(:,thisInd,:) = ...
             data_fu_out.garr_xvt(:,ind_out_200,:) .* delta_x1t ;
         fake1000_varNames{thisInd} = thisCrop_1000 ;
+        
+        if isfield(data_fu_out, 'actually_emu_char')
+            actually_emu_char_1000{thisInd} = ...
+                data_fu_out.actually_emu_char{ind_out_200} ;
+        end
     end
 end
 
 data_fu_out.varNames = [data_fu_out.varNames fake1000_varNames] ;
+if isfield(data_fu_out, 'actually_emu_char')
+    data_fu_out.actually_emu_char = [data_fu_out.actually_emu_char actually_emu_char_1000] ;
+end
 data_fu_out.garr_xvt = cat(2, data_fu_out.garr_xvt, fake1000_xvt) ;
 
 end

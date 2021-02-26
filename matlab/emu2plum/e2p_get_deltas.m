@@ -13,17 +13,26 @@ Ntpers = size(data_fu_emu.garr_xvt,3) ;
 emu_bl_xvt = repmat(data_bl_emu.garr_xv, [1 1 Ntpers]) ;
 deltas0_emu_xvt = data_fu_emu.garr_xvt ./ emu_bl_xvt ;
 
-e2p_check_correct_zeros(deltas0_emu_xvt, which_file, getbasenamei(data_fu_emu.varNames))
+e2p_check_correct_zeros(deltas0_emu_xvt, ...
+    which_file, data_fu_emu.varNames, ...
+    'Future', @getbasenamei)
 
 % Set delta=0 where both emulated baseline and future had 0. Note, this
 % only applies for ZERO, not NaN.
 deltas0_emu_xvt(emu_bl_xvt==0 & data_fu_emu.garr_xvt==0) = 0 ;
 
-e2p_check_correct_zeros(deltas0_emu_xvt, which_file, getbasenamei(data_fu_emu.varNames))
+e2p_check_correct_zeros(deltas0_emu_xvt, ...
+    which_file, data_fu_emu.varNames, ...
+    'Future', @getbasenamei)
 
 % Deal with 0 baseline --> positive future (results in delta=Inf)
 % Might want to instead limit to (e.g.) 99.9th percentile of deltas
 isbad = find(data_fu_emu.garr_xvt>0 & emu_bl_xvt==0) ;
+
+% Sanity check
+if ~isequal(size(shiftdim(cropList_emu)), size(shiftdim(used_emuCrops)))
+    error('Size mismatch between cropList_emu and used_emuCrops')
+end
 
 if ~isempty(isbad) && ~interp_infs
     warning('%d elements of data_fu_emu.garr_xvt are positive but were 0 in baseline, resulting in delta=Inf. Will NOT fix.', ...
@@ -45,7 +54,9 @@ elseif ~isempty(isbad) && interp_infs
         data_tmp.garr_xvt(is_inf_xvt) = Inf ;
         deltas0_emu_xvt = data_tmp.garr_xvt ;
         clear data_tmp
-        e2p_check_correct_zeros(deltas0_emu_xvt, which_file, getbasenamei(data_fu_emu.varNames))
+        e2p_check_correct_zeros(deltas0_emu_xvt, ...
+            which_file, data_fu_emu.varNames, ...
+            'Future', @getbasenamei)
                 
         % Save outlier info
         e2p_save_outlier_info(outlier_info, outDir_ggcm, which_file, data_fu_emu.y1s, data_fu_emu.yNs)
@@ -92,12 +103,12 @@ elseif ~isempty(isbad) && interp_infs
             % Skip if no Infs
             if ~any(isinf(tmp_x))
                 if verbose
-                    fprintf('        %d/%d skipped\n', t, Ntpers) ;
+                    fprintf('        %d/%d skipped\n', t, Ntpers) ; %#ok<UNRCH>
                 end
                 continue
             else
                 if verbose
-                    fprintf('        %d/%d (%d bad)...\n', t, Ntpers, length(find(isinf(tmp_x)))) ;
+                    fprintf('        %d/%d (%d bad)...\n', t, Ntpers, length(find(isinf(tmp_x)))) ; %#ok<UNRCH>
                 end
             end
             
@@ -132,7 +143,9 @@ elseif ~isempty(isbad) && interp_infs
             end
             
             deltas_emu_xvt(:,v,t) = tmp_x ;
-            e2p_check_correct_zeros(deltas_emu_xvt(:,:,t), which_file, getbasenamei(data_fu_emu.varNames))
+            e2p_check_correct_zeros(deltas_emu_xvt(:,:,t), ...
+                which_file, data_fu_emu.varNames, ...
+                'Future', @getbasenamei)
             
             if save_interp_figs && t==Ntpers
                 
