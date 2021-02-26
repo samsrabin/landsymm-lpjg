@@ -37,6 +37,7 @@ cropList_as_gsType = cell(Ncrops,1) ;
 sdate_xc = nan(Ncells, Ncrops) ;
 hdate_xc = nan(Ncells, Ncrops) ;
 gslen_xc = nan(Ncells, Ncrops) ;
+fertDate2_xc = nan(Ncells, Ncrops) ;
 source_sdate_xc = ones(Ncells, Ncrops) ;
 source_hdate_xc = ones(Ncells, Ncrops) ;
 source_gslen_xc = ones(Ncells, Ncrops) ;
@@ -44,6 +45,7 @@ for c = 1:Ncrops
     thisCrop_lpjg = cropList_lpjg{c} ;
     
     % Get corresponding growing-season type
+    thisCrop_whe = '' ;
     switch thisCrop_lpjg
         case {'CerealsC3', 'CerealsC3s', ...
                 'StarchyRoots', 'FruitAndVeg', ...
@@ -68,6 +70,7 @@ for c = 1:Ncrops
         sdate_xc(:,c) = sdate_xc(:,I_prev(1)) ;
         hdate_xc(:,c) = hdate_xc(:,I_prev(1)) ;
         gslen_xc(:,c) = gslen_xc(:,I_prev(1)) ;
+        fertDate2_xc(:,c) = fertDate2_xc(:,I_prev(1)) ;
         source_sdate_xc(:,c) = source_sdate_xc(:,I_prev(1)) ;
         source_hdate_xc(:,c) = source_hdate_xc(:,I_prev(1)) ;
         source_gslen_xc(:,c) = source_gslen_xc(:,I_prev(1)) ;
@@ -81,6 +84,18 @@ for c = 1:Ncrops
         inDir_phase1, inDir_phase2, gridlist) ;
     gslen_x = import_phase12(thisCrop_ph1, 'gslen', ...
         inDir_phase1, inDir_phase2, gridlist) ;
+    
+    % Import 2nd fertilization dates (winter wheat only)
+    if strcmp(thisCrop_ph1, 'winter_wheat')
+        thisFile = sprintf('%s/wwh_rf_2nd_fertilizer_days_disseminate_v2.nc4', ...
+            inDir_phase2) ;
+        tmp_YX = transpose(ncread(thisFile, '2nd fert appl')) ;
+        fertDate2_x = tmp_YX(gridlist.list2map) ;
+        clear tmp_YX
+        
+        % Some values are .5 instead of .0. Round up.
+        fertDate2_x = ceil(fertDate2_x) ;
+    end
     
     % Source tracking
     if contains(thisCrop_ph1, 'wheat')
@@ -116,26 +131,51 @@ for c = 1:Ncrops
             inDir_phase3, gridlist) ;
     end
     
-    % Make sure no NaNs remain
-    if any(any(isnan(sdate_x), 3), 1)
-        error('NaN remain in sdate_x')
-    end
-    if any(any(isnan(hdate_x), 3), 1)
-        error('NaN remain in hdate_x')
-    end
-    if any(any(isnan(gslen_x), 3), 1)
-        error('NaN remain in gslen_x')
+    % 2nd fert, all spring-planted crops: 40 days after sowing
+    if ~strcmp(thisCrop_ph1, 'winter_wheat')
+        fertDate2_x = rem(sdate_x + 40, 365) ;
     end
     
-    % Convert sdate and hdate to zero-based, for LPJ-GUESS
+    % Make sure no NaNs remain
+    if any(isnan(sdate_x))
+        error('NaN remain in sdate_x')
+    end
+    if any(isnan(hdate_x))
+        error('NaN remain in hdate_x')
+    end
+    if any(isnan(gslen_x))
+        error('NaN remain in gslen_x')
+    end
+    if any(isnan(fertDate2_x))
+        error('NaN remain in fertDate2_x')
+    end
+    
+    % Convert dates to zero-based, for LPJ-GUESS
     sdate_x = sdate_x - 1 ;
     hdate_x = hdate_x - 1 ;
+    fertDate2_x = fertDate2_x - 1 ;
     
     % Save to main arrays
     sdate_xc(:,c) = sdate_x ;
     hdate_xc(:,c) = hdate_x ;
     gslen_xc(:,c) = gslen_x ;
+    fertDate2_xc(:,c) = fertDate2_x ;
     
+end
+
+% Make sure no NaNs remain (might have been introduced by forgetting to
+% include a new array in "If previously imported, just use that" step)
+if any(any(isnan(sdate_xc)))
+    error('NaN in sdate_xc')
+end
+if any(any(isnan(hdate_xc)))
+    error('NaN in hdate_xc')
+end
+if any(any(isnan(gslen_xc)))
+    error('NaN in gslen_xc')
+end
+if any(any(isnan(fertDate2_xc)))
+    error('NaN in fertDate2_xc')
 end
 
 disp('Done.')
@@ -184,6 +224,17 @@ lpjgu_matlab_saveTable(out_header_cell, S_out, out_file,...
 
 S_out.garr_xv = gslen_xc ;
 out_file = sprintf('%s/cropcals_gslen.%s.txt', thisDir, remapVer) ;
+lpjgu_matlab_saveTable(out_header_cell, S_out, out_file,...
+    'outPrec', outPrec, ...
+    'outWidth', outWidth, ...
+    'delimiter', delimiter, ...
+    'overwrite', overwrite, ...
+    'fancy', fancy, ...
+    'progress_step_pct', 20, ...
+    'gzip', do_gzip) ;
+
+S_out.garr_xv = fertDate2_xc ;
+out_file = sprintf('%s/cropcals_fertDate2.%s.txt', thisDir, remapVer) ;
 lpjgu_matlab_saveTable(out_header_cell, S_out, out_file,...
     'outPrec', outPrec, ...
     'outWidth', outWidth, ...
