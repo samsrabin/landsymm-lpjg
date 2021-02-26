@@ -197,25 +197,8 @@ for g = 1:length(gcm_list)
                         
                         % Where do we exclude based on low AgMERRA yield at max N
                         % (or existing exclusions)?
-<<<<<<< HEAD
-                        if excl_lowBL_agmerra
-                            disp('    Excluding based on low AgMERRA yield...')
-                            % Get AgMERRA yield
-                            yield_agmerraBL_xv = e2p_get_agmerra_yield(...
-                                varNames_emu, topDir_phase2, ggcm, data_bl_emu.list2map, getN, ...
-										  adaptation) ;
-                            if ~any(any(~isnan(yield_agmerraBL_xv)))
-                                error('yield_agmerraBL_xv is all NaN')
-                            end
-                            % Find missing crops
-                            missing_agmerra_xc = e2p_exclude_missing( ...
-                                varNames_emu_basei, cropList_emu_basei, Nlist, ...
-                                yield_agmerraBL_xv) ;
-                            % Exclude
-=======
                         if excl_lowBL_agmerra || use_ph2_baseline
                             disp('    Excluding based on low AgMERRA yield at max N...')
->>>>>>> e898de88e2abd30a975da860093bcd216a6940b1
                             isexcl_lowBL_agmerra_xc = e2p_exclude_lowBLyield_atMaxN( ...
                                 varNames_emu, cropList_emu_basei, Nlist_emu, ...
                                 data_bl_agm.garr_xv, low_yield_threshold_kgm2) ;

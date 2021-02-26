@@ -27,19 +27,9 @@ use_ph2_baseline = true ;
 
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
-<<<<<<< HEAD
-% ggcm_list = {'LPJmL', 'EPIC-TAMU', 'pDSSAT'} ;
-ggcm_list = {'CARAIB', 'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
+ggcm_list = {'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
 ssp_list = {'ssp126', 'ssp585'} ;
-=======
-% ggcm_list = {'LPJmL', 'CARAIB', 'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
-% ggcm_list = {'GEPIC', 'PEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
-% ggcm_list = {'EPIC-TAMU', 'GEPIC'} ;
-ggcm_list = {'EPIC-TAMU'} ;
-% ssp_list = {'ssp126', 'ssp585'} ;
-ssp_list = {'ssp126'} ;
->>>>>>> e898de88e2abd30a975da860093bcd216a6940b1
-thisVer = '20201204' ;
+thisVer = '20210226' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
 
