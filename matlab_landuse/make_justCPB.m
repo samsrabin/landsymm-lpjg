@@ -2,7 +2,7 @@
 %%% Convert LU file to just CPB %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_in = '/Volumes/Reacher/G2P/inputs/LU/remaps_v7b/LU.remapv7b.txt' ;
+file_in = '/Volumes/Reacher/G2P/inputs/LU/remaps_v11_g2p/LU.remapv11_g2p.txt' ;
 
 
 %% Import
