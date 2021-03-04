@@ -18,6 +18,14 @@ force_all_rainfed = false ;
 remapVer = '11_g2p' ;
 out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/', remapVer) ;
 
+% Output LU files will contain any cell appearing in all gridlists; output
+% gridlist files will just be these with any removed that got removed
+% during the process.
+gridlist_files = { ...
+    '/Volumes/Reacher/G2P/inputs/gridlist/gridlist_62892.runAEclimOK.txt' ;
+    '/Volumes/Reacher/GGCMI/AgMIP.input/phase3/ISIMIP3/landseamask-lpjg/gridlist_ggcmi_v1.1.gapfilled.lpjg.txt' ;
+    } ;
+
 
 %% Setup
 
@@ -58,11 +66,21 @@ if min(yearList_out) < min(yearList_luh2_mgmts) || max(yearList_out) > max(yearL
     error('yearList_out must be entirely contained within yearList_luh2_mgmts!')
 end
 
-% Get output gridlist
-file_gridlist = '/Volumes/Reacher/G2P/inputs/gridlist/gridlist_62892.runAEclimOK.txt' ;
-fprintf('initial gridlist: %s\n', file_gridlist) ;
-gridlist = lpjgu_matlab_read2geoArray(file_gridlist, ...
-    'verboseIfNoMat',true) ;
+% Get output gridlist(s)
+for f = 1:length(gridlist_files)
+    file_gridlist = gridlist_files{f} ;
+    if f==1
+        gridlist = lpjgu_matlab_read2geoArray(file_gridlist) ;
+        gridlists = gridlist ;
+    else
+        gridlists(f) = lpjgu_matlab_read2geoArray(file_gridlist) ;
+        
+        % Expand existing gridlist
+        gridlist.list2map = union(gridlist.list2map, gridlists(f).list2map, 'stable') ;
+        gridlist.lonlats = union(gridlist.lonlats, gridlists(f).lonlats, 'rows', 'stable') ;
+    end
+end
+gridlist.mask_YX(gridlist.list2map) = true ;
 Ncells = length(gridlist.list2map) ;
 
 % Get info for reading input files
@@ -125,7 +143,7 @@ for v = 1:Nlu_in
     thisLU_in = list_LU_in{v} ;
     thisLU_out = map_LU_in2out{v} ;
     fprintf('    %s (%d of %d) to %s...\n',thisLU_in,v,Nlu_in,thisLU_out)
-    i = strcmp(list_LU_out,thisLU_out) ;
+    ii = strcmp(list_LU_out,thisLU_out) ;
     lu_in_XYy = ncread(file_luh2_states,thisLU_in,starts_luh2_states,counts_luh2_states) ;
     lu_in_XYy(isnan(lu_in_XYy)) = 0 ;
     lu_out_YXy = flipud(permute( ...
@@ -135,6 +153,7 @@ for v = 1:Nlu_in
         error('Some element(s) of lu_out_YXy > 1!')
     end
     clear lu_in_XYy
+    
     % Convert to _xy
     lu_out_xy = lpjgu_YXz_to_xz(lu_out_YXy, [Ncells, size(lu_out_YXy, 3)], gridlist.list2map) ;
     clear lu_out_YXy
@@ -142,7 +161,7 @@ for v = 1:Nlu_in
     if v==1
         out_lu.garr_xvy = zeros([Ncells length(out_lu.varNames) size(lu_out_xy, 2)]) ;
     end
-    out_lu.garr_xvy(:,i,:) = out_lu.garr_xvy(:,i,:) + permute(lu_out_xy, [1 3 2]) ;
+    out_lu.garr_xvy(:,ii,:) = out_lu.garr_xvy(:,ii,:) + permute(lu_out_xy, [1 3 2]) ;
     if any(any(any(any(out_lu.garr_xvy-1 > 1e-6))))
         error('Some element(s) of out_lu.garr_xvy > 1!')
     end
@@ -162,7 +181,9 @@ out_lu.garr_xvy(:,v,:) = out_lu.garr_xvy(:,v,:) ...
     + repmat(icwtr_hd_x,[1 1 Nyears_out]) ;
 
 % Mask cells with no vegetated land
-bad_x = out_lu.garr_xvy(:,4,1)==1 ;
+bad_x = out_lu.garr_xvy(:,4,1)==1 ...
+    | sum(out_lu.garr_xvy(:,:,1),2)==0 ...
+    | any(isnan(out_lu.garr_xvy(:,:,1)),2) ;
 if any(bad_x)
     fprintf('Removing %d cells with no vegetated land...\n', length(find(bad_x))) ;
     out_lu.garr_xvy(bad_x,:,:) = [] ;
@@ -187,6 +208,11 @@ while any(any(abs(lu_out_x1y-1)>1e-6))
 end
 clear lu_out_x1y
 
+% Sanity check
+if any(any(any(isnan(out_lu.garr_xvy))))
+    error('NaN in out_lu.garr_xvy')
+end
+
 disp('Done.')
 
 
@@ -199,7 +225,7 @@ file_cropmirca = '/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIR
 fprintf('file_cropmirca: %s\n', file_cropmirca) ;
 croparea_in = lpjgu_matlab_readTable_then2map(file_cropmirca,...
     'verboseIfNoMat',true) ;
-tmp = lpjgu_YXz_to_xz(croparea_in.maps_YXv, length(gridlist.list2map), gridlist.list2map) ;
+tmp = lpjgu_YXz_to_xz(croparea_in.maps_YXv, Ncells, gridlist.list2map) ;
 croparea_in = rmfield(croparea_in, 'maps_YXv') ;
 croparea_in.garr_xv = tmp ;
 clear tmp
@@ -246,7 +272,7 @@ end
 getOi = @(x) find(strcmp(list_crops_out,x)) ;
 getOci = @(x) find(strcmp(list_cropsCombined_out,x)) ;
 
-%% Check that every crop in croparea_in is either explicitly included or ignored
+% Check that every crop in croparea_in is either explicitly included or ignored
 Nsplit_cropsCombined_in = ones(NcropsCombined_frac_in, 1) ;
 for c = 1:NcropsCombined_frac_in
     thisCrop = list_cropsCombined_frac_in{c} ;
@@ -568,26 +594,24 @@ do_gzip = false ;
 % % out_file_cropfrac_ignored = strrep(out_file_cropfrac_ignored,'.txt','.mat') ;
 % % save(out_file_cropfrac_ignored,'ignored_LUCROParea_YX_y','-v7.3') ;
 
-disp('Saving gridlist...')
-lons4map = -179.75:0.5:179.75 ;
-lats4map = -89.75:0.5:89.75 ;
-lons_map = repmat(lons4map,[length(lats4map) 1]) ;
-lats_map = repmat(lats4map',[1 length(lons4map)]) ;
-lons_4gl = lons_map(gridlist.mask_YX) ;
-lats_4gl = lats_map(gridlist.mask_YX) ;
-Ncells_4gl = length(lons_4gl) ;
-% Get random order for output
-rng(20210106) ;
-rdmsam = randsample(Ncells_4gl,Ncells_4gl) ;
-% Save gridlist
+disp('Saving gridlists...')
 outFile_gridlist = sprintf('%sgridlist.remapv%s.txt', out_dir, remapVer) ;
-out_formatSpec_gridlist = '%4.2f %4.2f\n' ;
-fid1_gridlist = fopen(strrep(outFile_gridlist,'\ ',' '),'w') ;
-fprintf(fid1_gridlist,out_formatSpec_gridlist,[lons_4gl(rdmsam) lats_4gl(rdmsam)]') ;
-fclose(fid1_gridlist) ;
-fid1_gridlist = fopen(strrep(outFile_gridlist,'\ ',' '),'a+') ;
-fprintf(fid1_gridlist,'%s','') ;
-fclose(fid1_gridlist) ;
+save_gridlist(gridlist, outFile_gridlist)
+for f = 1:length(gridlist_files)
+    % Restrict gridlist
+    thisGridlist = gridlists(f) ;
+    [toRemove, I_toRemove] = setdiff(thisGridlist.list2map, gridlist.list2map) ;
+    thisGridlist.list2map(I_toRemove) = [] ;
+    thisGridlist.lonlats(I_toRemove,:) = [] ;
+    thisGridlist.mask_YX(toRemove) = false ;
+    % Get filename
+    thisFile = dir(gridlist_files{f}) ;
+    thisFile = thisFile.name ;
+    thisFile = strrep(thisFile, '.txt', sprintf('.remapv%s.txt', remapVer)) ;
+    outFile_gridlist = sprintf('%s%s', out_dir, thisFile) ;
+    % Save
+    save_gridlist(thisGridlist, outFile_gridlist)
+end
 
 disp('Saving LU...')
 % check_existing_lu(thisVer, out_file_lu, allVer_names, allVer_ignore_types) ;
@@ -626,8 +650,34 @@ clear out_nfert_array
 diary off
 
 
- %% FUNCTIONS
- 
+%% FUNCTIONS
+
+function save_gridlist(thisGridlist, outFile_gridlist)
+
+% Set up
+lons4map = -179.75:0.5:179.75 ;
+lats4map = -89.75:0.5:89.75 ;
+lons_map = repmat(lons4map,[length(lats4map) 1]) ;
+lats_map = repmat(lats4map',[1 length(lons4map)]) ;
+lons_4gl = lons_map(thisGridlist.mask_YX) ;
+lats_4gl = lats_map(thisGridlist.mask_YX) ;
+Ncells_4gl = length(lons_4gl) ;
+% Get random order for output
+rng(20210106) ;
+rdmsam = randsample(Ncells_4gl,Ncells_4gl) ;
+% Save gridlist
+
+out_formatSpec_gridlist = '%4.2f %4.2f\n' ;
+fid1_gridlist = fopen(strrep(outFile_gridlist,'\ ',' '),'w') ;
+fprintf(fid1_gridlist,out_formatSpec_gridlist,[lons_4gl(rdmsam) lats_4gl(rdmsam)]') ;
+fclose(fid1_gridlist) ;
+fid1_gridlist = fopen(strrep(outFile_gridlist,'\ ',' '),'a+') ;
+fprintf(fid1_gridlist,'%s','') ;
+fclose(fid1_gridlist) ;
+
+end
+
+
 function out_array = coarsen_res(in_array,in_res,out_res)
 
 Ndims_in = length(find(size(in_array)>1)) ;
