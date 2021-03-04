@@ -168,7 +168,7 @@ out_lu.garr_xvy(:,v,:) = out_lu.garr_xvy(:,v,:) ...
 bad_x = out_lu.garr_xvy(:,4,1)==1 ;
 if any(bad_x)
     fprintf('Removing %d cells with no vegetated land...\n', length(find(bad_x))) ;
-    out_lu.garr_xvy(repmat(bad_x,[1 Nlu_out Nyears_out])) = [] ;
+    out_lu.garr_xvy(bad_x,:,:) = [] ;
     out_lu.list2map(bad_x) = [] ;
     out_lu.lonlats(bad_x,:) = [] ;
     gridlist.mask_YX(gridlist.list2map(bad_x)) = false ;
