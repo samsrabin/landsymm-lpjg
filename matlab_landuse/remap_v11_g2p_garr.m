@@ -24,6 +24,7 @@ out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/', remapVer) ;
 gridlist_files = { ...
     '/Volumes/Reacher/G2P/inputs/gridlist/gridlist_62892.runAEclimOK.txt' ;
     '/Volumes/Reacher/GGCMI/AgMIP.input/phase3/ISIMIP3/landseamask-lpjg/gridlist_ggcmi_v1.1.gapfilled.lpjg.txt' ;
+    '/Volumes/Reacher/GGCMI/AgMIP.input/phase1/processed_daily_rechunked2/gridlist_agmerra.txt' ;
     } ;
 
 
@@ -608,9 +609,12 @@ for f = 1:length(gridlist_files)
     thisFile = dir(gridlist_files{f}) ;
     thisFile = thisFile.name ;
     thisFile = strrep(thisFile, '.txt', sprintf('.remapv%s.txt', remapVer)) ;
-    outFile_gridlist = sprintf('%s%s', out_dir, thisFile) ;
+    outFile_thisGridlist = sprintf('%s%s', out_dir, thisFile) ;
+    if strcmp(outFile_gridlist, outFile_thisGridlist)
+        error('Refusing to overwrite outFile_gridlist with outFile_thisGridlist. You probably have an input gridlist named gridlist.txt, which is a problem.')
+    end
     % Save
-    save_gridlist(thisGridlist, outFile_gridlist)
+    save_gridlist(thisGridlist, outFile_thisGridlist)
 end
 
 disp('Saving LU...')
