@@ -20,11 +20,20 @@ out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/', remapVer) ;
 
 % Output LU files will contain any cell appearing in all gridlists; output
 % gridlist files will just be these with any removed that got removed
-% during the process.
+% during the process. Note that files do not need to be actual gridlist
+% files; this script will intelligently convert them into gridlist structs.
 gridlist_files = { ...
     '/Volumes/Reacher/G2P/inputs/gridlist/gridlist_62892.runAEclimOK.txt' ;
     '/Volumes/Reacher/GGCMI/AgMIP.input/phase3/ISIMIP3/landseamask-lpjg/gridlist_ggcmi_v1.1.gapfilled.lpjg.txt' ;
     '/Volumes/Reacher/GGCMI/AgMIP.input/phase1/processed_daily_rechunked2/gridlist_agmerra.txt' ;
+    } ;
+
+% Any gridlist listed here will serve as a further restriction on auxiliary
+% gridlists that will be saved in separate directories. Note that files do 
+% not need to be actual gridlist files; this script will intelligently
+% convert them into gridlist structs.
+restrictor_gridlist_files = { ...
+    '/Users/Shared/lpj-guess/input/soil/WISE/soilmap_center_interpolated.dat' ;
     } ;
 
 
@@ -71,10 +80,10 @@ end
 for f = 1:length(gridlist_files)
     file_gridlist = gridlist_files{f} ;
     if f==1
-        gridlist = lpjgu_matlab_read2geoArray(file_gridlist) ;
+        gridlist = read_gridlist(file_gridlist) ;
         gridlists = gridlist ;
     else
-        gridlists(f) = lpjgu_matlab_read2geoArray(file_gridlist) ;
+        gridlists(f) = read_gridlist(file_gridlist) ;
         
         % Expand existing gridlist
         gridlist.list2map = union(gridlist.list2map, gridlists(f).list2map, 'stable') ;
@@ -601,10 +610,7 @@ save_gridlist(gridlist, outFile_gridlist)
 for f = 1:length(gridlist_files)
     % Restrict gridlist
     thisGridlist = gridlists(f) ;
-    [toRemove, I_toRemove] = setdiff(thisGridlist.list2map, gridlist.list2map) ;
-    thisGridlist.list2map(I_toRemove) = [] ;
-    thisGridlist.lonlats(I_toRemove,:) = [] ;
-    thisGridlist.mask_YX(toRemove) = false ;
+    thisGridlist = restrict_gridlist(thisGridlist, gridlist) ;
     % Get filename
     thisFile = dir(gridlist_files{f}) ;
     thisFile = thisFile.name ;
@@ -615,8 +621,37 @@ for f = 1:length(gridlist_files)
     end
     % Save
     save_gridlist(thisGridlist, outFile_thisGridlist)
+    
+    % Further restrict? If so, save to ancillary files.
+    if ~isempty(restrictor_gridlist_files)
+        for r = 1:length(restrictor_gridlist_files)
+            restrictorFile = restrictor_gridlist_files{r} ;
+            finfo = dir(restrictorFile) ;
+            restrictor = read_gridlist(restrictorFile) ;
+            thisFile_out = finfo.name ;
+            if strcmp(thisFile_out, 'gridlist.txt')
+                error('This will be a problem')
+            end
+            thisFile_out = strrep(thisFile_out, 'gridlist_', '') ;
+            thisFile_out = strrep(thisFile_out, '.txt', '') ;
+            thisFile_out = strrep(thisFile_out, '.dat', '') ;
+            thisDir_out = thisFile_out ;
+            thisDir_out = sprintf('%s%s', out_dir, thisDir_out) ;
+            if ~exist(thisDir_out, 'dir')
+                mkdir(thisDir_out)
+            end
+            outFile_thisRestrGridlist = sprintf('%s/%s', thisDir_out, thisFile) ;
+            outFile_thisRestrGridlist = strrep(outFile_thisRestrGridlist, ...
+                '.txt', sprintf('.%s.txt', thisFile_out)) ;
+            thisGridlist_restr = restrict_gridlist(thisGridlist, restrictor) ;
+            save_gridlist(thisGridlist_restr, outFile_thisRestrGridlist)
+        end
+    end
+    
 end
 
+
+stop
 disp('Saving LU...')
 % check_existing_lu(thisVer, out_file_lu, allVer_names, allVer_ignore_types) ;
 lpjgu_matlab_saveTable(out_lu_header_cell, out_lu, out_file_lu,...
@@ -655,6 +690,31 @@ diary off
 
 
 %% FUNCTIONS
+
+function gridlist = restrict_gridlist(gridlist, restrictor)
+
+[toRemove, I_toRemove] = setdiff(gridlist.list2map, restrictor.list2map) ;
+gridlist.list2map(I_toRemove) = [] ;
+gridlist.lonlats(I_toRemove,:) = [] ;
+gridlist.mask_YX(toRemove) = false ;
+
+end
+
+
+function gridlist = read_gridlist(file_gridlist)
+
+gridlist = lpjgu_matlab_read2geoArray(file_gridlist) ;
+if ~isfield(gridlist, 'mask_YX')
+    tmp2.lonlats = gridlist.lonlats;
+    tmp2.list2map = gridlist.list2map;
+    clear gridlist
+    tmp2.mask_YX = false(360,720) ;
+    tmp2.mask_YX(tmp2.list2map) = true;
+    gridlist = tmp2 ;
+end
+
+end
+
 
 function save_gridlist(thisGridlist, outFile_gridlist)
 
