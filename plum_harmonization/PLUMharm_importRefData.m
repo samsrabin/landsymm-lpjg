@@ -7,6 +7,7 @@ end
 % Get files based on baseline version
 PLUM_file_res_terr = [inDir_protectedAreas 'maxcropfrac2.txt'] ;
 PLUM_file_res_prot = [inDir_protectedAreas 'protected_areas_with_points.txt'] ;
+fruitveg_sugar_2oil_ok = false ;
 if baseline_ver == 1
     if onMac
         luh2_file = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
@@ -43,18 +44,29 @@ elseif baseline_ver == 3
     inpaint_method = 4 ;
 elseif baseline_ver == 4
     if onMac
-        inDir_remap = '/Users/Shared/PLUM/input/remaps_v8b2oil/' ;
+        inDir_remap = '/Users/Shared/PLUM/input/remaps_v8b' ;
         landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
     else
-        inDir_remap = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v8b2oil/' ;
+        inDir_remap = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v8b' ;
         landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
     end
-    luh2_file = [inDir_remap 'LU.remapv8b2oil.txt'] ;
-    cropf_file = [inDir_remap 'cropfracs.remapv8b2oil.txt'] ;
-    nfert_file = [inDir_remap 'nfert.remapv8b2oil.txt'] ;
+    if fruitveg_sugar_2oil
+        inDir_remap = [inDir_remap '2oil'] ;
+        luh2_file = sprintf('%s/LU.remapv8b2oil.txt', inDir_remap) ;
+        cropf_file = sprintf('%s/cropfracs.remapv8b2oil.txt', inDir_remap) ;
+        nfert_file = sprintf('%s/nfert.remapv8b2oil.txt', inDir_remap) ;
+        fruitveg_sugar_2oil_ok = true ;
+    else
+        luh2_file = sprintf('%s/LU.remapv8b.txt', inDir_remap) ;
+        cropf_file = sprintf('%s/cropfracs.remapv8b.txt', inDir_remap) ;
+        nfert_file = sprintf('%s/nfert.remapv8b.txt', inDir_remap) ;
+    end
     inpaint_method = 4 ;
 else
     error('baseline_ver (%d) not recognized!',baseline_ver) ;
+end
+if fruitveg_sugar_2oil && ~fruitveg_sugar_2oil_ok
+    error('You specified fruitveg_sugar_2oil TRUE but have not specified which input files should be used')
 end
 
 % Make lower-left lat/lon map (for compat. with PLUM style)
@@ -529,6 +541,9 @@ else
     if any(strcmp(LPJGcrops,'FruitVeg'))
         PLUMtoLPJG{strcmp(LPJGcrops,'FruitVeg')} = 'fruitveg' ;
     end
+    if any(strcmp(LPJGcrops,'FruitAndVeg'))
+        PLUMtoLPJG{strcmp(LPJGcrops,'FruitAndVeg')} = 'fruitveg' ;
+    end
     if any(strcmp(LPJGcrops,'Sugar'))
         PLUMtoLPJG{strcmp(LPJGcrops,'Sugar')} = 'sugar' ;
     end
@@ -536,7 +551,7 @@ else
     PLUMtoLPJG{strcmp(LPJGcrops,'ExtraCrop')} = 'setaside' ;
     
     % Check that every PLUM crop is mapped
-    checkPLUMmap(PLUMtoLPJG,PLUMcrops,fake_fruitveg_sugar) ;
+    checkPLUMmap(PLUMtoLPJG,PLUMcrops,fruitveg_sugar_2oil) ;
 end
 
 % Check that there are no non-vegetated gridcells where landArea>0

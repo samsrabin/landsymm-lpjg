@@ -19,20 +19,33 @@
 % base_year = 2010 ;
 % year1 = 2011 ;
 % yearN = 2100 ;
-% fake_fruitveg_sugar = false ;
+% fruitveg_sugar_2oil = false ;
 % % baseline_ver = 1 ;
 % % baseline_ver = 2 ;   % Based on remap_v6
 % baseline_ver = 3 ;   % Based on remap_v6p7
 
+% PLUM_in_toptop = {...
+%                   'halfearth/HEoct/baseline/s1';
+%                   'halfearth/HEoct/halfearth/s1';
+%                   } ;
+% base_year = 2010 ;
+% year1 = 2011 ;
+% yearN = 2060 ;
+% fruitveg_sugar_2oil = false ;
+% baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
+
 PLUM_in_toptop = {...
-                  'halfearth/HEoct/baseline/s1';
-                  'halfearth/HEoct/halfearth/s1';
-                  } ;
+%     'ssp13/SSP1/s1' ;
+    'ssp13/SSP2/s1' ;
+    'ssp13/SSP3/s1' ;
+    'ssp13/SSP4/s1' ;
+    'ssp13/SSP5/s1' ;
+    } ;
 base_year = 2010 ;
 year1 = 2011 ;
-yearN = 2060 ;
-fake_fruitveg_sugar = true ;
-baseline_ver = 4 ;   % Based on remap_v8b2oil
+yearN = 2100 ;
+fruitveg_sugar_2oil = false ;
+baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
 
 % Replace PLUM_in_toptop with input, if provided
 % if ~isempty(varargin)

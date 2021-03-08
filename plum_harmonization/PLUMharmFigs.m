@@ -10,19 +10,33 @@
 %            'SSP5';
 %             }, ['.' PLUM_version]) ;
 % yearList_harm = 2011:2100 ;
-% fake_fruitveg_sugar = false ;
+% fruitveg_sugar_2oil = false ;
 % runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
 % % baseline_ver = 1 ;
 % % baseline_ver = 2 ;   % Based on remap_v6
 % baseline_ver = 3 ;   % Based on remap_v6p7
 
+% runList = {...
+%     'halfearth/HEoct/baseline/s1';
+%     'halfearth/HEoct/halfearth/s1';
+%     } ;
+% yearList_harm = 2011:2060 ;
+% fruitveg_sugar_2oil = true ;
+% runList_legend = {'baseline', 'halfearth'} ;
+% legend_ts = [{'LUH2'} runList_legend] ;
+% baseline_ver = 4 ;   % Based on remap_v8b2oil
+
+PLUM_version = 'v13.s1' ;
 runList = {...
-    'halfearth/HEoct/baseline/s1';
-    'halfearth/HEoct/halfearth/s1';
+%     'ssp13/SSP1/s1' ;
+    'ssp13/SSP2/s1' ;
+    'ssp13/SSP3/s1' ;
+    'ssp13/SSP4/s1' ;
+    'ssp13/SSP5/s1' ;
     } ;
-yearList_harm = 2011:2060 ;
-fake_fruitveg_sugar = true ;
-runList_legend = {'baseline', 'halfearth'} ;
+yearList_harm = 2011:2100 ;
+fruitveg_sugar_2oil = false ;
+runList_legend = strrep(strrep(runList, 'ssp13/',''),'/s1','')' ;
 legend_ts = [{'LUH2'} runList_legend] ;
 baseline_ver = 4 ;   % Based on remap_v8b2oil
 
@@ -72,9 +86,7 @@ else
     PLUMharm_top = '/pfs/data1/home/kit/imk-ifu/lr8247/plum_harmonization/' ;
     inDir_protectedAreas = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/protected_areas/' ;
 end
-if combineCrops
-    out_dir = strrep(out_dir, PLUM_version, [PLUM_version '.combineCrops']) ;
-end
+out_dir = get_harm_dir(out_dir, fruitveg_sugar_2oil, combineCrops) ;
 
 if ~exist(out_dir, 'dir')
     mkdir(out_dir)
@@ -188,7 +200,7 @@ for r = 1:Nruns
             [topDir thisRun], base_year, yearList_orig, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, [], norm2extra, inpaint_method, '', true, ...
-            fake_fruitveg_sugar) ;
+            fruitveg_sugar_2oil) ;
         S_out.maps_YXvy = cat(3, ...
             sum(S_out.maps_YXvy(:,:,~contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:), 3), ...
             S_out.maps_YXvy(:,:,contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:)) ;
@@ -198,7 +210,7 @@ for r = 1:Nruns
             [topDir thisRun], base_year, yearList_orig, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, [], norm2extra, inpaint_method, '', true, ...
-            fake_fruitveg_sugar) ;
+            fruitveg_sugar_2oil) ;
     end
     [~,~,year_indices] = intersect(S_out.yearList,yearList_orig,'stable') ;
     if length(year_indices)~=length(yearList_orig)
@@ -231,10 +243,9 @@ for r = 1:Nruns
     % Harmonized
     fprintf('Importing %s.harm...\n', thisRun) ;
     tic
-    thisDir = [topDir thisRun '.harm.forLPJG/'] ;
-    if combineCrops
-        thisDir = strrep(thisDir, 'harm', 'harm.combineCrops') ;
-    end
+    thisDir = [topDir thisRun '.harm'] ;
+    thisDir = get_harm_dir(thisDir, fruitveg_sugar_2oil, combineCrops) ;
+    thisDir = [thisDir '.forLPJG/'] ;
     if exist(thisDir,'dir')
         if combineCrops
             error('Need to rework this code to work with combineCrops')
@@ -311,21 +322,24 @@ for r = 1:Nruns
             S.maps_YXvy(incl_YXvy), [Ncells size(S.maps_YXvy, 3:4)]) ;
         clear S
     else
+        tmpDir = [topDir thisRun '.harm'] ;
+        tmpDir = get_harm_dir(tmpDir, fruitveg_sugar_2oil, combineCrops) ;
         if combineCrops
             [S_out, ~, ~] = PLUMharm_pp_readPLUM(...
-                [topDir thisRun '.harm.combineCrops'],base_year,yearList_harm, ...
+                tmpDir,base_year,yearList_harm, ...
                 thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-                is2deg, [], 0, [], thisVer, false, fake_fruitveg_sugar) ;
+                is2deg, [], 0, [], thisVer, false, fruitveg_sugar_2oil) ;
             S_out.maps_YXvy = cat(3, ...
                 sum(S_out.maps_YXvy(:,:,~contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:), 3), ...
                 S_out.maps_YXvy(:,:,contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:)) ;
             S_out.varNames = [LPJGcrops, S_out.varNames(contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}))] ;
         else
             [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
-                [topDir thisRun '.harm'],base_year,yearList_harm, ...
+                tmpDir,base_year,yearList_harm, ...
                 thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-                is2deg, [], 0, [], thisVer, false, fake_fruitveg_sugar) ;
+                is2deg, [], 0, [], thisVer, false, fruitveg_sugar_2oil) ;
         end
+        clear tmpDir
         
         if length(year_indices) ~= size(S_out.maps_YXvy,4) && ~add_baseline_to_harm
             S_out.maps_YXvy = S_out.maps_YXvy(:,:,:,year_indices) ;

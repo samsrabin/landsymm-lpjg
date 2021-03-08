@@ -6,7 +6,7 @@ function [S, S_nfert, S_irrig, ...
         file_in_lcf, landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
         latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
         PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-        fake_fruitveg_sugar)
+        fruitveg_sugar_2oil)
 
 PUTURBANHERE = 'BARREN' ;
 cf_kgNha_kgNm2 = 1e-4 ;
@@ -104,7 +104,7 @@ if combineCrops
 else
     
     % Move fruitveg and/or sugar into their proxy crops, if needed
-    if fake_fruitveg_sugar
+    if fruitveg_sugar_2oil
         fakelist_plum = {'fruitveg', 'sugar'} ;
         fakelist_lpjg = {'Oilcrops', 'Oilcrops'} ;
         for c = 1:length(fakelist_lpjg)
