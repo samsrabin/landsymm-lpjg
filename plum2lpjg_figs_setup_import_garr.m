@@ -1,6 +1,6 @@
 %% Setup
 
-cd '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work'
+cd '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work'
 
 % Define raster reference object and missing value
 map_size = [360 720] ;
@@ -24,7 +24,7 @@ if strcmp(thisVer,'20180424agmip7') || strcmp(thisVer,'20180424agmip7_asPLUMout2
     include_fao = false ;
 end
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+addpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/MATLAB_work/')
 addpath(genpath('~/Documents/Dropbox/Dissertation/MATLAB work'))
 
 continents_shp = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
@@ -582,7 +582,7 @@ Nyears_bl = length(yearList_baseline) ;
 Nyears_fu = length(yearList_future) ;
 
 % Output directory
-outDir_base = addslashifneeded(['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
+outDir_base = addslashifneeded(['/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/'...
                            'figures_' thisVer '_SI']) ;
 outDir_maps = addslashifneeded([outDir_base 'maps']) ;
 outDir_gtif = addslashifneeded([outDir_base 'gtif']) ;
@@ -1404,7 +1404,7 @@ hotspot_YX = 1==hotspot_YX ;
 hotspot_area_YX = hotspot_YX.*gcel_area_YX ;
 hotspot_x = hotspot_YX(list2map) ;
 hotspot_area_x = hotspot_area_YX(list2map) ;
-hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
+hotspot_shp = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
 
 disp('Importing Congolian swamp and lowland forests...')
 ecoid_YX = flipud(imread('/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.ECO_ID.tif')) ;

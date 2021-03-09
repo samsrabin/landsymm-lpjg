@@ -34,8 +34,8 @@ if false
 % thisVer = 'harm2.3_constClim' ;
 end
 
-% thisVer = 'harm3' ;
-thisVer = 'harm3_constLU' ;
+thisVer = 'harm3' ;
+% thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
 % thisVer = 'harm3_constClimCO2' ;
@@ -67,10 +67,87 @@ years_endf = 2091:2100 ;
 %% Setup and import
 
 tic
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import_garr.m') ;
+run('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/plum2lpjg_figs_setup_import_garr.m') ;
 % addpath('/Users/sam/Documents/Dropbox/FireMIP/Stijn_files_2019/')
 % addpath('/Users/Shared/PLUM/crop_calib_code/')
 toc
+
+
+%% NFF paper tidbits
+
+% C sequestered 2011-2100
+(ts_cpool_Total_yr(end,:) - ts_cpool_Total_bl(end)) * 1e-12
+
+% N loss to atmosphere (% change from baseline)
+(mean(ts_nflux_flux_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ...
+    - mean(ts_nflux_flux_bl(yearList_baseline>=2001 & yearList_baseline<=2010))) ...
+    ./ mean(ts_nflux_flux_bl(yearList_baseline>=2001 & yearList_baseline<=2010)) * 100
+
+% N loss in leaching (% change from baseline)
+(mean(ts_nflux_leach_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ...
+    - mean(ts_nflux_leach_bl(yearList_baseline>=2001 & yearList_baseline<=2010))) ...
+    ./ mean(ts_nflux_leach_bl(yearList_baseline>=2001 & yearList_baseline<=2010)) * 100 
+
+% Euclidean distance in crop*past*ntrl space, as % of total crop+past+ntrl land
+sqrt( ...
+    (mean(ts_LUarea_crop_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ...
+    - mean(ts_LUarea_crop_bl(yearList_baseline>=2001 & yearList_baseline<=2010))).^2 ...
+    + (mean(ts_LUarea_past_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ...
+    - mean(ts_LUarea_past_bl(yearList_baseline>=2001 & yearList_baseline<=2010))).^2 ...
+    + (mean(ts_LUarea_ntrl_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ...
+    - mean(ts_LUarea_ntrl_bl(yearList_baseline>=2001 & yearList_baseline<=2010))).^2 ...
+    ) ...
+    / (ts_LUarea_crop_yr(1,1) + ts_LUarea_past_yr(1,1) + ts_LUarea_ntrl_yr(1,1)) * 100
+
+
+%% NFF paper: irrigation water use as fraction of global runoff
+
+topDir = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG' ;
+yearList_tmp = [2010 2091:2100] ;
+Nyears_tmp = length(yearList_tmp) ;
+
+runList_tmp = [1 3 4 5] ;
+Nruns_tmp = length(runList_tmp) ;
+
+% Get irrigation quantity (L)
+tmp_ts_IQA_yr = nan(Nyears_tmp, Nruns_tmp) ;
+for r = 1:Nruns_tmp
+    thisRun = runList_tmp(r) ;
+    fprintf('SSP%d\n', thisRun)
+    for y = 1:Nyears_tmp
+        thisYear = yearList_tmp(y) ;
+        thisFile = sprintf('%s/SSP%d.v12.s1/%d/LandUse.txt', topDir, thisRun, thisYear) ;
+        data_in = lpjgu_matlab_read2geoArray(thisFile, ...
+            'force_mat_save', false, 'force_mat_nosave', true, 'verboseIfNoMat', false) ;
+        
+        % Import crop areas (m2)
+        isIncl_A = contains(data_in.varNames, '_A') & ~contains(data_in.varNames, 'pasture') ;
+        
+        % Import irrigation quantities (L/m2)
+        isIncl_IQ = contains(data_in.varNames, '_IQ') & ~contains(data_in.varNames, 'pasture') ;
+        tmp_ts_IQA_yr(y,r) = sum(sum(data_in.garr_xv(:,isIncl_A) .* data_in.garr_xv(:,isIncl_IQ))) ;
+    end
+end
+
+% Get total runoff (m3)
+tmp_ts_runoff_yr = nan(size(tmp_ts_IQA_yr)) ;
+tmp_ts_runoff_yr(1,:) = ts_tot_runoff_bl(end) ;
+[~, IA] = intersect(yearList_future, yearList_tmp(2:end)) ;
+tmp_ts_runoff_yr(2:end,:) = ts_tot_runoff_yr(IA,:) ;
+% Convert to L
+tmp_ts_runoff_yr = 1000 * tmp_ts_runoff_yr ;
+
+%% Combine (converting runoff to L)
+tmp_bl_r = tmp_ts_IQA_yr(1,:) ./ tmp_ts_runoff_yr(1,:) ;
+tmp_fu_r = mean(tmp_ts_IQA_yr(2:end,:) ./ tmp_ts_runoff_yr(2:end,:),1) ;
+tmp_pctDiff = 100 * (tmp_fu_r - tmp_bl_r) ./ tmp_bl_r ;
+
+% Print info
+for r = 1:Nruns_tmp
+    thisRun = runList_tmp(r) ;
+    fprintf('SSP%d: %0.1e%% to %0.1e%% (%0.1f%% chg.)\n', ...
+        thisRun, tmp_bl_r(r)*100, tmp_fu_r(r)*100, tmp_pctDiff(r))
+end
 
 
 %% Big bar graph: Drivers
@@ -139,7 +216,7 @@ rowInfo = { ...
 %%% Make figure %%%
 %%%%%%%%%%%%%%%%%%%
 
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph_garr.m') ;
+run('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/make_big_bar_graph_garr.m') ;
 
 ht = title(sprintf('Change in land use and drivers, %d-%d to %d-%d', ...
     min(years_endh), max(years_endh), min(years_endf), max(years_endf))) ;
@@ -201,7 +278,7 @@ rowInfo = { ...
 %%% Make figure %%%
 %%%%%%%%%%%%%%%%%%%
 
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph_garr.m') ;
+run('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/make_big_bar_graph_garr.m') ;
 
 
 title(sprintf('Change in ecosystem service indicators, %d-%d to %d-%d', ...
@@ -1291,7 +1368,7 @@ legloc = 'Southeast' ;
 %%%%%%%%%%%%%%%%%%%
 
 % Import
-table_in = readtable('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
+table_in = readtable('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
 
 % Restrict to global runs
 table_in(~strcmp(table_in.location,'Global'),:) = [] ;
@@ -3310,7 +3387,7 @@ clear tmp_hotspot* tmp_lu*
 % 
 %     % Biodiversity hotspots
 %     hotspot_YX = imread('/Users/sam/Geodata/global200ecoregions/g200_terr_raster0.5deg.tif') ;
-%     hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/g200_terr_from0.5raster.shp' ;
+%     hotspot_shp = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper2/MATLAB_work/g200_terr_from0.5raster.shp' ;
 %     hotspot_YX = flipud(hotspot_YX) ;
 %     hotspot_area_YX = hotspot_YX.*land_area_YX ;
 %     hotspot_area_YXB = hotspot_area_YX .* maps_LU.maps_YXvyB(:,:,strcmp(maps_LU.varNames,'NATURAL'),end) ;
