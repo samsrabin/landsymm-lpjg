@@ -70,27 +70,34 @@ clear tmp
 
 if onMac
     topDir = addslashifneeded('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') ;
-    if any(contains(runList, 'halfearth/HEoct'))
-        out_dir = sprintf('%s/halfearth/HEoct/harm_figs/', topDir) ;
-    else
-        out_dir = sprintf('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/harm%dFigs_%s/',baseline_ver,PLUM_version) ;
-    end
-    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
     PLUMharm_top = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
     addpath(genpath(PLUMharm_top))
     inDir_protectedAreas = '/Users/Shared/PLUM/input/protected_areas/' ;
 else
-    out_dir = sprintf('/home/fh1-project-lpjgpi/lr8247/PLUM_harmonization_figs/harm%dFigs_%s/',baseline_ver,PLUM_version) ;
     topDir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/PLUM/input/PLUMouts_2011-2100') ;
     addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work/')) ;
     PLUMharm_top = '/pfs/data1/home/kit/imk-ifu/lr8247/plum_harmonization/' ;
     inDir_protectedAreas = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/protected_areas/' ;
 end
-out_dir = get_harm_dir(out_dir, fruitveg_sugar_2oil, combineCrops) ;
 
-if ~exist(out_dir, 'dir')
-    mkdir(out_dir)
+% Output directory will be in the lowest-level directory that all these
+% share (from https://stackoverflow.com/a/40061849/2965321)
+if ~exist('out_dir', 'var')
+    dirList = strcat(topDir, runList) ;
+    temp = sort(dirList(:)) ;
+    first = strsplit(temp{1}, filesep) ;
+    last = strsplit(temp{end}, filesep) ;
+    sizeMin = min(numel(first), numel(last)) ;
+    N = find(~[cellfun(@strcmp, first(1:sizeMin), last(1:sizeMin)) 0], 1, 'first') - 1 ;
+    commonPath = strjoin(first(1:N), filesep) ;
+    out_dir = sprintf('%s/harm%dFigs_%s',commonPath,baseline_ver,PLUM_version) ;
+    out_dir = get_harm_dir(out_dir, fruitveg_sugar_2oil, combineCrops) ;
+    if ~exist(out_dir, 'dir')
+        mkdir(out_dir)
+    end
 end
+out_dir = addslashifneeded(out_dir) ;
+fprintf('out_dir: %s\n', out_dir)
 
 yearList_luh2 = 1971:2010 ;
 % yearList_luh2 = 2001:2010 ;
