@@ -168,7 +168,6 @@ countries_x = countries_YX(list2map) ;
 countries_key = readtable('/Users/Shared/lpj-guess-plum/input/unifying_gridlist/country_boundaries_codes4.csv') ;
 
 
-
 %% Import PLUM (original + harmonized)
 
 is2deg = strcmp(thisVer,'2deg.') ;
@@ -190,7 +189,7 @@ Ncells = length(find(~mask_YX)) ;
 PLUMorig_xvyr = nan(Ncells,Nlu,Nyears_orig,Nruns,'single') ;
 PLUMharm_xvyr = nan(Ncells,Nlu,Nyears_harm,Nruns,'single') ;
 if ~combineCrops
-    PLUMorig_nfert_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_orig,Nruns,'single') ;
+    PLUMorig_nfert_xvyr = nan(incl_YXvy,'single') ;
     PLUMorig_irrig_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_orig,Nruns,'single') ;
     PLUMharm_nfert_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_harm,Nruns,'single') ;
     PLUMharm_irrig_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_harm,Nruns,'single') ;
@@ -219,6 +218,7 @@ for r = 1:Nruns
             is2deg, [], norm2extra, inpaint_method, '', true, ...
             fruitveg_sugar_2oil) ;
     end
+    
     [~,~,year_indices] = intersect(S_out.yearList,yearList_orig,'stable') ;
     if length(year_indices)~=length(yearList_orig)
         error('length(year_indices)~=length(yearList_orig)')
@@ -623,10 +623,11 @@ tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
 % y1_list = 2011:5:2099 ;
 % yN_list = 2015:5:2100 ;
 
-yN_list = 2030:10:2060 ;
+yN_list = 2020:20:yearList_harm(end) ;
 y1_list = 2010*ones(size(yN_list)) ;
 
 % Options %%%%%%%%%
+do_save = true ;
 fontSize = 14 ;
 % spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
 spacing = 0 ;
@@ -645,6 +646,11 @@ ntrl_colormap_name = 'PiYG_ssr' ;
 lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
+if ~any(y1_list==yearList_harm(1) & yN_list==yearList_harm(end))
+    y1_list(end+1) = yearList_harm(1) ;
+    yN_list(end+1) = yearList_harm(end) ;
+end
+
 if ny == 4
     thisPos = [1    33   770   772] ;
 elseif ny==2
@@ -653,10 +659,9 @@ else
     error('Set thisPos for ny = %d', ny)
 end
 textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
-
 if length(y1_list) > 1
     this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
-        out_dir, min(y1_list), max(yN_list), yN_list(1)-y1_list(1)+1) ;
+        out_dir, min(y1_list), max(yN_list), yN_list(2)-yN_list(1)) ;
     pngres = '-r150' ;
 else
     this_outdir = out_dir ;
@@ -1153,28 +1158,14 @@ if ~add_baseline_to_harm
     ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 end
 
-spacing = [0.05 0.1] ;
+units = 'Million km2' ;
+ts_base_cy = ts_base_cy*1e-6*1e-6 ;
+ts_orig_cyr = ts_orig_cyr*1e-6*1e-6 ;
+ts_harm_cyr = ts_harm_cyr*1e-6*1e-6 ;
 
-figure('Color','w','Position',figurePos)
-
-for v = 1:Ncrops_lpjg
-    subplot_tight(4,2,v,spacing) ;
-    plot(yearList_luh2,ts_base_cy(v,:)*1e-6*1e-6,'-k','LineWidth',2) ;
-    set(gca,'ColorOrderIndex',1) ;
-    hold on
-    plot(yearList_orig,squeeze(ts_orig_cyr(v,:,:))*1e-6*1e-6,'--','LineWidth',1)
-    set(gca,'ColorOrderIndex',1) ;
-    plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:))*1e-6*1e-6,'-','LineWidth',1)
-    hold off
-    title(['Area: ' LPJGcrops{v}])
-    set(gca,'FontSize',14)
-    ylabel('Million km2')
-    legend(legend_ts,'Location','NorthWest')
-end
-
-% Save
-export_fig([out_dir 'timeSeries_crops.pdf']) ;
-close
+make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
+    LPJGcrops, legend_ts, yearList_luh2, yearList_orig, units, ...
+    'Area', 'crops', out_dir)
 
 
 %% Time series of Nfert
@@ -1190,28 +1181,10 @@ if ~add_baseline_to_harm
     ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 end
 
-spacing = [0.05 0.1] ;
-
-figure('Color','w','Position',figurePos)
-
-for v = 1:Ncrops_lpjg
-    subplot_tight(4,2,v,spacing) ;
-    plot(yearList_luh2,ts_base_cy(v,:),'-k','LineWidth',2) ;
-    set(gca,'ColorOrderIndex',1) ;
-    hold on
-    plot(yearList_orig,squeeze(ts_orig_cyr(v,:,:)),'--','LineWidth',1)
-    set(gca,'ColorOrderIndex',1) ;
-    plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:)),'-','LineWidth',1)
-    hold off
-    title(['Fert.: ' LPJGcrops{v}])
-    set(gca,'FontSize',14)
-    ylabel('Mt N')
-    legend(legend_ts,'Location','NorthWest')
-end
-
-% Save
-export_fig([out_dir 'timeSeries_nfert.pdf']) ;
-close
+units = 'Mt N' ;
+make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
+    LPJGcrops, legend_ts, yearList_luh2, yearList_orig, units, ...
+    'Fert.', 'nfert', out_dir)
 
 
 %% Time series of irrig
@@ -1227,28 +1200,10 @@ if ~isequal(yearList_orig, yearList_harm)
     ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 end
 
-spacing = [0.05 0.1] ;
-
-figure('Color','w','Position',figurePos)
-
-for v = 1:Ncrops_lpjg
-    subplot_tight(4,2,v,spacing) ;
-    plot(yearList_luh2,ts_base_cy(v,:),'-k','LineWidth',2) ;
-    set(gca,'ColorOrderIndex',1) ;
-    hold on
-    plot(yearList_orig,squeeze(ts_orig_cyr(v,:,:)),'--','LineWidth',1)
-    set(gca,'ColorOrderIndex',1) ;
-    plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:)),'-','LineWidth',1)
-    hold off
-    title(['Irrigation: ' LPJGcrops{v}])
-    set(gca,'FontSize',14)
-    ylabel('intensity \times area')
-    legend(legend_ts,'Location','NorthWest')
-end
-
-% Save
-export_fig([out_dir 'timeSeries_irrig.pdf']) ;
-close
+units = 'intensity \times area' ;
+make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
+    LPJGcrops, legend_ts, yearList_luh2, yearList_orig, units, ...
+    'Irrigation', 'irrig', out_dir)
 
 
 %% Maps: At three years
@@ -1433,5 +1388,48 @@ for r = 1:Nruns
         export_fig([out_dir 'mapsChgs_' thisLU '_' strrep(num2str(theseYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
         close
     end
+end
+
+
+%% FUNCTIONS
+
+function make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
+    LPJGcrops, legend_ts, yearList_luh2, yearList_orig, units, ...
+    titleWord, fileWord, out_dir)
+
+Ncrops_lpjg = length(LPJGcrops) ;
+ny = ceil(Ncrops_lpjg/2) ;
+
+if Ncrops_lpjg <= 8
+    spacing = [0.05 0.1] ;
+    thisPos = [1 41 1440 764] ;
+    fontSize = 14 ;
+else
+    spacing = [0.05 0.1] ;
+    thisPos = [1 41 1440 (764/4)*ny] ;
+    fontSize = 14 ;
+end
+
+figure('Color', 'w', 'Resize', 'off', 'Position', thisPos)
+
+for v = 1:Ncrops_lpjg
+    subplot_tight(ny,2,v,spacing) ;
+    plot(yearList_luh2,ts_base_cy(v,:),'-k','LineWidth',2) ;
+    set(gca,'ColorOrderIndex',1) ;
+    hold on
+    plot(yearList_orig,squeeze(ts_orig_cyr(v,:,:)),'--','LineWidth',1)
+    set(gca,'ColorOrderIndex',1) ;
+    plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:)),'-','LineWidth',1)
+    hold off
+    title(sprintf('%s: %s', titleWord, LPJGcrops{v})) ;
+    set(gca,'FontSize',fontSize)
+    ylabel(units)
+    legend(legend_ts,'Location','NorthWest')
+end
+
+% Save
+export_fig(sprintf('%stimeSeries_%s.pdf', out_dir, fileWord))
+close
+
 end
 
