@@ -97,6 +97,7 @@ warning('on','all')
 % The years we want to produce PLUM outputs for (will begin with
 % transitions from years(1)-1 to years(1)
 years = year1:yearN ;
+Nyears = length(years) ;
 if year1 <= base_year
     error('year1 (%d) must be > base_year (%d)!\n', year1, base_year)
 elseif year1 > yearN
@@ -169,7 +170,9 @@ for d = 1:length(PLUM_in_toptop)
     end
     clear out_* in_*
     
-    for y = 1:length(years)
+    isFirstYearInLoop = true ;
+    
+    for y = 1:Nyears
         
         thisYear = years(y) ;
         disp(num2str(thisYear)) ;
@@ -349,6 +352,17 @@ for d = 1:length(PLUM_in_toptop)
                     'Initial import', 'in_2deg', 'in_2deg', 'irrig', ...
                     LPJGcrops, dbCrop, thisYear)
             end
+        end
+        
+        % Set up empty arrays for tracking global totals
+        if isFirstYearInLoop
+            out_ts.yearList = [(years(1)-1) years] ;
+            out_ts.luNames = in_y0.varNames ;
+            out_ts.cropNames = LPJGcrops ;
+            out_ts.area_vy = nan(Nlu, Nyears+1) ;
+            out_ts.nfert_vy = nan(length(find(isCrop)), Nyears+1) ;
+            out_ts.irrig_vy = nan(length(find(isCrop)), Nyears+1) ;
+            in_ts = out_ts ;
         end
         
         % Make sure that total global loss of a land use does not exceed
@@ -1087,21 +1101,42 @@ for d = 1:length(PLUM_in_toptop)
         end
 
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%% Save last year's global total to time series %%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        if isFirstYearInLoop
+            in_ts = save_to_timeseries_struct(in_ts, ...
+                in_y0, in_y0_nfert.maps_YXv, in_y0_irrig.maps_YXv, 1) ;
+            out_ts = save_to_timeseries_struct(out_ts, ...
+                out_y0, out_y0_nfert_YXv, out_y0_irrig_YXv, 1) ;
+        end
+        
+        in_ts = save_to_timeseries_struct(in_ts, ...
+            in_y1, in_y1_nfert.maps_YXv, in_y1_irrig.maps_YXv, y+1) ;
+        
+        out_y1 = out_y0 ;
+        out_y1.maps_YXv = nan(size(out_y1.maps_YXv)) ;
+        [~,IA,IB] = intersect(out_y1.varNames,LUnames_agri,'stable') ;
+        out_y1.maps_YXv(:,:,IA) = out_y1_agri_YXv(:,:,IB) ;
+        clear IA IB
+        out_y1.maps_YXv(:,:,strcmp(LUnames,'NATURAL')) = out_y1_ntrl_YX ;
+        out_y1.maps_YXv(:,:,strcmp(LUnames,'BARREN')) = out_y1_bare_YX ;
+        out_ts = save_to_timeseries_struct(out_ts, ...
+            out_y1, out_y1_nfert_YXv, out_y1_irrig_YXv, y+1) ;
+        
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%% Prepare for next iteration %%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         clear out_y1_past_YX
-        if y < length(years)
+        if y < Nyears
             in_y0 = in_y1 ;
             in_y0_2deg = in_y1_2deg ;
             in_y0_agri_YXv = in_y1_agri_YXv ;
             in_y0_2deg_agri_YXv = in_y1_2deg_agri_YXv ;
-            [~,IA,IB] = intersect(out_y0.varNames,LUnames_agri,'stable') ;
-            out_y0.maps_YXv(:,:,IA) = out_y1_agri_YXv(:,:,IB) ;
-            clear IA IB
-            out_y0.maps_YXv(:,:,strcmp(LUnames,'NATURAL')) = out_y1_ntrl_YX ;
-            out_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) = out_y1_bare_YX ;
+            out_y0 = out_y1 ;
             out_y0_2deg = out_y1_2deg ;
             out_y0_2deg_agri_YXv = out_y1_2deg_agri_YXv ;
             out_y0_agri_YXv = out_y1_agri_YXv ;
@@ -1138,10 +1173,61 @@ for d = 1:length(PLUM_in_toptop)
         end
 
         disp(['  Done (' toc_hms(toc) ').'])
+        isFirstYearInLoop = false ;
 
 
     end % years loop
-
+    
+    
+    %%%%%%%%%%%%%%%%%%%%
+    %%% Make figures %%%
+    %%%%%%%%%%%%%%%%%%%%
+    
+    figDir = addslashifneeded(sprintf('%s_figs', removeslashifneeded(PLUM_out_top))) ;
+    if ~exist(figDir, 'dir')
+        mkdir(figDir)
+    end
+    legend_ts = {'From PLUM', 'Harmonized'} ;
+    
+    % LU areas
+    tmp_names = [{'CROPLAND'} in_ts.luNames(~isCrop)] ;
+    ts_orig_cy = nan(length(tmp_names), length(in_ts.yearList)) ;
+    ts_orig_cy(strcmp(tmp_names, 'CROPLAND'),:) = sum(in_ts.area_vy(isCrop,:),1) ;
+    ts_orig_cy(~strcmp(tmp_names, 'CROPLAND'),:) = in_ts.area_vy(~isCrop,:) ;
+    ts_harm_cy = ts_orig_cy ;
+    ts_harm_cy(strcmp(tmp_names, 'CROPLAND'),:) = sum(out_ts.area_vy(isCrop,:),1) ;
+    ts_harm_cy(~strcmp(tmp_names, 'CROPLAND'),:) = out_ts.area_vy(~isCrop,:) ;
+    units = 'Million km2' ;
+    ts_orig_cy = ts_orig_cy*1e-6*1e-6 ;
+    ts_harm_cy = ts_harm_cy*1e-6*1e-6 ;
+    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+        tmp_names, legend_ts, [], in_ts.yearList, units, ...
+        'Area', 'landUse', figDir)
+    
+    % Crops
+    units = 'Million km2' ;
+    ts_orig_cy = in_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
+    ts_harm_cy = out_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
+    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+        'Area', 'crops', figDir)
+    
+    % Fertilization
+    units = 'Mt N' ;
+    ts_orig_cy = in_ts.nfert_vy*1e-3*1e-6 ;
+    ts_harm_cy = out_ts.nfert_vy*1e-3*1e-6 ;
+    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+        'Fert.', 'nfert', figDir)
+    
+    % Irrigation
+    units = 'intensity \times area' ;
+    ts_orig_cy = in_ts.irrig_vy ;
+    ts_harm_cy = out_ts.irrig_vy ;
+    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+        'Irrigation', 'irrig', figDir)
+    
     disp('Done')
     diary off
 
@@ -1166,3 +1252,25 @@ if errPct < -99
 end
 
 end
+
+
+
+function S_ts = save_to_timeseries_struct(S_ts, ...
+    S_area, nfert_YXv, irrig_YXv, y)
+
+S_ts.area_vy(:,y) = squeeze(nansum(nansum(S_area.maps_YXv, 1), 2)) ;
+
+[C,IA,IB] = intersect(S_ts.cropNames, S_ts.luNames, 'stable') ;
+if ~isequal(C, S_ts.cropNames)
+    error('Crop list mismatch')
+end
+
+S_ts.nfert_vy(:,y) = squeeze(nansum(nansum( ...
+    nfert_YXv(:,:,IA) .* S_area.maps_YXv(:,:,IB), 1), 2)) ;
+S_ts.irrig_vy(:,y) = squeeze(nansum(nansum( ...
+    irrig_YXv(:,:,IA) .* S_area.maps_YXv(:,:,IB), 1), 2)) ;
+
+
+end
+
+
