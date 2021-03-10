@@ -108,7 +108,8 @@ for d = 1:length(dirList)
     % Get directories
     inDir = dirList{d} ;
     if ~exist(inDir, 'dir')
-        error('inDir %s not found. Try changing MATLAB working directory to inDir''s parent.')
+        error('inDir %s not found. Try changing MATLAB working directory to inDir''s parent. Current working directory: %s', ...
+            inDir, pwd)
     end
     inDir = removeslashifneeded(inDir) ;
     disp(inDir)

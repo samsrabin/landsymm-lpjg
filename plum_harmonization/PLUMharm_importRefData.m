@@ -142,7 +142,8 @@ end
 % Harmonize masks
 dir1 = dirList{1} ;
 if ~exist(dir1, 'dir')
-    error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent.')
+    error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent. Current working directory: %s', ...
+        dir1, pwd)
 end
 dir1_base = addslashifneeded([addslashifneeded(dir1) num2str(base_year)]) ;
 if ~exist(dir1_base, 'dir')

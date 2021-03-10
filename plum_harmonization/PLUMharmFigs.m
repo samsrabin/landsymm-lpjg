@@ -71,7 +71,8 @@ addpath(genpath(plumharm_repo_path))
 % Before making output directory, make sure you're in the correct
 % directory to begin with.
 if ~exist(dirList{1}, 'dir')
-    error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent.')
+    error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent. Current working directory: %s', ...
+        dirList{1}, pwd)
 end
 out_dir = sprintf('harm%dFigs_%s', baseline_ver, PLUM_version) ;
 out_dir = get_harm_dir(out_dir, fruitveg_sugar_2oil, combineCrops) ;
