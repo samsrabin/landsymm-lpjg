@@ -125,6 +125,17 @@ R = georasterref('RasterSize', [360 720], ...
 %lines_overlay = sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path) ;
 lines_overlay = shaperead(sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path)) ;
 
+% y1_list = 2011 ;
+% yN_list= 2012 ;
+% y1_list = 2010 ;
+% yN_list= yearList_harm(end) ;
+% y1_list = 2011:1:2099 ;
+% yN_list = 2012:1:2100 ;
+% y1_list = 2011:5:2099 ;
+% yN_list = 2015:5:2100 ;
+yN_list = 2020:20:yearList_harm(end) ;
+y1_list = 2010*ones(size(yN_list)) ;
+
 
 %% Import reference data
 
@@ -515,17 +526,6 @@ end
 %% Map deltas for orig and harm
 
 tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
-% y1_list = 2011 ;
-% yN_list= 2012 ;
-% y1_list = 2010 ;
-% yN_list= yearList_harm(end) ;
-% y1_list = 2011:1:2099 ;
-% yN_list = 2012:1:2100 ;
-% y1_list = 2011:5:2099 ;
-% yN_list = 2015:5:2100 ;
-
-yN_list = 2020:20:yearList_harm(end) ;
-y1_list = 2010*ones(size(yN_list)) ;
 
 % Options %%%%%%%%%
 do_save = true ;
@@ -851,7 +851,7 @@ for l = 1:length(tmp_lu_list)
             table_harm_out.Net ./ landArea_byReg_out ;
         
         % Save to Excel files
-        thisRun_short = shortened_runList{r} ;
+        thisRun_short = runList_legend{r} ;
         thisRange = sprintf('A1:F%d', size(table_orig_out, 1) + 1) ;
         sheetName = [strrep(thisRun_short,'.','_') '_o2'] ;
         writetable(table_orig_out, outfile, ...
@@ -916,7 +916,7 @@ for r = 1:Nruns
         'LineWidth', 2)
 end
 hold off
-legend(shortened_runList, 'Location', 'best')
+legend(runList_legend, 'Location', 'best')
 
 
 %% Map one year, one LC for orig and harm
@@ -925,86 +925,86 @@ do_save = true ;
 thisLU = 'NATURAL' ;
 thisYear = 2010 ;
 
-% Options %%%%%%%%%
-fontSize = 14 ;
-% spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
-spacing = 0 ;
-textX = 0.115 ;
-textY_1 = 50/360 ;
-textY_2 = 20/360 ;
-% shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ;
-shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ;
-thisPos = [1    33   770   772] ;
-nx = 2 ;
-ny = 4 ;
-as_frac_land = true ;
-bins_lowBnds = [0:99] ;
-conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
-do_caps = false ;
-this_colormap_name = 'parula' ;
-%%%%%%%%%%%%%%%%%%%
-
-v = contains(LUnames, thisLU) ;
-
-if length(y1_list) > 1
-    this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
-        out_dir, min(y1_list), max(yN_list), yN_list(1)-y1_list(1)+1) ;
-    pngres = '-r150' ;
-else
-    this_outdir = out_dir ;
-    pngres = '-r300' ;
-end
-
-if ~exist(this_outdir, 'dir')
-    mkdir(this_outdir) ;
-end
-
-units_map = '%' ;
-units_total = 'Mkm^2' ;
-
-map_size = size(landArea_YX) ;
-orig_frac_YXrH = nan([map_size Nruns]) ;
-harm_frac_YXrH = nan([map_size Nruns]) ;
-
-y1 = y1_list(y) ;
-yN = yN_list(y) ;
-
-% Get gridcell fraction that is this LU type (%)
-area_orig_xr = squeeze(nansum( ...
-    PLUMorig_xvyr(:,v,yearList_orig==thisYear,:), ...
-    2)) ;
-area_harm_xr = squeeze(nansum( ...
-    PLUMharm_xvyr(:,v,yearList_harm==thisYear,:), ...
-    2)) ;
-for r = 1:Nruns
-    orig_frac_YXrH(:,:,r) = lpjgu_vector2map(100*area_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
-    harm_frac_YXrH(:,:,r) = lpjgu_vector2map(100*area_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
-end
-area_orig_r = sum(area_orig_xr,1)*conv_fact_total ;
-area_harm_r = sum(area_harm_xr,1)*conv_fact_total ;
-
-if ~as_frac_land
-    error('This only works with as_frac_land TRUE')
-end
-
-col_titles = {sprintf('Original %s, %d', thisLU, thisYear), ...
-    sprintf('Harmonized %s, d', thisLU, thisYear)} ;
-make_LUfrac_fig_v5(...
-    area_orig_r, area_harm_r, ...
-    orig_frac_YXrH, harm_frac_YXrH, ...
-    runList_legend, ...
-    spacing, fontSize, textX, textY_1, textY_2, ...
-    nx, ny, ...
-    Nruns, thisPos, units_map, units_total, do_caps, ...
-    bins_lowBnds, this_colormap_name, col_titles, ...
-    lines_overlay) ;
-
-if do_save
-    filename = sprintf('%s/maps_%d_beforeAfter.png', ...
-        this_outdir, thisYear) ;
-    export_fig(filename, pngres) ;
-    close
-end
+%% Options %%%%%%%%%
+%fontSize = 14 ;
+%% spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
+%spacing = 0 ;
+%textX = 0.115 ;
+%textY_1 = 50/360 ;
+%textY_2 = 20/360 ;
+%% shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ;
+%shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ;
+%thisPos = [1    33   770   772] ;
+%nx = 2 ;
+%ny = 4 ;
+%as_frac_land = true ;
+%bins_lowBnds = [0:99] ;
+%conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+%do_caps = false ;
+%this_colormap_name = 'parula' ;
+%%%%%%%%%%%%%%%%%%%%
+%
+%v = contains(LUnames, thisLU) ;
+%
+%if length(y1_list) > 1
+%    this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
+%        out_dir, min(y1_list), max(yN_list), yN_list(1)-y1_list(1)+1) ;
+%    pngres = '-r150' ;
+%else
+%    this_outdir = out_dir ;
+%    pngres = '-r300' ;
+%end
+%
+%if ~exist(this_outdir, 'dir')
+%    mkdir(this_outdir) ;
+%end
+%
+%units_map = '%' ;
+%units_total = 'Mkm^2' ;
+%
+%map_size = size(landArea_YX) ;
+%orig_frac_YXrH = nan([map_size Nruns]) ;
+%harm_frac_YXrH = nan([map_size Nruns]) ;
+%
+%y1 = y1_list(y) ;
+%yN = yN_list(y) ;
+%
+%% Get gridcell fraction that is this LU type (%)
+%area_orig_xr = squeeze(nansum( ...
+%    PLUMorig_xvyr(:,v,yearList_orig==thisYear,:), ...
+%    2)) ;
+%area_harm_xr = squeeze(nansum( ...
+%    PLUMharm_xvyr(:,v,yearList_harm==thisYear,:), ...
+%    2)) ;
+%for r = 1:Nruns
+%    orig_frac_YXrH(:,:,r) = lpjgu_vector2map(100*area_orig_xr(:,r)./gcelArea_x, map_size, list2map) ;
+%    harm_frac_YXrH(:,:,r) = lpjgu_vector2map(100*area_harm_xr(:,r)./gcelArea_x, map_size, list2map) ;
+%end
+%area_orig_r = sum(area_orig_xr,1)*conv_fact_total ;
+%area_harm_r = sum(area_harm_xr,1)*conv_fact_total ;
+%
+%if ~as_frac_land
+%    error('This only works with as_frac_land TRUE')
+%end
+%
+%col_titles = {sprintf('Original %s, %d', thisLU, thisYear), ...
+%    sprintf('Harmonized %s, d', thisLU, thisYear)} ;
+%make_LUfrac_fig_v5(...
+%    area_orig_r, area_harm_r, ...
+%    orig_frac_YXrH, harm_frac_YXrH, ...
+%    runList_legend, ...
+%    spacing, fontSize, textX, textY_1, textY_2, ...
+%    nx, ny, ...
+%    Nruns, thisPos, units_map, units_total, do_caps, ...
+%    bins_lowBnds, this_colormap_name, col_titles, ...
+%    lines_overlay) ;
+%
+%if do_save
+%    filename = sprintf('%s/maps_%d_beforeAfter.png', ...
+%        this_outdir, thisYear) ;
+%    export_fig(filename, pngres) ;
+%    close
+%end
     
 
 %% Time series of LUs
@@ -1119,7 +1119,7 @@ for r = 1:Nruns
         for y = 1:3
             thisYear = theseYears(y) ;
             h1 = subplot_tight(2,3,y,spacing) ;
-            tmp = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), [ny nx], list2map) ;
+            tmp = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), size(landArea_YX), list2map) ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
             shading flat ; axis equal tight off
@@ -1127,7 +1127,7 @@ for r = 1:Nruns
             title(sprintf('%s orig: %s, %d',thisRun,thisLU,thisYear)) ;
             set(gca,'FontSize',fontSize)
             h2 = subplot_tight(2,3,y+3,spacing) ;
-            tmp = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
+            tmp = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), size(landArea_YX), list2map) ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
             shading flat ; axis equal tight off
@@ -1162,8 +1162,8 @@ for r = 1:Nruns
         for y = 1:3
             thisYear = theseYears(y) ;
             h1 = subplot_tight(1,3,y,spacing) ;
-            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), [ny nx], list2map) ;
-            tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), [ny nx], list2map) ;
+            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), size(landArea_YX), list2map) ;
+            tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), size(landArea_YX), list2map) ;
             tmp = tmp2 - tmp1 ;
 %             tmp = tmp2/sum(tmp2(:)) - tmp1/sum(tmp1(:)) ;
             tmp(landArea_YX==0) = NaN ;
@@ -1256,8 +1256,8 @@ for r = 1:Nruns
             thisYear1 = theseYears(y) ;
             thisYear2 = theseYears(y+1) ;
             h1 = subplot_tight(2,2,y,spacing) ;
-            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear1,r), [ny nx], list2map) ;
-            tmp2 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear2,r), [ny nx], list2map) ;
+            tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear1,r), size(landArea_YX), list2map) ;
+            tmp2 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear2,r), size(landArea_YX), list2map) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
@@ -1267,8 +1267,8 @@ for r = 1:Nruns
             title(sprintf('%s orig: %s, %d-%d',thisRun,thisLU,thisYear1,thisYear2)) ;
             set(gca,'FontSize',fontSize)
             h2 = subplot_tight(2,2,y+2,spacing) ;
-            tmp1 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear1,r), [ny nx], list2map) ;
-            tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear2,r), [ny nx], list2map) ;
+            tmp1 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear1,r), size(landArea_YX), list2map) ;
+            tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear2,r), size(landArea_YX), list2map) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
             pcolor(tmp(y1:end,:)) ;
