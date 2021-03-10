@@ -2,15 +2,65 @@
 %%% LUH1-style harmonization for PLUM outputs, at cropType level %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input directories and settings specific thereto %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Typical runs (2010-2100), v1-3
+% dirList = {...
+%                   'SSP1.v10.s1' ;
+%                   'SSP3.v10.s1' ;
+%                   'SSP4.v10.s1' ;
+%                   'SSP5.v10.s1' ;
+%                   'SSP1.v11.s1' ;
+%                   'SSP3.v11.s1' ;
+%                   'SSP4.v11.s1' ;
+%                   'SSP5.v11.s1' ;
+%                   'SSP1.v11.s1test' ;
+%                   'ssp11/SSP5/s3' ;
+%                   'SSP1.v12.s1' ;
+%                   'SSP3.v12.s1' ;
+%                   'SSP4.v12.s1' ;
+%                   'SSP5.v12.s1' ;
+%                   } ;
+% base_year = 2010 ;
+% year1 = 2011 ;
+% yearN = 2100 ;
+% fruitveg_sugar_2oil = false ;
+% % baseline_ver = 1 ;
+% % baseline_ver = 2 ;   % Based on remap_v6
+% baseline_ver = 3 ;   % Based on remap_v6p7
+
+%%% Typical runs (2010-2100), v4
+dirList = {...
+%     'SSP1/s1' ;
+    'SSP2/s1' ;
+    'SSP3/s1' ;
+    'SSP4/s1' ;
+    'SSP5/s1' ;
+    } ;
 base_year = 2010 ;
 year1 = 2011 ;
 yearN = 2100 ;
+fruitveg_sugar_2oil = false ;
+baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
 
-% Baseline version
-% baseline_ver = 1 ;
-% baseline_ver = 2 ;   % Based on remap_v6
-baseline_ver = 3 ;   % Based on remap_v6p7
-              
+%%% Half-Earth runs (2010-2060)
+% dirList = {...
+%                   'halfearth/HEoct/baseline/s1';
+%                   'halfearth/HEoct/halfearth/s1';
+%                   } ;
+% base_year = 2010 ;
+% year1 = 2011 ;
+% yearN = 2060 ;
+% fruitveg_sugar_2oil = false ;
+% baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% General behavior options %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Save?
 save_halfDeg_mat = true ;
 save_2deg_mat = false ;
@@ -31,10 +81,28 @@ dbCrop = '' ;
 % Print verbose messages?
 verbose = false ;
 
+% Combine all crops? This is useful only as a test to see how different the
+% area is this way as opposed to the right way (keeping every crop
+% separate). This also may not actually work!
+combineCrops = false ;
+
 
 %% Setup
 
 warning('on','all')
+
+% Determine which system you're on and set up
+thisSystem = get_system_name() ;
+if strcmp(thisSystem, 'ssr_mac')
+    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
+    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+elseif strcmp(thisSystem, 'ssr_keal')
+    addpath(genpath('/pd/data/lpj/sam/paper02-matlab-work')) ;
+    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
+else
+    error('thisSystem not recognized: %s', thisSystem)
+end
+addpath(genpath(plumharm_repo_path))
 
 % Method for inpaint_nans()
 % (moved to PLUMharm_importRefData)
@@ -78,11 +146,15 @@ if do_debug
 end
 debug_header = ':\t\tArea\t\tFrac\n' ;
 
+if combineCrops
+    warning('Combining all crops into one! Will skip harmonization of nfert and irrig.')
+end
+
 
 %% Import reference data
 
 doHarm = true ;
-run([PLUMharm_top 'PLUMharm_importRefData.m']) ;
+PLUMharm_importRefData
 
 % If specified crop name instead of index, find index.
 if ~isempty(dbCrop) && ischar(dbCrop)
@@ -97,28 +169,45 @@ warning('on','all')
 % The years we want to produce PLUM outputs for (will begin with
 % transitions from years(1)-1 to years(1)
 years = year1:yearN ;
+Nyears = length(years) ;
 if year1 <= base_year
     error('year1 (%d) must be > base_year (%d)!\n', year1, base_year)
 elseif year1 > yearN
     error('year1 (%d) must be <= yearN (%d)!\n', year1, yearN)
 end
 
-for d = 1:length(PLUM_in_toptop)
+for d = 1:length(dirList)
 
     %%%%%%%%%%%%%
     %%% Setup %%% 
     %%%%%%%%%%%%%
 
     % Get directories
-    PLUM_in_top = removeslashifneeded(PLUM_in_toptop{d}) ;
-    disp(PLUM_in_top)
-    PLUM_out_top = addslashifneeded([PLUM_in_top '.harm/']) ;
-    unix(['mkdir -p ' PLUM_out_top]) ;
-    PLUM_in_top = addslashifneeded(PLUM_in_top) ;
+    inDir = removeslashifneeded(dirList{d}) ;
+    if ~exist(inDir, 'dir')
+        error('inDir %s not found. Try changing MATLAB working directory to inDir''s parent.')
+    end
+    disp(inDir)
+    outDir = [inDir '.harm'] ;
+    outDir = get_harm_dir(outDir, fruitveg_sugar_2oil, combineCrops) ;
+    outDir = addslashifneeded(outDir) ;
+    if ~exist(outDir, 'dir')
+        mkdir(outDir)
+    end
+    inDir = addslashifneeded(inDir) ;
+    
+    % Save diary file
+    diary off
+    diaryfile = sprintf('%s/matlab_log.txt', outDir) ;
+    if exist(diaryfile, 'file')
+        delete(diaryfile)
+    end
+    diary(diaryfile)
+    diary on
 
     % Read fraction of VEGETATED protected by...
     %%% PLUM's minimum natural fraction ("rate")
-    [~,r] = unix(['grep "MIN_NATURAL_RATE" ' PLUM_in_top 'config.properties | sed "s/MIN_NATURAL_RATE=//"  | tr -d ''\n''']) ;
+    [~,r] = unix(['grep "MIN_NATURAL_RATE" ' inDir 'config.properties | sed "s/MIN_NATURAL_RATE=//"  | tr -d ''\n''']) ;
     min_natural_rate = str2double(r) ;
     resFrac_minN_YX = min_natural_rate * ones(size(resFrac_prot_YX)) ;
     %%% Total
@@ -153,12 +242,14 @@ for d = 1:length(PLUM_in_toptop)
         latestPLUMin_2deg_nfert_YXv = -1*ones([size(landArea_2deg_YX) Ncrops_lpjg]) ;
         latestPLUMin_2deg_irrig_YXv = -1*ones([size(landArea_2deg_YX) Ncrops_lpjg]) ;
     else
-        latestPLUMin_2deg_nfert_YXv = [] ;
+        latestPLUMin_2deg_nfert_YXv = [] ; %#ok<*UNRCH>
         latestPLUMin_2deg_irrig_YXv = [] ;
     end
     clear out_* in_*
     
-    for y = 1:length(years)
+    isFirstYearInLoop = true ;
+    
+    for y = 1:Nyears
         
         thisYear = years(y) ;
         disp(num2str(thisYear)) ;
@@ -175,53 +266,68 @@ for d = 1:length(PLUM_in_toptop)
             out_y0_2deg_vegd_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
             out_y0_agri_YXv = base.maps_YXv(:,:,isAgri) ;
             out_y0_2deg_agri_YXv = base_2deg.maps_YXv(:,:,isAgri) ;
-            out_y0_nfert_YXv = base_nfert.maps_YXv ;
-            out_y0_irrig_YXv = base_irrig.maps_YXv ;
-            out_y0_2deg_nfert = base_2deg_nfert ;
-            out_y0_2deg_irrig = base_2deg_irrig ;
-            out_y0_2deg_nfert_YXv = base_2deg_nfert.maps_YXv ;
-            out_y0_2deg_irrig_YXv = base_2deg_irrig.maps_YXv ;
+            if ~combineCrops
+                out_y0_nfert_YXv = base_nfert.maps_YXv ;
+                out_y0_irrig_YXv = base_irrig.maps_YXv ;
+                out_y0_2deg_nfert = base_2deg_nfert ;
+                out_y0_2deg_irrig = base_2deg_irrig ;
+                out_y0_2deg_nfert_YXv = base_2deg_nfert.maps_YXv ;
+                out_y0_2deg_irrig_YXv = base_2deg_irrig.maps_YXv ;
+            end
         elseif y==1
-            file_in = [removeslashifneeded(PLUM_in_top) '.harm/' num2str(thisYear-1) 'post.base' num2str(base_year) '.mat'] ;
+            file_in = [removeslashifneeded(inDir) '.harm/' num2str(thisYear-1) 'post.base' num2str(base_year) '.mat'] ;
             % Load previous MAT-file
             if do_debug
                 disp(['*y0* from ' file_in])
             end
             load(file_in) ;
-            % Rename nfert vars, if necessary
-            badVars = whos('*nfert_2deg*') ;
-            if ~isempty(badVars)
-                for v = 1:length(badVars)
-                    thisVar = badVars(v).name ;
-                    newVar = strrep(thisVar,'nfert_2deg','2deg_nfert') ;
-                    eval([newVar ' = ' thisVar ' ;']) ;
-                    eval(['clear ' thisVar]) ;
+            if combineCrops
+                clear *nfert* *irrig*
+            else
+                % Rename nfert vars, if necessary
+                badVars = whos('*nfert_2deg*') ;
+                if ~isempty(badVars)
+                    for v = 1:length(badVars)
+                        thisVar = badVars(v).name ;
+                        newVar = strrep(thisVar,'nfert_2deg','2deg_nfert') ;
+                        eval([newVar ' = ' thisVar ' ;']) ;
+                        eval(['clear ' thisVar]) ;
+                    end
                 end
-            end
-            % Rename irrig vars, if necessary
-            badVars = whos('*irrig_2deg*') ;
-            if ~isempty(badVars)
-                for v = 1:length(badVars)
-                    thisVar = badVars(v).name ;
-                    newVar = strrep(thisVar,'irrig_2deg','2deg_irrig') ;
-                    eval([newVar ' = ' thisVar ' ;']) ;
-                    eval(['clear ' thisVar]) ;
+                % Rename irrig vars, if necessary
+                badVars = whos('*irrig_2deg*') ;
+                if ~isempty(badVars)
+                    for v = 1:length(badVars)
+                        thisVar = badVars(v).name ;
+                        newVar = strrep(thisVar,'irrig_2deg','2deg_irrig') ;
+                        eval([newVar ' = ' thisVar ' ;']) ;
+                        eval(['clear ' thisVar]) ;
+                    end
                 end
             end
         end
         
         % Import and process previous year, if needed
         if ~exist('in_y0','var')
-            file_in = [PLUM_in_top num2str(thisYear-1) '/LandCoverFract.txt'] ;
+            file_in = [inDir num2str(thisYear-1) '/LandCoverFract.txt'] ;
             if do_debug
                 disp(['in_y0 from ' file_in])
             end
-            [in_y0, in_y0_nfert, in_y0_irrig, in_y0_2deg, in_y0_2deg_nfert, in_y0_2deg_irrig, ...
-                latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
-                max_orig_nfert_y0] = ...
-                PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
-                LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
-                PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+            if combineCrops
+                [in_y0, ~, ~, in_y0_2deg] = ...
+                    PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
+                    LUnames, bareFrac_y0_YX, [], [], ...
+                    PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+                    fruitveg_sugar_2oil) ;
+            else
+                [in_y0, in_y0_nfert, in_y0_irrig, in_y0_2deg, in_y0_2deg_nfert, in_y0_2deg_irrig, ...
+                    latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
+                    max_orig_nfert_y0] = ...
+                    PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
+                    LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
+                    PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+                    fruitveg_sugar_2oil) ;
+            end
             bareFrac_y0_YX = in_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
             in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
             in_y0_2deg_agri_YXv = in_y0_2deg.maps_YXv(:,:,isAgri) ;
@@ -229,18 +335,65 @@ for d = 1:length(PLUM_in_toptop)
             % Check for bad values
             PLUMharm_checkBadVals(in_y0.maps_YXv, [], [], landArea_YX, LUnames, 'in_y0') ;
         end
+        
+        % Check for extreme discrepancies and warn.
+        % These are not necessarily problems! We expect SOME discrepancy.
+        % Printing these warnings lets us do things like check whether the
+        % baseline is way too high (PLUM discrepancy -100%). A very large
+        % positive PLUM discrepancy can foreshadow an eventual drop to zero
+        % after harmonization.
+        if thisYear-1 == base_year
+            for v = 1:length(in_y0.varNames)
+                thisVar = in_y0.varNames{v} ;
+                
+                % Areas
+                tmp_in_area_YX = in_y0.maps_YXv(:,:,v) ;
+                tmp_in = squeeze(nansum(nansum(tmp_in_area_YX,2),1)) ;
+                tmp_out_area_YX = out_y0.maps_YXv(:,:,v) ;
+                tmp_out = squeeze(nansum(nansum(tmp_out_area_YX,2),1)) ;
+                check_discrepancy(tmp_in, tmp_out, base_year, thisVar, 'area')
+                
+                % Managements
+                if ~isCrop(v)
+                    continue
+                end
+                tmp_in = squeeze(nansum(nansum( ...
+                    tmp_in_area_YX .* ...
+                    in_y0_nfert.maps_YXv(:,:,strcmp(LPJGcrops, thisVar)),1),2)) ;
+                tmp_out = squeeze(nansum(nansum( ...
+                    tmp_out_area_YX .* ...
+                    out_y0_nfert_YXv(:,:,strcmp(LPJGcrops, thisVar)),1),2)) ;
+                check_discrepancy(tmp_in, tmp_out, base_year, thisVar, 'fert')
+                tmp_in = squeeze(nansum(nansum( ...
+                    tmp_in_area_YX .* ...
+                    in_y0_irrig.maps_YXv(:,:,strcmp(LPJGcrops, thisVar)),1),2)) ;
+                tmp_out = squeeze(nansum(nansum( ...
+                    tmp_out_area_YX .* ...
+                    out_y0_irrig_YXv(:,:,strcmp(LPJGcrops, thisVar)),1),2)) ;
+                check_discrepancy(tmp_in, tmp_out, base_year, thisVar, 'irrig')                
+            end 
+        end
 
         % Import this year and convert to area
-        file_in = [PLUM_in_top num2str(thisYear) '/LandCoverFract.txt'] ;
+        file_in = [inDir num2str(thisYear) '/LandCoverFract.txt'] ;
         if do_debug
             disp(['in_y1 from ' file_in])
         end
-        [in_y1, in_y1_nfert, in_y1_irrig, in_y1_2deg, in_y1_2deg_nfert, in_y1_2deg_irrig, ...
-            latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
-            max_orig_nfert_y1] = ...
-            PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
-            LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
-            PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method) ;
+        if combineCrops
+            [in_y1, ~, ~, in_y1_2deg] = ...
+                PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
+                LUnames, bareFrac_y0_YX, [], [], ...
+                PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+                    fruitveg_sugar_2oil) ;
+        else
+            [in_y1, in_y1_nfert, in_y1_irrig, in_y1_2deg, in_y1_2deg_nfert, in_y1_2deg_irrig, ...
+                latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
+                max_orig_nfert_y1] = ...
+                PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
+                LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
+                PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
+                    fruitveg_sugar_2oil) ;
+        end
         in_y1_agri_YXv = in_y1.maps_YXv(:,:,isAgri) ;
         in_y1_2deg_agri_YXv = in_y1_2deg.maps_YXv(:,:,isAgri) ;
         in_y1_ntrl_YX = in_y1.maps_YXv(:,:,strcmp(in_y1.varNames,'NATURAL')) ;
@@ -259,21 +412,34 @@ for d = 1:length(PLUM_in_toptop)
                 'Initial import', 'in_2deg', 'in_2deg', ...
                 LUnames, isCrop, isAgri, dbCrop, thisYear)
         end
-        if debug_nfert
-            debug_global_mgmts(...
-                in_y0_2deg_nfert.maps_YXv, in_y1_2deg_nfert.maps_YXv, 0, ...
-                in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
-                'Mt', 1e-6*1e-3, ...
-                'Initial import', 'in_2deg', 'in_2deg', 'nfert', ...
-                LPJGcrops, dbCrop, thisYear)
+        if ~combineCrops
+            if debug_nfert
+                debug_global_mgmts(...
+                    in_y0_2deg_nfert.maps_YXv, in_y1_2deg_nfert.maps_YXv, 0, ...
+                    in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
+                    'Mt', 1e-6*1e-3, ...
+                    'Initial import', 'in_2deg', 'in_2deg', 'nfert', ...
+                    LPJGcrops, dbCrop, thisYear)
+            end
+            if debug_irrig
+                debug_global_mgmts(...
+                    in_y0_2deg_irrig.maps_YXv, in_y1_2deg_irrig.maps_YXv, 0, ...
+                    in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
+                    'arb', 1, ...
+                    'Initial import', 'in_2deg', 'in_2deg', 'irrig', ...
+                    LPJGcrops, dbCrop, thisYear)
+            end
         end
-        if debug_irrig
-            debug_global_mgmts(...
-                in_y0_2deg_irrig.maps_YXv, in_y1_2deg_irrig.maps_YXv, 0, ...
-                in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
-                'arb', 1, ...
-                'Initial import', 'in_2deg', 'in_2deg', 'irrig', ...
-                LPJGcrops, dbCrop, thisYear)
+        
+        % Set up empty arrays for tracking global totals
+        if isFirstYearInLoop
+            out_ts.yearList = [(years(1)-1) years] ;
+            out_ts.luNames = in_y0.varNames ;
+            out_ts.cropNames = LPJGcrops ;
+            out_ts.area_vy = nan(Nlu, Nyears+1) ;
+            out_ts.nfert_vy = nan(length(find(isCrop)), Nyears+1) ;
+            out_ts.irrig_vy = nan(length(find(isCrop)), Nyears+1) ;
+            in_ts = out_ts ;
         end
         
         % Make sure that total global loss of a land use does not exceed
@@ -343,58 +509,60 @@ for d = 1:length(PLUM_in_toptop)
         % in any PLUM output thus far, or in LUH2, or in any harmonized
         % output thus far [although no harmonized output should exceed max
         % anyway)
-        max_harm_nfert_y0 = squeeze(max(max(out_y0_2deg_nfert.maps_YXv,[],1),[],2)) ;
-        if ~exist('max_nfert_y0','var')
-            max_nfert_y1 = max([max_orig_nfert_y0 max_orig_nfert_y1 max_harm_nfert_y0],[],2) ;
-        else
-            max_nfert_y1 = max([max_orig_nfert_y0 max_orig_nfert_y1 max_harm_nfert_y0 max_nfert_y0],[],2) ;
-        end
-        max_nfert_y1_YXv = repmat(permute(max_nfert_y1,[2 3 1]),[size(landArea_2deg_YX) 1]) ;
-        tooMuchNfert_YXv = in_y0_2deg_nfert.maps_YXv > max_nfert_y1_YXv ;
-                
-        % Do not allow invalid management inputs. This should only affect
-        % cells that did not have any of this crop in the original PLUM
-        % outputs.
-        in_y0_2deg_nfert.maps_YXv(in_y0_2deg_nfert.maps_YXv<0) = 0 ;
-        in_y1_2deg_nfert.maps_YXv(in_y1_2deg_nfert.maps_YXv<0) = 0 ;
-        in_y0_2deg_nfert.maps_YXv(tooMuchNfert_YXv) = max_nfert_y1_YXv(tooMuchNfert_YXv) ;
-        in_y1_2deg_nfert.maps_YXv(tooMuchNfert_YXv) = max_nfert_y1_YXv(tooMuchNfert_YXv) ;
-        in_y0_2deg_irrig.maps_YXv(in_y0_2deg_irrig.maps_YXv<0) = 0 ;
-        in_y1_2deg_irrig.maps_YXv(in_y1_2deg_irrig.maps_YXv<0) = 0 ;
-        in_y0_2deg_irrig.maps_YXv(in_y0_2deg_irrig.maps_YXv>1) = 1 ;
-        in_y1_2deg_irrig.maps_YXv(in_y1_2deg_irrig.maps_YXv>1) = 1 ;
-        
-        % Check for bad values
-        PLUMharm_checkBadVals([], in_y0_2deg_nfert.maps_YXv, in_y0_2deg_irrig.maps_YXv, [], LUnames, 'in_y0_2deg') ;
-        PLUMharm_checkBadVals([], in_y1_2deg_nfert.maps_YXv, in_y1_2deg_irrig.maps_YXv, [], LUnames, 'in_y1_2deg') ;
-        
-        % Debugging
-        if debug_nfert
-            debug_global_mgmts(...
-                in_y0_2deg_nfert.maps_YXv, in_y1_2deg_nfert.maps_YXv, 0, ...
-                in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
-                'Mt', 1e-6*1e-3, ...
-                'After limiting to [0, max]', 'in_2deg', 'in_2deg', 'nfert', ...
-                LPJGcrops, dbCrop, thisYear)
-            if ~isempty(debugIJ_2deg)
-                PLUMharm_debugOut_deltas('iny0_to_iny1','Nfert', ...
-                    in_y0_2deg_nfert.maps_YXv .* in_y0_2deg.maps_YXv(:,:,isCrop), ...
-                    in_y1_2deg_nfert.maps_YXv .* in_y1_2deg.maps_YXv(:,:,isCrop), ...
-                    debugIJ_2deg, LPJGcrops)
+        if ~combineCrops
+            max_harm_nfert_y0 = squeeze(max(max(out_y0_2deg_nfert.maps_YXv,[],1),[],2)) ;
+            if ~exist('max_nfert_y0','var')
+                max_nfert_y1 = max([max_orig_nfert_y0 max_orig_nfert_y1 max_harm_nfert_y0],[],2) ;
+            else
+                max_nfert_y1 = max([max_orig_nfert_y0 max_orig_nfert_y1 max_harm_nfert_y0 max_nfert_y0],[],2) ;
             end
-        end
-        if debug_irrig
-            debug_global_mgmts(...
-                in_y0_2deg_irrig.maps_YXv, in_y1_2deg_irrig.maps_YXv, 0, ...
-                in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
-                'arb', 1, ...
-                'After limiting to [0, max]', 'in_2deg', 'in_2deg', 'irrig', ...
-                LPJGcrops, dbCrop, thisYear)
-            if ~isempty(debugIJ_2deg)
-                PLUMharm_debugOut_deltas('iny0_to_iny1','irrig', ...
-                    in_y0_2deg_irrig.maps_YXv .* in_y0_2deg.maps_YXv(:,:,isCrop), ...
-                    in_y1_2deg_irrig.maps_YXv .* in_y1_2deg.maps_YXv(:,:,isCrop), ...
-                    debugIJ_2deg, LPJGcrops)
+            max_nfert_y1_YXv = repmat(permute(max_nfert_y1,[2 3 1]),[size(landArea_2deg_YX) 1]) ;
+            tooMuchNfert_YXv = in_y0_2deg_nfert.maps_YXv > max_nfert_y1_YXv ;
+            
+            % Do not allow invalid management inputs. This should only affect
+            % cells that did not have any of this crop in the original PLUM
+            % outputs.
+            in_y0_2deg_nfert.maps_YXv(in_y0_2deg_nfert.maps_YXv<0) = 0 ;
+            in_y1_2deg_nfert.maps_YXv(in_y1_2deg_nfert.maps_YXv<0) = 0 ;
+            in_y0_2deg_nfert.maps_YXv(tooMuchNfert_YXv) = max_nfert_y1_YXv(tooMuchNfert_YXv) ;
+            in_y1_2deg_nfert.maps_YXv(tooMuchNfert_YXv) = max_nfert_y1_YXv(tooMuchNfert_YXv) ;
+            in_y0_2deg_irrig.maps_YXv(in_y0_2deg_irrig.maps_YXv<0) = 0 ;
+            in_y1_2deg_irrig.maps_YXv(in_y1_2deg_irrig.maps_YXv<0) = 0 ;
+            in_y0_2deg_irrig.maps_YXv(in_y0_2deg_irrig.maps_YXv>1) = 1 ;
+            in_y1_2deg_irrig.maps_YXv(in_y1_2deg_irrig.maps_YXv>1) = 1 ;
+            
+            % Check for bad values
+            PLUMharm_checkBadVals([], in_y0_2deg_nfert.maps_YXv, in_y0_2deg_irrig.maps_YXv, [], LUnames, 'in_y0_2deg') ;
+            PLUMharm_checkBadVals([], in_y1_2deg_nfert.maps_YXv, in_y1_2deg_irrig.maps_YXv, [], LUnames, 'in_y1_2deg') ;
+            
+            % Debugging
+            if debug_nfert
+                debug_global_mgmts(...
+                    in_y0_2deg_nfert.maps_YXv, in_y1_2deg_nfert.maps_YXv, 0, ...
+                    in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
+                    'Mt', 1e-6*1e-3, ...
+                    'After limiting to [0, max]', 'in_2deg', 'in_2deg', 'nfert', ...
+                    LPJGcrops, dbCrop, thisYear)
+                if ~isempty(debugIJ_2deg)
+                    PLUMharm_debugOut_deltas('iny0_to_iny1','Nfert', ...
+                        in_y0_2deg_nfert.maps_YXv .* in_y0_2deg.maps_YXv(:,:,isCrop), ...
+                        in_y1_2deg_nfert.maps_YXv .* in_y1_2deg.maps_YXv(:,:,isCrop), ...
+                        debugIJ_2deg, LPJGcrops)
+                end
+            end
+            if debug_irrig
+                debug_global_mgmts(...
+                    in_y0_2deg_irrig.maps_YXv, in_y1_2deg_irrig.maps_YXv, 0, ...
+                    in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
+                    'arb', 1, ...
+                    'After limiting to [0, max]', 'in_2deg', 'in_2deg', 'irrig', ...
+                    LPJGcrops, dbCrop, thisYear)
+                if ~isempty(debugIJ_2deg)
+                    PLUMharm_debugOut_deltas('iny0_to_iny1','irrig', ...
+                        in_y0_2deg_irrig.maps_YXv .* in_y0_2deg.maps_YXv(:,:,isCrop), ...
+                        in_y1_2deg_irrig.maps_YXv .* in_y1_2deg.maps_YXv(:,:,isCrop), ...
+                        debugIJ_2deg, LPJGcrops)
+                end
             end
         end
         
@@ -456,7 +624,8 @@ for d = 1:length(PLUM_in_toptop)
         PLUMharm_checkCons_area(...
             out_y0_2deg_agri_YXv, mid_y1_2deg_agri_YXv, ...
             in_y0_2deg_agri_YXv, in_y1_2deg_agri_YXv, ...
-            unm_y1_2deg_agri_YXv, LUnames(isAgri), conserv_tol_pct, '2') ;
+            unm_y1_2deg_agri_YXv, LUnames(isAgri), ...
+            conserv_tol_pct, conserv_tol_area, '2') ;
         
         % Check 2: Check that cells' vegetated area does not change much
         nonCons_pct_YX = 100*(mid_y1_2deg_vegd_YX - out_y0_2deg_vegd_YX) ./ out_y0_2deg_vegd_YX ;
@@ -505,7 +674,7 @@ for d = 1:length(PLUM_in_toptop)
         out_y1_2deg_ntrl_YX = tmp_YXv(:,:,end-1) ;
         out_y1_2deg_bare_YX = tmp_YXv(:,:,end) ;
         clear tmp_YXv
-                
+        
         % Debugging
         if debug_areas
             debug_global_areas(out_y0_2deg.maps_YXv, ...
@@ -519,92 +688,94 @@ for d = 1:length(PLUM_in_toptop)
                     debugIJ_2deg,LUnames) ;
             end
         end
-
+        
         % Check 3: Check that global area changes are (mostly) conserved
         PLUMharm_checkCons_area(...
             out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, ...
             in_y0_2deg_agri_YXv, in_y1_2deg_agri_YXv, ...
-            zeros(size(out_y0_2deg_agri_YXv)), LUnames(isAgri), conserv_tol_pct, ...
+            zeros(size(out_y0_2deg_agri_YXv)), LUnames(isAgri), ...
+            conserv_tol_pct, conserv_tol_area, ...
             '3') ;
         
         % Apply management deltas.
-        % Make sure that managements are within acceptable bounds,
-        % considering (a) how much each cell had available to lose and (b)
-        % how much room each cell has to gain before exceeding max rate.
-        if debug_nfert ; thisDBij = debugIJ_2deg ;
-        else ; thisDBij = [] ;
-        end
-        [unm_y1_2deg_nfert_YXv, mid_y1_2deg_nfert_YXv] = ...
-            PLUMharm_getUnmet_mgmt(...
+        if ~combineCrops
+            % Make sure that managements are within acceptable bounds,
+            % considering (a) how much each cell had available to lose and (b)
+            % how much room each cell has to gain before exceeding max rate.
+            if debug_nfert ; thisDBij = debugIJ_2deg ;
+            else ; thisDBij = [] ;
+            end
+            [unm_y1_2deg_nfert_YXv, mid_y1_2deg_nfert_YXv] = ...
+                PLUMharm_getUnmet_mgmt(...
                 out_y0_2deg_nfert.maps_YXv, out_y0_2deg.maps_YXv(:,:,isCrop), ...
                 in_y0_2deg_nfert.maps_YXv, in_y1_2deg_nfert.maps_YXv, ...
                 in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
                 out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), max_nfert_y1, thisDBij, 'Nfert', dbCrop) ;
-        if debug_irrig ; thisDBij = debugIJ_2deg ;
-        else ; thisDBij = [] ;
-        end
-        [unm_y1_2deg_irrig_YXv, mid_y1_2deg_irrig_YXv] = ...
-            PLUMharm_getUnmet_mgmt(...
+            if debug_irrig ; thisDBij = debugIJ_2deg ;
+            else ; thisDBij = [] ;
+            end
+            [unm_y1_2deg_irrig_YXv, mid_y1_2deg_irrig_YXv] = ...
+                PLUMharm_getUnmet_mgmt(...
                 out_y0_2deg_irrig.maps_YXv, out_y0_2deg.maps_YXv(:,:,isCrop), ...
                 in_y0_2deg_irrig.maps_YXv, in_y1_2deg_irrig.maps_YXv, ...
                 in_y0_2deg.maps_YXv(:,:,isCrop), in_y1_2deg.maps_YXv(:,:,isCrop), ...
                 out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ones(size(max_nfert_y1)), thisDBij, 'irrig', dbCrop) ;
-
-        % Do not allow invalid management inputs.
-        PLUMharm_checkBadVals([], mid_y1_2deg_nfert_YXv, mid_y1_2deg_irrig_YXv, [], LUnames, 'mid_y1_2deg') ;
-
-        % Debugging
-        if debug_nfert
-            debug_global_mgmts(...
-                out_y0_2deg_nfert.maps_YXv, mid_y1_2deg_nfert_YXv, unm_y1_2deg_nfert_YXv, ...
-                out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
-                'Mt', 1e-6*1e-3, ...
-                'After applying deltas', 'out_2deg', 'mid_2deg', 'nfert', ...
-                LPJGcrops, dbCrop, thisYear)
-            if ~isempty(debugIJ_2deg)
-                PLUMharm_debugOut_deltas('outy0_to_midy1', 'Nfert', ...
-                    out_y0_2deg_nfert_YXv.*out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-                    mid_y1_2deg_nfert_YXv.*out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-                    debugIJ_2deg,LPJGcrops) ;
+            
+            % Do not allow invalid management inputs.
+            PLUMharm_checkBadVals([], mid_y1_2deg_nfert_YXv, mid_y1_2deg_irrig_YXv, [], LUnames, 'mid_y1_2deg') ;
+            
+            % Debugging
+            if debug_nfert
+                debug_global_mgmts(...
+                    out_y0_2deg_nfert.maps_YXv, mid_y1_2deg_nfert_YXv, unm_y1_2deg_nfert_YXv, ...
+                    out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
+                    'Mt', 1e-6*1e-3, ...
+                    'After applying deltas', 'out_2deg', 'mid_2deg', 'nfert', ...
+                    LPJGcrops, dbCrop, thisYear)
+                if ~isempty(debugIJ_2deg)
+                    PLUMharm_debugOut_deltas('outy0_to_midy1', 'Nfert', ...
+                        out_y0_2deg_nfert_YXv.*out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                        mid_y1_2deg_nfert_YXv.*out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                        debugIJ_2deg,LPJGcrops) ;
+                end
             end
-        end
-        if debug_irrig
-            debug_global_mgmts(...
-                out_y0_2deg_irrig.maps_YXv, mid_y1_2deg_irrig_YXv, unm_y1_2deg_irrig_YXv, ...
-                out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
-                'arb', 1, ...
-                'After applying deltas', 'out_2deg', 'mid_2deg', 'irrig', ...
-                LPJGcrops, dbCrop, thisYear)
-            if ~isempty(debugIJ_2deg)
-                PLUMharm_debugOut_deltas('outy0_to_midy1', 'irrig', ...
-                    out_y0_2deg_irrig_YXv.*out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-                    mid_y1_2deg_irrig_YXv.*out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-                    debugIJ_2deg,LPJGcrops) ;
+            if debug_irrig
+                debug_global_mgmts(...
+                    out_y0_2deg_irrig.maps_YXv, mid_y1_2deg_irrig_YXv, unm_y1_2deg_irrig_YXv, ...
+                    out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
+                    'arb', 1, ...
+                    'After applying deltas', 'out_2deg', 'mid_2deg', 'irrig', ...
+                    LPJGcrops, dbCrop, thisYear)
+                if ~isempty(debugIJ_2deg)
+                    PLUMharm_debugOut_deltas('outy0_to_midy1', 'irrig', ...
+                        out_y0_2deg_irrig_YXv.*out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                        mid_y1_2deg_irrig_YXv.*out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                        debugIJ_2deg,LPJGcrops) ;
+                end
             end
-        end
-
-        % Check 2b: Check that management changes are (mostly) conserved
-        PLUMharm_checkCons_mgmt(...
-            out_y0_2deg_nfert.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            mid_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y0_2deg_nfert.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y1_2deg_nfert.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            unm_y1_2deg_nfert_YXv, LPJGcrops, conserv_tol_pct, false(Ncrops_lpjg,1), ...
-            '2b nfert', true) ;
-        PLUMharm_checkCons_mgmt(...
-            out_y0_2deg_irrig.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            mid_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y0_2deg_irrig.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y1_2deg_irrig.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            unm_y1_2deg_irrig_YXv, LPJGcrops, conserv_tol_pct, false(Ncrops_lpjg,1), ...
-            '2b irrig', true) ;
-
-        % Do ring redistribution for management inputs
-        if debug_nfert ; thisDBij = debugIJ_2deg ;
-        else ; thisDBij = [] ;
-        end
-        [out_y1_2deg_nfert_YXv, unm2_y1_2deg_nfert_YXv, notEnough_nfert] = ...
-            PLUMharm_ringRedist_mgmt(...
+            
+            % Check 2b: Check that management changes are (mostly) conserved
+            PLUMharm_checkCons_mgmt(...
+                out_y0_2deg_nfert.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                mid_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y0_2deg_nfert.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y1_2deg_nfert.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                unm_y1_2deg_nfert_YXv, LPJGcrops, conserv_tol_pct, false(Ncrops_lpjg,1), ...
+                '2b nfert', true) ;
+            PLUMharm_checkCons_mgmt(...
+                out_y0_2deg_irrig.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                mid_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y0_2deg_irrig.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y1_2deg_irrig.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                unm_y1_2deg_irrig_YXv, LPJGcrops, conserv_tol_pct, false(Ncrops_lpjg,1), ...
+                '2b irrig', true) ;
+            
+            % Do ring redistribution for management inputs
+            if debug_nfert ; thisDBij = debugIJ_2deg ;
+            else ; thisDBij = [] ;
+            end
+            [out_y1_2deg_nfert_YXv, unm2_y1_2deg_nfert_YXv, notEnough_nfert] = ...
+                PLUMharm_ringRedist_mgmt(...
                 mid_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 unm_y1_2deg_nfert_YXv, max_nfert_y1, ...
                 LPJGcrops, thisDBij, ...
@@ -612,12 +783,12 @@ for d = 1:length(PLUM_in_toptop)
                 in_y0_2deg_nfert, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 in_y1_2deg_nfert, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 conserv_tol_pct, 'ringRedist nfert', dbCrop) ;
-        if debug_irrig ; thisDBij = debugIJ_2deg ;
-        else ; thisDBij = [] ;
-        end
-
-        [out_y1_2deg_irrig_YXv, unm2_y1_2deg_irrig_YXv, notEnough_irrig] = ...
-            PLUMharm_ringRedist_mgmt(...
+            if debug_irrig ; thisDBij = debugIJ_2deg ;
+            else ; thisDBij = [] ;
+            end
+            
+            [out_y1_2deg_irrig_YXv, unm2_y1_2deg_irrig_YXv, notEnough_irrig] = ...
+                PLUMharm_ringRedist_mgmt(...
                 mid_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 unm_y1_2deg_irrig_YXv, ones(size(max_nfert_y1)), ...
                 LPJGcrops, thisDBij, ...
@@ -625,44 +796,45 @@ for d = 1:length(PLUM_in_toptop)
                 in_y0_2deg_irrig, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 in_y1_2deg_irrig, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
                 conserv_tol_pct, 'ringRedist irrig', dbCrop) ;
-
-        % Do not allow invalid management inputs.
-        PLUMharm_checkBadVals([], out_y1_2deg_nfert_YXv, out_y1_2deg_irrig_YXv, [], LUnames, 'out_y1_2deg') ;
-
-        % Debugging
-        if debug_nfert
-            debug_global_mgmts(...
-                out_y0_2deg_nfert.maps_YXv, out_y1_2deg_nfert_YXv, 0, ...
-                out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
-                'Mt', 1e-6*1e-3, ...
-                'After ringRedist', 'out_2deg', 'out_2deg', 'nfert', ...
-                LPJGcrops, dbCrop, thisYear)
+            
+            % Do not allow invalid management inputs.
+            PLUMharm_checkBadVals([], out_y1_2deg_nfert_YXv, out_y1_2deg_irrig_YXv, [], LUnames, 'out_y1_2deg') ;
+            
+            % Debugging
+            if debug_nfert
+                debug_global_mgmts(...
+                    out_y0_2deg_nfert.maps_YXv, out_y1_2deg_nfert_YXv, 0, ...
+                    out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
+                    'Mt', 1e-6*1e-3, ...
+                    'After ringRedist', 'out_2deg', 'out_2deg', 'nfert', ...
+                    LPJGcrops, dbCrop, thisYear)
+            end
+            if debug_irrig
+                debug_global_mgmts(...
+                    out_y0_2deg_irrig.maps_YXv, out_y1_2deg_irrig_YXv, 0, ...
+                    out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
+                    'arb', 1, ...
+                    'After ringRedist', 'out_2deg', 'out_2deg', 'irrig', ...
+                    LPJGcrops, dbCrop, thisYear)
+            end
+            
+            % Check 3b: Check that management changes are (mostly) conserved
+            PLUMharm_checkCons_mgmt(...
+                out_y0_2deg_nfert.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                out_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y0_2deg_nfert.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y1_2deg_nfert.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                unm2_y1_2deg_nfert_YXv, LPJGcrops, conserv_tol_pct, notEnough_nfert, ...
+                '3b nfert', true) ;
+            
+            PLUMharm_checkCons_mgmt(...
+                out_y0_2deg_irrig.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                out_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y0_2deg_irrig.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y1_2deg_irrig.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                unm2_y1_2deg_irrig_YXv, LPJGcrops, conserv_tol_pct, notEnough_irrig, ...
+                '3b irrig', true) ;
         end
-        if debug_irrig
-            debug_global_mgmts(...
-                out_y0_2deg_irrig.maps_YXv, out_y1_2deg_irrig_YXv, 0, ...
-                out_y0_2deg_agri_YXv(:,:,1:end-1), out_y1_2deg_agri_YXv(:,:,1:end-1), ...
-                'arb', 1, ...
-                'After ringRedist', 'out_2deg', 'out_2deg', 'irrig', ...
-                LPJGcrops, dbCrop, thisYear)
-        end
-
-        % Check 3b: Check that management changes are (mostly) conserved
-        PLUMharm_checkCons_mgmt(...
-            out_y0_2deg_nfert.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            out_y1_2deg_nfert_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y0_2deg_nfert.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y1_2deg_nfert.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            unm2_y1_2deg_nfert_YXv, LPJGcrops, conserv_tol_pct, notEnough_nfert, ...
-            '3b nfert', true) ;
-
-        PLUMharm_checkCons_mgmt(...
-            out_y0_2deg_irrig.maps_YXv, out_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            out_y1_2deg_irrig_YXv, out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y0_2deg_irrig.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y1_2deg_irrig.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            unm2_y1_2deg_irrig_YXv, LPJGcrops, conserv_tol_pct, notEnough_irrig, ...
-            '3b irrig', true) ;
         
         % Loop through all 2-degree gridcells and distribute the new crop and
         % pasture area changes to the half-degree gridcells within.
@@ -719,65 +891,68 @@ for d = 1:length(PLUM_in_toptop)
         PLUMharm_checkCons_area(...
             out_y0_agri_YXv, out_y1_agri_YXv, ...
             in_y0_agri_YXv, in_y1_agri_YXv, ...
-            zeros(size(out_y0_agri_YXv)), LUnames(isAgri), conserv_tol_pct, ...
+            zeros(size(out_y0_agri_YXv)), LUnames(isAgri), ...
+            conserv_tol_pct, conserv_tol_area, ...
             '5') ;
         
-        % Distribute management inputs from 2-degree to half-degree cells.
-        out_y1_nfert_YXv = PLUMharm_distMgmt(out_y1_2deg_nfert_YXv,2,0.5) ;
-        out_y1_irrig_YXv = PLUMharm_distMgmt(out_y1_2deg_irrig_YXv,2,0.5) ;
-        out_y1_nfert_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
-        out_y1_irrig_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
-        
-        % If no thisCrop, no mgmt additions to thisCrop
-        out_y1_nfert_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
-        out_y1_irrig_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
-        
-        % Do not allow invalid management inputs.
-        PLUMharm_checkBadVals([], out_y1_nfert_YXv, out_y1_irrig_YXv, [], LUnames, 'out_y1') ;
-        
-        % Debugging
-        if debug_nfert
-            debug_global_mgmts(...
-                out_y0_nfert_YXv, out_y1_nfert_YXv, 0, ...
-                out_y0_agri_YXv(:,:,1:end-1), out_y1_agri_YXv(:,:,1:end-1), ...
-                'Mt', 1e-6*1e-3, ...
-                'Now at half-degree', 'out', 'out', 'nfert', ...
-                LPJGcrops, dbCrop, thisYear)
-        end
-        if debug_irrig
-            debug_global_mgmts(...
-                out_y0_irrig_YXv, out_y1_irrig_YXv, 0, ...
-                out_y0_agri_YXv(:,:,1:end-1), out_y1_agri_YXv(:,:,1:end-1), ...
-                'arb', 1, ...
-                'Now at half-degree', 'out', 'out', 'irrig', ...
-                LPJGcrops, dbCrop, thisYear)
-        end
-
-        % Check 5: Check that global mgmt changes are (mostly) conserved
-        PLUMharm_checkCons_mgmt(...
-            out_y0_nfert_YXv, out_y0_agri_YXv(:,:,~isAgri_isPast), ...
-            out_y1_nfert_YXv, out_y1_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y0_2deg_nfert.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y1_2deg_nfert.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-...            in_y0_nfert.maps_YXv, in_y0_agri_YXv(:,:,~isAgri_isPast), ...
-...            in_y1_nfert.maps_YXv, in_y1_agri_YXv(:,:,~isAgri_isPast), ...
-            zeros(size(out_y0_nfert_YXv)), LPJGcrops, conserv_tol_pct, notEnough_nfert, ...
-            '5 nfert', false) ;
-        PLUMharm_checkCons_mgmt(...
-            out_y0_irrig_YXv, out_y0_agri_YXv(:,:,~isAgri_isPast), ...
-            out_y1_irrig_YXv, out_y1_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y0_2deg_irrig.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-            in_y1_2deg_irrig.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
-...            in_y0_irrig.maps_YXv, in_y0_agri_YXv(:,:,~isAgri_isPast), ...
-...            in_y1_irrig.maps_YXv, in_y1_agri_YXv(:,:,~isAgri_isPast), ...
-            zeros(size(out_y0_irrig_YXv)), LPJGcrops, conserv_tol_pct, notEnough_irrig, ...
-            '5 irrig', false) ;
-        
-        % Make sure that ExtraCrop receives no management
-        if max(max(out_y1_nfert_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop'))))>0
-            error('Some ExtraCrop Nfert >0! (%0.3e)',max(max(out_y1_nfert_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop')))))
-        elseif max(max(out_y1_irrig_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop'))))>0
-            error('Some ExtraCrop irrig >0! (%0.3e)',max(max(out_y1_irrig_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop')))))
+        if ~combineCrops
+            % Distribute management inputs from 2-degree to half-degree cells.
+            out_y1_nfert_YXv = PLUMharm_distMgmt(out_y1_2deg_nfert_YXv,2,0.5) ;
+            out_y1_irrig_YXv = PLUMharm_distMgmt(out_y1_2deg_irrig_YXv,2,0.5) ;
+            out_y1_nfert_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
+            out_y1_irrig_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
+            
+            % If no thisCrop, no mgmt additions to thisCrop
+            out_y1_nfert_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
+            out_y1_irrig_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
+            
+            % Do not allow invalid management inputs.
+            PLUMharm_checkBadVals([], out_y1_nfert_YXv, out_y1_irrig_YXv, [], LUnames, 'out_y1') ;
+            
+            % Debugging
+            if debug_nfert
+                debug_global_mgmts(...
+                    out_y0_nfert_YXv, out_y1_nfert_YXv, 0, ...
+                    out_y0_agri_YXv(:,:,1:end-1), out_y1_agri_YXv(:,:,1:end-1), ...
+                    'Mt', 1e-6*1e-3, ...
+                    'Now at half-degree', 'out', 'out', 'nfert', ...
+                    LPJGcrops, dbCrop, thisYear)
+            end
+            if debug_irrig
+                debug_global_mgmts(...
+                    out_y0_irrig_YXv, out_y1_irrig_YXv, 0, ...
+                    out_y0_agri_YXv(:,:,1:end-1), out_y1_agri_YXv(:,:,1:end-1), ...
+                    'arb', 1, ...
+                    'Now at half-degree', 'out', 'out', 'irrig', ...
+                    LPJGcrops, dbCrop, thisYear)
+            end
+            
+            % Check 5: Check that global mgmt changes are (mostly) conserved
+            PLUMharm_checkCons_mgmt(...
+                out_y0_nfert_YXv, out_y0_agri_YXv(:,:,~isAgri_isPast), ...
+                out_y1_nfert_YXv, out_y1_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y0_2deg_nfert.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y1_2deg_nfert.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+...                 in_y0_nfert.maps_YXv, in_y0_agri_YXv(:,:,~isAgri_isPast), ...
+...                 in_y1_nfert.maps_YXv, in_y1_agri_YXv(:,:,~isAgri_isPast), ...
+                zeros(size(out_y0_nfert_YXv)), LPJGcrops, conserv_tol_pct, notEnough_nfert, ...
+                '5 nfert', false) ;
+            PLUMharm_checkCons_mgmt(...
+                out_y0_irrig_YXv, out_y0_agri_YXv(:,:,~isAgri_isPast), ...
+                out_y1_irrig_YXv, out_y1_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y0_2deg_irrig.maps_YXv, in_y0_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+                in_y1_2deg_irrig.maps_YXv, in_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ...
+...                 in_y0_irrig.maps_YXv, in_y0_agri_YXv(:,:,~isAgri_isPast), ...
+...                 in_y1_irrig.maps_YXv, in_y1_agri_YXv(:,:,~isAgri_isPast), ...
+                zeros(size(out_y0_irrig_YXv)), LPJGcrops, conserv_tol_pct, notEnough_irrig, ...
+                '5 irrig', false) ;
+            
+            % Make sure that ExtraCrop receives no management
+            if max(max(out_y1_nfert_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop'))))>0
+                error('Some ExtraCrop Nfert >0! (%0.3e)',max(max(out_y1_nfert_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop')))))
+            elseif max(max(out_y1_irrig_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop'))))>0
+                error('Some ExtraCrop irrig >0! (%0.3e)',max(max(out_y1_irrig_YXv(:,:,strcmp(LPJGcrops,'ExtraCrop')))))
+            end
         end
 
         % Get land use areas
@@ -799,9 +974,12 @@ for d = 1:length(PLUM_in_toptop)
             disp(['  Done processing (' toc_hms(toc) '). Now writing.'])
         end
         
+        outDir_thisYear = sprintf('%s%d', outDir, thisYear) ;
         if save_halfDeg_any
+            if ~exist(outDir_thisYear, 'dir')
+                mkdir(outDir_thisYear)
+            end
             % Save new LandCoverFract.txt (0.5-degree)
-            unix(['mkdir -p ' PLUM_out_top num2str(thisYear)]) ;
             out_y1.varNames = {'PASTURE','CROPLAND','NATURAL','BARREN'} ;
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'CROPLAND')) = out_y1_crop_YX ;
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'PASTURE')) = out_y1_past_YX ;
@@ -810,12 +988,12 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv = out_y1.maps_YXv ./ repmat(landArea_YX,[1 1 length(out_y1.varNames)]) ;
             
             if save_halfDeg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.mat'] ;
+                file_out = [outDir_thisYear '/LandCoverFract.base' num2str(base_year) '.mat'] ;
                 save(file_out,'out_y1') ;
             end
             if save_halfDeg_txt
                 [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.txt'] ;
+                file_out = [outDir_thisYear '/LandCoverFract.base' num2str(base_year) '.txt'] ;
                 lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                     'outPrec', outPrec, ...
                     'outWidth', outWidth, ...
@@ -828,76 +1006,84 @@ for d = 1:length(PLUM_in_toptop)
             clear out_y1
             
             % Save new CropFract.txt (0.5-degree)
-            out_y1.maps_YXv = out_y1_agri_YXv(:,:,~isAgri_isPast) ./ repmat(out_y1_crop_YX,[1 1 length(LPJGcrops)]) ;
-            out_y1.maps_YXv(repmat(out_y1_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
-            out_y1.varNames = LPJGcrops ;
-            if save_halfDeg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.mat'] ;
-                save(file_out,'out_y1') ;
+            if ~combineCrops
+                out_y1.maps_YXv = out_y1_agri_YXv(:,:,~isAgri_isPast) ./ repmat(out_y1_crop_YX,[1 1 length(LPJGcrops)]) ;
+                out_y1.maps_YXv(repmat(out_y1_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
+                out_y1.varNames = LPJGcrops ;
+                if save_halfDeg_mat
+                    file_out = [outDir_thisYear '/CropFract.base' num2str(base_year) '.mat'] ;
+                    save(file_out,'out_y1') ;
+                end
+                if save_halfDeg_txt
+                    [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+                    file_out = [outDir_thisYear '/CropFract.base' num2str(base_year) '.txt'] ;
+                    lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                        'outPrec', outPrec, ...
+                        'outWidth', outWidth, ...
+                        'delimiter', delimiter, ...
+                        'overwrite', overwrite, ...
+                        'fancy', fancy, ...
+                        'progress_step_pct', 20, ...
+                        'verbose', false) ;
+                end
+                clear out_y1
             end
-            if save_halfDeg_txt
-                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.txt'] ;
-                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                    'outPrec', outPrec, ...
-                    'outWidth', outWidth, ...
-                    'delimiter', delimiter, ...
-                    'overwrite', overwrite, ...
-                    'fancy', fancy, ...
-                    'progress_step_pct', 20, ...
-                    'verbose', false) ;
-            end
-            clear out_y1
             
             % Save new Fert.txt (0.5-degree)
-            % Convert from kg/m2 to kg/ha for compatibility with original
-            % PLUM style.
-            out_y1.maps_YXv = 1e4*out_y1_nfert_YXv ;
-            out_y1.varNames = LPJGcrops ;
-            if save_halfDeg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.mat'] ;
-                save(file_out,'out_y1') ;
+            if ~combineCrops
+                % Convert from kg/m2 to kg/ha for compatibility with original
+                % PLUM style.
+                out_y1.maps_YXv = 1e4*out_y1_nfert_YXv ;
+                out_y1.varNames = LPJGcrops ;
+                if save_halfDeg_mat
+                    file_out = [outDir_thisYear '/Fert.base' num2str(base_year) '.mat'] ;
+                    save(file_out,'out_y1') ;
+                end
+                if save_halfDeg_txt
+                    [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+                    file_out = [outDir_thisYear '/Fert.base' num2str(base_year) '.txt'] ;
+                    lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                        'outPrec', outPrec, ...
+                        'outWidth', outWidth, ...
+                        'delimiter', delimiter, ...
+                        'overwrite', overwrite, ...
+                        'fancy', fancy, ...
+                        'progress_step_pct', 20, ...
+                        'verbose', false) ;
+                end
+                clear out_y1
             end
-            if save_halfDeg_txt
-                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.txt'] ;
-                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                    'outPrec', outPrec, ...
-                    'outWidth', outWidth, ...
-                    'delimiter', delimiter, ...
-                    'overwrite', overwrite, ...
-                    'fancy', fancy, ...
-                    'progress_step_pct', 20, ...
-                    'verbose', false) ;
-            end
-            clear out_y1
             
             % Save new Irrig.txt (0.5-degree)
-            out_y1.maps_YXv = out_y1_irrig_YXv ;
-            out_y1.varNames = LPJGcrops ;
-            if save_halfDeg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.mat'] ;
-                save(file_out,'out_y1') ;
+            if ~combineCrops
+                out_y1.maps_YXv = out_y1_irrig_YXv ;
+                out_y1.varNames = LPJGcrops ;
+                if save_halfDeg_mat
+                    file_out = [outDir_thisYear '/Irrig.base' num2str(base_year) '.mat'] ;
+                    save(file_out,'out_y1') ;
+                end
+                if save_halfDeg_txt
+                    [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
+                    file_out = [outDir_thisYear '/Irrig.base' num2str(base_year) '.txt'] ;
+                    lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                        'outPrec', outPrec, ...
+                        'outWidth', outWidth, ...
+                        'delimiter', delimiter, ...
+                        'overwrite', overwrite, ...
+                        'fancy', fancy, ...
+                        'progress_step_pct', 20, ...
+                        'verbose', false) ;
+                end
+                clear out_y1
             end
-            if save_halfDeg_txt
-                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.txt'] ;
-                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                    'outPrec', outPrec, ...
-                    'outWidth', outWidth, ...
-                    'delimiter', delimiter, ...
-                    'overwrite', overwrite, ...
-                    'fancy', fancy, ...
-                    'progress_step_pct', 20, ...
-                    'verbose', false) ;
-            end
-            clear out_y1
             
         end
 
         if save_2deg_any
+            if ~exist(outDir_thisYear, 'dir')
+                mkdir(outDir_thisYear)
+            end
             % Save new LandCoverFract.txt (2-degree)
-            unix(['mkdir -p ' PLUM_out_top num2str(thisYear)]) ;
             out_y1.varNames = {'PASTURE','CROPLAND','NATURAL','BARREN'} ;
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'CROPLAND')) = out_y1_2deg_crop_YX ;
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'PASTURE')) = out_y1_2deg_past_YX ;
@@ -905,12 +1091,12 @@ for d = 1:length(PLUM_in_toptop)
             out_y1.maps_YXv(:,:,strcmp(out_y1.varNames,'BARREN')) = out_y1_2deg_bare_YX ;
             out_y1.maps_YXv = out_y1.maps_YXv ./ repmat(landArea_2deg_YX,[1 1 length(out_y1.varNames)]) ;
             if save_2deg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.2deg.mat'] ;
+                file_out = [outDir_thisYear '/LandCoverFract.base' num2str(base_year) '.2deg.mat'] ;
                 save(file_out,'out_y1') ;
             end
             if save_2deg_txt
                 [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-                file_out = [PLUM_out_top num2str(thisYear) '/LandCoverFract.base' num2str(base_year) '.2deg.txt'] ;
+                file_out = [outDir_thisYear '/LandCoverFract.base' num2str(base_year) '.2deg.txt'] ;
                 lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                     'outPrec', outPrec, ...
                     'outWidth', outWidth, ...
@@ -923,130 +1109,250 @@ for d = 1:length(PLUM_in_toptop)
             clear out_y1
 
             % Save new CropFract.txt (2-degree)
-            out_y1.maps_YXv = out_y1_2deg_agri_YXv(:,:,~isAgri_isPast) ./ repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)]) ;
-            out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
-            out_y1.varNames = LPJGcrops ;
-            if save_2deg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.2deg.mat'] ;
-                save(file_out,'out_y1') ;
+            if ~combineCrops
+                out_y1.maps_YXv = out_y1_2deg_agri_YXv(:,:,~isAgri_isPast) ./ repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)]) ;
+                out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
+                out_y1.varNames = LPJGcrops ;
+                if save_2deg_mat
+                    file_out = [outDir_thisYear '/CropFract.base' num2str(base_year) '.2deg.mat'] ;
+                    save(file_out,'out_y1') ;
+                end
+                if save_2deg_txt
+                    [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+                    file_out = [outDir_thisYear '/CropFract.base' num2str(base_year) '.2deg.txt'] ;
+                    lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                        'outPrec', outPrec, ...
+                        'outWidth', outWidth, ...
+                        'delimiter', delimiter, ...
+                        'overwrite', overwrite, ...
+                        'fancy', fancy, ...
+                        'progress_step_pct', 20, ...
+                        'verbose', false) ;
+                end
+                clear out_y1
             end
-            if save_2deg_txt
-                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-                file_out = [PLUM_out_top num2str(thisYear) '/CropFract.base' num2str(base_year) '.2deg.txt'] ;
-                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                    'outPrec', outPrec, ...
-                    'outWidth', outWidth, ...
-                    'delimiter', delimiter, ...
-                    'overwrite', overwrite, ...
-                    'fancy', fancy, ...
-                    'progress_step_pct', 20, ...
-                    'verbose', false) ;
-            end
-            clear out_y1
             
             % Save new Fert.txt (2-degree)
-            % Convert from kg/m2 to kg/ha for compatibility with original
-            % PLUM style.
-            out_y1.maps_YXv = 1e4*out_y1_2deg_nfert_YXv ;
-            out_y1.varNames = LPJGcrops ;
-            if save_2deg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.mat'] ;
-                save(file_out,'out_y1') ;
+            if ~combineCrops
+                % Convert from kg/m2 to kg/ha for compatibility with original
+                % PLUM style.
+                out_y1.maps_YXv = 1e4*out_y1_2deg_nfert_YXv ;
+                out_y1.varNames = LPJGcrops ;
+                if save_2deg_mat
+                    file_out = [outDir_thisYear '/Fert.base' num2str(base_year) '.2deg.mat'] ;
+                    save(file_out,'out_y1') ;
+                end
+                if save_2deg_txt
+                    [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+                    file_out = [outDir_thisYear '/Fert.base' num2str(base_year) '.2deg.txt'] ;
+                    lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                        'outPrec', outPrec, ...
+                        'outWidth', outWidth, ...
+                        'delimiter', delimiter, ...
+                        'overwrite', overwrite, ...
+                        'fancy', fancy, ...
+                        'progress_step_pct', 20, ...
+                        'verbose', false) ;
+                    clear out_y1
+                end
             end
-            if save_2deg_txt
-                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-                file_out = [PLUM_out_top num2str(thisYear) '/Fert.base' num2str(base_year) '.2deg.txt'] ;
-                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                    'outPrec', outPrec, ...
-                    'outWidth', outWidth, ...
-                    'delimiter', delimiter, ...
-                    'overwrite', overwrite, ...
-                    'fancy', fancy, ...
-                    'progress_step_pct', 20, ...
-                    'verbose', false) ;
-            end
-            clear out_y1
             
             % Save new Irrig.txt (2-degree)
-            out_y1.maps_YXv = out_y1_2deg_irrig_YXv ;
-            out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
-            out_y1.varNames = LPJGcrops ;
-            if save_2deg_mat
-                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.2deg.mat'] ;
-                save(file_out,'out_y1') ;
+            if ~combineCrops
+                out_y1.maps_YXv = out_y1_2deg_irrig_YXv ;
+                out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
+                out_y1.varNames = LPJGcrops ;
+                if save_2deg_mat
+                    file_out = [outDir_thisYear '/Irrig.base' num2str(base_year) '.2deg.mat'] ;
+                    save(file_out,'out_y1') ;
+                end
+                if save_2deg_txt
+                    [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
+                    file_out = [outDir_thisYear '/Irrig.base' num2str(base_year) '.2deg.txt'] ;
+                    lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
+                        'outPrec', outPrec, ...
+                        'outWidth', outWidth, ...
+                        'delimiter', delimiter, ...
+                        'overwrite', overwrite, ...
+                        'fancy', fancy, ...
+                        'progress_step_pct', 20, ...
+                        'verbose', false) ;
+                end
+                clear out_y1
             end
-            if save_2deg_txt
-                [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-                file_out = [PLUM_out_top num2str(thisYear) '/Irrig.base' num2str(base_year) '.2deg.txt'] ;
-                lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
-                    'outPrec', outPrec, ...
-                    'outWidth', outWidth, ...
-                    'delimiter', delimiter, ...
-                    'overwrite', overwrite, ...
-                    'fancy', fancy, ...
-                    'progress_step_pct', 20, ...
-                    'verbose', false) ;
-            end
-            clear out_y1
         end
 
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%% Save last year's global total to time series %%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        if isFirstYearInLoop
+            in_ts = save_to_timeseries_struct(in_ts, ...
+                in_y0, in_y0_nfert.maps_YXv, in_y0_irrig.maps_YXv, 1) ;
+            out_ts = save_to_timeseries_struct(out_ts, ...
+                out_y0, out_y0_nfert_YXv, out_y0_irrig_YXv, 1) ;
+        end
+        
+        in_ts = save_to_timeseries_struct(in_ts, ...
+            in_y1, in_y1_nfert.maps_YXv, in_y1_irrig.maps_YXv, y+1) ;
+        
+        out_y1 = out_y0 ;
+        out_y1.maps_YXv = nan(size(out_y1.maps_YXv)) ;
+        [~,IA,IB] = intersect(out_y1.varNames,LUnames_agri,'stable') ;
+        out_y1.maps_YXv(:,:,IA) = out_y1_agri_YXv(:,:,IB) ;
+        clear IA IB
+        out_y1.maps_YXv(:,:,strcmp(LUnames,'NATURAL')) = out_y1_ntrl_YX ;
+        out_y1.maps_YXv(:,:,strcmp(LUnames,'BARREN')) = out_y1_bare_YX ;
+        out_ts = save_to_timeseries_struct(out_ts, ...
+            out_y1, out_y1_nfert_YXv, out_y1_irrig_YXv, y+1) ;
+        
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%% Prepare for next iteration %%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         clear out_y1_past_YX
-        if y < length(years)
+        if y < Nyears
             in_y0 = in_y1 ;
             in_y0_2deg = in_y1_2deg ;
             in_y0_agri_YXv = in_y1_agri_YXv ;
             in_y0_2deg_agri_YXv = in_y1_2deg_agri_YXv ;
-            [~,IA,IB] = intersect(out_y0.varNames,LUnames_agri,'stable') ;
-            out_y0.maps_YXv(:,:,IA) = out_y1_agri_YXv(:,:,IB) ;
-            clear IA IB
-            out_y0.maps_YXv(:,:,strcmp(LUnames,'NATURAL')) = out_y1_ntrl_YX ;
-            out_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) = out_y1_bare_YX ;
+            out_y0 = out_y1 ;
             out_y0_2deg = out_y1_2deg ;
             out_y0_2deg_agri_YXv = out_y1_2deg_agri_YXv ;
             out_y0_agri_YXv = out_y1_agri_YXv ;
             bareFrac_y0_YX = in_y1_bareFrac_YX ;
-            out_y0_2deg_nfert.maps_YXv = out_y1_2deg_nfert_YXv ;
-            out_y0_2deg_irrig.maps_YXv = out_y1_2deg_irrig_YXv ;
             in_y0_2deg_vegd_YX = in_y1_2deg_vegd_YX ;
-            in_y0_2deg_nfert = in_y1_2deg_nfert ;
-            in_y0_2deg_irrig = in_y1_2deg_irrig ;
-            max_orig_nfert_y0 = max_orig_nfert_y1 ;
-            max_nfert_y0 = max_nfert_y1 ;
-            out_y0_nfert_YXv = out_y1_nfert_YXv ;
-            out_y0_irrig_YXv = out_y1_irrig_YXv ;
-            out_y0_2deg_nfert_YXv = out_y1_2deg_nfert_YXv ;
-            out_y0_2deg_irrig_YXv = out_y1_2deg_irrig_YXv ;
             out_y0_vegd_YX = out_y1_vegd_YX ;
             out_y0_2deg_vegd_YX = out_y1_2deg_vegd_YX ;
-            in_y0_nfert = in_y1_nfert ;
-            in_y0_irrig = in_y1_irrig ;
+            
+            if ~combineCrops
+                out_y0_2deg_nfert.maps_YXv = out_y1_2deg_nfert_YXv ;
+                out_y0_2deg_irrig.maps_YXv = out_y1_2deg_irrig_YXv ;
+                in_y0_2deg_nfert = in_y1_2deg_nfert ;
+                in_y0_2deg_irrig = in_y1_2deg_irrig ;
+                max_orig_nfert_y0 = max_orig_nfert_y1 ;
+                max_nfert_y0 = max_nfert_y1 ;
+                out_y0_nfert_YXv = out_y1_nfert_YXv ;
+                out_y0_irrig_YXv = out_y1_irrig_YXv ;
+                out_y0_2deg_nfert_YXv = out_y1_2deg_nfert_YXv ;
+                out_y0_2deg_irrig_YXv = out_y1_2deg_irrig_YXv ;
+                in_y0_nfert = in_y1_nfert ;
+                in_y0_irrig = in_y1_irrig ;
+            end
             clear *y1*
         end
         
         % Save full-precision outputs for use in restarting
-        thisMATfile = [PLUM_out_top num2str(thisYear) 'post.base' num2str(base_year) '.mat'] ;
+        thisMATfile = [outDir_thisYear 'post.base' num2str(base_year) '.mat'] ;
         save(thisMATfile, ...
             '*y0*','latestPLUMin_*','-v7.3') ;
-        save(thisMATfile, ...
-            'latestPLUMin_2deg_nfert_YXv','latestPLUMin_2deg_irrig_YXv',...
-            '-append') ;
+        if ~combineCrops
+            save(thisMATfile, ...
+                'latestPLUMin_2deg_nfert_YXv','latestPLUMin_2deg_irrig_YXv',...
+                '-append') ;
+        end
 
         disp(['  Done (' toc_hms(toc) ').'])
+        isFirstYearInLoop = false ;
 
 
     end % years loop
-
+    
+    
+    %%%%%%%%%%%%%%%%%%%%
+    %%% Make figures %%%
+    %%%%%%%%%%%%%%%%%%%%
+    
+    figDir = addslashifneeded(sprintf('%s_figs', removeslashifneeded(outDir))) ;
+    if ~exist(figDir, 'dir')
+        mkdir(figDir)
+    end
+    legend_ts = {'From PLUM', 'Harmonized'} ;
+    
+    % LU areas
+    tmp_names = [{'CROPLAND'} in_ts.luNames(~isCrop)] ;
+    ts_orig_cy = nan(length(tmp_names), length(in_ts.yearList)) ;
+    ts_orig_cy(strcmp(tmp_names, 'CROPLAND'),:) = sum(in_ts.area_vy(isCrop,:),1) ;
+    ts_orig_cy(~strcmp(tmp_names, 'CROPLAND'),:) = in_ts.area_vy(~isCrop,:) ;
+    ts_harm_cy = ts_orig_cy ;
+    ts_harm_cy(strcmp(tmp_names, 'CROPLAND'),:) = sum(out_ts.area_vy(isCrop,:),1) ;
+    ts_harm_cy(~strcmp(tmp_names, 'CROPLAND'),:) = out_ts.area_vy(~isCrop,:) ;
+    units = 'Million km2' ;
+    ts_orig_cy = ts_orig_cy*1e-6*1e-6 ;
+    ts_harm_cy = ts_harm_cy*1e-6*1e-6 ;
+    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+        tmp_names, legend_ts, [], in_ts.yearList, units, ...
+        'Area', 'landUse', figDir)
+    
+    % Crops
+    units = 'Million km2' ;
+    ts_orig_cy = in_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
+    ts_harm_cy = out_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
+    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+        'Area', 'crops', figDir)
+    
+    % Fertilization
+    units = 'Mt N' ;
+    ts_orig_cy = in_ts.nfert_vy*1e-3*1e-6 ;
+    ts_harm_cy = out_ts.nfert_vy*1e-3*1e-6 ;
+    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+        'Fert.', 'nfert', figDir)
+    
+    % Irrigation
+    units = 'intensity \times area' ;
+    ts_orig_cy = in_ts.irrig_vy ;
+    ts_harm_cy = out_ts.irrig_vy ;
+    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+        'Irrigation', 'irrig', figDir)
+    
     disp('Done')
+    diary off
+
+end
+
+
+%% FUNCTIONS
+
+function check_discrepancy(tmp_in, tmp_out, base_year, thisVar, thisName)
+
+errPct = (tmp_in - tmp_out) / tmp_out * 100 ;
+errSign = '' ;
+if errPct > 0
+    errSign = '+' ;
+end
+if tmp_out > 0 && abs(errPct) > 50
+    warning('PLUM baseline (%d) discrepancy: %s: %s: %s%0.1f%%', ...
+        base_year, thisVar, thisName, errSign, errPct)
+end
+if errPct < -99
+    keyboard
+end
 
 end
 
 
 
+function S_ts = save_to_timeseries_struct(S_ts, ...
+    S_area, nfert_YXv, irrig_YXv, y)
 
+S_ts.area_vy(:,y) = squeeze(nansum(nansum(S_area.maps_YXv, 1), 2)) ;
+
+[C,IA,IB] = intersect(S_ts.cropNames, S_ts.luNames, 'stable') ;
+if ~isequal(C, S_ts.cropNames)
+    error('Crop list mismatch')
+end
+
+S_ts.nfert_vy(:,y) = squeeze(nansum(nansum( ...
+    nfert_YXv(:,:,IA) .* S_area.maps_YXv(:,:,IB), 1), 2)) ;
+S_ts.irrig_vy(:,y) = squeeze(nansum(nansum( ...
+    irrig_YXv(:,:,IA) .* S_area.maps_YXv(:,:,IB), 1), 2)) ;
+
+
+end
 
 

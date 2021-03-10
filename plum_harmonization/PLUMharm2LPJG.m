@@ -1,32 +1,88 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Read MAT-files from harmonization; write as LPJG inputs %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Convert harmonized PLUM outputs into files for LPJ-GUESS %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-do_gzip = false ;
-          
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input directories and settings specific thereto %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Typical runs (2010-2100)
+dirList = {...
+%               'SSP1.v10.s1.harm' ;
+%               'SSP3.v10.s1.harm' ;
+%               'SSP4.v10.s1.harm' ;
+%               'SSP5.v10.s1.harm' ;
+%               'SSP1.v12.s1.harm' ;
+%               'SSP3.v12.s1.harm' ;
+%               'SSP4.v12.s1.harm' ;
+%               'SSP5.v12.s1.harm' ;
+%     'SSP1/s1.harm' ;
+    'SSP2/s1.harm' ;
+    'SSP3/s1.harm' ;
+    'SSP4/s1.harm' ;
+    'SSP5/s1.harm' ;
+              } ;
 base_year = 2010 ;
 y1 = 2011 ;
 yN = 2100 ;
 yStep = 1 ;
-                        
-% Trying to avoid new crop spinup time
-y1_pre = 2006 ;    % Will repeat first PLUMout year for y1_pre:(y1-1)
+
+%%% Half-Earth runs (2010-2060)
+% dirList = {...
+%           'baseline/s1.harm';
+%           'halfearth/s1.harm';
+%           } ;
+% base_year = 2010 ; %#ok<*NASGU>
+% y1 = 2011 ;
+% yN = 2060 ;
+% yStep = 1 ;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% General behavior options %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Trying to avoid new crop spinup time; will repeat first PLUMout 
+% year over y1_pre:(y1-1)
+y1_pre = 2006 ;
 
 % Make it so that each gridcell always has at least some tiny amount of
-% every crop?
-outPrec = 6 ;
-% mincropfrac = 10^-outPrec ;
-mincropfrac = 0 ;
-someofall = true ; 
+% every crop? Needed to avoid weird first few years after a cell gets its
+% first area of some new crop.
+someofall = true ;
+
+% When someofall==true, this designates the order in which area donated
+% to cropland will be taken from (decreasing order of preference).
 donation_order = {'PASTURE','NATURAL','BARREN'} ;
-              
+
+% Zip up outputs?
+do_gzip = true ;
+
 
 %% Setup
 
-disp('Setting up...')
+% Determine which system you're on and set up.
+thisSystem = get_system_name() ;
+if strcmp(thisSystem, 'ssr_mac')
+    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
+    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization' ;
+elseif strcmp(thisSystem, 'ssr_keal')
+    addpath(genpath('/pd/data/lpj/sam/paper02-matlab-work')) ;
+    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
+else
+    error('thisSystem not recognized: %s', thisSystem)
+end
+addpath(genpath(plumharm_repo_path))
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
+% Output options
+outPrec = 6 ;
+if someofall
+    mincropfrac = 10^-outPrec ;
+else
+    mincropfrac = 0 ;
+end
 outWidth = 1 ;
 delimiter = ' ' ;
 overwrite = true ;
@@ -44,38 +100,23 @@ else
 end
 Nyears_xtra = length(yearList_xtra) ;
 
-% Get cells present in previous LPJ-GUESS output
-lpjg_in = lpjgu_matlab_readTable(lpjg_in_file,'dont_save_MAT',true,'verboseIfNoMat',false) ;
-lons_lpjg = lpjg_in.Lon ;
-lats_lpjg = lpjg_in.Lat ;
-clear lpjg_in
-
-% Get LUH2 land area (m2)
-gcel_area_YXqd = 1e6*transpose(ncread(landarea_file,'carea')) ;
-land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
-landArea_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
-%%%%% Convert to half-degree
-tmp = landArea_YXqd(:,1:2:1440) + landArea_YXqd(:,2:2:1440) ;
-landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-clear *_YXqd
-
-
 
 %% Do it
 
 for d = 1:length(dirList)
     
     % Get directories
-    if onMac
-        inDir = find_PLUM2LPJG_inputs(dirList{d}) ;
-    else
-        inDir = dirList{d} ;
+    inDir = dirList{d} ;
+    if ~exist(inDir, 'dir')
+        error('inDir %s not found. Try changing MATLAB working directory to inDir''s parent.')
     end
     inDir = removeslashifneeded(inDir) ;
     disp(inDir)
     outDir = addslashifneeded([removeslashifneeded(inDir) '.forLPJG']) ;
-    unix(['mkdir -p ' outDir]) ;
-        
+    if ~exist(outDir, 'dir')
+        mkdir(outDir)
+    end
+    
     
     %%%%%%%%%%%%%%
     %%% Import %%%
@@ -100,6 +141,7 @@ for d = 1:length(dirList)
         if y==1
             list2map = find(~isnan(S_lu.maps_YXv(:,:,1))>0) ;
             Ncells = length(list2map) ;
+            lu_in_varNames = S_lu.varNames ;
             lu_in.varNames = S_lu.varNames ;
             lu_in.yearList = yearList ;
             lu_in.maps_YXvy = nan([size(S_lu.maps_YXv) Nyears]) ;
@@ -127,9 +169,13 @@ for d = 1:length(dirList)
     % Get arrays
     disp('Getting arrays...')
     [lu_out, lu_header_cell] = lpjgu_matlab_maps2table(lu_in,list2map) ;
+    clear lu_in
     [cf_out, cf_header_cell] = lpjgu_matlab_maps2table(cf_in,list2map) ;
+    clear cf_in
     [nf_out, nf_header_cell] = lpjgu_matlab_maps2table(nf_in,list2map) ;
+    clear nf_in
     [ir_out, ir_header_cell] = lpjgu_matlab_maps2table(ir_in,list2map) ;
+    clear ir_in
         
     % Check for NaNs
     disp('Checking arrays...')
@@ -172,7 +218,7 @@ for d = 1:length(dirList)
     if mincropfrac>0
         
         % Some cropland
-        iCrop = find(strcmp(lu_in.varNames,'CROPLAND')) ;
+        iCrop = find(strcmp(lu_in_varNames,'CROPLAND')) ;
         lu_tmp = lu_out(:,4:end) ;
         lu_tmp = round(lu_tmp,outPrec) ;
         no_cropland = lu_tmp(:,iCrop)<mincropfrac ;
@@ -183,7 +229,7 @@ for d = 1:length(dirList)
                 error('GET CROPLAND FROM SOMEWHERE')
             end
             this_donor = donation_order{i} ;
-            iThis = find(strcmp(lu_in.varNames,this_donor)) ;
+            iThis = find(strcmp(lu_in_varNames,this_donor)) ;
             involved = lu_tmp(:,iThis)>=mincropfrac & no_cropland ;
             if any(involved)
                 warning('Giving some from %s to CROPLAND (%d cells).', this_donor, length(find(involved)))
@@ -209,8 +255,7 @@ for d = 1:length(dirList)
             thiscrop = cf_tmp(:,c) ;
             iszerothiscrop = thiscrop<mincropfrac ;
             % Find the crop that currently has the greatest area
-            maxcropfrac_Xv = repmat(max(cf_tmp,[],2),[1 Ncrops]) ;
-            ismaxcropfrac_Xv = cf_tmp==maxcropfrac_Xv ;
+            ismaxcropfrac_Xv = cf_tmp==repmat(max(cf_tmp,[],2),[1 Ncrops]) ;
             % Make sure there's only one ismaxcropfrac in each row
             for i = fliplr(2:Ncrops)
                 tmp = ismaxcropfrac_Xv(:,i) ;
@@ -256,12 +301,12 @@ for d = 1:length(dirList)
     nf_out(:,IA) = cf_kgNha_kgNm2 * nf_out(:,IA) ;
     
     % Add rainfed crops (zeros)
-    cf_out = [cf_out zeros(size(cf_out(:,IA)))] ;
-    nf_out = [nf_out zeros(size(nf_out(:,IA)))] ;
-    ir_out = [ir_out zeros(size(ir_out(:,IA)))] ;
-    cf_header_cell = [cf_header_cell cropList_rf] ;
-    nf_header_cell = [nf_header_cell cropList_rf] ;
-    ir_header_cell = [ir_header_cell cropList_rf] ;
+    cf_out = [cf_out zeros(size(cf_out(:,IA)))] ; %#ok<AGROW>
+    nf_out = [nf_out zeros(size(nf_out(:,IA)))] ; %#ok<AGROW>
+    ir_out = [ir_out zeros(size(ir_out(:,IA)))] ; %#ok<AGROW>
+    cf_header_cell = [cf_header_cell cropList_rf] ; %#ok<AGROW>
+    nf_header_cell = [nf_header_cell cropList_rf] ; %#ok<AGROW>
+    ir_header_cell = [ir_header_cell cropList_rf] ; %#ok<AGROW>
     
     % Remove ExtraCropi, because it receives no management inputs, and
     % did not exist in historical remap_v4.
@@ -287,25 +332,33 @@ for d = 1:length(dirList)
         
         years_out = repmat([yearList_xtra';yearList],[Ncells 1]) ;
         
-        Nvar_lu = length(lu_in.varNames) ;
+        Nvar_lu = length(lu_in_varNames) ;
         tmp1_yxv = reshape(lu_out(:,4:end),[Nyears Ncells Nvar_lu]) ;
         tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
         tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_lu]) ;
+        clear tmp1_yxv
         lu_out = [lons_out lats_out years_out tmp1_out] ;
+        clear tmp1_out
         
         Nvar_cf = size(cf_out,2) - 3 ;
         tmp1_yxv = reshape(cf_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
         tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
         tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        clear tmp1_yxv
         cf_out = [lons_out lats_out years_out tmp1_out] ;
+        clear tmp1_out
         tmp1_yxv = reshape(nf_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
         tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
         tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        clear tmp1_yxv
         nf_out = [lons_out lats_out years_out tmp1_out] ;
+        clear tmp1_out
         tmp1_yxv = reshape(ir_out(:,4:end),[Nyears Ncells Nvar_cf]) ;
         tmp1_yxv = cat(1, repmat(tmp1_yxv(1,:,:),[Nyears_xtra 1 1]), tmp1_yxv) ;
         tmp1_out = reshape(tmp1_yxv,[Ncells*(Nyears+Nyears_xtra) Nvar_cf]) ;
+        clear tmp1_yxv
         ir_out = [lons_out lats_out years_out tmp1_out] ;
+        clear tmp1_out
         
     end
     
@@ -320,7 +373,7 @@ for d = 1:length(dirList)
         file_out_nfert = strrep(file_out_nfert, '.txt', '.noMinCropFrac.txt') ;
         file_out_irrig = strrep(file_out_irrig, '.txt', '.noMinCropFrac.txt') ;
     end
-            
+    
     % Save land cover
     disp('Saving land cover...')
     lpjgu_matlab_saveTable(lu_header_cell, single(lu_out), file_out_LU,...
@@ -335,6 +388,7 @@ for d = 1:length(dirList)
         disp('gzipping...')
         unix(['gzip ' file_out_LU]) ;
     end
+    clear lu_out
    
     % Save crop fractions
     disp('Saving crop fractions...')
@@ -350,7 +404,7 @@ for d = 1:length(dirList)
         disp('gzipping...')
         unix(['gzip ' file_out_crop]) ;
     end
-    
+    clear cf_out
     
     % Save fertilization
     if mincropfrac==0
@@ -370,6 +424,7 @@ for d = 1:length(dirList)
             unix(['gzip ' file_out_nfert]) ;
         end
     end
+    clear nf_out
     
     % Save irrigation
     if mincropfrac==0
@@ -389,9 +444,11 @@ for d = 1:length(dirList)
             unix(['gzip ' file_out_irrig]) ;
         end
     end
+    clear ir_out
     
 end
 
 disp('All done!')
+
 
 
