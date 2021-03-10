@@ -5,3 +5,4 @@
 *.shp binary
 *.shx binary
 *.dbf binary
+*.xlsx binary
