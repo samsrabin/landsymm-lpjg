@@ -68,13 +68,6 @@ end
 if fruitveg_sugar_2oil && ~fruitveg_sugar_2oil_ok
     error('You specified fruitveg_sugar_2oil TRUE but have not specified which input files should be used')
 end
-if ~exist(luh2_file, 'file')
-    error('luh2_file does not exist: %s', luh2_file)
-elseif ~exist(cropf_file, 'file')
-    error('cropf_file does not exist: %s', cropf_file)
-elseif ~exist(nfert_file, 'file')
-    error('nfert_file does not exist: %s', nfert_file)
-end
 
 % Make lower-left lat/lon map (for compat. with PLUM style)
 lons_map_2deg = repmat(-180:2:178,[90 1]) ;
