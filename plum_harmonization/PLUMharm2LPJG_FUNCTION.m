@@ -1,29 +1,34 @@
 function PLUMharm2LPJG_FUNCTION(varargin)
 
 % Directories for harmonized PLUM outputs
-% dirList = {...
-% %               'SSP1.v10.s1.harm' ;
-% %               'SSP3.v10.s1.harm' ;
-% %               'SSP4.v10.s1.harm' ;
-% %               'SSP5.v10.s1.harm' ;
+dirList = {...
+%               'SSP1.v10.s1.harm' ;
+%               'SSP3.v10.s1.harm' ;
+%               'SSP4.v10.s1.harm' ;
+%               'SSP5.v10.s1.harm' ;
 %               'SSP1.v12.s1.harm' ;
 %               'SSP3.v12.s1.harm' ;
 %               'SSP4.v12.s1.harm' ;
 %               'SSP5.v12.s1.harm' ;
-%               } ;
-% base_year = 2010 ;
-% y1 = 2011 ;
-% yN = 2100 ;
-% yStep = 1 ;
-
-dirList = {...
-          'halfearth/HEoct/baseline/s1.harm';
-          'halfearth/HEoct/halfearth/s1.harm';
-          } ;
-base_year = 2010 ; %#ok<*NASGU>
+%     'ssp13/SSP1/s1.harm' ;
+    'ssp13/SSP2/s1.harm' ;
+    'ssp13/SSP3/s1.harm' ;
+    'ssp13/SSP4/s1.harm' ;
+    'ssp13/SSP5/s1.harm' ;
+              } ;
+base_year = 2010 ;
 y1 = 2011 ;
-yN = 2060 ;
+yN = 2100 ;
 yStep = 1 ;
+
+% dirList = {...
+%           'halfearth/HEoct/baseline/s1.harm';
+%           'halfearth/HEoct/halfearth/s1.harm';
+%           } ;
+% base_year = 2010 ; %#ok<*NASGU>
+% y1 = 2011 ;
+% yN = 2060 ;
+% yStep = 1 ;
 
 do_gzip = true ;
           
