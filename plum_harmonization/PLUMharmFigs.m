@@ -122,7 +122,8 @@ R = georasterref('RasterSize', [360 720], ...
     'LatitudeLimits', [-90 90], ...
     'LongitudeLimits', [-180 180]) ;
 
-lines_overlay = sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path) ;
+%lines_overlay = sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path) ;
+lines_overlay = shaperead(sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path)) ;
 
 
 %% Import reference data
