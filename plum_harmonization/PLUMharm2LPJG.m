@@ -1,26 +1,88 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Read MAT-files from harmonization; write as LPJG inputs %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Convert harmonized PLUM outputs into files for LPJ-GUESS %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Trying to avoid new crop spinup time
-y1_pre = 2006 ;    % Will repeat first PLUMout year for y1_pre:(y1-1)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input directories and settings specific thereto %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Typical runs (2010-2100)
+dirList = {...
+%               'SSP1.v10.s1.harm' ;
+%               'SSP3.v10.s1.harm' ;
+%               'SSP4.v10.s1.harm' ;
+%               'SSP5.v10.s1.harm' ;
+%               'SSP1.v12.s1.harm' ;
+%               'SSP3.v12.s1.harm' ;
+%               'SSP4.v12.s1.harm' ;
+%               'SSP5.v12.s1.harm' ;
+%     'SSP1/s1.harm' ;
+    'SSP2/s1.harm' ;
+    'SSP3/s1.harm' ;
+    'SSP4/s1.harm' ;
+    'SSP5/s1.harm' ;
+              } ;
+base_year = 2010 ;
+y1 = 2011 ;
+yN = 2100 ;
+yStep = 1 ;
+
+%%% Half-Earth runs (2010-2060)
+% dirList = {...
+%           'baseline/s1.harm';
+%           'halfearth/s1.harm';
+%           } ;
+% base_year = 2010 ; %#ok<*NASGU>
+% y1 = 2011 ;
+% yN = 2060 ;
+% yStep = 1 ;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% General behavior options %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Trying to avoid new crop spinup time; will repeat first PLUMout 
+% year over y1_pre:(y1-1)
+y1_pre = 2006 ;
 
 % Make it so that each gridcell always has at least some tiny amount of
 % every crop? Needed to avoid weird first few years after a cell gets its
 % first area of some new crop.
-outPrec = 6 ;
-mincropfrac = 10^-outPrec ;
-% mincropfrac = 0 ;
 someofall = true ;
+
+% When someofall==true, this designates the order in which area donated
+% to cropland will be taken from (decreasing order of preference).
 donation_order = {'PASTURE','NATURAL','BARREN'} ;
-              
+
+% Zip up outputs?
+do_gzip = true ;
+
 
 %% Setup
 
-disp('Setting up...')
+% Determine which system you're on and set up.
+thisSystem = get_system_name() ;
+if strcmp(thisSystem, 'ssr_mac')
+    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
+    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization' ;
+elseif strcmp(thisSystem, 'ssr_keal')
+    addpath(genpath('/pd/data/lpj/sam/paper02-matlab-work')) ;
+    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
+else
+    error('thisSystem not recognized: %s', thisSystem)
+end
+addpath(genpath(plumharm_repo_path))
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
+% Output options
+outPrec = 6 ;
+if someofall
+    mincropfrac = 10^-outPrec ;
+else
+    mincropfrac = 0 ;
+end
 outWidth = 1 ;
 delimiter = ' ' ;
 overwrite = true ;
@@ -37,16 +99,6 @@ else
     yearList_xtra = [] ;
 end
 Nyears_xtra = length(yearList_xtra) ;
-
-% Get LUH2 land area (m2)
-gcel_area_YXqd = 1e6*transpose(ncread(landarea_file,'carea')) ;
-land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
-landArea_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
-%%%%% Convert to half-degree
-tmp = landArea_YXqd(:,1:2:1440) + landArea_YXqd(:,2:2:1440) ;
-landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-clear *_YXqd
-
 
 
 %% Do it
@@ -249,12 +301,12 @@ for d = 1:length(dirList)
     nf_out(:,IA) = cf_kgNha_kgNm2 * nf_out(:,IA) ;
     
     % Add rainfed crops (zeros)
-    cf_out = [cf_out zeros(size(cf_out(:,IA)))] ;
-    nf_out = [nf_out zeros(size(nf_out(:,IA)))] ;
-    ir_out = [ir_out zeros(size(ir_out(:,IA)))] ;
-    cf_header_cell = [cf_header_cell cropList_rf] ;
-    nf_header_cell = [nf_header_cell cropList_rf] ;
-    ir_header_cell = [ir_header_cell cropList_rf] ;
+    cf_out = [cf_out zeros(size(cf_out(:,IA)))] ; %#ok<AGROW>
+    nf_out = [nf_out zeros(size(nf_out(:,IA)))] ; %#ok<AGROW>
+    ir_out = [ir_out zeros(size(ir_out(:,IA)))] ; %#ok<AGROW>
+    cf_header_cell = [cf_header_cell cropList_rf] ; %#ok<AGROW>
+    nf_header_cell = [nf_header_cell cropList_rf] ; %#ok<AGROW>
+    ir_header_cell = [ir_header_cell cropList_rf] ; %#ok<AGROW>
     
     % Remove ExtraCropi, because it receives no management inputs, and
     % did not exist in historical remap_v4.
@@ -397,5 +449,6 @@ for d = 1:length(dirList)
 end
 
 disp('All done!')
+
 
 
