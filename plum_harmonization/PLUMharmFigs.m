@@ -164,7 +164,7 @@ Ncells = length(find(~mask_YX)) ;
 PLUMorig_xvyr = nan(Ncells,Nlu,Nyears_orig,Nruns,'single') ;
 PLUMharm_xvyr = nan(Ncells,Nlu,Nyears_harm,Nruns,'single') ;
 if ~combineCrops
-    PLUMorig_nfert_xvyr = nan(incl_YXvy,'single') ;
+    PLUMorig_nfert_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_orig,Nruns,'single') ;
     PLUMorig_irrig_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_orig,Nruns,'single') ;
     PLUMharm_nfert_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_harm,Nruns,'single') ;
     PLUMharm_irrig_xvyr = nan(Ncells,Ncrops_lpjg,Nyears_harm,Nruns,'single') ;
@@ -227,127 +227,49 @@ for r = 1:Nruns
 
     % Harmonized
     tic
-    thisDir_harm = sprintf('%s/forLPJG/', ...
-        get_harm_dir([thisDir_orig '.harm'], fruitveg_sugar_2oil, combineCrops)) ;
+    thisDir_harm = [thisDir_orig '.harm'] ;
+    thisDir_harm = get_harm_dir(thisDir_harm, fruitveg_sugar_2oil, combineCrops) ;
     fprintf('Importing %s...\n', thisDir_harm) ;
-    if exist(thisDir_harm,'dir')
-        if combineCrops
-            error('Need to rework this code to work with combineCrops') %#ok<UNRCH>
-        end
-        
-        % Land use fractions
-        S_lu = lpjgu_matlab_readTable_then2map([thisDir_harm 'landcover.txt'],'force_mat_save',true) ;
-        [~,year_indices,~] = intersect(S_lu.yearList,yearList_harm,'stable') ;
-        if length(year_indices)~=length(yearList_harm)
-            error('length(year_indices)~=length(yearList_harm)')
-        end
-        if length(year_indices)~=size(S_lu.maps_YXvy, 4)
-            S_lu.maps_YXvy = S_lu.maps_YXvy(:,:,:,year_indices) ;
-        end
-        S_cropf = lpjgu_matlab_readTable_then2map([thisDir_harm 'cropfractions.txt'],'force_mat_save',true) ;
-        if length(year_indices)~=size(S_cropf.maps_YXvy, 4)
-            S_cropf.maps_YXvy = S_cropf.maps_YXvy(:,:,:,year_indices) ;
-        end
-        crops_tmp = strcat(LUnames(isCrop),'i') ;
-        crops_tmp(strcmp(crops_tmp,'ExtraCropi')) = {'ExtraCrop'} ;
-        [C_lu,~,indices_lu] = intersect(LUnames(~isCrop),S_lu.varNames,'stable') ;
-        [   ~,~,indices_cf] = intersect(crops_tmp,S_cropf.varNames,'stable') ;
-        [C_cf,~,         ~] = intersect(LUnames(isCrop),S_cropf.varNames,'stable') ;
-        if ~isequal([C_cf C_lu],LUnames)
-            error('~isequal([C_cf C_lu],LUnames)')
-        end
-        
-        incl_YXvy = repmat(~mask_YX, [1 1 size(S_lu.maps_YXvy, 3:4)]) ;
-        lu_xvy = reshape(S_lu.maps_YXvy(incl_YXvy), [Ncells size(S_lu.maps_YXvy, 3:4)]) ;
-        lu_xvy = lu_xvy(:,indices_lu,:) ;
-        cropland_frac_YXvy = repmat(S_lu.maps_YXvy(:,:,strcmp(S_lu.varNames,'CROPLAND'),:),[1 1 length(crops_tmp) 1]) ;
-        clear S_lu incl_YXvy
-        incl_YXvy = repmat(~mask_YX, [1 1 size(cropland_frac_YXvy, 3:4)]) ;
-        cropland_frac_xvy = reshape(cropland_frac_YXvy(incl_YXvy), [Ncells size(cropland_frac_YXvy, 3:4)]) ;
-        clear cropland_frac_YXvy incl_YXvy
-        cropf_YXvy = S_cropf.maps_YXvy(:,:,indices_cf,:) ;
-        clear S_cropf
-        incl_YXvy = repmat(~mask_YX, [1 1 size(cropf_YXvy, 3:4)]) ;
-        cropf_xvy = reshape(cropf_YXvy(incl_YXvy), [Ncells size(cropf_YXvy, 3:4)]) ;
-        clear cropf_YXvy incl_YXvy
-        PLUMharm_xvyr(:,:,:,r) = repmat(thisLandArea_x,[1 Nlu Nyears_harm]) ...
-            .* cat(2, ...
-                   cropf_xvy .* cropland_frac_xvy, ...
-                   lu_xvy) ;
-        clear cropf_xvy cropland_frac_xvy lu_xvy
-        
-        % Fertilization
-        S = lpjgu_matlab_readTable_then2map([thisDir_harm 'nfert.txt'],'force_mat_save',true) ;
-        [~,~,IB] = intersect(crops_tmp,S.varNames,'stable') ;
-        if length(IA) ~= Ncrops_lpjg
-            error('length(IA)~=Ncrops_lpjg')
-        end
-        if ~isequal(IB, shiftdim(1:length(S.varNames))) ...
-                || length(year_indices)~=size(S.maps_YXvy,4)
-            S.maps_YXvy = S.maps_YXvy(:,:,IB,year_indices) ;
-        end
-        incl_YXvy = repmat(~mask_YX, [1 1 size(S.maps_YXvy, 3:4)]) ;
-        PLUMharm_nfert_xvyr(:,:,:,r) = reshape( ...
-            S.maps_YXvy(incl_YXvy), [Ncells size(S.maps_YXvy, 3:4)]) ;
-        clear S
-        
-        % Irrigation
-        S = lpjgu_matlab_readTable_then2map([thisDir_harm 'irrig.txt'],'force_mat_save',true) ;
-        [~,~,IB] = intersect(crops_tmp,S.varNames,'stable') ;
-        if length(IA) ~= Ncrops_lpjg
-            error('length(IA)~=Ncrops_lpjg')
-        end
-        if ~isequal(IB, shiftdim(1:length(S.varNames))) ...
-                || length(year_indices)~=size(S.maps_YXvy,4)
-            S.maps_YXvy = S.maps_YXvy(:,:,IB,year_indices) ;
-        end
-        incl_YXvy = repmat(~mask_YX, [1 1 size(S.maps_YXvy, 3:4)]) ;
-        PLUMharm_irrig_xvyr(:,:,:,r) = reshape( ...
-            S.maps_YXvy(incl_YXvy), [Ncells size(S.maps_YXvy, 3:4)]) ;
-        clear S
+    
+    if combineCrops
+        [S_out, ~, ~] = PLUMharm_pp_readPLUM(...
+            thisDir_harm,base_year,yearList_harm, ...
+            thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
+            is2deg, [], 0, [], thisVer, false, fruitveg_sugar_2oil) ;
+        S_out.maps_YXvy = cat(3, ...
+            sum(S_out.maps_YXvy(:,:,~contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:), 3), ...
+            S_out.maps_YXvy(:,:,contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:)) ;
+        S_out.varNames = [LPJGcrops, S_out.varNames(contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}))] ;
     else
-        tmpDir = [thisDir_orig '.harm'] ;
-        tmpDir = get_harm_dir(tmpDir, fruitveg_sugar_2oil, combineCrops) ;
-        if combineCrops
-            [S_out, ~, ~] = PLUMharm_pp_readPLUM(...
-                tmpDir,base_year,yearList_harm, ...
-                thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-                is2deg, [], 0, [], thisVer, false, fruitveg_sugar_2oil) ;
-            S_out.maps_YXvy = cat(3, ...
-                sum(S_out.maps_YXvy(:,:,~contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:), 3), ...
-                S_out.maps_YXvy(:,:,contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}),:)) ;
-            S_out.varNames = [LPJGcrops, S_out.varNames(contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}))] ;
-        else
-            [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
-                tmpDir,base_year,yearList_harm, ...
-                thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
-                is2deg, [], 0, [], thisVer, false, fruitveg_sugar_2oil) ;
-        end
-        clear tmpDir
-        
-        if length(year_indices) ~= size(S_out.maps_YXvy,4) && ~add_baseline_to_harm
-            S_out.maps_YXvy = S_out.maps_YXvy(:,:,:,year_indices) ;
-        end
-        incl_YXvy = repmat(~mask_YX, [1 1 size(S_out.maps_YXvy, 3:4)]) ;
-        PLUMharm_xvyr(:,:,:,r) = reshape(S_out.maps_YXvy(incl_YXvy), size(PLUMharm_xvyr, 1:3)) ;
-        clear S_out incl_YXvy
-        
-        if ~combineCrops
-            if length(year_indices) ~= size(S_nfert_out.maps_YXvy,4) && ~add_baseline_to_harm
-                S_nfert_out.maps_YXvy = S_nfert_out.maps_YXvy(:,:,:,year_indices) ;
-            end
-            incl_YXvy = repmat(~mask_YX, [1 1 size(S_nfert_out.maps_YXvy, 3:4)]) ;
-            PLUMharm_nfert_xvyr(:,:,:,r) = reshape(S_nfert_out.maps_YXvy(incl_YXvy), size(PLUMharm_nfert_xvyr, 1:3)) ;
-            clear S_nfert_out
-            
-            if length(year_indices) ~= size(S_irrig_out.maps_YXvy,4) && ~add_baseline_to_harm
-                S_irrig_out.maps_YXvy = S_irrig_out.maps_YXvy(:,:,:,year_indices) ;
-            end
-            PLUMharm_irrig_xvyr(:,:,:,r) = reshape(S_irrig_out.maps_YXvy(incl_YXvy), size(PLUMharm_irrig_xvyr, 1:3)) ;
-            clear S_irrig_out incl_YXvy
-        end
-        
+        [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
+            thisDir_harm,base_year,yearList_harm, ...
+            thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
+            is2deg, [], 0, [], thisVer, false, fruitveg_sugar_2oil) ;
     end
+    clear thisDir_harm
+    
+    if length(year_indices) ~= size(S_out.maps_YXvy,4) && ~add_baseline_to_harm
+        S_out.maps_YXvy = S_out.maps_YXvy(:,:,:,year_indices) ;
+    end
+    incl_YXvy = repmat(~mask_YX, [1 1 size(S_out.maps_YXvy, 3:4)]) ;
+    PLUMharm_xvyr(:,:,:,r) = reshape(S_out.maps_YXvy(incl_YXvy), size(PLUMharm_xvyr, 1:3)) ;
+    clear S_out incl_YXvy
+    
+    if ~combineCrops
+        if length(year_indices) ~= size(S_nfert_out.maps_YXvy,4) && ~add_baseline_to_harm
+            S_nfert_out.maps_YXvy = S_nfert_out.maps_YXvy(:,:,:,year_indices) ;
+        end
+        incl_YXvy = repmat(~mask_YX, [1 1 size(S_nfert_out.maps_YXvy, 3:4)]) ;
+        PLUMharm_nfert_xvyr(:,:,:,r) = reshape(S_nfert_out.maps_YXvy(incl_YXvy), size(PLUMharm_nfert_xvyr, 1:3)) ;
+        clear S_nfert_out
+        
+        if length(year_indices) ~= size(S_irrig_out.maps_YXvy,4) && ~add_baseline_to_harm
+            S_irrig_out.maps_YXvy = S_irrig_out.maps_YXvy(:,:,:,year_indices) ;
+        end
+        PLUMharm_irrig_xvyr(:,:,:,r) = reshape(S_irrig_out.maps_YXvy(incl_YXvy), size(PLUMharm_irrig_xvyr, 1:3)) ;
+        clear S_irrig_out incl_YXvy
+    end
+        
     disp(toc_hms(toc))
     
 end
