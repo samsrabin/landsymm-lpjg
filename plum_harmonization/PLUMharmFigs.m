@@ -776,8 +776,8 @@ list_regions = harm_focus_regions(:,5) ;
 list_superRegs = unique(harm_focus_regions(:,2)) ;
 Nregions = length(list_regions) ;
 NsuperRegs = length(list_superRegs) ;
-templatefile = sprintf('%s/harm_by_numbers.template.xlsx', out_dir) ;
-templatefile_relLandArea = sprintf('%s/harm_by_numbers.template.relLandArea.xlsx', out_dir) ;
+templatefile = sprintf('%s/input_data/harm_by_numbers.template.xlsx', plumharm_repo_path) ;
+templatefile_relLandArea = sprintf('%s/input_data/harm_by_numbers.template.relLandArea.xlsx', plumharm_repo_path) ;
 
 % Do it
 for l = 1:length(tmp_lu_list)
