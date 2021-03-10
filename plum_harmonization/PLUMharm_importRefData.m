@@ -1,54 +1,51 @@
 disp('Importing reference data...')
 
+landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plumharm_repo_path) ;
+PLUM_file_res_terr = sprintf('%s/input_data/maxcropfrac2.txt', plumharm_repo_path) ;
+PLUM_file_res_prot = sprintf('%s/input_data/protected_areas_with_points.txt', plumharm_repo_path) ;
+
 if ~exist('combineCrops', 'var')
     combineCrops = false ;
 end
 
 % Get files based on baseline version
-PLUM_file_res_terr = [inDir_protectedAreas 'maxcropfrac2.txt'] ;
-PLUM_file_res_prot = [inDir_protectedAreas 'protected_areas_with_points.txt'] ;
 fruitveg_sugar_2oil_ok = false ;
 if baseline_ver == 1
-    if onMac
+    if strcmp(thisSystem, 'ssr_mac')
         luh2_file = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
         cropf_file = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
         nfert_file = '/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-        landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
     else
         error('Configure this section to work on machine other than Mac!')
     end
     inpaint_method = 0 ;
 elseif baseline_ver == 2
-    if onMac
+    if strcmp(thisSystem, 'ssr_mac')
         inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6/' ;
-        landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
     else
-        inDir_remap6 = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6/' ;
-        landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+        error('Specify inDir_remap6 for thisSystem: %s', thisSystem)
     end
     luh2_file = [inDir_remap6 'LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt'] ;
     cropf_file = [inDir_remap6 'cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt'] ;
     nfert_file = [inDir_remap6 'nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt'] ;
     inpaint_method = 4 ;
 elseif baseline_ver == 3
-    if onMac
+    if strcmp(thisSystem, 'ssr_mac')
         inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
-        landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
     else
-        inDir_remap6 = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v6p7/' ;
-        landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+        error('Specify inDir_remap6 for thisSystem: %s', thisSystem)
     end
     luh2_file = [inDir_remap6 'LU.remapv6p7.txt'] ;
     cropf_file = [inDir_remap6 'cropfracs.remapv6p7.txt'] ;
     nfert_file = [inDir_remap6 'nfert.remapv6p7.txt'] ;
     inpaint_method = 4 ;
 elseif baseline_ver == 4
-    if onMac
+    if strcmp(thisSystem, 'ssr_mac')
         inDir_remap = '/Users/Shared/PLUM/input/remaps_v8c' ;
-        landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+    elseif strcmp(thisSystem, 'ssr_keal')
+        inDir_remap = '/pd/data/lpj/sam/PLUM/input/remaps_v8c' ;
     else
-        inDir_remap = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v8c' ;
-        landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
+        error('Specify inDir_remap for thisSystem: %s', thisSystem)
     end
     if fruitveg_sugar_2oil
         inDir_remap = [inDir_remap '2oil'] ;
@@ -143,8 +140,16 @@ if ~isequal(LUnames,base.varNames)
 end
 
 % Harmonize masks
-PLUM_base_in = addslashifneeded([addslashifneeded(PLUM_in_toptop{1}) num2str(base_year)]) ;
-file_in = [PLUM_base_in 'LandCoverFract.txt'] ;
+dir1 = dirList{1} ;
+if ~exist(dir1, 'dir')
+    error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent.')
+end
+dir1_base = addslashifneeded([addslashifneeded(dir1) num2str(base_year)]) ;
+if ~exist(dir1_base, 'dir')
+    error('Directory for %d not found in dir1_base (%s)', ...
+        base_year, dir1_base)
+end
+file_in = [dir1_base 'LandCoverFract.txt'] ;
 S = lpjgu_matlab_readTable_then2map(file_in,'verboseIfNoMat',false,'force_mat_nosave',true,'force_mat_save',false) ;
 mask_YX = isnan(S.maps_YXv(:,:,1)) ...
     | sum(S.maps_YXv(:,:,contains(S.varNames,{'CROPLAND','PASTURE','NATURAL'})),3)==0 ...
@@ -514,7 +519,7 @@ lons = lons_map(list2map) ;
 lats = lats_map(list2map) ;
 
 % Get PLUM crop types
-file_in = [PLUM_base_in 'LandUse.txt'] ;
+file_in = [dir1_base 'LandUse.txt'] ;
 T = lpjgu_matlab_readTable(file_in,'verboseIfNoMat',false,'dont_save_MAT',true) ;
 PLUMcrops = T.Properties.VariableNames ;
 PLUMcrops = PLUMcrops(...

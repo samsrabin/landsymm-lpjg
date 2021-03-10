@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % PLUM_version = 'v12.s1' ;
-% runList = strcat({...
+% dirList = strcat({...
 %            'SSP1' ;
 %            'SSP3' ;
 %            'SSP4' ;
@@ -16,7 +16,7 @@
 % % baseline_ver = 2 ;   % Based on remap_v6
 % baseline_ver = 3 ;   % Based on remap_v6p7
 
-% runList = {...
+% dirList = {...
 %     'halfearth/HEoct/baseline/s1';
 %     'halfearth/HEoct/halfearth/s1';
 %     } ;
@@ -27,16 +27,16 @@
 % baseline_ver = 4 ;   % Based on remap_v8b2oil
 
 PLUM_version = 'v13.s1' ;
-runList = {...
+dirList = {...
 %     'ssp13/SSP1/s1' ;
-    'ssp13/SSP2/s1' ;
-    'ssp13/SSP3/s1' ;
-    'ssp13/SSP4/s1' ;
-    'ssp13/SSP5/s1' ;
+    'SSP2/s1' ;
+    'SSP3/s1' ;
+    'SSP4/s1' ;
+    'SSP5/s1' ;
     } ;
 yearList_harm = 2011:2100 ;
 fruitveg_sugar_2oil = false ;
-runList_legend = strrep(strrep(runList, 'ssp13/',''),'/s1','')' ;
+runList_legend = strrep(strrep(dirList, 'ssp13/',''),'/s1','')' ;
 legend_ts = [{'LUH2'} runList_legend] ;
 baseline_ver = 4 ;   % Based on remap_v8b2oil
 
@@ -57,47 +57,29 @@ norm2extra = 0.177 ;
 
 %% Setup
 
-% Determine which system you're on
-tmp = pwd ;
-if strcmp(tmp(1:5),'/User') || strcmp(tmp(1:8),'/Volumes')
-    onMac = true ;
-elseif strcmp(tmp(1:5),'/pfs/')
-    onMac = false ;
+% Determine which system you're on and set up.
+thisSystem = get_system_name() ;
+if strcmp(thisSystem, 'ssr_mac')
+    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+elseif strcmp(thisSystem, 'ssr_keal')
+    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
 else
-    error('What system are you on?')
+    error('thisSystem not recognized: %s', thisSystem)
 end
-clear tmp
+addpath(genpath(plumharm_repo_path))
 
-if onMac
-    topDir = addslashifneeded('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') ;
-    PLUMharm_top = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
-    addpath(genpath(PLUMharm_top))
-    inDir_protectedAreas = '/Users/Shared/PLUM/input/protected_areas/' ;
-else
-    topDir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/PLUM/input/PLUMouts_2011-2100') ;
-    addpath(genpath('/pfs/data1/home/kit/imk-ifu/lr8247/paper02-matlab-work/')) ;
-    PLUMharm_top = '/pfs/data1/home/kit/imk-ifu/lr8247/plum_harmonization/' ;
-    inDir_protectedAreas = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/protected_areas/' ;
+% Before making output directory, make sure you're in the correct
+% directory to begin with.
+if ~exist(dirList{1}, 'dir')
+    error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent.')
 end
-
-% Output directory will be in the lowest-level directory that all these
-% share (from https://stackoverflow.com/a/40061849/2965321)
-if ~exist('out_dir', 'var')
-    dirList = strcat(topDir, runList) ;
-    temp = sort(dirList(:)) ;
-    first = strsplit(temp{1}, filesep) ;
-    last = strsplit(temp{end}, filesep) ;
-    sizeMin = min(numel(first), numel(last)) ;
-    N = find(~[cellfun(@strcmp, first(1:sizeMin), last(1:sizeMin)) 0], 1, 'first') - 1 ;
-    commonPath = strjoin(first(1:N), filesep) ;
-    out_dir = sprintf('%s/harm%dFigs_%s',commonPath,baseline_ver,PLUM_version) ;
-    out_dir = get_harm_dir(out_dir, fruitveg_sugar_2oil, combineCrops) ;
-    if ~exist(out_dir, 'dir')
-        mkdir(out_dir)
-    end
+out_dir = sprintf('harm%dFigs_%s', baseline_ver, PLUM_version) ;
+out_dir = get_harm_dir(out_dir, fruitveg_sugar_2oil, combineCrops) ;
+if ~exist(out_dir, 'dir')
+    mkdir(out_dir)
 end
 out_dir = addslashifneeded(out_dir) ;
-fprintf('out_dir: %s\n', out_dir)
+fprintf('out_dir: %s/%s\n', pwd, out_dir)
 
 yearList_luh2 = 1971:2010 ;
 % yearList_luh2 = 2001:2010 ;
@@ -107,22 +89,19 @@ add_baseline_to_harm = ...
     && yearList_orig(1)==base_year ...
     && any(yearList_luh2==base_year) ;
 if ~exist('legend_ts', 'var')
-    if length(runList) == 1
+    if length(dirList) == 1
         legend_ts = {'LUH2','Orig','Harm'} ;
     else
         legend_ts = {'LUH2'} ;
-        for s = 1:length(runList)
-            legend_ts = [legend_ts {runList{s}(1:4)}] ;
+        for s = 1:length(dirList)
+            legend_ts = [legend_ts {dirList{s}(1:4)}] ; %#ok<AGROW>
         end
     end
 end
 
-PLUM_in_toptop = strcat(topDir,runList) ;
-PLUM_base_in = [addslashifneeded(PLUM_in_toptop{1}) '2010/'] ;
-
 Nyears_orig = length(yearList_orig) ;
 Nyears_harm = length(yearList_harm) ;
-Nruns = length(runList) ;
+Nruns = length(dirList) ;
 
 % % Make lower-left lat/lon map (for compat. with PLUM style)
 % lons_map_2deg = repmat(-180:2:178,[90 1]) ;
@@ -139,33 +118,25 @@ R = georasterref('RasterSize', [360 720], ...
     'LatitudeLimits', [-90 90], ...
     'LongitudeLimits', [-180 180]) ;
 
-% Get shortest distinct runList
-shortened_runList = runList ;
-tmp = shortened_runList ;
-while length(unique(tmp)) == Nruns
-    shortened_runList = tmp ;
-    for r = 1:Nruns
-        tmp{r} = tmp{r}(1:end-1) ;
-    end
-end
+lines_overlay = sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path) ;
 
 
 %% Import reference data
 
 doHarm = false ;
 
-run([PLUMharm_top 'PLUMharm_importRefData.m']) ;
+PLUMharm_importRefData
 
 biomeID_YX = flipud(imread( ...
-    '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif')) ;
-biomeID_YX(biomeID_YX<0) = NaN ;
+    sprintf('%s/input_data/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif', plumharm_repo_path))) ;
+biomeID_YX(biomeinput_data/ID_YX<0) = NaN ;
 biomeID_x = biomeID_YX(list2map) ;
 countries_YX = flipud(dlmread( ...
-    '/Users/Shared/PLUM/crop_calib_data/countries/PLUM-specific/country_boundaries62892.noNeg99.extrapd.asc', ...
+    sprintf('%s/input_data/country_boundaries62892.noNeg99.extrapd.asc', plumharm_repo_path), ...
     '',6,0)) ;
 countries_YX(countries_YX<=0) = NaN ;
 countries_x = countries_YX(list2map) ;
-countries_key = readtable('/Users/Shared/lpj-guess-plum/input/unifying_gridlist/country_boundaries_codes4.csv') ;
+countries_key = readtable(sprintf('%s/input_data/country_boundaries_codes4.csv', plumharm_repo_path)) ;
 
 
 %% Import PLUM (original + harmonized)
@@ -196,14 +167,17 @@ if ~combineCrops
 end
 
 for r = 1:Nruns
-    thisRun = removeslashifneeded(runList{r}) ;
+    thisDir_orig = removeslashifneeded(dirList{r}) ;
+    if ~exist(thisDir_orig, 'dir')
+        error('thisDir_orig %s not found. Try changing MATLAB working directory to thisDir_orig''s parent.')
+    end
 
     % Original
-    fprintf('Importing %s...\n', thisRun) ;
+    fprintf('Importing %s...\n', thisDir_orig) ;
     tic
     if combineCrops
         [S_out, ~, ~] = PLUMharm_pp_readPLUM(...
-            [topDir thisRun], base_year, yearList_orig, ...
+            thisDir_orig, base_year, yearList_orig, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, [], norm2extra, inpaint_method, '', true, ...
             fruitveg_sugar_2oil) ;
@@ -213,7 +187,7 @@ for r = 1:Nruns
         S_out.varNames = [LPJGcrops, S_out.varNames(contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}))] ;
     else
         [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
-            [topDir thisRun], base_year, yearList_orig, ...
+            thisDir_orig, base_year, yearList_orig, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, [], norm2extra, inpaint_method, '', true, ...
             fruitveg_sugar_2oil) ;
@@ -248,18 +222,17 @@ for r = 1:Nruns
     disp(toc_hms(toc))
 
     % Harmonized
-    fprintf('Importing %s.harm...\n', thisRun) ;
     tic
-    thisDir = [topDir thisRun '.harm'] ;
-    thisDir = get_harm_dir(thisDir, fruitveg_sugar_2oil, combineCrops) ;
-    thisDir = [thisDir '.forLPJG/'] ;
-    if exist(thisDir,'dir')
+    thisDir_harm = sprintf('%s/forLPJG/', ...
+        get_harm_dir([thisDir_orig '.harm'], fruitveg_sugar_2oil, combineCrops)) ;
+    fprintf('Importing %s...\n', thisDir_harm) ;
+    if exist(thisDir_harm,'dir')
         if combineCrops
-            error('Need to rework this code to work with combineCrops')
+            error('Need to rework this code to work with combineCrops') %#ok<UNRCH>
         end
         
         % Land use fractions
-        S_lu = lpjgu_matlab_readTable_then2map([thisDir 'landcover.txt'],'force_mat_save',true) ;
+        S_lu = lpjgu_matlab_readTable_then2map([thisDir_harm 'landcover.txt'],'force_mat_save',true) ;
         [~,year_indices,~] = intersect(S_lu.yearList,yearList_harm,'stable') ;
         if length(year_indices)~=length(yearList_harm)
             error('length(year_indices)~=length(yearList_harm)')
@@ -267,7 +240,7 @@ for r = 1:Nruns
         if length(year_indices)~=size(S_lu.maps_YXvy, 4)
             S_lu.maps_YXvy = S_lu.maps_YXvy(:,:,:,year_indices) ;
         end
-        S_cropf = lpjgu_matlab_readTable_then2map([thisDir 'cropfractions.txt'],'force_mat_save',true) ;
+        S_cropf = lpjgu_matlab_readTable_then2map([thisDir_harm 'cropfractions.txt'],'force_mat_save',true) ;
         if length(year_indices)~=size(S_cropf.maps_YXvy, 4)
             S_cropf.maps_YXvy = S_cropf.maps_YXvy(:,:,:,year_indices) ;
         end
@@ -300,7 +273,7 @@ for r = 1:Nruns
         clear cropf_xvy cropland_frac_xvy lu_xvy
         
         % Fertilization
-        S = lpjgu_matlab_readTable_then2map([thisDir 'nfert.txt'],'force_mat_save',true) ;
+        S = lpjgu_matlab_readTable_then2map([thisDir_harm 'nfert.txt'],'force_mat_save',true) ;
         [~,~,IB] = intersect(crops_tmp,S.varNames,'stable') ;
         if length(IA) ~= Ncrops_lpjg
             error('length(IA)~=Ncrops_lpjg')
@@ -315,7 +288,7 @@ for r = 1:Nruns
         clear S
         
         % Irrigation
-        S = lpjgu_matlab_readTable_then2map([thisDir 'irrig.txt'],'force_mat_save',true) ;
+        S = lpjgu_matlab_readTable_then2map([thisDir_harm 'irrig.txt'],'force_mat_save',true) ;
         [~,~,IB] = intersect(crops_tmp,S.varNames,'stable') ;
         if length(IA) ~= Ncrops_lpjg
             error('length(IA)~=Ncrops_lpjg')
@@ -329,7 +302,7 @@ for r = 1:Nruns
             S.maps_YXvy(incl_YXvy), [Ncells size(S.maps_YXvy, 3:4)]) ;
         clear S
     else
-        tmpDir = [topDir thisRun '.harm'] ;
+        tmpDir = [thisDir_orig '.harm'] ;
         tmpDir = get_harm_dir(tmpDir, fruitveg_sugar_2oil, combineCrops) ;
         if combineCrops
             [S_out, ~, ~] = PLUMharm_pp_readPLUM(...
@@ -381,7 +354,8 @@ landArea_xv = repmat(landArea_x, [1 Nlu]) ;
 landArea_xvr = repmat(landArea_xv, [1 1 Nruns]) ;
 
 % Import food production units
-fpu_YX = flipud(dlmread('/Users/Shared/PLUM/food_production_units/FPU.asc',' ',6,0)) ;
+fpu_file = sprintf('%s/input_data/FPU.asc', plumharm_repo_path) ;
+fpu_YX = flipud(dlmread(fpu_file,' ',6,0)) ;
 fpu_YX(fpu_YX==-9999) = NaN ;
 fpu_x = fpu_YX(list2map) ;
 fpu_list = unique(fpu_x(~isnan(fpu_x))) ;
@@ -456,7 +430,7 @@ for r = 1:Nruns
     % Finish up
     axis equal tight ;
     set(gca,'XLim',[0 1],'YLim',[0 1], 'FontSize', fontSize)
-    title(runList{r})
+    title(runList_legend{r})
     xlabel(sprintf('Fraction of gridcell %d (LUH2)', y1))
     ylabel(sprintf('Fraction of gridcell %d (PLUM output)', y1))
     
@@ -599,7 +573,7 @@ for r = 1:Nruns
         % Finish up
         axis equal tight ;
         set(gca,'XLim',[-1 1],'YLim',[-1 1], 'FontSize', fontSize)
-        title(runList{r})
+        title(runList_legend{r})
         xlabel('\Delta gridcell fraction (original)')
         ylabel('\Delta gridcell fraction (harmonized)')
     end
@@ -636,14 +610,12 @@ textY_1 = 50/360 ;
 textY_2 = 20/360 ;
 shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 nx = 2 ;
-ny = length(runList) ;
+ny = length(dirList) ;
 as_frac_land = false ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 units_total = 'Mkm^2' ;
 do_caps = false ;
 ntrl_colormap_name = 'PiYG_ssr' ;
-% lines_overlay = 'landareas.shp' ;
-lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
 if ~any(y1_list==yearList_harm(1) & yN_list==yearList_harm(end))
@@ -878,15 +850,14 @@ list_regions = harm_focus_regions(:,5) ;
 list_superRegs = unique(harm_focus_regions(:,2)) ;
 Nregions = length(list_regions) ;
 NsuperRegs = length(list_superRegs) ;
-harmByNums_outdir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/harmonization_qgis' ;
-templatefile = sprintf('%s/harm_by_numbers.template.xlsx', harmByNums_outdir) ;
-templatefile_relLandArea = sprintf('%s/harm_by_numbers.template.relLandArea.xlsx', harmByNums_outdir) ;
+templatefile = sprintf('%s/harm_by_numbers.template.xlsx', out_dir) ;
+templatefile_relLandArea = sprintf('%s/harm_by_numbers.template.relLandArea.xlsx', out_dir) ;
 
 % Do it
 for l = 1:length(tmp_lu_list)
     thisLU = tmp_lu_list{l} ;
     outfile = sprintf('%s/harm_by_numbers.%d-%d.%s.xlsx', ...
-        harmByNums_outdir, ...
+        out_dir, ...
         y1, yN, thisLU) ;
     if combineCrops
         outfile = strrep(outfile, thisLU, ['combCrops.' thisLU]) ;
@@ -904,7 +875,7 @@ for l = 1:length(tmp_lu_list)
     copyfile(templatefile_relLandArea, outfile_relLandArea) ;
     
     for r = 1:Nruns
-        thisRun = runList{r} ;
+        thisRun = runList_legend{r} ;
         fprintf('%d-%d, %s, %s\n', y1, yN, thisRun, thisLU)
         landArea_byReg = [] ;
         for s = 1:NsuperRegs
@@ -1044,8 +1015,6 @@ bins_lowBnds = [0:99] ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 do_caps = false ;
 this_colormap_name = 'parula' ;
-% lines_overlay = 'landareas.shp' ;
-lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
 v = contains(LUnames, thisLU) ;
@@ -1216,7 +1185,7 @@ fontSize = 14 ;
 png_res = 150 ;
 
 for r = 1:Nruns
-    thisRun = runList{r} ;
+    thisRun = runList_legend{r} ;
     for v = 1:Nlu
         figure('Color','w','Position',figurePos) ;
         thisLU = LUnames{v} ;
@@ -1259,7 +1228,7 @@ png_res = 150 ;
 thisPos = [1         500        1440         305] ;
 
 for r = 1:Nruns
-    thisRun = runList{r} ;
+    thisRun = runList_legend{r} ;
     for v = 1:Nlu
         figure('Color','w','Position',thisPos) ;
         thisLU = LUnames{v} ;
@@ -1315,7 +1284,7 @@ for v = 1:Nlu
         new_caxis = [-1 1]*max(max(abs(tmp_xvr(:,v,:)))) ;
     end
     for r = 1:Nruns
-        thisRun = runList{r} ;
+        thisRun = runList_legend{r} ;
         h1 = subplot_tight(2,2,r,spacing) ;
         tmp = lpjgu_vector2map(tmp_xvr(:,v,r), map_size, list2map) ;
         pcolor(tmp(y1:end,:)) ;
@@ -1352,7 +1321,7 @@ fontSize = 14 ;
 png_res = 150 ;
 
 for r = 1:Nruns
-    thisRun = runList{r} ;
+    thisRun = runList_legend{r} ;
     for v = 1:Nlu
         figure('Color','w','Position',figurePos) ;
         thisLU = LUnames{v} ;

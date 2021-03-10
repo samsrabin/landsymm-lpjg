@@ -38,12 +38,6 @@ else
 end
 Nyears_xtra = length(yearList_xtra) ;
 
-% Get cells present in previous LPJ-GUESS output
-lpjg_in = lpjgu_matlab_readTable(lpjg_in_file,'dont_save_MAT',true,'verboseIfNoMat',false) ;
-lons_lpjg = lpjg_in.Lon ;
-lats_lpjg = lpjg_in.Lat ;
-clear lpjg_in
-
 % Get LUH2 land area (m2)
 gcel_area_YXqd = 1e6*transpose(ncread(landarea_file,'carea')) ;
 land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
@@ -60,16 +54,17 @@ clear *_YXqd
 for d = 1:length(dirList)
     
     % Get directories
-    if onMac
-        inDir = find_PLUM2LPJG_inputs(dirList{d}) ;
-    else
-        inDir = dirList{d} ;
+    inDir = dirList{d} ;
+    if ~exist(inDir, 'dir')
+        error('inDir %s not found. Try changing MATLAB working directory to inDir''s parent.')
     end
     inDir = removeslashifneeded(inDir) ;
     disp(inDir)
     outDir = addslashifneeded([removeslashifneeded(inDir) '.forLPJG']) ;
-    unix(['mkdir -p ' outDir]) ;
-        
+    if ~exist(outDir, 'dir')
+        mkdir(outDir)
+    end
+    
     
     %%%%%%%%%%%%%%
     %%% Import %%%

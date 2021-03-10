@@ -10,11 +10,11 @@ dirList = {...
 %               'SSP3.v12.s1.harm' ;
 %               'SSP4.v12.s1.harm' ;
 %               'SSP5.v12.s1.harm' ;
-%     'ssp13/SSP1/s1.harm' ;
-    'ssp13/SSP2/s1.harm' ;
-    'ssp13/SSP3/s1.harm' ;
-    'ssp13/SSP4/s1.harm' ;
-    'ssp13/SSP5/s1.harm' ;
+%     'SSP1/s1.harm' ;
+    'SSP2/s1.harm' ;
+    'SSP3/s1.harm' ;
+    'SSP4/s1.harm' ;
+    'SSP5/s1.harm' ;
               } ;
 base_year = 2010 ;
 y1 = 2011 ;
@@ -43,30 +43,18 @@ if ~iscellstr(dirList)
     error('dirList must be a cell array of strings!')
 end
 
-% Determine which system you're on
-tmp = pwd ;
-if strcmp(tmp(1:5),'/User')
-    onMac = true ;
-elseif strcmp(tmp(1:5),'/pfs/')
-    onMac = false ;
-else
-    error('What system are you on?')
-end
-clear tmp
-if onMac
+% Determine which system you're on and set up.
+thisSystem = get_system_name() ;
+if strcmp(thisSystem, 'ssr_mac')
     addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
-    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/')) ;
-    landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
-    lpjg_in_file = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out.gz' ;
+    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization' ;
+elseif strcmp(thisSystem, 'ssr_keal')
+    addpath(genpath('/pd/data/lpj/sam/paper02-matlab-work')) ;
+    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
 else
-    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work')) ;
-    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general/'))
-    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general-fromshared/'))
-    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/lpj-guess-crop-calibration/'))
-    landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
-    dirList = strcat('/home/fh1-project-lpjgpi/lr8247/PLUM/input/',dirList) ;
-    lpjg_in_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/trunk_runs_out/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851/yield.out.gz' ;
+    error('thisSystem not recognized: %s', thisSystem)
 end
+addpath(genpath(plumharm_repo_path))
 
 % Do processing
 PLUMharm2LPJG
