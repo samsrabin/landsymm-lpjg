@@ -357,11 +357,11 @@ elseif (calib_ver>=1 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20)
 else
     error(['calib_ver (' num2str(calib_ver) ') not recognized! In "Remove countries where LPJG and/or FAO have 0 area"'])
 end
-if any(sum(ignore_lpj_Cc,1)==0)
-    warning('No included countries (LPJ): %s',strjoin(listCrops_lpj_comb(sum(ignore_lpj_Cc,1)==0), ', '))
+if any(all(ignore_lpj_Cc,1))
+    error('No included countries (LPJ): %s',strjoin(listCrops_lpj_comb(all(ignore_lpj_Cc,1)), ', '))
 end
-if any(sum(ignore_fa2_Cc,1)==0)
-    warning('No included countries (FAO): %s',strjoin(listCrops_fa2o(sum(ignore_fa2_Cc,1)==0), ', '))
+if any(all(ignore_fa2_Cc,1))
+    warning('No included countries (FAO): %s',strjoin(listCrops_fa2o(all(ignore_fa2_Cc,1)), ', '))
 end
 
 % Get ancillary arrays
