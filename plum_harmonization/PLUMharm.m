@@ -612,10 +612,10 @@ for d = 1:length(dirList)
         mid_y1_2deg_vegd_YX = sum(mid_y1_2deg_agri_YXv,3) + mid_y1_2deg_ntrl_YX ;
         mid_y1_2deg_bare_YX = landArea_2deg_YX - mid_y1_2deg_vegd_YX ;
                         
-        % Rounding errors can result in small negative values. Fix.
-        % Check for bad values
+        % Rounding errors can result in small negative values. Fix and
+        % check for bad values
         tmp_YXv = cat(3, mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX) ;
-        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu])) ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), debugIJ_2deg) ;
         PLUMharm_checkBadVals(tmp_YXv, [], [], landArea_2deg_YX, LUnames, 'mid_y1_2deg') ;
         mid_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
         mid_y1_2deg_ntrl_YX = tmp_YXv(:,:,end-1) ;
@@ -670,7 +670,7 @@ for d = 1:length(dirList)
         % Rounding errors can result in small negative values. Fix.
         % Check for bad values
         tmp_YXv = cat(3, out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX, out_y1_2deg_bare_YX) ;
-        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu])) ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), debugIJ_2deg) ;
         PLUMharm_checkBadVals(tmp_YXv, [] ,[], landArea_2deg_YX, LUnames, 'out_y1_2deg') ;
         out_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
         out_y1_2deg_ntrl_YX = tmp_YXv(:,:,end-1) ;
@@ -875,7 +875,7 @@ for d = 1:length(dirList)
         % Rounding errors can result in small negative values. Fix.
         % Check for bad values.
         tmp_YXv = cat(3, out_y1_agri_YXv, out_y1_ntrl_YX, out_y1_bare_YX) ;
-        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_YX,[1 1 Nlu])) ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_YX,[1 1 Nlu]),[]) ;
         PLUMharm_checkBadVals(tmp_YXv, [] ,[], landArea_YX, LUnames, 'out_y1_2deg') ;
         out_y1_agri_YXv = tmp_YXv(:,:,1:end-2) ;
         out_y1_ntrl_YX = tmp_YXv(:,:,end-1) ;
