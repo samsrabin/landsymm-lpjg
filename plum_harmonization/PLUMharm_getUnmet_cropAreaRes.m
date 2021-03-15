@@ -147,5 +147,9 @@ if do_debug
     fprintf('      %s\t%0.4e\n',pad('ntrl_y1_out:',20),mid_y1_2deg_ntrl_YX(dbI,dbJ)) ;
 end
 
+if do_debug
+    disp(' ')
+end
+
 
 end

@@ -59,9 +59,9 @@ for i = 1:size(landArea_2deg_YX,1)
                 end
                 fprintf(['   agri_d(%d,%d): ' repmat('%0.3e ',[1 Nagri]) '\n'],dbI,dbJ,this_IJd) ;
             end
-            if i==debug_ijk(1) && j==debug_ijk(2)
-                keyboard
-            end
+%             if i==debug_ijk(1) && j==debug_ijk(2)
+%                 keyboard
+%             end
         end
         
         agri_d = shiftdim(out_y1_2deg_agri_YXv(i,j,:) - out_y0_2deg_agri_YXv(i,j,:)) ;
@@ -71,7 +71,7 @@ for i = 1:size(landArea_2deg_YX,1)
         end
         out_y0_vegd_theseCells = out_y0_vegd_YX(theseCells) ;        
         
-        if ~update_avail_land
+        if update_avail_land
             now_agri_YX = sum(out_y0_agri_YXv(iy,ix,:),3) ;
             avail_land = out_y0_vegd_theseCells - now_agri_YX(:) ;
         else
@@ -84,7 +84,8 @@ for i = 1:size(landArea_2deg_YX,1)
             loop_thru_agri(already_done, 1, debug_ijk, ...
             update_avail_land, proper_zero_denoms, conserv_tol_area, ...
             i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
-            out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land) ;
+            out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land, ...
+            LUnames(1:end-2)) ;
         
         % Check for invalid cell areas
         agri_YX = sum(out_y1_agri_YXv(iy,ix,:),3) ;

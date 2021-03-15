@@ -1,5 +1,5 @@
 function out_YXv = PLUMharm_fixTinyNegs(in_YXv, landArea_YXv, ...
-    debugIJ_2deg)
+    LUnames, outPrec, debugIJ_2deg)
 % Rounding errors can result in small negative values. Fix.
 
 Nlu = size(in_YXv, 3) ;
@@ -80,7 +80,27 @@ if any(any(isBad_YX))
     end
     
     out_YXv(isBad_YXv) = tmp_xv(:) .* tmp_landArea ;
+    
+    % Where differences are very small, zero them out
+    smallDiff_YXv = abs(out_YXv - in_YXv) < 1e-6 ;
+    out_YXv(smallDiff_YXv) = in_YXv(smallDiff_YXv) ;
+
+    if do_debug
+        fprintf([' in_YXv(%d,%d,:) = ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], ...
+            dbI, dbJ, shiftdim(in_YXv(dbI,dbJ,:)))
+        fprintf(['out_YXv(%d,%d,:) = ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], ...
+            dbI, dbJ, shiftdim(out_YXv(dbI,dbJ,:)))
+        fprintf(['             diff = ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], ...
+            shiftdim(out_YXv(dbI,dbJ,:)) - shiftdim(in_YXv(dbI,dbJ,:)))
+        disp(' ')
+    end
 end
+
+% Small negative barren is fine; just zero it out.
+bare_YX = out_YXv(:,:,strcmp(LUnames, 'BARREN')) ;
+smallNegBare_YX = bare_YX<0 & bare_YX>-outPrec/2 ;
+bare_YX(smallNegBare_YX) = 0 ;
+out_YXv(:,:,strcmp(LUnames, 'BARREN')) = bare_YX ;
 
 
 end

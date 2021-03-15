@@ -2,7 +2,8 @@ function [out_y1_agri_YXv, already_done] = ...
     loop_thru_agri(already_done, k1, debug_ijk, ...
     update_avail_land, proper_zero_denoms, conserv_tol_area, ...
     i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
-    out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land)
+    out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land, ...
+    AGRInames)
 
 Nagri = size(out_y0_agri_YXv,3) ;
 if k1 > Nagri
@@ -34,9 +35,9 @@ for k = k1:Nagri
         if this_d==0
             out_y1_agri_YXv(iy,ix,k) = out_y0_agri_YXv(iy,ix,k) ;
             already_done(k) = true ;
-            if debug_ijk(1)==i && debug_ijk(2)==j
-                keyboard
-            end
+%             if debug_ijk(1)==i && debug_ijk(2)==j
+%                 keyboard
+%             end
             continue
         end
         out_y0_this_YX = out_y0_agri_YXv(iy,ix,k) ;
@@ -51,6 +52,10 @@ for k = k1:Nagri
             else
                 this_p = this_d / (out_y0_2deg_this + 1e-12) ;
             end
+            if debug_ijk(1)==i && debug_ijk(2)==j
+                fprintf('   %s (%d): Decreasing %0.4e\n', ...
+                    AGRInames{k}, k, this_d) ;
+            end
             tmp = out_y0_this_YX * (1 + this_p) ;
             out_y1_this_theseCells = reshape(tmp,size(out_y1_agri_YXv(iy,ix,k))) ;
 %             if debug_ijk(1)==i && debug_ijk(2)==j
@@ -63,8 +68,8 @@ for k = k1:Nagri
                 % Go ahead and do next land uses until there is enough
                 % available land. RECURSION
                 if debug_ijk(1)==i && debug_ijk(2)==j
-                    disp('GOING D E  E   P    E     R')
-                    keyboard
+                    fprintf('   %s (%d): Increase (%0.4e) exceeds available (%0.4e). Skipping for now.\n', ...
+                        AGRInames{k}, k, this_d, sum(avail_land)) ;
                 end
                 if ~update_avail_land
                     now_agri_YX = sum(out_y0_agri_YXv(iy,ix,:),3) ;
@@ -76,12 +81,17 @@ for k = k1:Nagri
                     loop_thru_agri(already_done, k+1, debug_ijk, ...
                     update_avail_land, proper_zero_denoms, conserv_tol_area, ...
                     i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
-                    out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land_tmp) ;
+                    out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land_tmp, ...
+                    AGRInames) ;
                 
                 % How much NATURAL land is available now we have
                 % sufficently decreased enough of the next LUs?
                 now_agri_YX_this = sum(out_y1_agri_YXv,3) ;
                 avail_land_this = out_y0_vegd_theseCells - now_agri_YX_this(theseCells) ;
+                if debug_ijk(1)==i && debug_ijk(2)==j
+                    fprintf('   %s (%d): Now available: %0.4e\n', ...
+                        AGRInames{k}, k, sum(avail_land)) ;
+                end
                 % Distribute thisLU demand to half-degree gridcells
                 % based on how much NATURAL land each has
                 if proper_zero_denoms
@@ -153,6 +163,9 @@ for k = k1:Nagri
    
     % Save this (if previously done: redundant but safe)
     out_y1_this_theseCells = reshape(tmp,size(out_y1_agri_YXv(iy,ix,k))) ;
+%     if debug_ijk(1)==i && debug_ijk(2)==j && this_d < 0
+%         keyboard
+%     end
     out_y1_agri_YXv(iy,ix,k) = out_y1_this_theseCells ;
     already_done(k) = true ;
     

@@ -215,6 +215,10 @@ while any(~is_done_YXv(:))
     
 end % while
 
+if do_debug
+    disp(' ')
+end
+
 
 % figure('Color','w','Position',figurePos) ;
 % h = cell(Nagri,1) ;

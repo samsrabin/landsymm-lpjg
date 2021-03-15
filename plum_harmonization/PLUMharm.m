@@ -33,7 +33,7 @@
 
 %%% Typical runs (2010-2100), v4
 dirList = {...
-%     'SSP1/s1' ;
+    'SSP1/s1' ;
     'SSP2/s1' ;
     'SSP3/s1' ;
     'SSP4/s1' ;
@@ -79,7 +79,7 @@ debugIJ_2deg = [] ;
 dbCrop = '' ;
 
 % Print verbose messages?
-verbose = false ;
+verbose = true ;
 
 % Combine all crops? This is useful only as a test to see how different the
 % area is this way as opposed to the right way (keeping every crop
@@ -138,15 +138,6 @@ conserv_tol_area = 1e3 ;
 % get area of the crop itself without the norm2extra fraction included.
 norm2extra = 0.177 ;
 
-% Debug?
-do_debug = ~isempty(debugIJ_2deg) && (debug_areas || debug_nfert || debug_irrig) ;
-clear db2i db2j
-if do_debug
-    db2i = debugIJ_2deg(1) ;
-    db2j = debugIJ_2deg(2) ;
-end
-debug_header = ':\t\tArea\t\tFrac\n' ;
-
 if combineCrops
     warning('Combining all crops into one! Will skip harmonization of nfert and irrig.')
 end
@@ -157,15 +148,24 @@ end
 doHarm = true ;
 PLUMharm_importRefData
 
-% If specified crop name instead of index, find index.
-if ~isempty(dbCrop) && ischar(dbCrop)
-    dbCrop = find(strcmp(LPJGcrops,dbCrop)) ;
-end
-
 
 %% Do it
 
 warning('on','all')
+
+% Debug?
+do_debug = ~isempty(debugIJ_2deg) && (debug_areas || debug_nfert || debug_irrig) ;
+clear db2i db2j
+if do_debug
+    db2i = debugIJ_2deg(1) ;
+    db2j = debugIJ_2deg(2) ;
+end
+debug_header = ':\t\tArea\t\tFrac\n' ;
+
+% If specified crop name instead of index, find index.
+if ~isempty(dbCrop) && ischar(dbCrop)
+    dbCrop = find(strcmp(LPJGcrops,dbCrop)) ;
+end
 
 % The years we want to produce PLUM outputs for (will begin with
 % transitions from years(1)-1 to years(1)
@@ -320,7 +320,7 @@ for d = 1:length(dirList)
                     PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                     LUnames, bareFrac_y0_YX, [], [], ...
                     PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil) ;
+                    fruitveg_sugar_2oil, outPrec) ;
             else
                 [in_y0, in_y0_nfert, in_y0_irrig, in_y0_2deg, in_y0_2deg_nfert, in_y0_2deg_irrig, ...
                     latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
@@ -328,14 +328,15 @@ for d = 1:length(dirList)
                     PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                     LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
                     PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil) ;
+                    fruitveg_sugar_2oil, outPrec) ;
             end
             bareFrac_y0_YX = in_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
             in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
             in_y0_2deg_agri_YXv = in_y0_2deg.maps_YXv(:,:,isAgri) ;
             in_y0_2deg_vegd_YX = sum(in_y0_2deg.maps_YXv(:,:,notBare),3) ;
             % Check for bad values
-            PLUMharm_checkBadVals(in_y0.maps_YXv, [], [], landArea_YX, LUnames, 'in_y0') ;
+            PLUMharm_checkBadVals(in_y0.maps_YXv, [], [], ...
+                landArea_YX, LUnames, 'in_y0', outPrec) ;
         end
         
         % Check for extreme discrepancies and warn.
@@ -386,7 +387,7 @@ for d = 1:length(dirList)
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                 LUnames, bareFrac_y0_YX, [], [], ...
                 PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil) ;
+                    fruitveg_sugar_2oil, outPrec) ;
         else
             [in_y1, in_y1_nfert, in_y1_irrig, in_y1_2deg, in_y1_2deg_nfert, in_y1_2deg_irrig, ...
                 latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
@@ -394,7 +395,7 @@ for d = 1:length(dirList)
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                 LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
                 PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil) ;
+                    fruitveg_sugar_2oil, outPrec) ;
         end
         in_y1_agri_YXv = in_y1.maps_YXv(:,:,isAgri) ;
         in_y1_2deg_agri_YXv = in_y1_2deg.maps_YXv(:,:,isAgri) ;
@@ -406,7 +407,8 @@ for d = 1:length(dirList)
         in_y1_2deg_vegd_YX = sum(in_y1_2deg.maps_YXv(:,:,notBare),3) ;
         
         % Check for bad values
-        PLUMharm_checkBadVals(in_y1.maps_YXv, [], [], landArea_YX, LUnames, 'in_y1') ;
+        PLUMharm_checkBadVals(in_y1.maps_YXv, [], [], ...
+            landArea_YX, LUnames, 'in_y1', outPrec) ;
         
         % Debugging
         if debug_areas
@@ -499,12 +501,16 @@ for d = 1:length(dirList)
         end; clear *_thisLU*
         
         % Check for bad values
-        PLUMharm_checkBadVals(in_y0.maps_YXv, [], [], landArea_YX, LUnames, 'in_y0.2') ;
-        PLUMharm_checkBadVals(in_y1.maps_YXv, [], [], landArea_YX, LUnames, 'in_y1.2') ;
+        PLUMharm_checkBadVals(in_y0.maps_YXv, [], [], ...
+            landArea_YX, LUnames, 'in_y0.2', outPrec) ;
+        PLUMharm_checkBadVals(in_y1.maps_YXv, [], [], ...
+            landArea_YX, LUnames, 'in_y1.2', outPrec) ;
         
         % Debugging output
         if debug_areas && ~isempty(debugIJ_2deg)
-            PLUMharm_debugOut_deltas('iny0_to_iny1','areas',in_y0_2deg.maps_YXv,in_y1_2deg.maps_YXv,debugIJ_2deg,LUnames)
+            PLUMharm_debugOut_deltas('iny0_to_iny1', 'areas', ...
+                in_y0_2deg.maps_YXv, in_y1_2deg.maps_YXv, ...
+                debugIJ_2deg, LUnames)
         end
         
         % Get maximum allowed N fertilization (maximum seen for this crop
@@ -534,8 +540,10 @@ for d = 1:length(dirList)
             in_y1_2deg_irrig.maps_YXv(in_y1_2deg_irrig.maps_YXv>1) = 1 ;
             
             % Check for bad values
-            PLUMharm_checkBadVals([], in_y0_2deg_nfert.maps_YXv, in_y0_2deg_irrig.maps_YXv, [], LUnames, 'in_y0_2deg') ;
-            PLUMharm_checkBadVals([], in_y1_2deg_nfert.maps_YXv, in_y1_2deg_irrig.maps_YXv, [], LUnames, 'in_y1_2deg') ;
+            PLUMharm_checkBadVals([], in_y0_2deg_nfert.maps_YXv, in_y0_2deg_irrig.maps_YXv, ...
+                [], LUnames, 'in_y0_2deg', outPrec) ;
+            PLUMharm_checkBadVals([], in_y1_2deg_nfert.maps_YXv, in_y1_2deg_irrig.maps_YXv, ...
+                [], LUnames, 'in_y1_2deg', outPrec) ;
             
             % Debugging
             if debug_nfert
@@ -611,16 +619,38 @@ for d = 1:length(dirList)
             resArea_2deg_YX, sum(out_y0_2deg_agri_YXv,3), thisDBij, dbCrop) ;
         mid_y1_2deg_vegd_YX = sum(mid_y1_2deg_agri_YXv,3) + mid_y1_2deg_ntrl_YX ;
         mid_y1_2deg_bare_YX = landArea_2deg_YX - mid_y1_2deg_vegd_YX ;
+        
+        % Debugging
+        if debug_areas
+            if ~isempty(debugIJ_2deg)
+                PLUMharm_debugOut_deltas('outy0_to_midy1.pre.fixTinyNegs', 'areas', ...
+                    out_y0_2deg.maps_YXv, ...
+                    cat(3,mid_y1_2deg_agri_YXv,mid_y1_2deg_ntrl_YX,mid_y1_2deg_bare_YX), ...
+                    debugIJ_2deg,LUnames)
+            end
+        end
                         
         % Rounding errors can result in small negative values. Fix and
         % check for bad values
         tmp_YXv = cat(3, mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX) ;
-        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), debugIJ_2deg) ;
-        PLUMharm_checkBadVals(tmp_YXv, [], [], landArea_2deg_YX, LUnames, 'mid_y1_2deg') ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), ...
+            LUnames, outPrec, debugIJ_2deg) ;
+        PLUMharm_checkBadVals(tmp_YXv, [], [], ...
+            landArea_2deg_YX, LUnames, 'mid_y1_2deg', outPrec) ;
         mid_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
         mid_y1_2deg_ntrl_YX = tmp_YXv(:,:,end-1) ;
         mid_y1_2deg_bare_YX = tmp_YXv(:,:,end) ;
         clear tmp_YXv
+        
+        % Debugging
+        if debug_areas
+            if ~isempty(debugIJ_2deg)
+                PLUMharm_debugOut_deltas('outy0_to_midy1.post.fixTinyNegs', 'areas', ...
+                    out_y0_2deg.maps_YXv, ...
+                    cat(3,mid_y1_2deg_agri_YXv,mid_y1_2deg_ntrl_YX,mid_y1_2deg_bare_YX), ...
+                    debugIJ_2deg,LUnames)
+            end
+        end
         
         % Check 2: Check that global area changes are (mostly) conserved
         PLUMharm_checkCons_area(...
@@ -670,8 +700,10 @@ for d = 1:length(dirList)
         % Rounding errors can result in small negative values. Fix.
         % Check for bad values
         tmp_YXv = cat(3, out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX, out_y1_2deg_bare_YX) ;
-        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), debugIJ_2deg) ;
-        PLUMharm_checkBadVals(tmp_YXv, [] ,[], landArea_2deg_YX, LUnames, 'out_y1_2deg') ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), ...
+            LUnames, outPrec, debugIJ_2deg) ;
+        PLUMharm_checkBadVals(tmp_YXv, [] ,[], ...
+            landArea_2deg_YX, LUnames, 'out_y1_2deg', outPrec) ;
         out_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
         out_y1_2deg_ntrl_YX = tmp_YXv(:,:,end-1) ;
         out_y1_2deg_bare_YX = tmp_YXv(:,:,end) ;
@@ -724,7 +756,8 @@ for d = 1:length(dirList)
                 out_y1_2deg_agri_YXv(:,:,~isAgri_isPast), ones(size(max_nfert_y1)), thisDBij, 'irrig', dbCrop) ;
             
             % Do not allow invalid management inputs.
-            PLUMharm_checkBadVals([], mid_y1_2deg_nfert_YXv, mid_y1_2deg_irrig_YXv, [], LUnames, 'mid_y1_2deg') ;
+            PLUMharm_checkBadVals([], mid_y1_2deg_nfert_YXv, mid_y1_2deg_irrig_YXv, ...
+                [], LUnames, 'mid_y1_2deg', outPrec) ;
             
             % Debugging
             if debug_nfert
@@ -800,7 +833,8 @@ for d = 1:length(dirList)
                 conserv_tol_pct, 'ringRedist irrig', dbCrop) ;
             
             % Do not allow invalid management inputs.
-            PLUMharm_checkBadVals([], out_y1_2deg_nfert_YXv, out_y1_2deg_irrig_YXv, [], LUnames, 'out_y1_2deg') ;
+            PLUMharm_checkBadVals([], out_y1_2deg_nfert_YXv, out_y1_2deg_irrig_YXv, ...
+                [], LUnames, 'out_y1_2deg', outPrec) ;
             
             % Debugging
             if debug_nfert
@@ -875,8 +909,10 @@ for d = 1:length(dirList)
         % Rounding errors can result in small negative values. Fix.
         % Check for bad values.
         tmp_YXv = cat(3, out_y1_agri_YXv, out_y1_ntrl_YX, out_y1_bare_YX) ;
-        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_YX,[1 1 Nlu]),[]) ;
-        PLUMharm_checkBadVals(tmp_YXv, [] ,[], landArea_YX, LUnames, 'out_y1_2deg') ;
+        tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_YX,[1 1 Nlu]), ...
+            LUnames, outPrec, []) ;
+        PLUMharm_checkBadVals(tmp_YXv, [] ,[], ...
+            landArea_YX, LUnames, 'out_y1_2deg', outPrec) ;
         out_y1_agri_YXv = tmp_YXv(:,:,1:end-2) ;
         out_y1_ntrl_YX = tmp_YXv(:,:,end-1) ;
         out_y1_bare_YX = tmp_YXv(:,:,end) ;        
@@ -909,7 +945,8 @@ for d = 1:length(dirList)
             out_y1_irrig_YXv(out_y1_agri_YXv(:,:,~isAgri_isPast)==0) = 0 ;
             
             % Do not allow invalid management inputs.
-            PLUMharm_checkBadVals([], out_y1_nfert_YXv, out_y1_irrig_YXv, [], LUnames, 'out_y1') ;
+            PLUMharm_checkBadVals([], out_y1_nfert_YXv, out_y1_irrig_YXv, ...
+                [], LUnames, 'out_y1', outPrec) ;
             
             % Debugging
             if debug_nfert

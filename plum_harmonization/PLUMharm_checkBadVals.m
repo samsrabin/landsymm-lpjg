@@ -1,6 +1,5 @@
-function PLUMharm_checkBadVals(in_lu_YXv, in_nfert_YXv, in_irrig_YXv, landArea_YX, LUnames, msg)
-
-outPrec = 6 ;
+function PLUMharm_checkBadVals(in_lu_YXv, in_nfert_YXv, in_irrig_YXv, ...
+    landArea_YX, LUnames, msg, outPrec)
 
 % LU
 isBare = strcmp(LUnames,'BARREN') ;

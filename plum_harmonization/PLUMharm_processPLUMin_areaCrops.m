@@ -6,7 +6,7 @@ function [S, S_nfert, S_irrig, ...
         file_in_lcf, landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
         latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
         PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-        fruitveg_sugar_2oil)
+        fruitveg_sugar_2oil, outPrec)
 
 PUTURBANHERE = 'BARREN' ;
 cf_kgNha_kgNm2 = 1e-4 ;
@@ -244,7 +244,8 @@ if ~combineCrops
     tmp_nfert_YXv(isnan(tmp_nfert_YXv)) = 0 ;
     tmp_irrig_YXv = S_irrig.maps_YXv ;
     tmp_irrig_YXv(isnan(tmp_irrig_YXv)) = 0 ;
-    PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, LUnames, 'import_mgmt') ;
+    PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, ...
+        [], LUnames, 'import_mgmt', outPrec) ;
     clear tmp_*
 end
 
@@ -283,7 +284,8 @@ if ~combineCrops
     tmp_nfert_YXv(isnan(tmp_nfert_YXv)) = 0 ;
     tmp_irrig_YXv = S_irrig_2deg.maps_YXv ;
     tmp_irrig_YXv(isnan(tmp_irrig_YXv)) = 0 ;
-    PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, [], LUnames, 'import_mgmt') ;
+    PLUMharm_checkBadVals([], tmp_nfert_YXv, tmp_irrig_YXv, [], ...
+        LUnames, 'import_mgmt', outPrec) ;
     clear tmp_*
     
     % Interpolate management inputs
@@ -298,7 +300,8 @@ if ~combineCrops
         % Irrigation needs to be maximum 1.
         S_irrig_2deg2.maps_YXv(S_irrig_2deg2.maps_YXv>1) = 1 ;
         % Check for bad values
-        PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, [], LUnames, 'import_mgmt_2deg2') ;
+        PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, ...
+            [], LUnames, 'import_mgmt_2deg2', outPrec) ;
     elseif useLatestPLUMmgmt
         S_nfert_2deg2 = S_nfert_2deg ;
         S_irrig_2deg2 = S_irrig_2deg ;
@@ -312,7 +315,8 @@ if ~combineCrops
         repl_YXv = S_2deg.maps_YXv(:,:,isCrop)==0 & latestPLUMin_irrig_2deg_YXv>=0 ;
         S_irrig_2deg2.maps_YXv(repl_YXv) = latestPLUMin_irrig_2deg_YXv(repl_YXv) ;
         % Check for bad values
-        PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, [], LUnames, 'import_mgmt_2deg2.2') ;
+        PLUMharm_checkBadVals([], S_nfert_2deg2.maps_YXv, S_irrig_2deg2.maps_YXv, ...
+            [], LUnames, 'import_mgmt_2deg2.2', outPrec) ;
     end
     
     % Save management
