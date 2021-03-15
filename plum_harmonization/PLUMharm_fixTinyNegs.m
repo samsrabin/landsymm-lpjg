@@ -96,11 +96,15 @@ if any(any(isBad_YX))
     end
 end
 
-% Small negative barren is fine; just zero it out.
-bare_YX = out_YXv(:,:,strcmp(LUnames, 'BARREN')) ;
-smallNegBare_YX = bare_YX<0 & bare_YX>-outPrec/2 ;
-bare_YX(smallNegBare_YX) = 0 ;
-out_YXv(:,:,strcmp(LUnames, 'BARREN')) = bare_YX ;
+% Small negatives are fine; just zero them out.
+smallNeg_YXv = out_YXv<0 & out_YXv>-outPrec/2;
+if any(any(any(smallNeg_YXv)))
+    total_negs = sum(out_YXv(smallNeg_YXv)) ;
+	 if abs(total_negs) >= 1
+        warning('Zeroing out %0.1g total small negatives', total_negs)
+    end
+	 out_YXv(smallNeg_YXv) = 0 ;
+end
 
 
 end

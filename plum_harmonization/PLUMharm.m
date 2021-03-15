@@ -33,7 +33,7 @@
 
 %%% Typical runs (2010-2100), v4
 dirList = {...
-    'SSP1/s1' ;
+%    'SSP1/s1' ;
     'SSP2/s1' ;
     'SSP3/s1' ;
     'SSP4/s1' ;
