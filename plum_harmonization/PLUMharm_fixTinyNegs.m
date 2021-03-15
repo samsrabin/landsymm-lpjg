@@ -1,4 +1,5 @@
-function out_YXv = PLUMharm_fixTinyNegs(in_YXv, landArea_YXv, debugIJ_2deg)
+function out_YXv = PLUMharm_fixTinyNegs(in_YXv, landArea_YXv, ...
+    debugIJ_2deg)
 % Rounding errors can result in small negative values. Fix.
 
 Nlu = size(in_YXv, 3) ;
@@ -43,6 +44,7 @@ if any(any(isBad_YX))
     if do_debug
         tmp_db = tmp_xv(I_db,:) ;
         fprintf(['   Before: ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], tmp_db) ;
+        tmp_db_before = tmp_db ;
     end
     
     % Set negatives to zero
@@ -52,7 +54,7 @@ if any(any(isBad_YX))
     % Report updated areas in debug cell
     if do_debug
         tmp_db = tmp_xv(I_db,:) ;
-        fprintf(['    After: ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], tmp_db) ;
+        fprintf(['        0: ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], tmp_db) ;
     end
     
     j = 0 ;
@@ -69,6 +71,14 @@ if any(any(isBad_YX))
             fprintf(['         %d: ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], j, tmp_db) ;
         end
     end
+    
+    % Report updated areas in debug cell
+    if do_debug
+        tmp_db = tmp_xv(I_db,:) ;
+        fprintf(['    After: ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], tmp_db) ;
+        fprintf(['     Diff: ' repmat('%0.3e ',[1 length(tmp_db)]) '\n'], tmp_db - tmp_db_before) ;
+    end
+    
     out_YXv(isBad_YXv) = tmp_xv(:) .* tmp_landArea ;
 end
 
