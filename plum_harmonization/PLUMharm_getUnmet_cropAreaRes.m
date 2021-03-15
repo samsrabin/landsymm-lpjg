@@ -50,7 +50,16 @@ if do_debug
     fprintf('      %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
     fprintf('      %s\t%0.4e\n',pad('unmetA:',20),sum(unmetA_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('      %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        thisDiff = mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop) - mid1_y1_2deg_agri_YXv(dbI,dbJ,dbCrop) ;
+        if thisDiff > 0
+            diffSign = '+' ;
+        else
+            diffSign = '' ;
+        end
+        fprintf('      %s\t%0.4e (diff = %s%0.4e)\n', ...
+            pad('this_y1_out:',20), ...
+            mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop), ...
+            diffSign, thisDiff) ;
         fprintf('      %s\t%0.4e\n',pad('unmetA_this:',20),unmetA_YXv(dbI,dbJ,dbCrop)) ;
     end
 end
@@ -65,7 +74,16 @@ if do_debug
     fprintf('      %s\t%0.4e\n',pad('agri_y1_out:',20),sum(mid_y1_2deg_agri_YXv(dbI,dbJ,:),3)) ;
     fprintf('      %s\t%0.4e\n',pad('unmetB:',20),sum(unmetB_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('      %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        thisDiff = mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop) - mid1_y1_2deg_agri_YXv(dbI,dbJ,dbCrop) ;
+        if thisDiff > 0
+            diffSign = '+' ;
+        else
+            diffSign = '' ;
+        end
+        fprintf('      %s\t%0.4e (diff = %s%0.4e)\n', ...
+            pad('this_y1_out:',20), ...
+            mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop), ...
+            diffSign, thisDiff) ;
         fprintf('      %s\t%0.4e\n',pad('unmetB_this:',20),unmetB_YXv(dbI,dbJ,dbCrop)) ;
     end
 end
@@ -113,7 +131,16 @@ if do_debug
     fprintf('      %s\t%0.4e\n',pad('unmetD:',20),sum(unmetDtmp_YXv(dbI,dbJ,:),3)) ;
     fprintf('      %s\t%0.4e\n',pad('total_unmet:',20),sum(unmet_YXv(dbI,dbJ,:),3)) ;
     if ~isempty(dbCrop)
-        fprintf('      %s\t%0.4e\n',pad('this_y1_out:',20),mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop)) ;
+        thisDiff = mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop) - mid1_y1_2deg_agri_YXv(dbI,dbJ,dbCrop) ;
+        if thisDiff > 0
+            diffSign = '+' ;
+        else
+            diffSign = '' ;
+        end
+        fprintf('      %s\t%0.4e (diff = %s%0.4e)\n', ...
+            pad('this_y1_out:',20), ...
+            mid_y1_2deg_agri_YXv(dbI,dbJ,dbCrop), ...
+            diffSign, thisDiff) ;
         fprintf('      %s\t%0.4e\n',pad('unmetD_this:',20),unmetDtmp_YXv(dbI,dbJ,dbCrop)) ;
         fprintf('      %s\t%0.4e\n',pad('total_unmet_this:',20),unmet_YXv(dbI,dbJ,dbCrop)) ;
     end
