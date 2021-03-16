@@ -6,7 +6,15 @@ function [S, S_nfert, S_irrig, ...
         file_in_lcf, landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
         latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
         PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-        fruitveg_sugar_2oil, outPrec)
+        fruitveg_sugar_2oil, varargin)
+
+outPrec = 6 ;
+if ~isempty(varargin)
+    outPrec = varargin{1} ;
+    if length(varargin) > 1
+        error('PLUMharm_processPLUMin_areaCrops() takes at most one optional argument (outPrec).')
+    end
+end
 
 PUTURBANHERE = 'BARREN' ;
 cf_kgNha_kgNm2 = 1e-4 ;

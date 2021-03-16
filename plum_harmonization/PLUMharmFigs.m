@@ -14,7 +14,7 @@
 % runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
 % % baseline_ver = 1 ;
 % % baseline_ver = 2 ;   % Based on remap_v6
-% baseline_ver = 3 ;   % Based on remap_v6p7
+%  baseline_ver = 3 ;   % Based on remap_v6p7
 
 % dirList = {...
 %     'halfearth/HEoct/baseline/s1';
@@ -28,7 +28,7 @@
 
 PLUM_version = 'v13.s1' ;
 dirList = {...
-%     'ssp13/SSP1/s1' ;
+    'SSP1/s1' ;
     'SSP2/s1' ;
     'SSP3/s1' ;
     'SSP4/s1' ;
@@ -36,7 +36,7 @@ dirList = {...
     } ;
 yearList_harm = 2011:2100 ;
 fruitveg_sugar_2oil = false ;
-runList_legend = strrep(strrep(dirList, 'ssp13/',''),'/s1','')' ;
+runList_legend = strrep(dirList, '/s1', '')' ;
 legend_ts = [{'LUH2'} runList_legend] ;
 baseline_ver = 4 ;   % Based on remap_v8b2oil
 

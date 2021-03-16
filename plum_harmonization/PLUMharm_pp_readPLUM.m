@@ -49,7 +49,11 @@ if exist(MATfile,'file')
                 save(MATfile,'S_out', 'S_nfert_out', 'S_irrig_out') ;
             end
         catch ME
-            keyboard
+            if batchStartupOptionUsed
+                rethrow(ME)
+            else 
+                keyboard
+            end
         end
     end
 elseif combineCrops
@@ -64,7 +68,11 @@ elseif combineCrops
     try
         save(MATfile,'S_out') ;
     catch ME
-        keyboard
+        if batchStartupOptionUsed
+            rethrow(ME)
+        else 
+            keyboard
+        end
     end
 else
     [S_out, S_nfert_out, S_irrig_out] = ...
@@ -78,7 +86,11 @@ else
     try
         save(MATfile,'S_out', 'S_nfert_out', 'S_irrig_out') ;
     catch ME
-        keyboard
+        if batchStartupOptionUsed
+            rethrow(ME)
+        else 
+            keyboard
+        end
     end
 end
 
@@ -204,7 +216,11 @@ for y = 1:Nyears
                     file_in_lu,landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
                     [], [], PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, fruitveg_sugar_2oil) ;
             catch ME
-                keyboard
+                if batchStartupOptionUsed
+                    rethrow(ME)
+                else 
+                    keyboard
+                end
             end
         else
             try
@@ -212,7 +228,11 @@ for y = 1:Nyears
                     file_in_lu,landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
                     [], [], PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, fruitveg_sugar_2oil) ;
             catch ME
-                keyboard
+                if batchStartupOptionUsed
+                    rethrow(ME)
+                else 
+                    keyboard
+                end
             end
         end
     end
