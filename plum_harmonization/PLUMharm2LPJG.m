@@ -16,7 +16,7 @@ dirList = {...
 %               'SSP3.v12.s1.harm' ;
 %               'SSP4.v12.s1.harm' ;
 %               'SSP5.v12.s1.harm' ;
-%     'SSP1/s1.harm' ;
+    'SSP1/s1.harm' ;
     'SSP2/s1.harm' ;
     'SSP3/s1.harm' ;
     'SSP4/s1.harm' ;

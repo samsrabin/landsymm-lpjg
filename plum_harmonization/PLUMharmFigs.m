@@ -51,9 +51,6 @@ base_year = 2010 ;
 
 norm2extra = 0.177 ;
 
-% Method for inpaint_nans()
-% (moved to PLUMharm_importRefData)
-
 
 %% Setup
 
@@ -136,12 +133,22 @@ lines_overlay = shaperead(sprintf('%s/input_data/continents_from_countries.shp',
 yN_list = 2020:20:yearList_harm(end) ;
 y1_list = 2010*ones(size(yN_list)) ;
 
+if any(Nruns == [4 5])
+    thisPos_RxW = [1    33   770   772] ;
+elseif Nruns==2
+    thisPos_RxW = [1   308   770   497] ;
+else
+    error('Set thisPos_RxW for Nruns = %d', Nruns)
+end
 
 %% Import reference data
 
 doHarm = false ;
 
 PLUMharm_importRefData
+
+% We don't need to inpaint NaNs in this script
+inpaint_method = [] ;
 
 biomeID_YX = flipud(imread( ...
     sprintf('%s/input_data/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif', plumharm_repo_path))) ;
@@ -550,13 +557,6 @@ if ~any(y1_list==yearList_harm(1) & yN_list==yearList_harm(end))
     yN_list(end+1) = yearList_harm(end) ;
 end
 
-if ny == 4
-    thisPos = [1    33   770   772] ;
-elseif ny==2
-    thisPos = [1   308   770   497] ;
-else
-    error('Set thisPos for ny = %d', ny)
-end
 textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 if length(y1_list) > 1
     this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
@@ -677,7 +677,7 @@ for l = 1:length(tmp_lu_list)
             y1, yN, runList_legend, ...
             spacing, fontSize, textX, textY_1, textY_2, ...
             nx, ny, ...
-            Nruns, thisPos, units_map, units_total, do_caps, ...
+            Nruns, thisPos_RxW, units_map, units_total, do_caps, ...
             bins_lowBnds, this_colormap_name, col_titles, ...
             lines_overlay) ;
 
