@@ -1285,3 +1285,8 @@ for r = 1:Nruns
         close
     end
 end
+
+
+%%
+
+disp('All done!')
