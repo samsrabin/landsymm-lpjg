@@ -5,35 +5,6 @@
 
 all_figs = false ;
 
-if false
-    % % thisVer = '20180424agmip7' ;
-    % % thisVer = '20180424agmip7_asPLUMout2011-2015' ;
-    % thisVer = 'v4s1_v20180426' ;
-    % thisVer = 'v4s1_v20180426_asPLUMout2011' ;
-    % thisVer = 'v4s1_v20180426_asLUH2_2010' ;
-    % thisVer = 'v6s1_v20180703' ;
-    % thisVer = 'v10s1_v20180801' ;
-    % thisVer = 'v10s1_v20180801' ;
-    % thisVer = 'harm2' ;
-    % thisVer = 'harm2_constLU' ;
-    % thisVer = 'harm2.1' ;
-    % thisVer = 'harm2.1_constClimCO2' ;
-    % thisVer = 'harm2.1_constLU' ;
-    % thisVer = 'harm2.1_S1R4.5_attr' ;
-    % thisVer = 'harm2.1_S3R6.0_attr' ;
-    % thisVer = 'harm2.1_S4R6.0_attr' ;
-    % thisVer = 'harm2.1_S5R8.5_attr' ;
-    % thisVer = 'harm2.2' ;
-    % thisVer = 'harm2.3' ;
-    % thisVer = 'harm2.3_constClimCO2' ;
-    % thisVer = 'harm2.3_constLU' ;
-    % thisVer = 'harm2.3_S1R4.5_attr' ;
-    % thisVer = 'harm2.3_S3R6.0_attr' ;
-    % thisVer = 'harm2.3_S4R6.0_attr' ;
-    % thisVer = 'harm2.3_S5R8.5_attr' ;
-% thisVer = 'harm2.3_constClim' ;
-end
-
 thisVer = 'harm3' ;
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
