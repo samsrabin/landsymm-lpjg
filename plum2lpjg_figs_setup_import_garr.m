@@ -1,18 +1,6 @@
 %% Setup
 
 % Define reference file names
-if strcmp(thisSystem, 'ssr_mac')
-    crop_calib_data_dir = '/Users/Shared/PLUM/crop_calib_data' ;
-else
-    crop_calib_data_dir = '~/PLUM/crop_calib_data' ;
-    other_data_dir = '~/PLUM/other_data' ;
-    if ~exist(other_data_dir, 'dir')
-        error('other_data_dir not found: %s', other_data_dir)
-    end
-end
-if ~exist(crop_calib_data_dir, 'dir')
-    error('crop_calib_data_dir not found: %s', crop_calib_data_dir)
-end
 landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plumharm_repo_path) ;
 continents_shp = sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path) ;
 fao_file = sprintf('%s/input_data/FAOdata_1961-2010_calibVer16_Production.mat', paper02_repo_path) ;
@@ -126,6 +114,7 @@ if include_fao
     || strcmp(thisVer,'v10s1_v20180801') ...
     || contains(thisVer,'harm2') ...
     || contains(thisVer,'harm3')
+    || contains(thisVer,'ssp13')
         fao = load(fao_file) ;
     else
         error('thisVer not recognized while loading FAO data')

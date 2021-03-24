@@ -5,7 +5,7 @@
 
 all_figs = false ;
 
-thisVer = 'harm3' ;
+% thisVer = 'harm3' ;
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
@@ -16,6 +16,8 @@ thisVer = 'harm3' ;
 % thisVer = 'harm3_S3R6.0_attr' ;
 % thisVer = 'harm3_S4R6.0_attr' ;
 % thisVer = 'harm3_S5R8.5_attr' ;
+
+thisVer = 'ssp13' ;
 
 do_adjYieldTech = true ; % Apply annual tech. change increase to yields?
 
