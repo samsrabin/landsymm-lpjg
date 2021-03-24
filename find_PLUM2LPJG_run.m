@@ -25,5 +25,11 @@ else
     end
 end
 
+% If needed, get latest output directory
+outdirs = dir([dir_out 'output*']) ;
+if ~isempty(outdirs)
+    dir_out = addslashifneeded(sprintf('%s/%s', outdirs(end).folder, outdirs(end).name)) ;
+end
+
 
 end

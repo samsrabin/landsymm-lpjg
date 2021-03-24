@@ -8,6 +8,8 @@ path_out = strrep(path_out,'param "file_irrigIntens" (str "','') ;
 if ~check_exist(path_out)
     path_out = strrep(path_out,'/project/fh1-project-lpjgpi/lr8247','/Users/Shared') ;
     path_out = strrep(path_out,'/home/fh1-project-lpjgpi/lr8247','/Users/Shared') ;
+    path_out = strrep(path_out,'/pfs/data5/home/kit/imk-ifu/lr8247','/Users/Shared') ;
+    path_out = strrep(path_out,'/home/kit/imk-ifu/lr8247','/Users/Shared') ;
     if ~check_exist(path_out)
         path_out = strrep(path_out,'/Users/Shared/PLUM/input/PLUMouts_2011-2100','/Users/Shared/PLUM/PLUM_outputs_for_LPJG') ;
         if ~check_exist(path_out)

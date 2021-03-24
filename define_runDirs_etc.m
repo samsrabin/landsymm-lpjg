@@ -532,6 +532,26 @@ elseif strcmp(thisVer,'harm3_S5R8.5_attr')
     baselineDir = 'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
+elseif strcmp(thisVer,'ssp13')
+    runList = {'SSP1-45'} ;%,'SSP3-60','SSP4-60','SSP5-85'} ;
+    runColNames = runList ;
+    runDirs = {
+        'LPJGPLUM_2011-2100_ssp13-1' ;
+%         'LPJGPLUM_2011-2100_ssp13-3' ;
+%         'LPJGPLUM_2011-2100_ssp13-4' ;
+%         'LPJGPLUM_2011-2100_ssp13-5' ;
+        } ;
+    runDirs = strcat('~/PLUM/outputs/ssp13/', runDirs) ;
+    runDirs_plum = {
+        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
+%        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
+%        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
+%        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        } ;
+    yearList_future = 2011:2100 ;
+    baselineDir = '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_1850-2010_remap8c' ;
+    yearList_baseline = 1850:2010 ;
+    skip3rdColor = false ;
 else
     error(['thisVer (' thisVer ') not recognized!'])
 end
