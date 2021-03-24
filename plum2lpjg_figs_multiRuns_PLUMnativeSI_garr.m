@@ -76,17 +76,29 @@ toc
 %% NFF paper tidbits
 
 % C sequestered 2011-2100
+(ts_cpool_Total_bl(yearList_baseline==2010,:) ...
+    - ts_cpool_Total_bl(yearList_baseline==2000,:)) * 1e-12
+
+% C sequestered 2091-2100
+(ts_cpool_Total_yr(yearList_future==2100,:) ...
+    - ts_cpool_Total_yr(yearList_future==2090,:)) * 1e-12
+
+% C sequestered 2011-2100
 (ts_cpool_Total_yr(end,:) - ts_cpool_Total_bl(end)) * 1e-12
 
 % N loss to atmosphere (% change from baseline)
+tmp_bl_nflux_flux = mean(ts_nflux_flux_bl(yearList_baseline>=2001 & yearList_baseline<=2010)) ;
+tmp_bl_nflux_flux * 1e-9 % TgN
 (mean(ts_nflux_flux_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ...
-    - mean(ts_nflux_flux_bl(yearList_baseline>=2001 & yearList_baseline<=2010))) ...
-    ./ mean(ts_nflux_flux_bl(yearList_baseline>=2001 & yearList_baseline<=2010)) * 100
+    - tmp_bl_nflux_flux) ...
+    ./ tmp_bl_nflux_flux * 100
 
 % N loss in leaching (% change from baseline)
+tmp_bl_nflux_leach = mean(ts_nflux_leach_bl(yearList_baseline>=2001 & yearList_baseline<=2010)) ;
+tmp_bl_nflux_leach * 1e-9 % TgN
 (mean(ts_nflux_leach_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ...
-    - mean(ts_nflux_leach_bl(yearList_baseline>=2001 & yearList_baseline<=2010))) ...
-    ./ mean(ts_nflux_leach_bl(yearList_baseline>=2001 & yearList_baseline<=2010)) * 100 
+    - tmp_bl_nflux_leach) ...
+    ./ tmp_bl_nflux_leach * 100
 
 % Euclidean distance in crop*past*ntrl space, as % of total crop+past+ntrl land
 sqrt( ...
@@ -100,7 +112,7 @@ sqrt( ...
     / (ts_LUarea_crop_yr(1,1) + ts_LUarea_past_yr(1,1) + ts_LUarea_ntrl_yr(1,1)) * 100
 
 
-%% NFF paper: irrigation water use as fraction of global runoff
+%% NFF paper: irrigation water use as fraction of global runoff: from PLUM
 
 topDir = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG' ;
 yearList_tmp = [2010 2091:2100] ;
@@ -137,7 +149,7 @@ tmp_ts_runoff_yr(2:end,:) = ts_tot_runoff_yr(IA,:) ;
 % Convert to L
 tmp_ts_runoff_yr = 1000 * tmp_ts_runoff_yr ;
 
-%% Combine (converting runoff to L)
+% Combine (converting runoff to L)
 tmp_bl_r = tmp_ts_IQA_yr(1,:) ./ tmp_ts_runoff_yr(1,:) ;
 tmp_fu_r = mean(tmp_ts_IQA_yr(2:end,:) ./ tmp_ts_runoff_yr(2:end,:),1) ;
 tmp_pctDiff = 100 * (tmp_fu_r - tmp_bl_r) ./ tmp_bl_r ;
@@ -148,6 +160,29 @@ for r = 1:Nruns_tmp
     fprintf('SSP%d: %0.1e%% to %0.1e%% (%0.1f%% chg.)\n', ...
         thisRun, tmp_bl_r(r)*100, tmp_fu_r(r)*100, tmp_pctDiff(r))
 end
+
+
+%% NFF paper: irrigation water use as fraction of global runoff: from LPJ-GUESS
+
+topDir = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG' ;
+
+runList_tmp = [1 3 4 5] ;
+Nruns_tmp = length(runList_tmp) ;
+
+% Get runoff (m3)
+tmp_runoff_bl = mean(ts_tot_runoff_bl(yearList_baseline>=2001 & yearList_baseline<=2010)) ;
+tmp_runoff_r =  mean(ts_tot_runoff_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ;
+
+% Get irrigation (m3)
+tmp_irrig_bl = mean(ts_irrig_bl(yearList_baseline>=2001 & yearList_baseline<=2010)) ;
+tmp_irrig_r =  mean(ts_irrig_yr(yearList_future>=2091 & yearList_future<=2100,:), 1) ;
+
+% Baseline percentage
+tmp_pct_bl = 100 * tmp_irrig_bl ./ tmp_runoff_bl
+
+% Future percentages
+tmp_pct_fu_r = 100 * tmp_irrig_r ./ tmp_runoff_r ;
+100 * (tmp_pct_fu_r - tmp_pct_bl) ./ tmp_pct_bl
 
 
 %% Big bar graph: Drivers
