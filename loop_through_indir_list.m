@@ -2,37 +2,15 @@
 
 test_cropfracs_20170108 = false ;
 
-tmp = pwd ;
-if strcmp(tmp(1:5),'/User')
-    onMac = true ;
-elseif strcmp(tmp(1:5),'/pfs/')
-    onMac = false ;
-else
-    error('What system are you on?')
+onMac = strcmp(thisSystem, 'ssr_mac') ;
+if ~onMac
+    addpath(genpath('~/lpj-guess-crop-calibration/')) ;
 end
-clear tmp
-if onMac
-    thisDir = addslashifneeded('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work') ;
-    gridlist_file = '/Users/Shared/lpj-guess/gridlists/PLUMout_gridlist.txt' ;
-    landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
-    biomes_dir = addslashifneeded('/Users/sam/Geodata/General/WWF terrestrial ecosystems') ;
-else
-    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general/')) ;
-    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/matlab-general-fromshared/')) ;
-    addpath(genpath('/home/fh1-project-lpjgpi/lr8247/lpj-guess-crop-calibration/')) ;
-    thisDir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work') ;
-    gridlist_file = '/home/fh1-project-lpjgpi/lr8247/paper02-matlab-work/PLUMout_gridlist.txt' ;
-    landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
-    biomes_dir = addslashifneeded('/home/fh1-project-lpjgpi/lr8247/PLUM/input/biomes') ;
-end
-biomes_map_file = [biomes_dir 'wwf_terr_ecos_UnpackClip.halfDeg.tif'] ;
-biomes_key_file = [biomes_dir 'wwf_terr_ecos.codes.csv'] ;
-
-if ~exist(thisDir,'dir')
-    error('thisDir does not exist')
-end
-cd(thisDir) ;
-addpath(genpath(pwd))
+gridlist_file = sprintf('%s/%s', paper02_repo_path, gridlist_file) ;
+biomes_map_file = sprintf('%s/input_data/wwf_terr_ecos_UnpackClip.halfDeg.tif', paper02_repo_path)  ;
+biomes_key_file = sprintf('%s/input_data/wwf_terr_ecos.codes.csv', paper02_repo_path)  ;
+landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', paper02_repo_path) ;
+baresoil_albedo_file = sprintf('%s/input_data/soilmap.txt', paper02_repo_path) ;
 
 is_baseline_list = false(length(inDir_list),1) ;
 do_PLUMout_gridlist_adjust_list = false(length(inDir_list),1) ;
@@ -66,7 +44,6 @@ clear LPJGcrops_2_PLUM
 
 % Import bare-soil albedo
 if do_save.albedo
-    baresoil_albedo_file = [thisDir 'soilmap.txt'] ;
     baresoil_albedo = lpjgu_matlab_readTable_then2map(baresoil_albedo_file,'force_mat_save',true,'verbose',false) ;
     baresoil_albedo_YX = baresoil_albedo.maps_YXv ;
     clear baresoil_albedo
@@ -143,15 +120,7 @@ for d = 1:length(inDir_list)
     %%%%%%%%%%%%%
     
     % Get full inDir
-    if onMac
-        inDir = find_PLUM2LPJG_run(inDir_list{d}) ;
-    else
-        inDir = inDir_list{d} ;
-        if ~exist(inDir,'dir')
-           error('inDir (%s) not found!', inDir)
-        end
-        inDir = addslashifneeded(inDir) ;
-    end
+    inDir = find_PLUM2LPJG_run(inDir_list{d}) ;
     is_baseline = is_baseline_list(d) ;
     if is_baseline
         disp('is_baseline')
@@ -210,7 +179,7 @@ for d = 1:length(inDir_list)
     else
         if onMac
             % Get LU file
-            [x,LUfile_tmp] = unix([thisDir 'get_lu_file.sh "' inDir '"']) ;
+            [x,LUfile_tmp] = unix([addslashifneeded(paper02_repo_path) 'get_lu_file.sh "' inDir '"']) ;
             if x~=0
                 error(['get_lu_file.sh failed with error ' num2str(x)])
             end
@@ -222,7 +191,7 @@ for d = 1:length(inDir_list)
                 LUfile = find_PLUM2LPJG_input_file(LUfile_tmp) ;
             end
             % Get crop fractions file
-            [x,cropfile_tmp] = unix([thisDir 'get_cropfrac_file.sh "' inDir '"']) ;
+            [x,cropfile_tmp] = unix([addslashifneeded(paper02_repo_path) 'get_cropfrac_file.sh "' inDir '"']) ;
             if x~=0
                 error(['get_cropfrac_file.sh failed with error ' num2str(x)])
             end
