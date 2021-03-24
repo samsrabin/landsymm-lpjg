@@ -3,32 +3,25 @@
 % Define reference file names
 if strcmp(thisSystem, 'ssr_mac')
     crop_calib_data_dir = '/Users/Shared/PLUM/crop_calib_data' ;
-    hotspot_tif = '/Users/sam/Geodata/BiodiversityHotspotsRevisited_ConservationInternational_2004/data/hotspots_revisited_2004.outerlimit.tif' ;
-    hotspot_shp = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
-    ecoid_file = '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.ECO_ID.tif' ;
-    cslf_shp = '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.CSLF.shp' ;
-    fpu_file = '/Users/Shared/PLUM/food_production_units/FPU.asc' ;
-    pop_file = '/Users/Shared/PLUM/other_plum_data/SSP/ssp.csv' ;
 else
     crop_calib_data_dir = '~/PLUM/crop_calib_data' ;
     other_data_dir = '~/PLUM/other_data' ;
     if ~exist(other_data_dir, 'dir')
         error('other_data_dir not found: %s', other_data_dir)
     end
-    hotspot_tif = sprintf('%s/hotspots_revisited_2004.outerlimit.tif', other_data_dir) ;
-    hotspot_shp = sprintf('%s/hotspots_clipByGridlist.shp', other_data_dir) ;
-    ecoid_file = sprintf('%s/wwf_terr_ecos_UnpackClip.halfDeg.ECO_ID.tif', other_data_dir) ;
-    cslf_shp = sprintf('%s/wwf_terr_ecos_UnpackClip.halfDeg.CSLF.shp', other_data_dir) ;
-    fpu_file = sprintf('%s/FPU.asc', other_data_dir) ;
-    pop_file = sprintf('%s/ssp.csv', other_data_dir) ;
 end
 if ~exist(crop_calib_data_dir, 'dir')
     error('crop_calib_data_dir not found: %s', crop_calib_data_dir)
 end
 landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plumharm_repo_path) ;
 continents_shp = sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path) ;
-fao_file = sprintf('%s/fao/FAOdata_1961-2010_calibVer16_Production.mat', ...
-            crop_calib_data_dir) ;
+fao_file = sprintf('%s/input_data/FAOdata_1961-2010_calibVer16_Production.mat', paper02_repo_path) ;
+hotspot_tif = sprintf('%s/input_data/hotspots_revisited_2004.outerlimit.tif', paper02_repo_path) ;
+hotspot_shp = sprintf('%s/input_data/hotspots_clipByGridlist.shp', paper02_repo_path) ;
+ecoid_file = sprintf('%s/input_data/wwf_terr_ecos_UnpackClip.halfDeg.ECO_ID.tif', paper02_repo_path) ;
+cslf_shp = sprintf('%s/input_data/wwf_terr_ecos_UnpackClip.halfDeg.CSLF.shp', paper02_repo_path) ;
+fpu_file = sprintf('%s/input_data/FPU.asc', paper02_repo_path) ;
+pop_file = sprintf('%s/input_data/ssp.csv', paper02_repo_path) ;
 
 % Define raster reference object and missing value
 map_size = [360 720] ;
