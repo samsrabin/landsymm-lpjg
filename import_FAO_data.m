@@ -25,7 +25,7 @@ elseif calib_ver==5
     fao_filename_trimmed = 'FAOSTAT_20170410_CommodityBalances_Crops_Production_trimmed_rearr.csv' ;
 elseif calib_ver==8
     fao_filename_trimmed = 'FAOSTAT_20170412_Production_Crops_E_All_Data_neg999s_rearr.csv' ;
-elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20)
+elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20) || calib_ver==23
     fao_filename_trimmed = 'CommodityBalances_Crops_E_All_Data_Norm.csv' ;
 elseif calib_ver==17
     fao_filename_trimmed = 'Production_Crops_E_All_Data_(Normalized).csv' ;
@@ -74,7 +74,7 @@ else
         disp('Reading FAO data from TXT file 2...')
         fao2 = readtable('FAOSTAT_20170410_CommodityBalances_Crops_Production_trimmed_rearr.csv') ;
         twofiles = true ;
-    elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20)
+    elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20) || calib_ver==23
         disp('Reading FAO data from TXT file 1...')
         fao1 = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOStat-Dec2015_fromPeterAl/Production_Crops_E_All_Data_Norm.csv') ;
         extraneous_columns = {'CountryCode', 'ItemCode', 'ElementCode', ...

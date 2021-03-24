@@ -93,8 +93,6 @@ oilcrops_proxy_fruitveg_sugar = true ;
 if ~exist('oilcrops_proxy_fruitveg_sugar', 'var')
     oilcrops_proxy_fruitveg_sugar = false ;
 end
-fake_ggcmi_sugar = false ;
-fake_ggcmi_oilcrops = false ;
 
 % Country map file
 if strcmp(version_name, 'ani_test')

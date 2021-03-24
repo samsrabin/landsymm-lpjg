@@ -14,7 +14,7 @@ elseif calib_ver == 19
     listCrops_lpj_comb = ...
         {'CerealsC3','CerealsC4','Rice','Oilcrops',...
         'StarchyRoots','Pulses','Sugar','DateCitGrape'} ;
-elseif calib_ver == 20
+elseif calib_ver == 20 || calib_ver == 23
     if ~exist('remapVer', 'var')
         remapVer = '8b' ;
     end
@@ -30,6 +30,10 @@ elseif calib_ver == 20
         case {'10', '10_g2p'}
             listCrops_lpj_comb = ...
                 {'CerealsC3','CerealsC4','Rice','OilNfix','OilOther',...
+                'StarchyRoots','Pulses','Sugarbeet','Sugarcane','FruitAndVeg'} ;
+        case {'11_g2p'}
+            listCrops_lpj_comb = ...
+                {'CerealsC3s','CerealsC3w','CerealsC4','Rice','OilNfix','OilOther',...
                 'StarchyRoots','Pulses','Sugarbeet','Sugarcane','FruitAndVeg'} ;
         otherwise
             error('Are Sugar and Oilcrops split up or not?')
@@ -63,6 +67,22 @@ if exist('filename_guess_yield', 'var')
     end
     yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
     
+    % Remove any factorial experiment stands (i.e., stands with names
+    % containing a digit, after char'ing digits we actually care about)
+    varNames_tmp = yield_lpj.varNames ;
+    varNames_tmp = strrep(varNames_tmp, 'CerealsC3', 'CerealsCthree') ;
+    varNames_tmp = strrep(varNames_tmp, 'CerealsC4', 'CerealsCfour') ;
+    remove = ~cellfun(@isempty, regexp(varNames_tmp, '\d')) ;
+    yield_lpj.maps_YXvy(:,:,remove,:) = [] ;
+    yield_lpj.varNames(remove) = [] ;
+    clear varNames_tmp remove
+    
+    % Deal with negative values, used to indicate that the crop was not
+    % planted this year
+    if ~isempty(find(yield_lpj.maps_YXvy < 0, 1))
+        yield_lpj.maps_YXvy(yield_lpj.maps_YXvy < 0) = 0 ;
+    end
+    
     % Convert yield from kgDM/m2 to tDM/ha
     if isfield(yield_lpj,'maps_YXvy')
         yield_lpj.maps_YXvy = yield_lpj.maps_YXvy * 1e4 * 1e-3 ;
@@ -70,7 +90,7 @@ if exist('filename_guess_yield', 'var')
         yield_lpj.maps_YXv = yield_lpj.maps_YXv * 1e4 * 1e-3 ;
     end
     
-    % Use Oilcrops as proxy for FruitAndVeg and Sugar
+    % Use Oilcrops as proxy for FruitAndVeg and Sugar, if needed
     if oilcrops_proxy_fruitveg_sugar
         % Make sure we can handle this setup
         yieldCrops = get_cropsCombined(yield_lpj.varNames) ;
@@ -87,11 +107,31 @@ if exist('filename_guess_yield', 'var')
             yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcropsi'),:)) ;
         yield_lpj.varNames = [yield_lpj.varNames {'FruitAndVeg', 'Sugar', 'FruitAndVegi', 'Sugari'}] ;
     end
+    
+    % Get maximum of spring/winter CerealsC3, if needed
+    remove = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]')) ;
+    if any(remove)
+        I_wheats_rf = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]$')) ;
+        I_wheats_ir = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]i$')) ;
+        maxWheat_rf_YX1y = max(yield_lpj.maps_YXvy(:,:,I_wheats_rf,:), [], 3) ;
+        maxWheat_ir_YX1y = max(yield_lpj.maps_YXvy(:,:,I_wheats_ir,:), [], 3) ;
+        yield_lpj.maps_YXvy(:,:,remove,:) = [] ;
+        yield_lpj.varNames(remove) = [] ;
+        yield_lpj.varNames = [yield_lpj.varNames {'CerealsC3' 'CerealsC3i'}] ;
+        yield_lpj.maps_YXvy = cat(3, yield_lpj.maps_YXvy, ...
+            maxWheat_rf_YX1y, maxWheat_ir_YX1y) ;
+        clear I_wheats* maxWheat_*
+        remove = ~cellfun(@isempty, regexp(listCrops_lpj_comb, 'CerealsC3[sw]')) ;
+        listCrops_lpj_comb(remove) = [] ;
+        listCrops_lpj_comb{end+1} = 'CerealsC3' ;
+    end
+    clear remove
+    
 elseif exist('dirname_emuBL_yields', 'var')
     % GGCMI phase 2
     cropList_ggcmi = {'maize', 'rice', 'soy', 'spring_wheat', 'winter_wheat'} ;
-    irrList_ggcmi = {'rf', 'ir'} ;
-    Nirr_ggcmi = length(irrList_ggcmi) ;
+    irrList = {'rf', 'ir'} ;
+    Nirr_ggcmi = length(irrList) ;
     NcropIrr_ggcmi = length(cropList_ggcmi)*Nirr_ggcmi ;
     listCrops_ggcmi = cell(NcropIrr_ggcmi, 1) ;
     yield_ggcmi.maps_YXv = nan(360, 720, NcropIrr_ggcmi) ;
@@ -112,8 +152,8 @@ elseif exist('dirname_emuBL_yields', 'var')
         for ii = 1:Nirr_ggcmi
             v = (c-1)*Nirr_ggcmi+ii ;
             listCrops_ggcmi{v} = sprintf('%s_%s', ...
-                thisCrop, irrList_ggcmi{ii}) ;
-            thisVar = sprintf('yield_%s_%s', irrList_ggcmi{ii}, thisCrop_short) ;
+                thisCrop, irrList{ii}) ;
+            thisVar = sprintf('yield_%s_%s', irrList{ii}, thisCrop_short) ;
             yield_ggcmi.maps_YXv(:,:,v) = flipud(transpose(ncread(thisFile, thisVar))) ;
         end
     end
@@ -131,28 +171,6 @@ elseif exist('dirname_emuBL_yields', 'var')
     yield_ggcmi.maps_YXv = cat(3, yield_ggcmi.maps_YXv, ...
         maxWheat_rf_YX, maxWheat_ir_YX) ;
     
-    % Start dealing with sugar, if needed
-    supercrop = 'Sugar' ;
-    fake_ggcmi_sugar = any(contains(listCrops_lpj_comb, ...
-        {supercrop, 'Sugarbeet', 'Sugarcane'})) ;
-    if fake_ggcmi_sugar
-        [sugrealsIrr_lpj, sugreals] = ...
-            combine_subcrops_step1( ...
-            supercrop, irrList_ggcmi, cropfrac_lpj.varNames, ...
-            listCrops_lpj_comb) ;
-    end
-    
-    % Start dealing with oilcrops, if needed
-    supercrop = 'Oilcrops' ;
-    fake_ggcmi_oilcrops = any(contains(listCrops_lpj_comb, ...
-        {supercrop, 'OilNfix', 'OilOther'})) ;
-    if fake_ggcmi_oilcrops
-        [oilrealsIrr_lpj, oilreals] = ...
-            combine_subcrops_step1( ...
-            supercrop, irrList_ggcmi, cropfrac_lpj.varNames, ...
-            listCrops_lpj_comb) ;
-    end
-    
     % Translate crops
     I_toRemove = ~contains(cropfrac_lpj.varNames, crops2remove) ;
     varNames_out = cropfrac_lpj.varNames( ...
@@ -169,18 +187,60 @@ else
     error('How am I supposed to import yields?')
 end
 
+% Start dealing with sugar and oilcrops, if needed
+try
+    listCrops_fa2o_tmp = get_FAO_info(calib_ver, false) ;
+catch ME
+    listCrops_fa2o_tmp = get_FAO_info(calib_ver, true) ;
+end
+% Sugar
+supercrop = 'Sugar' ;
+combine_sugars = any(contains(listCrops_lpj_comb, ...
+    {supercrop, 'Sugarbeet', 'Sugarcane'})) ...
+    && length(intersect(listCrops_fa2o_tmp, ...
+    {'Sugarbeet', 'Sugarcane'})) < 2 ;
+if combine_sugars
+    [sugrealsIrr_lpj, sugreals] = ...
+        combine_subcrops_step1( ...
+        supercrop, irrList, cropfrac_lpj.varNames, ...
+        listCrops_lpj_comb) ;
+end
+% Oilcrops
+supercrop = 'Oilcrops' ;
+combine_oilcrops = any(contains(listCrops_lpj_comb, ...
+    {supercrop, 'OilNfix', 'OilOther'})) ...
+    && length(intersect(listCrops_fa2o_tmp, ...
+    {'OilNfix', 'OilOther'})) < 2 ;
+if combine_oilcrops
+    [oilrealsIrr_lpj, oilreals] = ...
+        combine_subcrops_step1( ...
+        supercrop, irrList, cropfrac_lpj.varNames, ...
+        listCrops_lpj_comb) ;
+end
+clear listCrops_fa2o_tmp
+
+% Sanity check
+if (isfield(yield_lpj, 'maps_YXvy') && ~isempty(find(yield_lpj.maps_YXvy < 0, 1))) ...
+|| (isfield(yield_lpj, 'maps_YXv') && ~isempty(find(yield_lpj.maps_YXv < 0, 1)))
+    error('Negative value(s) in yield_lpj')
+end
+
 disp('Processing...')
 
-% For GGCMI, we're not comparing individual years, so find means for years
-% of interest
+% For GGCMI, we're not comparing individual years, so maps_YXvy should
+% just be means for years of interest (i.e., 4th dim of length 1)
 if is_ggcmi 
     
     % yield
-    if isfield(yield_lpj,'yearList') || isfield(yield_lpj,'maps_YXvy')
-        error('GGCMI yields have years??')
+    if strcmp(model_name, 'LPJ-GUESS-sim')
+        yield_lpj.maps_YXvy = mean(yield_lpj.maps_YXvy,4) ;
+    else
+        if isfield(yield_lpj,'yearList') || isfield(yield_lpj,'maps_YXvy')
+            error('GGCMI yields have years??')
+        end
+        yield_lpj.maps_YXvy = yield_lpj.maps_YXv ;
+        yield_lpj = rmfield(yield_lpj, 'maps_YXv') ;
     end
-    yield_lpj.maps_YXvy = yield_lpj.maps_YXv ;
-    yield_lpj = rmfield(yield_lpj, 'maps_YXv') ;
     yield_lpj.yearList = -pi ;
     
     % landuse
@@ -267,37 +327,55 @@ if ~is_ggcmi && (~isequal(yield_lpj.yearList,cropfrac_lpj.yearList) || ~isequal(
 end
 
 % Combine WW and SW, if necessary
-% if strcmp(version_name,'plumTypes_assignWWSW')
-if ~is_ggcmi && (any(strcmp(yield_lpj.varNames,'CerealsC3w')) || any(strcmp(yield_lpj.varNames,'CerealsC3s')))
+if any(strcmp(cropfrac_lpj.varNames,'CerealsC3w')) || any(strcmp(cropfrac_lpj.varNames,'CerealsC3s'))
     warning('Combining WW and SW.')
-    % Rainfed
-    i_yield_rf = [find(strcmp(yield_lpj.varNames,'CerealsC3w')) find(strcmp(yield_lpj.varNames,'CerealsC3s'))] ;
-    i_fracs_rf = [find(strcmp(cropfrac_lpj.varNames,'CerealsC3w')) find(strcmp(cropfrac_lpj.varNames,'CerealsC3s'))] ;
-    if length(i_yield_rf)~=2; error('length(i_yield_rf)~=2'); end
-    if length(i_fracs_rf)~=2; error('length(i_fracs_rf)~=2'); end
-    tmp_yield_rf_YXvy = yield_lpj.maps_YXvy(:,:,i_yield_rf,:) ;
-    tmp_fracs_rf_YXvy = cropfrac_lpj.maps_YXvy(:,:,i_fracs_rf,:) ;
-    % Irrigated
-    i_yield_ir = [find(strcmp(yield_lpj.varNames,'CerealsC3wi')) find(strcmp(yield_lpj.varNames,'CerealsC3si'))] ;
-    i_fracs_ir= [find(strcmp(cropfrac_lpj.varNames,'CerealsC3wi')) find(strcmp(cropfrac_lpj.varNames,'CerealsC3si'))] ;
-    if length(i_yield_ir)~=2; error('length(i_yield_ir)~=2'); end
-    if length(i_fracs_ir)~=2; error('length(i_fracs_ir)~=2'); end
-    tmp_yield_ir_YXvy = yield_lpj.maps_YXvy(:,:,i_yield_ir,:) ;
-    tmp_fracs_ir_YXvy = cropfrac_lpj.maps_YXvy(:,:,i_fracs_ir,:) ;
-    % Combine
-    tmp_fracs_rf_YX_y = nansum(tmp_fracs_rf_YXvy,3) ;
-    tmp_yield_rf_YX_y = nansum(tmp_yield_rf_YXvy .* tmp_fracs_rf_YXvy ./ repmat(tmp_fracs_rf_YX_y,[1 1 2 1]),3) ;
-    tmp_fracs_ir_YX_y = nansum(tmp_fracs_ir_YXvy,3) ;
-    tmp_yield_ir_YX_y = nansum(tmp_yield_ir_YXvy .* tmp_fracs_ir_YXvy ./ repmat(tmp_fracs_ir_YX_y,[1 1 2 1]),3) ;
-    % Replace
-    yield_lpj.maps_YXvy(:,:,[i_yield_rf i_yield_ir],:) = [] ;
-    cropfrac_lpj.maps_YXvy(:,:,[i_fracs_rf i_fracs_ir],:) = [] ;
-    yield_lpj.varNames([i_yield_rf i_yield_ir]) = [] ;
-    cropfrac_lpj.varNames([i_fracs_rf i_fracs_ir]) = [] ;
-    yield_lpj.varNames = [yield_lpj.varNames 'CerealsC3' 'CerealsC3i'] ;
-    cropfrac_lpj.varNames = [cropfrac_lpj.varNames 'CerealsC3' 'CerealsC3i'] ;
-    yield_lpj.maps_YXvy = cat(3,yield_lpj.maps_YXvy,tmp_yield_rf_YX_y,tmp_yield_ir_YX_y) ;
-    cropfrac_lpj.maps_YXvy = cat(3,cropfrac_lpj.maps_YXvy,tmp_fracs_rf_YX_y,tmp_fracs_ir_YX_y) ;
+    if is_ggcmi % You've already combined yields, above
+        % Rainfed
+        i_fracs_rf = [find(strcmp(cropfrac_lpj.varNames,'CerealsC3w')) find(strcmp(cropfrac_lpj.varNames,'CerealsC3s'))] ;
+        if length(i_fracs_rf)~=2; error('length(i_fracs_rf)~=2'); end
+        tmp_fracs_rf_YXvy = cropfrac_lpj.maps_YXvy(:,:,i_fracs_rf,:) ;
+        % Irrigated
+        i_fracs_ir= [find(strcmp(cropfrac_lpj.varNames,'CerealsC3wi')) find(strcmp(cropfrac_lpj.varNames,'CerealsC3si'))] ;
+        if length(i_fracs_ir)~=2; error('length(i_fracs_ir)~=2'); end
+        tmp_fracs_ir_YXvy = cropfrac_lpj.maps_YXvy(:,:,i_fracs_ir,:) ;
+        % Combine
+        tmp_fracs_rf_YX_y = nansum(tmp_fracs_rf_YXvy,3) ;
+        tmp_fracs_ir_YX_y = nansum(tmp_fracs_ir_YXvy,3) ;
+        % Replace
+        cropfrac_lpj.maps_YXvy(:,:,[i_fracs_rf i_fracs_ir],:) = [] ;
+        cropfrac_lpj.varNames([i_fracs_rf i_fracs_ir]) = [] ;
+        cropfrac_lpj.varNames = [cropfrac_lpj.varNames 'CerealsC3' 'CerealsC3i'] ;
+        cropfrac_lpj.maps_YXvy = cat(3,cropfrac_lpj.maps_YXvy,tmp_fracs_rf_YX_y,tmp_fracs_ir_YX_y) ;
+    else
+        % Rainfed
+        i_yield_rf = [find(strcmp(yield_lpj.varNames,'CerealsC3w')) find(strcmp(yield_lpj.varNames,'CerealsC3s'))] ;
+        i_fracs_rf = [find(strcmp(cropfrac_lpj.varNames,'CerealsC3w')) find(strcmp(cropfrac_lpj.varNames,'CerealsC3s'))] ;
+        if length(i_yield_rf)~=2; error('length(i_yield_rf)~=2'); end
+        if length(i_fracs_rf)~=2; error('length(i_fracs_rf)~=2'); end
+        tmp_yield_rf_YXvy = yield_lpj.maps_YXvy(:,:,i_yield_rf,:) ;
+        tmp_fracs_rf_YXvy = cropfrac_lpj.maps_YXvy(:,:,i_fracs_rf,:) ;
+        % Irrigated
+        i_yield_ir = [find(strcmp(yield_lpj.varNames,'CerealsC3wi')) find(strcmp(yield_lpj.varNames,'CerealsC3si'))] ;
+        i_fracs_ir= [find(strcmp(cropfrac_lpj.varNames,'CerealsC3wi')) find(strcmp(cropfrac_lpj.varNames,'CerealsC3si'))] ;
+        if length(i_yield_ir)~=2; error('length(i_yield_ir)~=2'); end
+        if length(i_fracs_ir)~=2; error('length(i_fracs_ir)~=2'); end
+        tmp_yield_ir_YXvy = yield_lpj.maps_YXvy(:,:,i_yield_ir,:) ;
+        tmp_fracs_ir_YXvy = cropfrac_lpj.maps_YXvy(:,:,i_fracs_ir,:) ;
+        % Combine
+        tmp_fracs_rf_YX_y = nansum(tmp_fracs_rf_YXvy,3) ;
+        tmp_yield_rf_YX_y = nansum(tmp_yield_rf_YXvy .* tmp_fracs_rf_YXvy ./ repmat(tmp_fracs_rf_YX_y,[1 1 2 1]),3) ;
+        tmp_fracs_ir_YX_y = nansum(tmp_fracs_ir_YXvy,3) ;
+        tmp_yield_ir_YX_y = nansum(tmp_yield_ir_YXvy .* tmp_fracs_ir_YXvy ./ repmat(tmp_fracs_ir_YX_y,[1 1 2 1]),3) ;
+        % Replace
+        yield_lpj.maps_YXvy(:,:,[i_yield_rf i_yield_ir],:) = [] ;
+        cropfrac_lpj.maps_YXvy(:,:,[i_fracs_rf i_fracs_ir],:) = [] ;
+        yield_lpj.varNames([i_yield_rf i_yield_ir]) = [] ;
+        cropfrac_lpj.varNames([i_fracs_rf i_fracs_ir]) = [] ;
+        yield_lpj.varNames = [yield_lpj.varNames 'CerealsC3' 'CerealsC3i'] ;
+        cropfrac_lpj.varNames = [cropfrac_lpj.varNames 'CerealsC3' 'CerealsC3i'] ;
+        yield_lpj.maps_YXvy = cat(3,yield_lpj.maps_YXvy,tmp_yield_rf_YX_y,tmp_yield_ir_YX_y) ;
+        cropfrac_lpj.maps_YXvy = cat(3,cropfrac_lpj.maps_YXvy,tmp_fracs_rf_YX_y,tmp_fracs_ir_YX_y) ;
+    end
 end
 
 % Stijn didn't include irrigated of these?
@@ -327,6 +405,7 @@ for v = 1:length(new_order)
     clear this_from_yield
 end ; clear v
 cropfrac_lpj.varNames = cropfrac_lpj.varNames(new_order) ;
+
 if ~is_ggcmi
     if ~isfield(cropfrac_lpj,'maps_YXvy')
         tmp = cropfrac_lpj.maps_YXv ;
@@ -343,6 +422,7 @@ else
         cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
     end
 end
+%%
 
 % % % %%%%%%%
 % % % % landuse_lpj_orig = landuse_lpj ;
@@ -370,6 +450,10 @@ else
     end
 end
 
+if ~isequal(size(yield_lpj.maps_YXvy), size(cropfrac_lpj.maps_YXvy))
+    error('Size mismatch between yield_lpj.maps_YXvy and cropfrac_lpj.maps_YXvy')
+end
+
 % Deal with missing simulated cells
 tmp_croparea_YXvy = cropfrac_lpj.maps_YXvy .* repmat(land_area_YX, ...
     [1 1 size(cropfrac_lpj.maps_YXvy,3) size(cropfrac_lpj.maps_YXvy,4)]) ;
@@ -389,7 +473,7 @@ if removed_area_dueto_NaNsim
         tmp_cropfrac_YX1y = tmp_croparea_YXvy(:,:,c,:) ;
         I_bad = find(isnan(tmp_yield_YX1y) & tmp_cropfrac_YX1y>0) ;
         if ~isempty(I_bad)
-            
+
             % Track how much area is being removed
             removed_YX1y = zeros(size(tmp_cropfrac_YX1y)) ;
             removed_YX1y(I_bad) = tmp_cropfrac_YX1y(I_bad) ;
@@ -413,7 +497,7 @@ end
 clear tmp_croparea_YXvy
 
 % Combine Sugarbeet and Sugarcane, if needed
-if fake_ggcmi_sugar
+if combine_sugars
     [cropfrac_lpj, yield_lpj, croparea_lpj_removed, ...
     listCrops_lpj_comb] = ...
     combine_subcrops_step2( ...
@@ -422,7 +506,7 @@ if fake_ggcmi_sugar
 end
 
 % Combine OilNfix and OilOther, if needed
-if fake_ggcmi_oilcrops
+if combine_oilcrops
     [cropfrac_lpj, yield_lpj, croparea_lpj_removed, ...
     listCrops_lpj_comb] = ...
     combine_subcrops_step2( ...
@@ -562,10 +646,10 @@ end
 
 function [suprealsIrr_lpj, supreals] = ...
     combine_subcrops_step1( ...
-    supercrop, irrList_ggcmi, cropfrac_lpj_varNames, ...
+    supercrop, irrList, cropfrac_lpj_varNames, ...
     listCrops_lpj_comb)
 
-Nirr_ggcmi = length(irrList_ggcmi) ;
+Nirr_ggcmi = length(irrList) ;
 
 % Construct types
 if strcmp(supercrop, 'Sugar')
@@ -584,7 +668,7 @@ for c = 1:Nsub
     thisReal = supreals{c} ;
     thisFake = supfakes{c} ;
     for ii = 1:Nirr_ggcmi
-        thisIrr = irrList_ggcmi{ii} ;
+        thisIrr = irrList{ii} ;
         thisRealIrr = sprintf('%s_%s', thisReal, thisIrr) ;
         thisFakeIrr = sprintf('%s_%s', thisFake, thisIrr) ;
         v = (c-1)*Nirr_ggcmi + ii ;
@@ -681,5 +765,6 @@ end
 listCrops_lpj_comb = [listCrops_lpj_comb supercrop] ;
 
 
-
 end
+
+
