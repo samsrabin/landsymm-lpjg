@@ -9,7 +9,7 @@ end
 gridlist_file = sprintf('%s/%s', paper02_repo_path, gridlist_file) ;
 biomes_map_file = sprintf('%s/input_data/wwf_terr_ecos_UnpackClip.halfDeg.tif', paper02_repo_path)  ;
 biomes_key_file = sprintf('%s/input_data/wwf_terr_ecos.codes.csv', paper02_repo_path)  ;
-landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', paper02_repo_path) ;
+landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plumharm_repo_path) ;
 baresoil_albedo_file = sprintf('%s/input_data/soilmap.txt', paper02_repo_path) ;
 
 is_baseline_list = false(length(inDir_list),1) ;
