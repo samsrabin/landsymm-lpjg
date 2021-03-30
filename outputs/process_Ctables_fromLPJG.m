@@ -155,13 +155,17 @@ Nstands = length(standList_in) ;
 
 tmp = repmat(standList_in, [1 5])' ;
 standList_out = tmp(:) ;
-standList_out = strcat(standList_out, '_to_') ;
+standList_out = strcat(standList_out, '_') ;
 try
     standList_out = strcat(standList_out, repmat(standList_in, [Nstands 1])) ;
 catch ME
     keyboard
 end
 
+standList_out = strrep(standList_out, 'crop', 'c') ;
+standList_out = strrep(standList_out, 'past', 'p') ;
+standList_out = strrep(standList_out, 'ntrl', 'n') ;
+standList_out = strrep(standList_out, 'for', 'f') ;
 
 S.varNames = standList_out ;
 S.garr_xv = reshape(garr_xds, [Ncells Nstands^2]) ;
