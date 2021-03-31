@@ -533,23 +533,26 @@ elseif strcmp(thisVer,'harm3_S5R8.5_attr')
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 elseif strcmp(thisVer,'ssp13')
-    runList = {'SSP1-45'} ;%,'SSP3-60','SSP4-60','SSP5-85'} ;
+    runList = {'SSP1-45','SSP2-60','SSP3-60','SSP4-60','SSP5-85'} ;
     runColNames = runList ;
+    topDir = '/Users/Shared/PLUM/ssp13' ;
     runDirs = {
         'LPJGPLUM_2011-2100_ssp13-1' ;
-%         'LPJGPLUM_2011-2100_ssp13-3' ;
-%         'LPJGPLUM_2011-2100_ssp13-4' ;
-%         'LPJGPLUM_2011-2100_ssp13-5' ;
+        'LPJGPLUM_2011-2100_ssp13-2' ;
+        'LPJGPLUM_2011-2100_ssp13-3' ;
+        'LPJGPLUM_2011-2100_ssp13-4' ;
+        'LPJGPLUM_2011-2100_ssp13-5' ;
         } ;
-    runDirs = strcat('~/PLUM/outputs/ssp13/', runDirs) ;
+    runDirs = strcat([topDir '/'], runDirs) ;
     runDirs_plum = {
-        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP1.v12.s1';
-%        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP3.v12.s1';
-%        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP4.v12.s1';
-%        '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1';
+        '/Volumes/Reacher/LandSyMM/inputs/LU/ssp13/SSP1/s1.harm.forLPJG';
+        '/Volumes/Reacher/LandSyMM/inputs/LU/ssp13/SSP2/s1.harm.forLPJG';
+        '/Volumes/Reacher/LandSyMM/inputs/LU/ssp13/SSP3/s1.harm.forLPJG';
+        '/Volumes/Reacher/LandSyMM/inputs/LU/ssp13/SSP4/s1.harm.forLPJG';
+        '/Volumes/Reacher/LandSyMM/inputs/LU/ssp13/SSP5/s1.harm.forLPJG';
         } ;
     yearList_future = 2011:2100 ;
-    baselineDir = '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_1850-2010_remap8c' ;
+    baselineDir = '/Users/Shared/PLUM/ssp13/LPJGPLUM_1850-2010_remap8c' ;
     yearList_baseline = 1850:2010 ;
     skip3rdColor = false ;
 else
