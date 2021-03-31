@@ -3,3 +3,4 @@ plum_harmonization
 LUts*.sh
 do_postprocess.sh
 *.swp
+*.mat

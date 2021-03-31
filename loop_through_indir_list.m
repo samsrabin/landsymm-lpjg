@@ -9,7 +9,7 @@ end
 gridlist_file = sprintf('%s/%s', paper02_repo_path, gridlist_file) ;
 biomes_map_file = sprintf('%s/input_data/wwf_terr_ecos_UnpackClip.halfDeg.tif', paper02_repo_path)  ;
 biomes_key_file = sprintf('%s/input_data/wwf_terr_ecos.codes.csv', paper02_repo_path)  ;
-landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', paper02_repo_path) ;
+landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plumharm_repo_path) ;
 baresoil_albedo_file = sprintf('%s/input_data/soilmap.txt', paper02_repo_path) ;
 
 is_baseline_list = false(length(inDir_list),1) ;
@@ -1146,39 +1146,48 @@ for d = 1:length(inDir_list)
     
     if do_save.Nfert
         % Fertilizer for each crop
-        if onMac
-            cmd = 'grep "file_nfert" %s/landcover.ins | sed ''s@param "file_nfert" (str "/project/fh1-project-lpjgpi/lr8247@/Users/Shared@'' | sed ''s@")@@''' ;
-            cmd_str = sprintf(cmd,removeslashifneeded(inDir)) ;
-            [x,NfertFile_tmp] = unix(cmd_str) ;
-            if x~=0
-                error(['get_nfert_file.sh failed with error ' num2str(x)])
-            end
-        else
-            NfertFile_tmp= 'grep "file_nfert" %s/landcover.ins | sed ''s@param "file_nfert" (str "@@'' | sed ''s@")@@''' ;
+        cmd = sprintf('grep -i ''param "file_nfert"'' %s/landcover.ins | grep -v -E "^\\s*!" | tail -n 1 | grep -oE "str \\".+\\"" | sed ''s/str //'' | sed ''s/"//g''', ...
+            inDir) ;
+        [x, NfertFile] = unix(cmd) ;
+        if x~=0
+            warning('Error %d when trying to find Nfert file', x)
         end
-        NfertFile_tmp = regexprep(NfertFile_tmp,'[\n\r]+','') ; % Remove extraneous newline
-        if is_baseline
-            if isempty(dir([NfertFile_tmp '*']))
-                NfertFile = ['/project/fh1-project-lpjgpi/lr8247/PLUM/input/Nfert/' NfertFile_tmp] ;
-                if ~exist(NfertFile,'file')
-                    error('NfertFile not found!')
+        NfertFile = regexprep(NfertFile,'[\n\r]+','') ; % Remove extraneous newline
+        if ~exist(NfertFile, 'file')
+            if onMac
+                cmd = 'grep -i "file_nfert" %s/landcover.ins | sed ''s@param "file_nfert" (str "/project/fh1-project-lpjgpi/lr8247@/Users/Shared@'' | sed ''s@")@@''' ;
+                cmd_str = sprintf(cmd,removeslashifneeded(inDir)) ;
+                [x,NfertFile_tmp] = unix(cmd_str) ;
+                if x~=0
+                    error(['get_nfert_file.sh failed with error ' num2str(x)])
                 end
             else
-                NfertFile = NfertFile_tmp ;
-            end
-        elseif strcmp(NfertFile_tmp,'nfert_2010_luh2_aggregate_sum2x2_midpoint_rescaled_v20.txt')
-            NfertFile = '/Users/Shared/PLUM/input/Nfert/LUH2/nfert_2010_luh2_aggregate_sum2x2_midpoint_rescaled_v20.txt' ;
-        elseif onMac
-            NfertFile = crude_file_find(NfertFile_tmp) ;
-        else
-            cmd = sprintf('grep ''param "file_nfert"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_nfert"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
-                inDir) ;
-            [x,NfertFile_tmp] = unix(cmd) ;
-            if x~=0
-                error(['Failed when trying to find Nfert file, with error ' num2str(x)])
+                NfertFile_tmp= 'grep -i "file_nfert" %s/landcover.ins | sed ''s@param "file_nfert" (str "@@'' | sed ''s@")@@''' ;
             end
             NfertFile_tmp = regexprep(NfertFile_tmp,'[\n\r]+','') ; % Remove extraneous newline
-            NfertFile = strrep(NfertFile_tmp,' ','') ; % Remove extraneous spaces
+            if is_baseline
+                if isempty(dir([NfertFile_tmp '*']))
+                    NfertFile = ['/project/fh1-project-lpjgpi/lr8247/PLUM/input/Nfert/' NfertFile_tmp] ;
+                    if ~exist(NfertFile,'file')
+                        error('NfertFile not found!')
+                    end
+                else
+                    NfertFile = NfertFile_tmp ;
+                end
+            elseif strcmp(NfertFile_tmp,'nfert_2010_luh2_aggregate_sum2x2_midpoint_rescaled_v20.txt')
+                NfertFile = '/Users/Shared/PLUM/input/Nfert/LUH2/nfert_2010_luh2_aggregate_sum2x2_midpoint_rescaled_v20.txt' ;
+            elseif onMac
+                NfertFile = crude_file_find(NfertFile_tmp) ;
+            else
+                cmd = sprintf('grep -i ''param "file_nfert"'' %s/landcover.ins | grep -v -e "^[[:blank:]]!" | sed ''s@param "file_nfert"@@'' | sed ''s@(str@@'' | sed ''s@)@@'' | sed ''s@"@@g''', ...
+                    inDir) ;
+                [x,NfertFile_tmp] = unix(cmd) ;
+                if x~=0
+                    error(['Failed when trying to find Nfert file, with error ' num2str(x)])
+                end
+                NfertFile_tmp = regexprep(NfertFile_tmp,'[\n\r]+','') ; % Remove extraneous newline
+                NfertFile = strrep(NfertFile_tmp,' ','') ; % Remove extraneous spaces
+            end
         end
         fprintf('NfertFile = %s\n', NfertFile)
         Nfert = lpjgu_matlab_readTable_then2map(NfertFile,'force_mat_save',true) ;

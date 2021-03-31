@@ -5,12 +5,29 @@
 
 calib_name = 'remap5e_v18' ;
 
-%%% All TRUE except really unnecessary ones
+% %%% All TRUE except really unnecessary ones
+% do_save.LU              = true ;
+% do_save.crops           = true ;
+% do_save.yield           = true ;
+% do_save.yield_exp       = false ;
+% do_save.yield_map       = true ;
+% do_save.yield_exp_map   = false ;
+% do_save.irrig           = true ;
+% do_save.water           = true ;
+% do_save.carbon          = true ;
+% do_save.mrunoff         = true ;
+% do_save.albedo          = true ;
+% do_save.bvocs           = true ;
+% do_save.Nflux           = true ;
+% do_save.Nfert           = true ;
+% do_save.fpc             = false ;
+
+%%% All FALSE except selected
 do_save.LU              = true ;
 do_save.crops           = true ;
-do_save.yield           = true ;
+do_save.yield           = false ;
 do_save.yield_exp       = false ;
-do_save.yield_map       = true ;
+do_save.yield_map       = false ;
 do_save.yield_exp_map   = false ;
 do_save.irrig           = true ;
 do_save.water           = true ;
@@ -21,23 +38,6 @@ do_save.bvocs           = true ;
 do_save.Nflux           = true ;
 do_save.Nfert           = true ;
 do_save.fpc             = false ;
-
-% %%% All FALSE except selected
-% do_save.LU              = false ;
-% do_save.crops           = false ;
-% do_save.yield           = false ;
-% do_save.yield_exp       = false ;
-% do_save.yield_map       = false ;
-% do_save.yield_exp_map   = false ;
-% do_save.irrig           = false ;
-% do_save.water           = false ;
-% do_save.carbon          = true ;
-% do_save.mrunoff         = false ;
-% do_save.albedo          = false ;
-% do_save.bvocs           = false ;
-% do_save.Nflux           = true ;
-% do_save.Nfert           = false ;
-% do_save.fpc             = false ;
 
 inDir_list = {...
 %     'LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851'
@@ -52,6 +52,10 @@ gridlist_file = 'PLUMout_gridlist.txt';
 inDir_list = { ...
    '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_1850-2010_remap8c' ;
    '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-1' ;
+   '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-2' ;
+   '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-3' ;
+   '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-4' ;
+   '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-5' ;
    } ;
 gridlist_file = 'gridlist_57790.txt' ;
 
