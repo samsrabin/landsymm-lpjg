@@ -29,8 +29,7 @@ albedo_te_snow = 0.205 ;
 albedo_bs_snow = 0.535 ;  
 
 % Make maps (flip winter/summer in S. Hemisphere, as in Andy's script)
-is_sh = false(360,720) ;
-is_sh(1:180,:) = true ;
+is_sh = fpc.lonlats(:,2) < 0 ;
 albedo_cr_jul_vec = albedo_cr_sumr*ones(size(fpc.garr_xvy, 1), 1) ;
 albedo_cr_jan_vec = albedo_cr_wntr*ones(size(fpc.garr_xvy, 1), 1) ;
 albedo_gr_jul_vec = albedo_gr_sumr*ones(size(fpc.garr_xvy, 1), 1) ;

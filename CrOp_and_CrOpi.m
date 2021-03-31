@@ -82,13 +82,18 @@ if strcmp(merge_or_replace,'replace')
         [~,inds_cropTypes] = intersect(S.varNames,cropTypes) ;
     end
     % Delete CrOps from maps
-    S.maps_YXvy(:,:,inds_cropTypes,:) = [] ;
+    if isfield(S, 'maps_YXvy')
+        S.maps_YXvy(:,:,inds_cropTypes,:) = [] ;
+    else
+        S.garr_xvy(:,inds_cropTypes,:) = [] ;
+    end
     S.varNames(inds_cropTypes) = [] ;
     % Rename CrOpis to CrOps
     S.varNames = strip(S.varNames,'right','i') ;
     % Sanity check
     [~,inds_cropTypes_new] = intersect(S.varNames,cropTypes) ;
-    if nansum(nansum(nansum(nansum(S.maps_YXvy(:,:,inds_cropTypes_new,:)))))<=0
+    if (isfield(S, 'maps_YXvy') && nansum(nansum(nansum(nansum(S.maps_YXvy(:,:,inds_cropTypes_new,:)))))<=0) ...
+    || (isfield(S, 'garr_xvy') && nansum(nansum(nansum(S.garr_xvy(:,inds_cropTypes_new,:))))<=0)
         error(['Something went wrong in ' structname ': replace_CrOp_with_CrOpi!'])
     end
 elseif strcmp(merge_or_replace,'merge')
@@ -100,39 +105,71 @@ elseif strcmp(merge_or_replace,'merge')
             cropTypes_found_noCGs = strip(cropTypesI_found,'right','i') ;
             [~,inds_cropTypes_nonCGs] = intersect(cropTypes_found,cropTypes_found_noCGs) ;
             [~,inds_cropTypes_nonCGs_orig] = intersect(S.varNames,cropTypes_found_noCGs) ;
-            S.maps_YXvy(:,:,inds_cropTypes_nonCGs,:) = ...
-                S.maps_YXvy(:,:,inds_cropTypes_nonCGs,:) ...
-                + S.maps_YXvy(:,:,inds_cropTypesI,:) ;
+            if isfield(S, 'maps_YXvy')
+                S.maps_YXvy(:,:,inds_cropTypes_nonCGs,:) = ...
+                    S.maps_YXvy(:,:,inds_cropTypes_nonCGs,:) ...
+                    + S.maps_YXvy(:,:,inds_cropTypesI,:) ;
+            else
+                S.garr_xvy(:,inds_cropTypes_nonCGs,:) = ...
+                    S.garr_xvy(:,inds_cropTypes_nonCGs,:) ...
+                    + S.garr_xvy(:,inds_cropTypesI,:) ;
+            end
         else
-            S.maps_YXvy(:,:,inds_cropTypes,:) = ...
-                S.maps_YXvy(:,:,inds_cropTypes,:) ...
-                + S.maps_YXvy(:,:,inds_cropTypesI,:) ;
+            if isfield(S, 'maps_YXvy')
+                S.maps_YXvy(:,:,inds_cropTypes,:) = ...
+                    S.maps_YXvy(:,:,inds_cropTypes,:) ...
+                    + S.maps_YXvy(:,:,inds_cropTypesI,:) ;
+            else
+                S.garr_xvy(:,inds_cropTypes,:) = ...
+                    S.garr_xvy(:,inds_cropTypes,:) ...
+                    + S.garr_xvy(:,inds_cropTypesI,:) ;
+            end
         end
-        if any(any(any(any(-1+S.maps_YXvy(:,:,inds_cropTypesI,:) ...
-                > 1e-6))))
+        if (isfield(S, 'maps_YXvy') && any(any(any(any(-1+S.maps_YXvy(:,:,inds_cropTypesI,:) > 1e-6))))) ...
+        || (isfield(S, 'garr_xvy') && any(any(any(-1+S.garr_xvy(:,inds_cropTypesI,:) > 1e-6))))
             error('Think some more about how to merge CrOpi into CrOp!')
         end
         % Delete CrOpis
-        S.maps_YXvy(:,:,inds_cropTypesI,:) = [] ;
+        if isfield(S, 'maps_YXvy')
+            S.maps_YXvy(:,:,inds_cropTypesI,:) = [] ;
+        else
+            S.garr_xvy(:,inds_cropTypesI,:) = [] ;
+        end
         S.varNames(inds_cropTypesI) = [] ;
         % Sanity check
         [~,inds_cropTypes_new] = intersect(S.varNames,cropTypes) ;
-        if nansum(nansum(nansum(nansum(S.maps_YXvy(:,:,inds_cropTypes_new,:)))))<=0
+        if (isfield(S, 'maps_YXvy') && nansum(nansum(nansum(nansum(S.maps_YXvy(:,:,inds_cropTypes_new,:)))))<=0) ...
+        || (isfield(S, 'garr_xvy') && nansum(nansum(nansum(S.garr_xvy(:,inds_cropTypes_new,:))))<=0)
             error(['Something went wrong in ' structname ': merge_CrOpi_into_CrOp!'])
         end
     elseif strcmp(structname,'gsirrig') || strcmp(structname,'yield') || strcmp(structname,'Nfert')
-        % Merge (weight by area)
-        tmp_frac_theseCrops_YXcy = cropfracs_orig.maps_YXvy(:,:,inds_cropTypesNonCGs_cropFracsOrig,:) ;
-        tmp_frac_theseCropsI_YXcy = cropfracs_orig.maps_YXvy(:,:,inds_cropTypesI_cropFracsOrig,:) ;
-        tmp_frac_theseBoth_YXcy = tmp_frac_theseCrops_YXcy + tmp_frac_theseCropsI_YXcy ;
-        
-        tmp_frac_theseBoth_YXcy(tmp_frac_theseBoth_YXcy==0 | isnan(tmp_frac_theseBoth_YXcy)) = 1 ; % Ensure no division by zero or NaN
-        
-        S.maps_YXvy(:,:,inds_cropTypesNonCGs_cropFracsOrig,:) = ...
-            S.maps_YXvy(:,:,inds_cropTypesNonCGs_cropFracsOrig,:) .* tmp_frac_theseCrops_YXcy./tmp_frac_theseBoth_YXcy...
-          + S.maps_YXvy(:,:,inds_cropTypesI,:) .* tmp_frac_theseCropsI_YXcy./tmp_frac_theseBoth_YXcy ;
-        % Delete CrOpis
-        S.maps_YXvy(:,:,inds_cropTypesI,:) = [] ;
+        if isfield(S, 'maps_YXvy')
+            % Merge (weight by area)
+            tmp_frac_theseCrops_YXcy = cropfracs_orig.maps_YXvy(:,:,inds_cropTypesNonCGs_cropFracsOrig,:) ;
+            tmp_frac_theseCropsI_YXcy = cropfracs_orig.maps_YXvy(:,:,inds_cropTypesI_cropFracsOrig,:) ;
+            tmp_frac_theseBoth_YXcy = tmp_frac_theseCrops_YXcy + tmp_frac_theseCropsI_YXcy ;
+            
+            tmp_frac_theseBoth_YXcy(tmp_frac_theseBoth_YXcy==0 | isnan(tmp_frac_theseBoth_YXcy)) = 1 ; % Ensure no division by zero or NaN
+            
+            S.maps_YXvy(:,:,inds_cropTypesNonCGs_cropFracsOrig,:) = ...
+                S.maps_YXvy(:,:,inds_cropTypesNonCGs_cropFracsOrig,:) .* tmp_frac_theseCrops_YXcy./tmp_frac_theseBoth_YXcy...
+              + S.maps_YXvy(:,:,inds_cropTypesI,:) .* tmp_frac_theseCropsI_YXcy./tmp_frac_theseBoth_YXcy ;
+            % Delete CrOpis
+            S.maps_YXvy(:,:,inds_cropTypesI,:) = [] ;
+        else
+            % Merge (weight by area)
+            tmp_frac_theseCrops_xcy = cropfracs_orig.garr_xvy(:,inds_cropTypesNonCGs_cropFracsOrig,:) ;
+            tmp_frac_theseCropsI_xcy = cropfracs_orig.garr_xvy(:,inds_cropTypesI_cropFracsOrig,:) ;
+            tmp_frac_theseBoth_xcy = tmp_frac_theseCrops_xcy + tmp_frac_theseCropsI_xcy ;
+            
+            tmp_frac_theseBoth_xcy(tmp_frac_theseBoth_xcy==0 | isnan(tmp_frac_theseBoth_xcy)) = 1 ; % Ensure no division by zero or NaN
+            
+            S.garr_xvy(:,inds_cropTypesNonCGs_cropFracsOrig,:) = ...
+                S.garr_xvy(:,inds_cropTypesNonCGs_cropFracsOrig,:) .* tmp_frac_theseCrops_xcy./tmp_frac_theseBoth_xcy...
+              + S.garr_xvy(:,inds_cropTypesI,:) .* tmp_frac_theseCropsI_xcy./tmp_frac_theseBoth_xcy ;
+            % Delete CrOpis
+            S.garr_xvy(:,inds_cropTypesI,:) = [] ;
+        end
         S.varNames(inds_cropTypesI) = [] ;
     else
         error(['How am I supposed to merge with this structname? (' structname ')']) ;

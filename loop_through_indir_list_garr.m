@@ -13,6 +13,12 @@ landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plumharm_repo_
 baresoil_albedo_file = sprintf('%s/input_data/soilmap.txt', paper02_repo_path) ;
 
 is_baseline_list = false(length(inDir_list),1) ;
+for d = 1:length(inDir_list)
+    if contains(inDir_list{d},'1850-')
+        is_baseline_list(d) = true ;
+    end
+end
+
 
 pftList_noCrops = {'BNE','BINE','BNS','TeNE','TeBS','IBS','TeBE','TrBE','TrIBE',...
             'TrBR','C3G','C4G','PC3G','PC4G',...
@@ -41,12 +47,16 @@ gridlist = lpjgu_matlab_read2geoArray(gridlist_file, ...
 % Import bare-soil albedo
 if do_save.albedo
     baresoil_albedo = lpjgu_matlab_read2geoArray(baresoil_albedo_file, ...
-        'force_mat_save', true, 'verbose',false, ...
+        'force_mat_save', true, 'verbose', false, 'verboseIfNoMat', false, ...
         'target', gridlist, ...
         'lat_orient', 'lower', ...
         'lon_orient', 'left', ...
         'target_lat_orient', 'center', ...
         'target_lon_orient', 'center') ;
+    tmp = baresoil_albedo.garr_xv ;
+    baresoil_albedo = rmfield(baresoil_albedo, 'garr_xv') ;
+    baresoil_albedo.garr_x = tmp ;
+    clear tmp
 end
 
 % Import land area (km2 to m2)
@@ -62,8 +72,8 @@ gcel_area_YX_orig = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 land_area_YX_orig = land_area_YX_orig*1e6 ;
 gcel_area_YX_orig = gcel_area_YX_orig*1e6 ;
 clear tmp gcel_area_YXqd land_frac_YXqd land_area_YXqd
-land_area_x = land_area_YX_orig(gridlist.list2map) ;
-gcel_area_x = gcel_area_YX_orig(gridlist.list2map) ;
+land_area_orig_x = land_area_YX_orig(gridlist.list2map) ;
+gcel_area_orig_x = gcel_area_YX_orig(gridlist.list2map) ;
 clear land_area_YX_orig gcel_area_YX_orig
 
 % Import biomes
@@ -141,8 +151,8 @@ for d = 1:length(inDir_list)
         yearList = 2011:2100 ;
         last30_yearList = 2071:2100 ;
     end
-    land_area_x = land_area_x_orig ;
-    gcel_area_x = gcel_area_x_orig ;
+    land_area_x = land_area_orig_x ;
+    gcel_area_x = gcel_area_orig_x ;
         
     yearList = transpose(yearList) ;
     Nyears = length(yearList) ;
@@ -238,7 +248,7 @@ for d = 1:length(inDir_list)
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     
     yield = lpjgu_matlab_read2geoArray([inDir 'yield.out'],'force_mat_save',true) ;
-    list_to_map = yield.list_to_map ;
+    list2map = yield.list2map ;
     cropTypes = yield.varNames ;
     cropTypes(contains(cropTypes,{'CC3G_ic','CC4G_ic','ExtraCrop'})) = [] ;
     matches = [] ;
@@ -299,7 +309,8 @@ for d = 1:length(inDir_list)
         end
         fprintf('LUfile = %s\n', LUfile)
 
-        LU = lpjgu_matlab_read2geoArray(LUfile,'force_mat_save',true) ;
+        LU = lpjgu_matlab_read2geoArray(LUfile,'force_mat_save',true, ...
+            'target', gridlist) ;
         if contains(LUfile,'LU_xtraCROPtoPAST')
             ignoredCropFracs_file = strrep(strrep(LUfile,...
                 'LU_xtraCROPtoPAST', 'cropfracsIGNORED'),...
@@ -400,7 +411,8 @@ for d = 1:length(inDir_list)
         end
         fprintf('cropfile = %s\n', cropfile)
         
-        cropfracs = lpjgu_matlab_read2geoArray(cropfile,'force_mat_save',true) ;
+        cropfracs = lpjgu_matlab_read2geoArray(cropfile,'force_mat_save',true, ...
+            'target', gridlist) ;
         cropfracs = adjust_cropinput_yearLists(cropfracs, yearList) ;
         cropfracs_orig = cropfracs ;
 
@@ -502,7 +514,8 @@ for d = 1:length(inDir_list)
     %%% Import and save EXPECTED yield (kgDM/m2 --> kgDM) (i.e., actually PRODUCTION) %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if do_save.yield_exp || do_save.yield_exp_map
-        expyield = lpjgu_matlab_read2geoArray(expyieldfile,'force_mat_save',true) ;
+        expyield = lpjgu_matlab_read2geoArray(expyieldfile,'force_mat_save',true, ...
+            'target', gridlist) ;
         if ~isfield(expyield,'garr_xvy')
             warning('This appears to be a constant-LU run. Skipping expected yield.')
         else
@@ -661,7 +674,7 @@ for d = 1:length(inDir_list)
         awater_d9.yearList = awater_d9.yearList(end-9:end) ;
         save(lastdecade_out,'awater_d9',v73_or_append(lastdecade_out)) ;
         clear awater_d9
-        awater_last30.list_to_map = awater.list_to_map ;
+        awater_last30.list2map = awater.list2map ;
         awater_last30.years_incl = last30_yearList ;
         [~,IA] = intersect(awater.yearList, last30_yearList) ;
         if length(IA) ~= length(last30_yearList)
@@ -670,7 +683,7 @@ for d = 1:length(inDir_list)
         awater_last30.varNames = awater.varNames ;
         awater_last30.statHandles = last30_statHandles ;
         awater_last30.statList = last30_statList ;
-        awater_last30.maps_xvs = nan([size(land_area_x) length(awater.varNames) Nstats],'single') ;
+        awater_last30.maps_xvs = nan([length(land_area_x) length(awater.varNames) Nstats],'single') ;
         for s = 1:Nstats
             awater_last30.maps_xvs(:,:,s) = eval(sprintf('%s(awater.garr_xvy(:,:,IA)) ;', last30_statList{s})) ;
         end; clear s
@@ -687,10 +700,10 @@ for d = 1:length(inDir_list)
             elseif anyfileexist([inDir 'mevap.out'])
                 mevap = lpjgu_matlab_read2geoArray([inDir 'mevap.out'],'force_mat_save',true,'target',gridlist) ;
                 monthlengths = [31 28 31 30 31 30 31 31 30 31 30 31] ;
-                aevap.list_to_map = mevap.list_to_map ;
+                aevap.list2map = mevap.list2map ;
                 aevap.varNames = {'Total'} ;
                 aevap.yearList = mevap.yearList ;
-                aevap.garr_xvy = sum(mevap.garr_xvy .* repmat(permute(monthlengths,[3 2 1]),[size(land_area_x) 1 length(yearList)]) / 365, 3) ;
+                aevap.garr_xvy = sum(mevap.garr_xvy .* repmat(permute(monthlengths,[3 2 1]),[length(land_area_x) 1 length(yearList)]) / 365, 3) ;
             else
                 error('???') ;
             end
@@ -814,7 +827,7 @@ for d = 1:length(inDir_list)
         mon_runoff_d9.yearList = mon_runoff_d9.yearList(end-9:end) ;
         save(lastdecade_out,'mon_runoff_d9',v73_or_append(lastdecade_out)) ;
         clear mon_runoff_d9
-        mon_runoff_last30.list_to_map = mon_runoff.list_to_map ;
+        mon_runoff_last30.list2map = mon_runoff.list2map ;
         mon_runoff_last30.years_incl = last30_yearList ;
         [~,IA] = intersect(mon_runoff.yearList, last30_yearList) ;
         if length(IA) ~= length(last30_yearList)
@@ -823,8 +836,8 @@ for d = 1:length(inDir_list)
         mon_runoff_last30.varNames = 'allmonths' ;
         mon_runoff_last30.statList = last30_statList ;
         mon_runoff_last30.statHandles = last30_statHandles ;
-        mon_runoff_last30.maps_xvs = nan([size(land_area_x) 1 Nstats],'single') ;
-        mon_runoff_maps_x1y = reshape(mon_runoff.garr_xvy(:,:,IA), [size(land_area_x) 1 length(mon_runoff_last30.years_incl)*length(mon_runoff.varNames)]) ;
+        mon_runoff_last30.maps_xvs = nan([length(land_area_x) 1 Nstats],'single') ;
+        mon_runoff_maps_x1y = reshape(mon_runoff.garr_xvy(:,:,IA), [length(land_area_x) 1 length(mon_runoff_last30.years_incl)*length(mon_runoff.varNames)]) ;
         for s = 1:Nstats
             mon_runoff_last30.maps_xvs(:,:,s) = eval(sprintf('%s(mon_runoff_maps_x1y) ;', last30_statList{s})) ;
         end; clear s
@@ -891,14 +904,14 @@ for d = 1:length(inDir_list)
         disp('   Getting and saving albedo...') 
         
         [albedo_jan_xy,albedo_jul_xy] = ...
-            get_albedo_garr(fpc, snowdepth, LU, baresoil_albedo_x, pftList) ;
+            get_albedo_garr(fpc, snowdepth, LU, baresoil_albedo.garr_x, pftList) ;
         clear fpc
         
         % Global
 %         weighting_xy = repmat(land_area_x,[1 Nyears]) ;
         weighting_xy = repmat(gcel_area_x,[1 Nyears]) .* (1-squeeze(LU.garr_xvy(:,strcmp(LU.varNames,'BARREN'),:))) ; %land_gcel_fix
-        albedo1_ts = squeeze(nansum(albedo_jan_xy.*(weighting_xy / nansum(weighting_xy(:,1)))), 1) ;
-        albedo7_ts = squeeze(nansum(albedo_jul_xy.*(weighting_xy / nansum(weighting_xy(:,1)))), 1) ;
+        albedo1_ts = squeeze(nansum(albedo_jan_xy.*(weighting_xy / nansum(weighting_xy(:,1))), 1)) ;
+        albedo7_ts = squeeze(nansum(albedo_jul_xy.*(weighting_xy / nansum(weighting_xy(:,1))), 1)) ;
         save(timeseries_out,'albedo1_ts',v73_or_append(timeseries_out)) ;
         save(timeseries_out,'albedo7_ts',v73_or_append(timeseries_out)) ;
         
@@ -909,10 +922,10 @@ for d = 1:length(inDir_list)
         weighting_xy_borfor(~biome_borfor_xy) = NaN ;
         albedo_jan_xy_borfor = albedo_jan_xy ;
         albedo_jan_xy_borfor(~biome_borfor_xy) = NaN ;
-        albedo1_borfor_ts = squeeze(nansum(albedo_jan_xy_borfor.*(weighting_xy_borfor / nansum(weighting_xy_borfor(:,1)))), 1) ;
+        albedo1_borfor_ts = squeeze(nansum(albedo_jan_xy_borfor.*(weighting_xy_borfor / nansum(weighting_xy_borfor(:,1))), 1)) ;
         albedo_jul_xy_borfor = albedo_jul_xy ;
         albedo_jul_xy_borfor(~biome_borfor_xy) = NaN ;
-        albedo7_borfor_ts = squeeze(nansum(albedo_jul_xy_borfor.*(weighting_xy_borfor / nansum(weighting_xy_borfor(:,1)))), 1) ;
+        albedo7_borfor_ts = squeeze(nansum(albedo_jul_xy_borfor.*(weighting_xy_borfor / nansum(weighting_xy_borfor(:,1))), 1)) ;
         save(timeseries_out,'albedo1_borfor_ts',v73_or_append(timeseries_out)) ;
         save(timeseries_out,'albedo7_borfor_ts',v73_or_append(timeseries_out)) ;
         
@@ -923,18 +936,18 @@ for d = 1:length(inDir_list)
         weighting_xy_tundra(~biome_tundra_xy) = NaN ;
         albedo_jan_xy_tundra = albedo_jan_xy ;
         albedo_jan_xy_tundra(~biome_tundra_xy) = NaN ;
-        albedo1_tundra_ts = squeeze(nansum(albedo_jan_xy_tundra.*(weighting_xy_tundra / nansum(weighting_xy_tundra(:,1)))), 1) ;
+        albedo1_tundra_ts = squeeze(nansum(albedo_jan_xy_tundra.*(weighting_xy_tundra / nansum(weighting_xy_tundra(:,1))), 1)) ;
         albedo_jul_xy_tundra = albedo_jul_xy ;
         albedo_jul_xy_tundra(~biome_tundra_xy) = NaN ;
-        albedo7_tundra_ts = squeeze(nansum(albedo_jul_xy_tundra.*(weighting_xy_tundra / nansum(weighting_xy_tundra(:,1)))), 1) ;
+        albedo7_tundra_ts = squeeze(nansum(albedo_jul_xy_tundra.*(weighting_xy_tundra / nansum(weighting_xy_tundra(:,1))), 1)) ;
         save(timeseries_out,'albedo1_tundra_ts',v73_or_append(timeseries_out)) ;
         save(timeseries_out,'albedo7_tundra_ts',v73_or_append(timeseries_out)) ;
         
         clear albedo*_ts albedo_*_xy_* weighting_xy* biome_*_x
         
-        albedo.list_to_map = snowdepth.list_to_map ;
+        albedo.list2map = snowdepth.list2map ;
         albedo.varNames = {'January','July'} ;
-        tmp_xyv = nan([size(baresoil_albedo_x) Nyears 2],'single') ;
+        tmp_xyv = nan([length(baresoil_albedo.garr_x) Nyears 2],'single') ;
         tmp_xyv(:,:,1) = albedo_jan_xy ;
         tmp_xyv(:,:,2) = albedo_jul_xy ;
         
@@ -1042,7 +1055,7 @@ for d = 1:length(inDir_list)
         nflux_d9.yearList = nflux_d9.yearList(end-9:end) ;
         save(lastdecade_out,'nflux_d9',v73_or_append(lastdecade_out))
         clear nflux_d9
-        nflux_last30.list_to_map = nflux.list_to_map ;
+        nflux_last30.list2map = nflux.list2map ;
         nflux_last30.years_incl = last30_yearList ;
         [~,IA] = intersect(nflux.yearList, last30_yearList) ;
         if length(IA) ~= length(last30_yearList)
@@ -1051,7 +1064,7 @@ for d = 1:length(inDir_list)
         nflux_last30.varNames = nflux.varNames ;
         nflux_last30.statList = last30_statList ;
         nflux_last30.statHandles = last30_statHandles ;
-        nflux_last30.maps_xvs = nan([size(land_area_x) length(nflux.varNames) Nstats],'single') ;
+        nflux_last30.maps_xvs = nan([length(land_area_x) length(nflux.varNames) Nstats],'single') ;
         for s = 1:Nstats
             nflux_last30.maps_xvs(:,:,s) = eval(sprintf('%s(nflux.garr_xvy(:,:,IA)) ;', last30_statList{s})) ;
         end; clear s
@@ -1106,7 +1119,8 @@ for d = 1:length(inDir_list)
             end
         end
         fprintf('NfertFile = %s\n', NfertFile)
-        Nfert = lpjgu_matlab_read2geoArray(NfertFile,'force_mat_save',true) ;
+        Nfert = lpjgu_matlab_read2geoArray(NfertFile,'force_mat_save',true, ...
+            'target', gridlist) ;
         Nfert = adjust_cropinput_yearLists(Nfert, yearList) ;
         if isequal(sort(intersect(Nfert.varNames,{'CC3ann','CC3per','CC3nfx','CC4ann','CC4per'})),sort(Nfert.varNames))
             Nfert_orig = Nfert ;

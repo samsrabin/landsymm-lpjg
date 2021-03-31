@@ -75,7 +75,7 @@ addpath(genpath(plumharm_repo_path))
 if strcmp(thisSystem, 'ssr_mac')
     tmp = '/Users/Shared/PLUM/ssp13/' ;
 elseif strcmp(thisSystem, 'ssr_uc2')
-    tmp = '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/'
+    tmp = '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/' ;
 else
     error('thisSystem not recognized: %s', thisSystem)
 end
