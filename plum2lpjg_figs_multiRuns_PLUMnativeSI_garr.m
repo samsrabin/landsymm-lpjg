@@ -37,7 +37,7 @@ years_endh = 2001:2010 ;
 years_endf = 2091:2100 ;
 
        
-%% Setup and import
+%% Setup
 
 % Determine which system you're on and set up.
 thisSystem = get_system_name() ;
@@ -57,7 +57,9 @@ end
 addpath(genpath(paper02_repo_path))
 addpath(genpath(plumharm_repo_path))
 
-% Import
+
+%% Import
+
 tic
 plum2lpjg_figs_setup_import_garr
 toc
