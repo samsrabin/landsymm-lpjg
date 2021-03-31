@@ -826,7 +826,7 @@ for d = 1:length(inDir_list)
         mon_runoff_last30.maps_xvs = nan([size(land_area_x) 1 Nstats],'single') ;
         mon_runoff_maps_x1y = reshape(mon_runoff.garr_xvy(:,:,IA), [size(land_area_x) 1 length(mon_runoff_last30.years_incl)*length(mon_runoff.varNames)]) ;
         for s = 1:Nstats
-            mon_runoff_last30.maps_xvs(x:,:,s) = eval(sprintf('%s(mon_runoff_maps_x1y) ;', last30_statList{s})) ;
+            mon_runoff_last30.maps_xvs(:,:,s) = eval(sprintf('%s(mon_runoff_maps_x1y) ;', last30_statList{s})) ;
         end; clear s
         save(last30_out,'mon_runoff_last30',v73_or_append(last30_out)) ;
         clear mon_runoff_last30
@@ -897,8 +897,8 @@ for d = 1:length(inDir_list)
         % Global
 %         weighting_xy = repmat(land_area_x,[1 Nyears]) ;
         weighting_xy = repmat(gcel_area_x,[1 Nyears]) .* (1-squeeze(LU.garr_xvy(:,strcmp(LU.varNames,'BARREN'),:))) ; %land_gcel_fix
-        albedo1_ts = squeeze(nansum(albedo_jan_xy.*(weighting_xy / nansum(weighting_xy(:,1)))), 1)) ;
-        albedo7_ts = squeeze(nansum(albedo_jul_xy.*(weighting_xy / nansum(weighting_xy(:,1)))), 1)) ;
+        albedo1_ts = squeeze(nansum(albedo_jan_xy.*(weighting_xy / nansum(weighting_xy(:,1)))), 1) ;
+        albedo7_ts = squeeze(nansum(albedo_jul_xy.*(weighting_xy / nansum(weighting_xy(:,1)))), 1) ;
         save(timeseries_out,'albedo1_ts',v73_or_append(timeseries_out)) ;
         save(timeseries_out,'albedo7_ts',v73_or_append(timeseries_out)) ;
         
@@ -909,10 +909,10 @@ for d = 1:length(inDir_list)
         weighting_xy_borfor(~biome_borfor_xy) = NaN ;
         albedo_jan_xy_borfor = albedo_jan_xy ;
         albedo_jan_xy_borfor(~biome_borfor_xy) = NaN ;
-        albedo1_borfor_ts = squeeze(nansum(albedo_jan_xy_borfor.*(weighting_xy_borfor / nansum(weighting_xy_borfor(:,1)))), 1)) ;
+        albedo1_borfor_ts = squeeze(nansum(albedo_jan_xy_borfor.*(weighting_xy_borfor / nansum(weighting_xy_borfor(:,1)))), 1) ;
         albedo_jul_xy_borfor = albedo_jul_xy ;
         albedo_jul_xy_borfor(~biome_borfor_xy) = NaN ;
-        albedo7_borfor_ts = squeeze(nansum(albedo_jul_xy_borfor.*(weighting_xy_borfor / nansum(weighting_xy_borfor(:,1)))), 1)) ;
+        albedo7_borfor_ts = squeeze(nansum(albedo_jul_xy_borfor.*(weighting_xy_borfor / nansum(weighting_xy_borfor(:,1)))), 1) ;
         save(timeseries_out,'albedo1_borfor_ts',v73_or_append(timeseries_out)) ;
         save(timeseries_out,'albedo7_borfor_ts',v73_or_append(timeseries_out)) ;
         
@@ -923,10 +923,10 @@ for d = 1:length(inDir_list)
         weighting_xy_tundra(~biome_tundra_xy) = NaN ;
         albedo_jan_xy_tundra = albedo_jan_xy ;
         albedo_jan_xy_tundra(~biome_tundra_xy) = NaN ;
-        albedo1_tundra_ts = squeeze(nansum(albedo_jan_xy_tundra.*(weighting_xy_tundra / nansum(weighting_xy_tundra(:,1)))), 1)) ;
+        albedo1_tundra_ts = squeeze(nansum(albedo_jan_xy_tundra.*(weighting_xy_tundra / nansum(weighting_xy_tundra(:,1)))), 1) ;
         albedo_jul_xy_tundra = albedo_jul_xy ;
         albedo_jul_xy_tundra(~biome_tundra_xy) = NaN ;
-        albedo7_tundra_ts = squeeze(nansum(albedo_jul_xy_tundra.*(weighting_xy_tundra / nansum(weighting_xy_tundra(:,1)))), 1)) ;
+        albedo7_tundra_ts = squeeze(nansum(albedo_jul_xy_tundra.*(weighting_xy_tundra / nansum(weighting_xy_tundra(:,1)))), 1) ;
         save(timeseries_out,'albedo1_tundra_ts',v73_or_append(timeseries_out)) ;
         save(timeseries_out,'albedo7_tundra_ts',v73_or_append(timeseries_out)) ;
         
