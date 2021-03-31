@@ -20,7 +20,7 @@ R = georasterref('RasterSize', map_size, ...
     'LongitudeLimits', [-180 180]) ;
 gtif_missing = -1e20 ;
 
-% Define function to calculate sem
+% Define function to calculate standard error of the mean (SEM)
 sem_ssr = @(data,yrs) std(data,find(size(data)==length(yrs))) / sqrt(length(yrs)) ;
 
 % Define special characters
@@ -46,8 +46,12 @@ Nyears_fu = length(yearList_future) ;
 
 % Output directory
 if strcmp(thisSystem, 'ssr_mac')
-    outDir_base = addslashifneeded(['~/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/'...
-        'figures_' thisVer '_SI']) ;
+    if strcmp(thisVer, 'ssp13')
+        outDir_base = addslashifneeded(sprintf('%s/figs', topDir)) ;
+    else
+        outDir_base = addslashifneeded(['~/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/'...
+            'figures_' thisVer '_SI']) ;
+    end
 else
     outDir_base = addslashifneeded(sprintf('~/PLUM/outputs/%s/figs', thisVer)) ;
 end
@@ -113,7 +117,7 @@ if include_fao
     || strcmp(thisVer,'v6s1_v20180703') ...
     || strcmp(thisVer,'v10s1_v20180801') ...
     || contains(thisVer,'harm2') ...
-    || contains(thisVer,'harm3')
+    || contains(thisVer,'harm3') ...
     || contains(thisVer,'ssp13')
         fao = load(fao_file) ;
     else
@@ -565,7 +569,10 @@ for r = 1:Nruns
     clear last30yrs_tmp
 
 end ; clear r
-%%
+
+
+%% Process
+
 disp('Processing...')
 nanmask = lpjgu_vector2map(zeros(size(list2map)), map_size, list2map) ;
 nanmask(isnan(nanmask)) = 1 ;
