@@ -52,6 +52,10 @@ gridlist_file = 'PLUMout_gridlist.txt';
 inDir_list = { ...
    '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_1850-2010_remap8c' ;
    '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-1' ;
+   '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-2' ;
+   '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-3' ;
+   '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-4' ;
+   '/home/kit/imk-ifu/lr8247/PLUM/outputs/ssp13/LPJGPLUM_2011-2100_ssp13-5' ;
    } ;
 gridlist_file = 'gridlist_57790.txt' ;
 
