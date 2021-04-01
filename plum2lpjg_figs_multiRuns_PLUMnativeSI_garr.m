@@ -28,7 +28,7 @@ unhCropFrac = 0 ; % Set to zero for previous behavior. v10 = 0.177
 ignored_crops = {'CC3G','CC4G','ExtraCrop'} ;
 
 do_save = false ;
-rebase = false ;
+rebase = false ; %#ok<NASGU>
 pngres = 300 ;
 
 do_caps = -1 ;

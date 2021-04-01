@@ -389,7 +389,16 @@ for r = 1:Nruns
             elseif contains(thisVar_in,'_d9')
                 eval([thisVar_in '.garr_xvyr = nan([size(lastdec_tmp.' thisVar_out '.garr_xvy) Nruns],''single'') ;']) ;
             elseif contains(thisVar_in,'_last30')
-                eval([thisVar_in '.garr_xvsr = nan([size(last30yrs_tmp.' thisVar_out '.garr_xvs) Nruns],''single'') ;']) ;
+                try
+                    eval([thisVar_in '.garr_xvsr = nan([size(last30yrs_tmp.' thisVar_out '.garr_xvs) Nruns],''single'') ;']) ;
+                catch ME
+                    % Handle bugged output fields in one version
+                    if strcmp(ME.message, 'Reference to non-existent field ''garr_xvs''.')
+                        eval([thisVar_in '.garr_xvsr = nan([size(last30yrs_tmp.' thisVar_out '.maps_xvs) Nruns],''single'') ;']) ;
+                    else
+                        rethrow(ME)
+                    end
+                end
             else
                 error('How did this happen?')
             end
@@ -520,7 +529,16 @@ for r = 1:Nruns
                 eval(['[~,~,IB] = intersect(' thisVar_in '.varNames,last30yrs_tmp.' thisVar_out '.varNames,''stable'') ;']) ;
                 eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs(:,IB,:) ;']) ;
             else
-                eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs ;']) ;
+                try
+                    eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs ;']) ;
+                catch ME
+                    % Handle bugged output fields in one version
+                    if strcmp(ME.message, 'Reference to non-existent field ''garr_xvs''.')
+                        eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_xvs ;']) ;
+                    else
+                        rethrow(ME)
+                    end
+                end
             end
             eval(['isequal_statList = isequal(' thisVar_in '.statList, last30yrs_tmp.' thisVar_out '.statList) ; ']) ;
             if ~isequal_statList
@@ -532,7 +550,16 @@ for r = 1:Nruns
                 eval(['[~,~,IB] = intersect(' thisVar_in '.statList,last30yrs_tmp.' thisVar_out '.statList,''stable'') ;']) ;
                 eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs(:,:,IB) ;']) ;
             else
-                eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs ;']) ;
+                try
+                    eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.garr_xvs ;']) ;
+                catch ME
+                    % Handle bugged output fields in one version
+                    if strcmp(ME.message, 'Reference to non-existent field ''garr_xvs''.')
+                        eval([thisVar_in '.garr_xvsr(:,:,:,r) = last30yrs_tmp.' thisVar_out '.maps_xvs ;']) ;
+                    else
+                        rethrow(ME)
+                    end
+                end
             end
         else
             error('How did this happen?')

@@ -321,9 +321,9 @@ for d = 1:length(inDir_list)
                 warning('LUfile has extra crop in pasture, but ignoredCropFracs_file does not exist.')
             end
         end
-        if ~isfield(LU,'yearList') && size(LU.maps_xv,3)==1
+        if ~isfield(LU,'yearList') && size(LU.garr_xv,3)==1
             % One-year LU file
-            LU.garr_xvy = repmat(LU.maps_xv,[1 1 Nyears]) ;
+            LU.garr_xvy = repmat(LU.garr_xv,[1 1 Nyears]) ;
             LU.yearList = yearList ;
             if exist('ignored_LUCROParea_x_y','var')
                 ignored_LUCROParea_x_y = repmat(ignored_LUCROParea_x_y,[1 1 Nyears]) ;
@@ -683,9 +683,9 @@ for d = 1:length(inDir_list)
         awater_last30.varNames = awater.varNames ;
         awater_last30.statHandles = last30_statHandles ;
         awater_last30.statList = last30_statList ;
-        awater_last30.maps_xvs = nan([length(land_area_x) length(awater.varNames) Nstats],'single') ;
+        awater_last30.garr_xvs = nan([length(land_area_x) length(awater.varNames) Nstats],'single') ;
         for s = 1:Nstats
-            awater_last30.maps_xvs(:,:,s) = eval(sprintf('%s(awater.garr_xvy(:,:,IA)) ;', last30_statList{s})) ;
+            awater_last30.garr_xvs(:,:,s) = eval(sprintf('%s(awater.garr_xvy(:,:,IA)) ;', last30_statList{s})) ;
         end; clear s
         save(last30_out,'awater_last30',v73_or_append(last30_out)) ;
         clear awater_last30
@@ -836,10 +836,10 @@ for d = 1:length(inDir_list)
         mon_runoff_last30.varNames = 'allmonths' ;
         mon_runoff_last30.statList = last30_statList ;
         mon_runoff_last30.statHandles = last30_statHandles ;
-        mon_runoff_last30.maps_xvs = nan([length(land_area_x) 1 Nstats],'single') ;
-        mon_runoff_maps_x1y = reshape(mon_runoff.garr_xvy(:,:,IA), [length(land_area_x) 1 length(mon_runoff_last30.years_incl)*length(mon_runoff.varNames)]) ;
+        mon_runoff_last30.garr_xvs = nan([length(land_area_x) 1 Nstats],'single') ;
+        mon_runoff_garr_x1y = reshape(mon_runoff.garr_xvy(:,:,IA), [length(land_area_x) 1 length(mon_runoff_last30.years_incl)*length(mon_runoff.varNames)]) ;
         for s = 1:Nstats
-            mon_runoff_last30.maps_xvs(:,:,s) = eval(sprintf('%s(mon_runoff_maps_x1y) ;', last30_statList{s})) ;
+            mon_runoff_last30.garr_xvs(:,:,s) = eval(sprintf('%s(mon_runoff_garr_x1y) ;', last30_statList{s})) ;
         end; clear s
         save(last30_out,'mon_runoff_last30',v73_or_append(last30_out)) ;
         clear mon_runoff_last30
@@ -1064,9 +1064,9 @@ for d = 1:length(inDir_list)
         nflux_last30.varNames = nflux.varNames ;
         nflux_last30.statList = last30_statList ;
         nflux_last30.statHandles = last30_statHandles ;
-        nflux_last30.maps_xvs = nan([length(land_area_x) length(nflux.varNames) Nstats],'single') ;
+        nflux_last30.garr_xvs = nan([length(land_area_x) length(nflux.varNames) Nstats],'single') ;
         for s = 1:Nstats
-            nflux_last30.maps_xvs(:,:,s) = eval(sprintf('%s(nflux.garr_xvy(:,:,IA)) ;', last30_statList{s})) ;
+            nflux_last30.garr_xvs(:,:,s) = eval(sprintf('%s(nflux.garr_xvy(:,:,IA)) ;', last30_statList{s})) ;
         end; clear s
         save(last30_out,'nflux_last30',v73_or_append(last30_out)) ;
         clear nflux_last30
