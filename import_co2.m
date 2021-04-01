@@ -5,16 +5,28 @@
 
 disp('Importing CO2...')
 
+insfile = 'main_plum_lpjg.ins' ;
+
 % Baseline
+thisInsfile = sprintf('%s/%s', ...
+    baselineDir, insfile) ;
+if ~exist(thisInsfile, 'file')
+    insfile = 'main.ins' ;
+    thisInsfile = sprintf('%s/%s', ...
+        baselineDir, insfile) ;
+    if ~exist(thisInsfile, 'file')
+        error('What ins-file should I look for file_co2 in?')
+    end
+end
 [status, result] = unix(sprintf( ...
-    'grep -he "^param \\"file_co2" %s/main_plum_lpjg.ins', ...
-    baselineDir)) ;
+    'grep -he "^param \\"file_co2" %s', ...
+    thisInsfile)) ;
 if status~=0
     error('Error in unix() call')
 end
 tmp = strsplit(result,'"') ;
 co2file = tmp{4} ;
-co2file = strrep(co2file,'/home/fh1-project-lpjgpi/lr8247','/Users/Shared/lpj-guess') ;
+co2file = get_local_co2file(co2file) ;
 if ~exist(co2file, 'file')
     error('co2file (%s) not found!', co2file)
 end
@@ -36,13 +48,18 @@ clear thisTable_bl
 ts_co2_yr = nan(Nyears_fu, Nruns) ;
 for r = 1:Nruns
     thisDir = runDirs{r} ;
-    [status, result] = unix(sprintf('grep -he "^param \\"file_co2" %s/main_plum_lpjg.ins', thisDir)) ;
+    thisInsfile = sprintf('%s/%s', ...
+        thisDir, insfile) ;
+    if ~exist(thisInsfile, 'file')
+        error('What ins-file should I look for file_co2 in?')
+    end
+    [status, result] = unix(sprintf('grep -he "^param \\"file_co2" %s', thisInsfile)) ;
     if status~=0
         error('Error in unix() call')
     end
     tmp = strsplit(result,'"') ;
     co2file = tmp{4} ;
-    co2file = strrep(co2file,'/home/fh1-project-lpjgpi/lr8247','/Users/Shared/lpj-guess') ;
+    co2file = get_local_co2file(co2file) ;
     if ~exist(co2file, 'file')
         error('co2file (%s) not found!', co2file)
     end
@@ -65,10 +82,21 @@ for r = 1:Nruns
 end; clear r
 
 
+function co2file = get_local_co2file(co2file)
+
+co2file = strrep(co2file,'/home/fh1-project-lpjgpi/lr8247','/Users/Shared/lpj-guess') ;
+co2file = strrep(co2file,'/home/kit/imk-ifu/lr8247/input/lpj-guess','/Users/Shared/lpj-guess/input') ;
+
+end
+
+
 function table_out = read_and_process_table(co2file)
 
-table_in = readtable(co2file, 'Delimiter', ' ') ;
+table_in = readtable(co2file, 'Delimiter', ' ', ...
+        'ConsecutiveDelimitersRule', 'join', ...
+        'LeadingDelimitersRule', 'ignore') ;
 array_in = table2array(table_in) ;
+
 array_out = array_in ;
 
 if any(any(isnan(array_in)))
