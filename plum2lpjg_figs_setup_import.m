@@ -1241,7 +1241,7 @@ for i = 1:length(tmp_name)
         continue
     end
     thisSuffix = strrep(tmp_name{i},['ts_cropprod_' thisCrop '_'],'') ;
-    kcal_per_g = get_kcalDensity2(thisCrop) ;
+    kcal_per_g = get_kcalDensity(thisCrop) ;
     kcal_per_kg = 1e3 * kcal_per_g ;
     eval(['ts_kcal_' thisSuffix ' = ts_kcal_' thisSuffix ' + kcal_per_kg * eval(tmp_name{i}) ;']) ;
 end ; clear i
@@ -1261,7 +1261,7 @@ if ~isempty(tmp)
         if ~strcmp(thisSuffix,'yr')
             error('~strcmp(thisSuffix,''yr'') ???')
         end
-        kcal_per_g = get_kcalDensity2(thisCrop) ;
+        kcal_per_g = get_kcalDensity(thisCrop) ;
         kcal_per_kg = 1e3 * kcal_per_g ;
         eval(['ts_kcalExp2_' thisSuffix ' = ts_kcalExp2_' thisSuffix ' + kcal_per_kg * (' tmp_name{i} '.* ts_croparea_' thisCrop '_yr) ;']) ;
     end ; clear i
@@ -1474,7 +1474,7 @@ ts_commodDemand_yvr = ts_commodDemand_yvr * 1e6*1e3 ;
 ts_commodDemand_kcal_yvr = nan(Nyears_PLUMout, Ncommods, Nruns) ;
 for ii = 1:length(i_crop)
     thisCrop = commods{i_crop(ii)} ;
-    kcal_per_g = get_kcalDensity2(thisCrop) ;
+    kcal_per_g = get_kcalDensity(thisCrop) ;
     kcal_per_kg = 1e3 * kcal_per_g ;
     ts_commodDemand_kcal_yvr(:,ii,:) = kcal_per_kg*ts_commodDemand_yvr(:,ii,:) ;
 end
