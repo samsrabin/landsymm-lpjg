@@ -475,6 +475,9 @@ for d = 1:length(inDir_list)
                 for c = 1:length(cropTypes)
                     thisCrop = cropTypes{c} ;
                     thisCalibFactor = unique(calibFactors(strcmp(cropTypes_conv,thisCrop))) ;
+                    if isempty(thisCalibFactor)
+                        error('No calibration factor found for %s.', thisCrop)
+                    end
                     eval(['cropprod_ts_' thisCrop ' = thisCalibFactor*getTS(yield,thisCrop,cropareas.garr_xvy(:,strcmp(cropareas.varNames,thisCrop),:)) ;']) ;
                     save(timeseries_out,['cropprod_ts_' thisCrop],v73_or_append(timeseries_out)) ;
                     if exist('LU0','var')
