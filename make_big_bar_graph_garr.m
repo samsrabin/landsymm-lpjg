@@ -6,11 +6,12 @@ end
 
 if any(any(strcmp(rowInfo,'temp'))) && ~exist('ts_temp_yr','var') ...
 || any(any(strcmp(rowInfo,'prec'))) && ~exist('ts_prec_yr','var')
-    if strcmp(thisVer,'harm3')
+    if any(strcmp({'harm3', 'ssp13'}, thisVer))
         warning('Reading LPJ-GUESS output temps instead of actual CMIP5 data')
         import_lpjgOut_temp_precip
     elseif any(any(strcmp(rowInfo,'prec')))
-        error('Make script for precip equivalent to import_temperature.m')
+        error('Make script for precip equivalent to import_temperature.m (or set %s to read LPJ-GUESS output temps instead of actual CMIP5 data)', ...
+            thisVer)
     else
         import_temperature
     end
