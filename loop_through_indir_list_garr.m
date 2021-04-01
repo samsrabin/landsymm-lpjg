@@ -119,6 +119,9 @@ for s = 1:Nstats
     last30_statHandles{s} = eval(last30_statList{s}) ;
 end; clear s
 
+if do_save.yield_exp || do_save.yield_exp_map
+    warning('do_save.yield_exp and do_save.yield_exp_map have not been tested with _garr version of this script.')
+end
 
 %% Do loop
 
