@@ -96,12 +96,18 @@ for c = 1:Nvars
             'ts_commodDemandTMP_Fir = ts_commod%s_yvr(ok_years,i,:) ;', ...
             thisDemand)) ;
         if length(unique(ts_commodDemandTMP_1ir)) > 1
-            error('This code assumes all runs have identical 2010 demand!')
-        end
-        try
+            diffPct = 100 * (max(ts_commodDemandTMP_1ir) - min(ts_commodDemandTMP_1ir)) ...
+                / min(ts_commodDemandTMP_1ir) ;
+            tolerancePct = 0.1 ;
+            if diffPct >= tolerancePct
+                error('2010 demand for %s differs among runs by %0.2g%% (tolerance %0.2g%%)', ...
+                    thisCommod, diffPct, tolerancePct)
+            end
+            warning('2010 demand for %s differs among runs by %0.2g%%; using mean as baseline', ...
+                thisCommod, diffPct) ;
+            mean_endh_v(c) = thisConv*mean(ts_commodDemandTMP_1ir,3) ;
+        else
             mean_endh_v(c) = thisConv*ts_commodDemandTMP_1ir(:,:,1) ;
-        catch ME
-            keyboard
         end
         
         clear ts_commodDemandTMP_1ir
@@ -285,7 +291,7 @@ else
 end
 
 
-%% Add error bars
+%% Add error bars and/or data labels
 % https://www.mathworks.com/matlabcentral/answers/102220-how-do-i-place-errorbars-on-my-grouped-bar-graph-using-function-errorbar-in-matlab
 
 % Finding the number of groups and the number of bars in each group
@@ -357,8 +363,10 @@ for i = 1:nbars
         ht = text(thisX, thisY, thisText) ;
         if strcmp(orientation,'v')
             ht.Rotation = 90 ;
-        else
+        elseif ngroups*nbars<=40
             ht.FontSize = 10 ;
+        else
+            ht.FontSize = 8 ;
         end
         if strcmp(orientation,'v')
             error('Write realignment code for vertical orientation')
@@ -389,10 +397,15 @@ if ~isempty(where2sep)
         sepwidth = groupwidth * 0.2 ;
         for i = 1:length(where2sep)
             plot(xlims,where2sep(i)*ones(size(xlims)), '--k')
-            ht = text(0, where2sep(i), sep_labels{i}) ;
+            ht = text(xlims(1), where2sep(i), sep_labels{i}) ;
+            if ngroups*nbars<=40
+                sep_label_fontSize = 12 ;
+            else
+                sep_label_fontSize = 12 ;
+            end
             set(ht, ...
                 'HorizontalAlignment', 'center', ...
-                'FontSize', 12, ...
+                'FontSize', sep_label_fontSize, ...
                 'FontWeight', 'bold', ...
                 'FontAngle', 'italic', ...
                 'BackgroundColor', 'w')
@@ -455,6 +468,7 @@ xlims = get(gca,'XLim') ;
 hf = gcf ;
 hf.Units = 'pixels' ;
 ha = gca ;
+axis_position_norm = ha.Position ;
 ha.Units = 'pixels' ;
 for x = 1:length(h_barLabels)
     thisH = h_barLabels{x} ;
@@ -487,6 +501,8 @@ for x = 1:length(h_barLabels)
         thisH.Position = newPosition ;
     end
 end
+ha.Units = 'normalized' ;
+ha.Position = axis_position_norm ;
 
 % Nudge legend into a good position
 nudge = [0 -0.05 0 0] ;

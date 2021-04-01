@@ -188,9 +188,7 @@ sd_or_sem = '' ;
 % errbar_color = 'k' ;
 errbar_color = 0.5*ones(3,1) ;
 fontSize = 14 ;
-% figure_position = [1    33   846   772] ;
-% figure_position = [1    33   720   772] ;
-figure_position = [2041    -539   720   972] ;
+figure_position = [2041 -539 720 972] ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 r = groot ;
@@ -247,7 +245,13 @@ run('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/make_big_bar_gra
 
 ht = title(sprintf('Change in land use and drivers, %d-%d to %d-%d', ...
     min(years_endh), max(years_endh), min(years_endf), max(years_endf))) ;
-ht.Position = [100.0003 0.3 0] ;
+ht.Units = 'normalized' ;
+ht.Position = [0.5 1.0083 0] ;
+
+colororder_orig = colororder ;
+if Nruns == 5
+    colororder(gcf,colororder_orig([1 5 2:4 6:end],:))
+end
 
 %%%%%%%%%%%%
 %%% Save %%%
@@ -307,10 +311,13 @@ rowInfo = { ...
 
 run('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/make_big_bar_graph_garr.m') ;
 
-
 title(sprintf('Change in ecosystem service indicators, %d-%d to %d-%d', ...
     min(years_endh), max(years_endh), min(years_endf), max(years_endf)))
 
+colororder_orig = colororder ;
+if Nruns == 5
+    colororder(gcf,colororder_orig([1 5 2:4 6:end],:))
+end
 
 %%%%%%%%%%%%
 %%% Save %%%
