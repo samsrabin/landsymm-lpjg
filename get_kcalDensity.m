@@ -23,7 +23,9 @@ switch thisCrop
     case 'starchyroots';  kcal_per_g = mean([0.70/0.24 1.09/0.35]) ; % Sugar beet, cassava
     case {'cc3g','cc4g'}; kcal_per_g = 0 ;
     otherwise
-        error(['thisCrop (' thisCrop_orig ') not recognized for calorie density!']) ;
+        msg = sprintf('thisCrop (%s) not recognized for calorie density!', ...
+            thisCrop_orig) ;
+        error('get_kcalDensity:cropNotFound', msg) ; %#ok<SPERR>
 end
 
 end

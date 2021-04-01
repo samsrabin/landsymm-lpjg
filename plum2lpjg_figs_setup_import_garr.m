@@ -811,7 +811,18 @@ for i = 1:length(tmp_name)
         continue
     end
     thisSuffix = strrep(tmp_name{i},['ts_cropprod_' thisCrop '_'],'') ;
-    kcal_per_g = get_kcalDensity(thisCrop) ;
+    try 
+        kcal_per_g = get_kcalDensity(thisCrop) ;
+    catch ME
+        if strcmp(ME.identifier, 'get_kcalDensity:cropNotFound')
+            warning('%s Will fail if you try to do anything with ts_kcal variables.', ...
+                ME.message) %#ok<MEXCEP>
+            clear ts_kcal*
+            break
+        else
+            rethrow(ME)
+        end
+    end
     kcal_per_kg = 1e3 * kcal_per_g ;
     eval(['ts_kcal_' thisSuffix ' = ts_kcal_' thisSuffix ' + kcal_per_kg * eval(tmp_name{i}) ;']) ;
 end ; clear i
@@ -1015,6 +1026,15 @@ warning('off','MATLAB:table:ModifiedAndSavedVarnames')
 for r = 1:Nruns
     thisDir = runDirs_plum{r} ;
     thisFile = sprintf('%s/demand.txt', thisDir) ;
+    if ~exist(thisFile, 'file')
+        thisFile_orig = thisFile ;
+        thisFile = strrep(thisFile, '.harm.forLPJG', '') ;
+        if ~exist(thisFile, 'file')
+            error('demand.txt not found at either %s or %s', ...
+                thisFile_orig, thisFile)
+        end
+        clear thisFile_orig
+    end
     thisTable = readtable(thisFile) ;
     [~,~,sortCols] = intersect({'Commodity','Year'},thisTable.Properties.VariableNames, 'stable') ;
     thisTable = sortrows(thisTable,sortCols) ; % Needed to produce _yvr dimensioned array
@@ -1047,11 +1067,24 @@ ts_commodDemand_yvr = ts_commodDemand_yvr * 1e6*1e3 ;
 ts_commodDemand_kcal_yvr = nan(Nyears_PLUMout, Ncommods, Nruns) ;
 for ii = 1:length(i_crop)
     thisCrop = commods{i_crop(ii)} ;
-    kcal_per_g = get_kcalDensity(thisCrop) ;
+    try 
+        kcal_per_g = get_kcalDensity(thisCrop) ;
+    catch ME
+        if strcmp(ME.identifier, 'get_kcalDensity:cropNotFound')
+            warning('%s Will fail if you try to do anything with ts_commodDemand_kcal_yvr.', ...
+                ME.message) %#ok<MEXCEP>
+            clear ts_commodDemand_kcal_yvr
+            break
+        else
+            rethrow(ME)
+        end
+    end
     kcal_per_kg = 1e3 * kcal_per_g ;
     ts_commodDemand_kcal_yvr(:,ii,:) = kcal_per_kg*ts_commodDemand_yvr(:,ii,:) ;
 end
-ts_commodDemand_kcal_yvr(:,strcmp(commods,'crops'),:) = nansum(ts_commodDemand_kcal_yvr,2) ;
+if exist('ts_commodDemand_kcal_yvr', 'var')
+    ts_commodDemand_kcal_yvr(:,strcmp(commods,'crops'),:) = nansum(ts_commodDemand_kcal_yvr,2) ;
+end
 
 % Get per-capita demand (kg/person)
 if ~isequal(shiftdim(yearList_pop), shiftdim(yearList_PLUMout))
