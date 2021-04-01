@@ -119,6 +119,9 @@ for s = 1:Nstats
     last30_statHandles{s} = eval(last30_statList{s}) ;
 end; clear s
 
+if do_save.yield_exp || do_save.yield_exp_map
+    warning('do_save.yield_exp and do_save.yield_exp_map have not been tested with _garr version of this script.')
+end
 
 %% Do loop
 
@@ -475,6 +478,9 @@ for d = 1:length(inDir_list)
                 for c = 1:length(cropTypes)
                     thisCrop = cropTypes{c} ;
                     thisCalibFactor = unique(calibFactors(strcmp(cropTypes_conv,thisCrop))) ;
+                    if isempty(thisCalibFactor)
+                        error('No calibration factor found for %s.', thisCrop)
+                    end
                     eval(['cropprod_ts_' thisCrop ' = thisCalibFactor*getTS(yield,thisCrop,cropareas.garr_xvy(:,strcmp(cropareas.varNames,thisCrop),:)) ;']) ;
                     save(timeseries_out,['cropprod_ts_' thisCrop],v73_or_append(timeseries_out)) ;
                     if exist('LU0','var')
@@ -494,7 +500,7 @@ for d = 1:length(inDir_list)
             if ~isequal(shiftdim(cropTypes_conv(IB)),shiftdim(yield_d1.varNames))
                 error('You screwed up an intersect(): ~isequal(shiftdim(cropTypes_conv(IB)),shiftdim(yield_d1.varNames))')
             end
-            calibFactors_xvy = repmat(permute(calibFactors(IB),[3 2 1]),...
+            calibFactors_xvy = repmat(permute(calibFactors(IB),[2 1]),...
                 [size(yield_d1.garr_xvy,1) 1 10]) ;
             yield_d1.garr_xvy = yield_d1.garr_xvy(:,:,Npad+(1:10)).*calibFactors_xvy ;
             yield_d1.yearList = yield_d1.yearList(1:10) ;
