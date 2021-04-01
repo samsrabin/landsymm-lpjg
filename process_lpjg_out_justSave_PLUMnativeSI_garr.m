@@ -21,20 +21,20 @@
 % do_save.fpc             = false ;
 
 %%% All FALSE except selected
-do_save.LU              = true ;
-do_save.crops           = true ;
-do_save.yield           = false ;
-do_save.yield_exp       = false ;
-do_save.yield_map       = false ;
-do_save.yield_exp_map   = false ;
-do_save.irrig           = true ;
-do_save.water           = true ;
-do_save.carbon          = true ;
-do_save.mrunoff         = true ;
-do_save.albedo          = true ;
-do_save.bvocs           = true ;
-do_save.Nflux           = true ;
-do_save.Nfert           = true ;
+do_save.LU              = false ;
+do_save.crops           = false ;
+do_save.yield           = true ;
+do_save.yield_exp       = true ;
+do_save.yield_map       = true ;
+do_save.yield_exp_map   = true ;
+do_save.irrig           = false ;
+do_save.water           = false ;
+do_save.carbon          = false ;
+do_save.mrunoff         = false ;
+do_save.albedo          = false ;
+do_save.bvocs           = false ;
+do_save.Nflux           = false ;
+do_save.Nfert           = false ;
 do_save.fpc             = false ;
 
 % Determine which system you're on and set up.
@@ -89,9 +89,7 @@ inDir_list = { ...
    } ;
 inDir_list = strcat(tmp, inDir_list) ;
 gridlist_file = 'gridlist_57790.txt' ;
-% Uses this calibration because that's what Roslyn used. Note that this
-% means you won't get per-crop yield outputs for Sugar and FruitVeg!
-calib_name = 'remap5e_v18' ;
+calib_name = 'remap8b_v20.exclOutliers_10iqr' ;
 
 % Finish up
 calib_file = sprintf('%s/%s.csv', paper02_repo_path, calib_name) ;
