@@ -11,6 +11,7 @@ out_names = {'20180105b', '20180206', '20180210', '20180212', ...
     'WithFruitVeg_sepSugar', ...
     'WithFruitVeg_sepSugar_sepOil', ...
     'WithFruitVeg_sepSugar_sepOil_sepC3', ...
+    'ggcmi5', ...
     'jianyong01', 'jianyong01b', ...
     'ani01', '20200928'} ;
 if ~any(strcmp(out_names,in_version))
@@ -304,6 +305,25 @@ list_cropsCombined_out_ALL{strcmp(out_names,thisOne)} = list_cropsCombined_out ;
 clear in2out_keyCombined_frac
 out_ignores{strcmp(out_names,thisOne)} = ...
     {'Cotton';'Cocoa';'Coffee';'FodderGrasses'} ;
+
+% ggcmi5
+thisOne = 'ggcmi5' ;
+list_cropsCombined_out = ...
+    {'CerealsC3s', 'CerealsC3w', 'CerealsC4', 'Rice', 'Oilcrops'} ;
+getOci = @(x) find(strcmp(list_cropsCombined_out,x)) ;
+in2out_keyCombined_frac{getOci('CerealsC3w')}   = {'Wheat'} ;
+in2out_keyCombined_frac{getOci('CerealsC3s')}   = {'Wheat'} ;
+in2out_keyCombined_frac{getOci('CerealsC4')}    = {'Maize'} ;
+in2out_keyCombined_frac{getOci('Rice')}         = {'Rice'} ;
+in2out_keyCombined_frac{getOci('Oilcrops')}     = {'Soybeans'} ;
+out_keys{strcmp(out_names,thisOne)} = in2out_keyCombined_frac ;
+list_cropsCombined_out_ALL{strcmp(out_names,thisOne)} = list_cropsCombined_out ;
+clear in2out_keyCombined_frac
+out_ignores{strcmp(out_names,thisOne)} = ...
+    {'Barley';'Rye';'Millet';'Sorghum';'GroundnutsPeanuts';'Sunflower';
+    'RapeseedCanola';'Oilpalm';'Pulses';'Potatoes';'Cassava';'Datepalm';
+    'Citrus';'GrapesVine';'OtherAnnuals';'OtherPerennials';'Sugarbeet';
+    'Sugarcane';'Cotton';'Cocoa';'Coffee';'FodderGrasses'} ;
 
 % Jianyong v01
 thisOne = 'jianyong01' ;

@@ -2,7 +2,10 @@
 %%% Convert LU file to just CPB %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_in = '/Volumes/Reacher/G2P/inputs/LU/remaps_v11_g2p/LU.remapv11_g2p.txt' ;
+remapVer = '11_g2p' ;
+
+file_in = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/LU.remapv%s.txt', ...
+    remapVer, remapVer) ;
 
 
 %% Import

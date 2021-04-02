@@ -2,8 +2,10 @@
 %%% Make version with some of all crops %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-inDir = '/Volumes/Reacher/G2P/inputs/LU/remaps_v11_g2p' ;
+inDir = '/Volumes/Reacher/G2P/inputs/LU/remaps_v12_g2p' ;
 remove_miscanthus = true ;
+notSomeOfAllIrrig = true ;
+firstSomeOfAllYear = 1995 ;
 
 
 %% Setup
@@ -28,8 +30,11 @@ if ~exist(inFile_cf, 'file')
 end
 
 % Get output files
-outFile_lu = strrep(inFile_lu, '.txt', '.someOfEachCrop.txt') ;
-outFile_cf = strrep(inFile_cf, '.txt', '.someOfEachCrop.txt') ;
+outFile_lu = get_outFile(inFile_lu, firstSomeOfAllYear) ;
+outFile_cf = get_outFile(inFile_cf, firstSomeOfAllYear) ;
+if notSomeOfAllIrrig
+    outFile_cf = strrep(outFile_cf, 'EachCrop', 'EachRainfedCrop') ;
+end
 
 outPrec = 6 ;
 outWidth = 1 ;
@@ -79,17 +84,30 @@ disp('Done importing.')
 
 %% Convert
 
+lu_hasyears = any(strcmp(lu_in.Properties.VariableNames,'Year')) ;
+cf_hasyears = any(strcmp(cf_in.Properties.VariableNames,'Year')) ;
 if ~isequal(lu_in.Lon,cf_in.Lon) || ~isequal(lu_in.Lat,cf_in.Lat)
     lonlat_lu = unique([lu_in.Lon lu_in.Lat], 'rows', 'stable') ;
     lonlat_cf = unique([cf_in.Lon cf_in.Lat], 'rows', 'stable') ;
-    lu_years_cf_not = any(strcmp(lu_in.Properties.VariableNames,'Year')) ...
-        && ~any(strcmp(cf_in.Properties.VariableNames,'Year')) ...
+    lu_hasyears_cf_not = lu_hasyears && ~cf_hasyears ...
         &&  isequal(lonlat_lu, lonlat_cf) ;
-    if lu_years_cf_not
+    if lu_hasyears_cf_not
         warning('lu_in has years but cf_in doesn''t. Shouldn''t be a problem.')
     else
         error('This code assumes equal gridlists for lu_in and cf_in!')
     end
+end
+
+% Get Years column(s)
+if lu_hasyears
+    incl_years_lu = lu_in.Year >= firstSomeOfAllYear ;
+else
+    incl_years_lu = true(size(lu_in.Lon)) ;
+end
+if cf_hasyears
+    incl_years_cf = cf_in.Year >= firstSomeOfAllYear ;
+else
+    incl_years_cf = true(size(cf_in.Lon)) ;
 end
 
 lu_out = table2array(lu_in) ;
@@ -102,12 +120,12 @@ if mincropfrac>0
     
     % Set up
     iCrop = find(strcmp(lu_in_header(4:end),'CROPLAND')) ;
-    lu_tmp = lu_out(:,4:end) ;
+    lu_tmp = lu_out(incl_years_lu,4:end) ;
     lu_tmp = round(lu_tmp,outPrec) ;
     [~,IA] = setdiff(cf_in_header,{'Lon','Lat','Year'},'stable') ;
     list_crops = cf_in_header(IA) ;
     Ncrops = length(IA) ;
-    cf_tmp = cf_out(:,IA) ;
+    cf_tmp = cf_out(incl_years_cf,IA) ;
     if any(sum(cf_tmp,2)==0)
         error('This code assumes that no cell has sum(cropfracs)==0')
     end
@@ -136,7 +154,7 @@ if mincropfrac>0
             no_cropland = lu_tmp(:,iCrop)==0 ;
         end
     end
-    lu_out(:,4:end) = lu_tmp ;
+    lu_out(incl_years_lu,4:end) = lu_tmp ;
     clear lu_tmp
     
     % NOW JUST USING "EVERYWHERE ELSE" ALGORITHM HERE TO ALLOW FOR WHEN LU
@@ -149,10 +167,12 @@ if mincropfrac>0
     
     % Some of each type: Everywhere else
     for c = 1:Ncrops
+        thisCrop_name = list_crops{c} ;
+        isIrr = strcmp(thisCrop_name(end), 'i') ;
         % Find rows with 0 for this crop
         thiscrop = cf_tmp(:,c) ;
         iszerothiscrop = thiscrop<mincropfrac ;
-        if any(iszerothiscrop)
+        if any(iszerothiscrop) && (~isIrr || ~notSomeOfAllIrrig)
             % Find the crop that currently has the greatest area
             maxcropfrac_Xv = repmat(max(cf_tmp,[],2),[1 Ncrops]) ;
             ismaxcropfrac_Xv = cf_tmp==maxcropfrac_Xv ;
@@ -167,15 +187,25 @@ if mincropfrac>0
             cf_tmp(iszerothiscrop,c) = cf_tmp(iszerothiscrop,c) + mincropfrac ;
             moved_tmp = mincropfrac*lu_out(iszerothiscrop,iCrop).*landArea_x_allYrs(iszerothiscrop) ;
             moved_area_cf(iszerothiscrop) = moved_area_cf(iszerothiscrop) + moved_tmp ;
-            warning('Stealing some for %s (%0.1e km2)',list_crops{c},sum(moved_tmp)); pause(0.1)
+            warning('Stealing some for %s (%0.1e km2)',thisCrop_name,sum(moved_tmp)); pause(0.1)
         end
     end
     
     % Save
-    cf_out(:,IA) = cf_tmp ;
+    cf_out(incl_years_cf,IA) = cf_tmp ;
     clear cf_tmp
     
 end
+
+% Fake a temporal split if needed
+if ~lu_hasyears
+    [lu_out, lu_in_header] = fake_yearsplit(lu_in, lu_out, lu_in_header, firstSomeOfAllYear) ;
+end
+if ~cf_hasyears
+    [cf_out, cf_in_header] = fake_yearsplit(cf_in, cf_out, cf_in_header, firstSomeOfAllYear) ;
+end
+
+
 disp('Done')
 
 
@@ -199,3 +229,39 @@ lpjgu_matlab_saveTable(cf_in_header, cf_out, outFile_cf,...
     'delimiter', delimiter, ...
     'overwrite', overwrite, ...
     'fancy', fancy) ;
+
+
+%% FUNCTIONS
+
+function outFile = get_outFile(inFile, firstSomeOfAllYear)
+
+outFile = strrep(inFile, '.txt', '.someOfEachCrop.txt') ;
+
+if firstSomeOfAllYear > -Inf
+    outFile = strrep(inFile, '.txt', ...
+        sprintf('.someOfEachCrop.from%d.txt', firstSomeOfAllYear)) ;
+end
+
+end
+
+
+function A = add_yearcol(A, fillyear)
+
+A = cat(2, A, nan(size(A(:,1)))) ;
+A(:,4:end) = A(:,3:end-1) ;
+A(:,3) = fillyear ;
+
+end
+
+
+function [A_out, header_cell] = fake_yearsplit(T_in, A_out, header_cell, firstSomeOfAllYear)
+
+A_in = add_yearcol(table2array(T_in), firstSomeOfAllYear-1) ;
+A_out = add_yearcol(A_out, firstSomeOfAllYear) ;
+A_out = cat(1, A_in, A_out) ;
+header_cell = [header_cell(1:2) {'Year'} header_cell(3:end)] ;
+
+end
+
+
+
