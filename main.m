@@ -77,15 +77,22 @@
 % filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.txt' ;
 % calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 
-% 2021-02-18
-% Use Oilcrops as a proxy for FruitVeg and Sugar
-version_name = 'remap8b_oilProxy' ;
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5e.1901-2005/output-2019-02-18-122738/yield.out.gz' ;
-filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5d.PLUM6xtra.1901-2005/output-2019-02-07-042215/yield.out.gz' ;
-filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.txt' ;
-filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.txt' ;
+% % 2021-02-18
+% % Use Oilcrops as a proxy for FruitVeg and Sugar
+% version_name = 'remap8b_oilProxy' ;
+% % filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5e.1901-2005/output-2019-02-18-122738/yield.out.gz' ;
+% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5d.PLUM6xtra.1901-2005/output-2019-02-07-042215/yield.out.gz' ;
+% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.txt' ;
+% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.txt' ;
+% calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
+% oilcrops_proxy_fruitveg_sugar = true ;
+
+% 2021-03-31
+version_name = 'remap8c' ;   % calib_ver = 20
+filename_guess_yield = '/Users/Shared/PLUM/ssp13/calib.remap8c.1901-2005/output-2021-03-26-215749/yield.out.gz' ;
+filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8c/LU.remapv8c.txt' ;
+filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8c/cropfracs.remapv8c.txt' ;
 calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
-oilcrops_proxy_fruitveg_sugar = true ;
 
 
 %% Other options and setup
