@@ -505,9 +505,9 @@ ha.Units = 'normalized' ;
 ha.Position = axis_position_norm ;
 
 % Nudge legend into a good position
-nudge = [0 -0.05 0 0] ;
-[does_overlap, hlegend] = test_for_overlap(hf) ;
 ylims = get(gca,'YLim') ;
+nudge = [0 -(groupwidth+sepwidth*1.5)/(ylims(2)-ylims(1)) 0 0] ;
+[does_overlap, hlegend] = test_for_overlap(hf) ;
 while does_overlap
     if hlegend.Position(2) + nudge(2) > ylims(1)
         hlegend.Position = hlegend.Position + nudge ;
