@@ -5,7 +5,7 @@
 
 all_figs = false ;
 
-% thisVer = 'harm3' ;
+thisVer = 'harm3' ;
 % thisVer = 'harm3_constLU' ;
 % thisVer = 'harm3_constClim' ;
 % thisVer = 'harm3_constCO2' ;
@@ -17,7 +17,7 @@ all_figs = false ;
 % thisVer = 'harm3_S4R6.0_attr' ;
 % thisVer = 'harm3_S5R8.5_attr' ;
 
-thisVer = 'ssp13' ;
+% thisVer = 'ssp13' ;
 
 do_adjYieldTech = true ; % Apply annual tech. change increase to yields?
 
@@ -1231,6 +1231,66 @@ if do_save
     close
 end
 clear diff_crop_YXr diff_past_YXr
+
+
+%% Map %CELL changes in agricultural area: End-historical to End-Future
+
+% Options %%%%%%%%%
+fontSize = 14 ;
+% spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
+spacing = 0.025 ;
+textX = 0.115 ;
+textY_1 = 50/360 ;
+textY_2 = 20/360 ;
+% shiftup = 0 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
+shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
+thisPos = [1    33   770   772] ;
+% thisPos = [1    33   500   772] ;
+nx = 1 ;
+ny = 4 ;
+as_frac_land = true ;
+bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
+conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
+this_colormap_name = '-PiYG_ssr' ;
+lines_overlay = 'landareas.shp' ;
+% lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
+%%%%%%%%%%%%%%%%%%%
+
+thisY1 = yearList_baseline(end) ;
+thisYN = yearList_future(end) ;
+col_titles = { ...
+    sprintf('%s agricultural area, %d%s%d','\Delta',thisY1,char(8211),thisYN) ...
+    } ;
+
+area_agri_bl = sum(agri_area_xBH)*conv_fact_total ;
+total_agriDiff_r = sum(agri_diff_xrH, 1)*conv_fact_total ;
+
+% Get difference (%)
+agri_diff_YXrH = nan([map_size Nruns]) ;
+for r = 1:Nruns
+    agri_diff_YXrH(:,:,r) = lpjgu_vector2map(100*agri_diff_xrH(:,r)./gcel_area_x, map_size, list2map) ;
+end
+
+units_map = '% of gridcell' ;
+units_total = 'Mkm^2' ;
+
+if ~as_frac_land
+    error('This only works with as_frac_land TRUE')
+end
+make_LUdiff_fig_v5(...
+    area_agri_bl, [], total_agriDiff_r, [], ...
+    agri_diff_YXrH, [], ...
+    thisY1, thisYN, runList, ...
+    spacing, fontSize, textX, textY_1, textY_2, ...
+    nx, ny, ...
+    Nruns, thisPos, units_map, units_total, do_caps, ...
+    bins_lowBnds, this_colormap_name, col_titles, lines_overlay) ;
+if do_save
+    filename = [outDir_maps 'areaPctDiff_' num2str(thisY1) '-' num2str(thisYN) '_LU_agri.png'] ; %#ok<UNRCH>
+    export_fig(filename,['-r' num2str(pngres)])
+    close
+end
+
 
 
 %% Map changes in each crop area: End-Historical to End-Future

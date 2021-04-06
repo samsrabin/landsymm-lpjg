@@ -8,6 +8,9 @@ function [diff_lu1_YXr, diff_lu2_YXr] = make_LUdiff_fig_v5(...
     do_caps, bins_lowBnds, this_colormap_name, col_titles, ...
     lines_overlay)
 
+has2lu = ~isempty(area_lu2_bl_r) ;
+Nbins = length(bins_lowBnds) ;
+
 figure('Color','w','Position',thisPos) ;
 gcas_lu1 = {} ;
 gcas_lu2 = {} ;
@@ -19,14 +22,27 @@ else
     new_caxis = [1 Nbins+1] ;
 end
 for r = 1:Nruns
-    runName = runList{r} ;
-    i1 = (r-1)*2 + 1 ;
-    i2 = i1 + 1 ;
+    runName = runList{r}
+    
+    if has2lu
+        i1 = (r-1)*2 + 1 ;
+        i2 = i1 + 1 ;
+        diff_lu2_YXr_tmp = diff_lu2_YXr(:,:,r) ;
+        area_lu2_bl_r_tmp = area_lu2_bl_r(min(r, length(area_lu2_bl_r))) ;
+        total_lu2Diff_r_tmp = total_lu2Diff_r(r) ;
+    else
+        i1 = r
+        i2 = [] ;
+        diff_lu2_YXr_tmp = [] ;
+        area_lu2_bl_r_tmp = [] ;
+        total_lu2Diff_r_tmp = [] ;
+    end
+    
     [hc, hp] = actually_make_fig(...
-        diff_lu1_YXr(:,:,r), diff_lu2_YXr(:,:,r), ...
+        diff_lu1_YXr(:,:,r), diff_lu2_YXr_tmp, ...
         area_lu1_bl_r(min(r, length(area_lu1_bl_r))), ...
-        area_lu2_bl_r(min(r, length(area_lu2_bl_r))), ...
-        total_lu1Diff_r(r), total_lu2Diff_r(r), ...
+        area_lu2_bl_r_tmp, ...
+        total_lu1Diff_r(r), total_lu2Diff_r_tmp, ...
         y1, yN, runName, ...
         spacing, fontSize, textX, textY_1, textY_2, ...
         nx, ny, i1, i2, ...
@@ -34,20 +50,34 @@ for r = 1:Nruns
         do_caps, this_colormap_name, bins_lowBnds, col_titles, ...
         lines_overlay, new_caxis) ;
     gcas_lu1 = [gcas_lu1 hc] ;
-    gcas_lu2 = [gcas_lu2 hp] ;
+    if has2lu
+        gcas_lu2 = [gcas_lu2 hp] ;
+    end
 end
-Xshift = 0.05 ;
-for r = 1:Nruns
-    hc = gcas_lu1(r) ;
-    hp = gcas_lu2(r) ;
-    hc.Position(1) = hc.Position(1) + Xshift ;
-    Yshift = 0.04*(r-3) ;
-    hc.Position(2) = hc.Position(2) + Yshift ;
-    hp.Position(2) = hp.Position(2) + Yshift ;
+if has2lu
+    Xshift = 0.05 ;
+else
+    Xshift = 0 ;
 end
 
+% for r = 1:Nruns
+%     hc = gcas_lu1(r) ;
+%     hc.Position(1) = hc.Position(1) + Xshift ;
+%     Yshift = 0.04*(r-3) ;
+%     hc.Position(2) = hc.Position(2) + Yshift ;
+%     if has2lu
+%         hp = gcas_lu2(r) ;
+%         hp.Position(2) = hp.Position(2) + Yshift ;
+%     end
+% end
+
 hcb = add_big_colorbar(gcas_lu1(Nruns), fontSize, units_map, bins_lowBnds) ;
-hcb.Position(1) = 0.5 - hcb.Position(3)/2 ;
+if has2lu
+    hcb.Position(1) = 0.5 - hcb.Position(3)/2 ;
+else
+    hcb.Position(3) = 0.51 ;
+    keyboard
+end
 
 end
 
@@ -76,6 +106,8 @@ function [hc, hp, ht] = actually_make_fig(...
     do_caps, this_colormap_name, bins_lowBnds, col_titles, ...
     lines_overlay, new_caxis)
 
+has2lu = ~isempty(i2) ;
+
 if ny == 4
     shiftup_base = 0.01 ;
 elseif ny == 2
@@ -86,9 +118,16 @@ else
 end
 
 % Set up for single colorbar and overarching title for each column
-shiftup = shiftup_base*(i2/2 - 1) ;
-if i1 > 2
-    shiftup = shiftup * 2 ;
+if has2lu
+    shiftup = shiftup_base*(i2/2 - 1) ;
+    if i1 > 2
+        shiftup = shiftup * 2 ;
+    end
+else
+    shiftup = shiftup_base*(i1 - 1) ;
+    if i1 > 1
+        shiftup = shiftup * 3 ;
+    end
 end
 colTitle_yPos = 1.07 ;
 colTitle_fontSize = fontSize + 4 ;
@@ -116,25 +155,29 @@ if i1==1
 end
 
 % lu2
-subplot_tight(ny,nx,i2,spacing) ;
-if i1 > 1
-    set(gca,'Position', get(gca,'Position') + [0 shiftup 0 0])
-end
-is_lu1 = false ;
-plot_map(diff_lu2_YX, bins_lowBnds, this_colormap_name, ...
-    is_lu1, i1+1, runName, fontSize, ...
-    area_lu2_bl, total_lu2Diff, units_total, ...
-    textX, textY_1, textY_2, ...
-    do_caps, lines_overlay, new_caxis) ;
-hp = gca ;
+if has2lu
+    subplot_tight(ny,nx,i2,spacing) ;
+    if i1 > 1
+        set(gca,'Position', get(gca,'Position') + [0 shiftup 0 0])
+    end
+    is_lu1 = false ;
+    plot_map(diff_lu2_YX, bins_lowBnds, this_colormap_name, ...
+        is_lu1, i1+1, runName, fontSize, ...
+        area_lu2_bl, total_lu2Diff, units_total, ...
+        textX, textY_1, textY_2, ...
+        do_caps, lines_overlay, new_caxis) ;
+    hp = gca ;
 
-% Add lu2 column title
-if i1==1
-    htmp = text(0, 0, col_titles{2}, ...
-        'FontSize', colTitle_fontSize, 'FontWeight', 'bold', ...
-        'HorizontalAlignment', 'center') ;
-    htmp.Units = 'normalized' ;
-    htmp.Position = [0.5 colTitle_yPos 0] ;
+    % Add lu2 column title
+    if i1==1
+        htmp = text(0, 0, col_titles{2}, ...
+            'FontSize', colTitle_fontSize, 'FontWeight', 'bold', ...
+            'HorizontalAlignment', 'center') ;
+        htmp.Units = 'normalized' ;
+        htmp.Position = [0.5 colTitle_yPos 0] ;
+    end
+else
+    hp = [] ;
 end
 
 pause(0.1)
@@ -186,13 +229,13 @@ text(textX,textY_3,thisLabel, ...
 end
 
 
-function [hcb, hyl] = add_big_colorbar(h, fontSize, units_map, bins_lowBnds)
+function hcb = add_big_colorbar(h, fontSize, units_map, bins_lowBnds)
 
 thisPos = get(h,'Position') ;
 hcb = colorbar(h,'Location','SouthOutside') ;
 set(h,'Position',thisPos)
 hcb.Position(2) = 0.075 ;
-hyl = ylabel(hcb, sprintf('(%s)',units_map)) ;
+xlabel(hcb, units_map) ;
 hcb.FontSize = fontSize ;
 
 % Mess with ticks
@@ -210,11 +253,6 @@ if ~isempty(bins_lowBnds)
         end
     end
 end
-
-% Move units label
-hyl.Units = 'normalized' ;
-hyl.Position(1) = 1.09 ;
-hyl.Position(2) = -0.5 ;
 
 
 end
