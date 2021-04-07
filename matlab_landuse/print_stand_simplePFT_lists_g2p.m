@@ -44,6 +44,9 @@ Nn = length(Nlist) ;
 out_file = sprintf('%s/crop_n_stlist.simplePFT.remap%s.ins', out_dir, remapVer) ;
 fid = fopen(out_file, 'w') ;
 
+out_file_noForPotYield = sprintf('%s/crop_n_stlist.simplePFT.noForPotYield.remap%s.ins', out_dir, remapVer) ;
+fid_noForPotYield = fopen(out_file_noForPotYield, 'w') ;
+
 for c = 1:Ncrops
     thisCrop = cropList{c} ;
     for ii = 1:Nirr
@@ -53,6 +56,17 @@ for c = 1:Ncrops
             continue
         end 
         thisCropIrr = [thisCrop thisIrr] ;
+        
+        % Generate stand file text WITHOUT isforpotyield crops
+        fprintf(fid_noForPotYield, 'st "%s" (\n', thisCropIrr) ;
+        fprintf(fid_noForPotYield, '\tcrop_stand\n\tstinclude 1\n') ;
+        fprintf(fid_noForPotYield, '\tpft "%s"\n', thisCrop) ;
+        if isIrr
+            fprintf(fid_noForPotYield, '\thydrology "irrigated_sat"') ;
+            fprintf(fid_noForPotYield, '\n') ;
+        end
+        fprintf(fid_noForPotYield, ')\n\n') ;
+        
         for n = 0:Nn
             if n > 0
                 if strcmp(thisCrop, 'ExtraCrop')
@@ -83,6 +97,7 @@ for c = 1:Ncrops
 end
 
 fclose(fid) ;
+fclose(fid_noForPotYield) ;
 
 
 %% Construct CFT type list
