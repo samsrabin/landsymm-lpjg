@@ -93,11 +93,8 @@ for c = 1:Ncrops
         tmp_YX = transpose(ncread(thisFile, '2nd fert appl')) ;
         fertDate2_x = tmp_YX(gridlist.list2map) ;
         clear tmp_YX
-        
-        % Some values are .5 instead of .0. Round up.
-        fertDate2_x = ceil(fertDate2_x) ;
     end
-    
+        
     % Source tracking
     if contains(thisCrop_ph1, 'wheat')
         source_sdate_xc(:,c) = 2 ;
@@ -151,10 +148,30 @@ for c = 1:Ncrops
         error('NaN remain in fertDate2_x')
     end
     
+    % Handle non-integers
+    sdate_x = handle_non_integers(sdate_x) ;
+    hdate_x = handle_non_integers(hdate_x) ;
+    gslen_x = handle_non_integers(gslen_x) ;
+    fertDate2_x = handle_non_integers(fertDate2_x) ;
+    
     % Convert dates to zero-based, for LPJ-GUESS
     sdate_x = sdate_x - 1 ;
     hdate_x = hdate_x - 1 ;
     fertDate2_x = fertDate2_x - 1 ;
+    
+    % Check for negatives
+    if any(sdate_x < 0)
+        error('Negative in sdate_x')
+    end
+    if any(hdate_x < 0)
+        error('Negative in hdate_x')
+    end
+    if any(gslen_x < 0)
+        error('Negative in gslen_x')
+    end
+    if strcmp(thisCrop_ph1, 'winter_wheat') && any(fertDate2_x(fertDate2_x~=-100) < 0)
+        error('Negative in fertDate2_x')
+    end
     
     % Save to main arrays
     sdate_xc(:,c) = sdate_x ;
@@ -177,6 +194,34 @@ if any(any(isnan(gslen_xc)))
 end
 if any(any(isnan(fertDate2_xc)))
     error('NaN in fertDate2_xc')
+end
+
+% Make sure no non-integer(s) remain
+if any(any(sdate_xc ~= round(sdate_xc)))
+    error('Non-integer(s) remain in sdate_xc')
+end
+if any(any(hdate_xc ~= round(hdate_xc)))
+    error('Non-integer(s) remain in hdate_xc')
+end
+if any(any(gslen_xc ~= round(gslen_xc)))
+    error('Non-integer(s) remain in gslen_xc')
+end
+if any(any(fertDate2_xc ~= round(fertDate2_xc)))
+    error('Non-integer(s) remain in fertDate2_xc')
+end
+
+% Make sure no negatives exist
+if any(any(sdate_xc < 0))
+    error('Negative(s) in sdate_xc')
+end
+if any(any(hdate_xc < 0))
+    error('Negative(s) in hdate_xc')
+end
+if any(any(gslen_xc < 0))
+    error('Negative(s) in gslen_xc')
+end
+if any(fertDate2_xc(fertDate2_xc~=-100) < 0)
+    error('Negative(s) in fertDate2_xc (other than no-data -100)')
 end
 
 disp('Done.')
@@ -301,6 +346,22 @@ end
 
 
 %% FUNCTIONS
+
+function data_x = handle_non_integers(data_x)
+%%% From https://ebi-forecast.igb.illinois.edu/ggcmi/projects/ggcmi/wiki/Phase_2_known_issues
+% there are some non-integer values in growing seasons and 2nd fertilizer
+% date. If your processing does not handle this automatically, just use the
+% floor() function that truncates any decimal digits. #334 
+% As there are cases where the date is 0.5, floor() does not work, so you 
+% either need to check for that in the processing or you need to use ceil()
+% but also check for values >365. (#336)
+%
+% I've decided to floor(), then add 1 to any zero values.
+
+data_x = floor(data_x) ;
+data_x(data_x ==0) = 1 ;
+
+end
 
 function out_x = gapfill_with_phase3( ...
     thisCrop, whichVar, in_x, ...
