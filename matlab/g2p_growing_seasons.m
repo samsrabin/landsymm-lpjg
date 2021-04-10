@@ -86,6 +86,8 @@ for c = 1:Ncrops
     gslen_x = import_phase12(thisCrop_ph1, 'gslen', ...
         inDir_phase1, inDir_phase2, gridlist) ;
     
+    gslen_sanity_check(sdate_x, hdate_x, gslen_x)
+    
     % Import 2nd fertilization dates (winter wheat only)
     if strcmp(thisCrop_ph1, 'winter_wheat')
         thisFile = sprintf('%s/wwh_rf_2nd_fertilizer_days_disseminate_v2.nc4', ...
@@ -113,21 +115,25 @@ for c = 1:Ncrops
     clear source_x
     
     % Gap-fill with phase 3, if needed
-    if any(any(isnan(sdate_x), 3), 1)
+    gapfill_these_x = isnan(sdate_x + hdate_x + gslen_x) ;
+    if any(gapfill_these_x)
+        % Unify NaN mask
+        sdate_x(gapfill_these_x) = NaN ;
+        hdate_x(gapfill_these_x) = NaN ;
+        gslen_x(gapfill_these_x) = NaN ;
+        % Gapfill
         sdate_x = gapfill_with_phase3( ...
             thisCrop_ph1, 'sdate', sdate_x, ...
             inDir_phase3, gridlist) ;
-    end
-    if any(any(isnan(hdate_x), 3), 1)
         hdate_x = gapfill_with_phase3( ...
             thisCrop_ph1, 'hdate', hdate_x, ...
             inDir_phase3, gridlist) ;
-    end
-    if any(any(isnan(gslen_x), 3), 1)
         gslen_x = gapfill_with_phase3( ...
             thisCrop_ph1, 'gslen', gslen_x, ...
             inDir_phase3, gridlist) ;
     end
+    
+    gslen_sanity_check(sdate_x, hdate_x, gslen_x)
     
     % 2nd fert, all spring-planted crops: 40 days after sowing
     if ~strcmp(thisCrop_ph1, 'winter_wheat')
@@ -153,7 +159,7 @@ for c = 1:Ncrops
     hdate_x = handle_non_integers(hdate_x) ;
     gslen_x = handle_non_integers(gslen_x) ;
     fertDate2_x = handle_non_integers(fertDate2_x) ;
-    
+        
     % Convert dates to zero-based, for LPJ-GUESS
     sdate_x = sdate_x - 1 ;
     hdate_x = hdate_x - 1 ;
@@ -304,7 +310,7 @@ cropList_in = unique(cropList_as_gsType) ;
 Ncrops_in = length(cropList_in) ;
 
 varList = {'sdate', 'hdate', 'gslen'} ;
-for v = 1%:length(varList)
+for v = 1:length(varList)
     thisVar = varList{v} ;
     eval(['source_xc = source_' thisVar '_xc ;']) ;
     
@@ -346,6 +352,20 @@ end
 
 
 %% FUNCTIONS
+
+function gslen_sanity_check(sdate_x, hdate_x, gslen_x)
+
+tmp = hdate_x ;
+tmp(hdate_x < sdate_x) = tmp(hdate_x < sdate_x) + 365 ;
+gslen_from_shdates_x = tmp - sdate_x ;
+
+diff_x = abs(gslen_from_shdates_x - gslen_x) ;
+isbad = abs(diff_x) > 0 ;
+if any(isbad)
+    error('Inconsistency in growing season length read from file vs. that calculated from sowing and harvest dates')
+end
+
+end
 
 function data_x = handle_non_integers(data_x)
 %%% From https://ebi-forecast.igb.illinois.edu/ggcmi/projects/ggcmi/wiki/Phase_2_known_issues
