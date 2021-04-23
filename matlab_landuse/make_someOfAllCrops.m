@@ -2,7 +2,7 @@
 %%% Make version with some of all crops %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-inDir = '/Volumes/Reacher/G2P/inputs/LU/remaps_v12_g2p' ;
+inDir = '/Volumes/Reacher/G2P/inputs/LU/remaps_v13_g2p' ;
 remove_miscanthus = true ;
 notSomeOfAllIrrig = true ;
 firstSomeOfAllYear = 1995 ;

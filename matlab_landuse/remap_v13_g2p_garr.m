@@ -2,26 +2,20 @@
 %%% Re-map area/fert data to PLUM crops, and generate extra LU file %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%% Sam Rabin, 2021-03-23
-% Derived from script remap_v11_g2p_garr.m.
-% Simplifies to 5 GGCMI crops:
-%    LANDSYMM       MIRCA
-%    CerealsC3s     Wheat
-%    CerealsC3w     Wheat
-%    CerealsC4      Maize
-%    Rice           Rice
-%    Oilcrops       Soybeans
+%%%%% Sam Rabin, 2021-04-23
+% See previous notes for remap_v12_g2p_garr, with the following changes:
+% - No longer includes Oilcrops (not needed when using pre-BNF code)
 
 PLUMsetAside_frac = 0.103 ;
 inpaint_method = 4 ;
 yearList_out = 1850:2015 ;
 
 % Version for crop mappings
-thisVer = 'ggcmi5' ;
+thisVer = 'ggcmi5_preBNF' ;
 
 force_all_rainfed = false ;
 
-remapVer = '12_g2p' ;
+remapVer = '13_g2p' ;
 out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/', remapVer) ;
 
 % Output LU files will contain any cell appearing in all gridlists; output

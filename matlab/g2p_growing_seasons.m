@@ -5,7 +5,8 @@
 % Uses rainfed seasons only, in accordance with Phase 2 protocol.
 
 % remapVer = '11_g2p' ; thisVer = 'WithFruitVeg_sepSugar_sepOil_sepC3' ;
-remapVer = '12_g2p' ; thisVer = 'ggcmi5' ;
+% remapVer = '12_g2p' ; thisVer = 'ggcmi5' ;
+remapVer = '13_g2p' ; thisVer = 'ggcmi5_preBNF' ;
 
 
 %% Setup
