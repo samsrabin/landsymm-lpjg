@@ -26,12 +26,6 @@ end
 
 script_adjust_countries
 
-% %% DIVIDE YIELDS BY 2
-% 
-% yield_lpj.maps_YXvy = yield_lpj.maps_YXvy / 2 ;
-% yield_lpj_comb.maps_YXvy = yield_lpj_comb.maps_YXvy / 2 ;
-% total_lpj_YXcy_comb = total_lpj_YXcy_comb / 2 ;
-
 
 %% Read FAO data
 
