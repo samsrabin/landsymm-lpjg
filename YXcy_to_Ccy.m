@@ -54,18 +54,18 @@ for c = 1:Ncountries
         % Total production
         tmp_x = total_in_YXcy(repmat(inThisCountry,[1 1 Ncrops Nyears])) ;
         tmp_xvy = reshape(tmp_x,[N_inThisCountry Ncrops Nyears]) ;
-        total_out_Ccy(c,:,:) = sum(tmp_xvy,1) ;
+        total_out_Ccy(c,:,:) = nansum(tmp_xvy,1) ;
         clear tmp*
         
         % Crop area
         if do_croparea
             tmp_x = croparea_in_YXcy(repmat(inThisCountry,[1 1 Ncrops Nyears])) ;
             tmp_xvy = reshape(tmp_x,[N_inThisCountry Ncrops Nyears]) ;
-            croparea_out_Ccy(c,:,:) = sum(tmp_xvy,1) ;
+            croparea_out_Ccy(c,:,:) = nansum(tmp_xvy,1) ;
             if removed_area_dueto_NaNsim
                 tmpR_x = cropareaR_in_YXcy(repmat(inThisCountry,[1 1 Ncrops Nyears])) ;
                 tmpR_xvy = reshape(tmpR_x,[N_inThisCountry Ncrops Nyears]) ;
-                cropareaR_out_Ccy(c,:,:) = sum(tmpR_xvy,1) ;
+                cropareaR_out_Ccy(c,:,:) = nansum(tmpR_xvy,1) ;
             end
             clear tmp*
         end
