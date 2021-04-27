@@ -4,8 +4,9 @@
 
 inDir = '/Volumes/Reacher/G2P/inputs/LU/remaps_v13_g2p' ;
 remove_miscanthus = true ;
-notSomeOfAllIrrig = true ;
-firstSomeOfAllYear = 1995 ;
+notSomeOfAllIrrig = false ;
+firstSomeOfAllYear = -Inf ;
+% firstSomeOfAllYear = 1995 ;
 
 
 %% Setup
