@@ -189,10 +189,6 @@ if size(yield_lpj_Ccy,3) ~= size(yield_fa2_Ccy,3)
         total_fa2_4cal_Ccy = total_fa2_Ccy ;
     end
 else
-    % Restrict years
-    yI_lpj = ones(size(croparea_lpj_Ccy,3)) ;
-    yI_fao = ones(size(croparea_lpj_Ccy,3)) ;
-    % Extract data for these years
     yield_lpj_4cal_Ccy = yield_lpj_Ccy ;
     yield_fa2_4cal_Ccy = yield_fa2_Ccy ;
     croparea_lpj_4cal_Ccy = croparea_lpj_Ccy ;
@@ -200,6 +196,37 @@ else
     total_fa2_4cal_Ccy = total_fa2_Ccy ;
     total_lpj_4cal_Ccy = total_lpj_Ccy ;
 end
+
+% Make sure LPJ-GUESS isn't missing a big chunk of area in any crop
+tmp_croparea_lpj_4cal_Cc = max(croparea_lpj_4cal_Ccy, [], 3) ;
+tmp_croparea_fa2_4cal_Cc = nanmean(croparea_fa2_4cal_Ccy, 3) ;
+halt = false ;
+for c = 1:length(yield_lpj_comb.varNames)
+    thisCrop = yield_lpj_comb.varNames{c} ;
+    lpj_missing_area_C = ...
+        (isnan(tmp_croparea_lpj_4cal_Cc(:,c)) ...
+        | 0 == tmp_croparea_lpj_4cal_Cc(:,c)) ...
+        & 0 < tmp_croparea_fa2_4cal_Cc(:,c) ;
+    pctMissing = 100*sum(tmp_croparea_fa2_4cal_Cc(lpj_missing_area_C,c)) ...
+        / nansum(tmp_croparea_fa2_4cal_Cc(:,c)) ;
+    fprintf('%s: LPJ-GUESS missing %d countries (%0.1f%% of global FAO area)\n', ...
+        thisCrop, length(find(lpj_missing_area_C)), pctMissing) ;
+    if pctMissing > 5
+        halt = true ;
+    end
+end; clear c
+clear tmp_croparea_*_Cc
+if halt
+    fprintf('Global crop area maps: %g km2\n', ...
+        nansum(croparea_lpj_YXcy_comb2(:)))
+    fprintf('Global crop area _Ccy: %g km2\n', ...
+        nansum(croparea_lpj_Ccy(:)))
+    fprintf('Global crop area _Ccy: %g km2 (incl. removed)\n', ...
+        nansum(croparea_lpj_Ccy(:)) ...
+        + nansum(cropareaRemoved_lpj_Ccy(:)))
+    error('Stopping because LPJ-GUESS is missing an unexpectedly large fraction of area for one or more crops')
+end
+clear halt
 
 % Convert to form for regression
 if calib_ver==11 || calib_ver==21
