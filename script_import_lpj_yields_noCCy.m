@@ -31,7 +31,7 @@ elseif calib_ver == 20 || calib_ver == 23
             listCrops_lpj_comb = ...
                 {'CerealsC3','CerealsC4','Rice','OilNfix','OilOther',...
                 'StarchyRoots','Pulses','Sugarbeet','Sugarcane','FruitAndVeg'} ;
-        case {'11_g2p'}
+        case {'11_g2p', '13_g2p'}
             listCrops_lpj_comb = ...
                 {'CerealsC3s','CerealsC3w','CerealsC4','Rice','OilNfix','OilOther',...
                 'StarchyRoots','Pulses','Sugarbeet','Sugarcane','FruitAndVeg'} ;
@@ -55,8 +55,8 @@ end
 
 % Import land uses
 disp('Importing land uses and crop fractions...')
-cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
 landuse_lpj = lpjgu_matlab_readTable_then2map(filename_guess_landuse,'force_mat_save',true) ;
+cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_mat_save',true) ;
 
 % Import yield
 disp('Importing simulated yield...')
@@ -89,12 +89,13 @@ if exist('filename_guess_yield', 'var')
     else
         yield_lpj.maps_YXv = yield_lpj.maps_YXv * 1e4 * 1e-3 ;
     end
-    
+        
     % Use Oilcrops as proxy for FruitAndVeg and Sugar, if needed
+    yieldCrops = get_cropsCombined(yield_lpj.varNames) ;
+    missingCrops = setdiff(listCrops_lpj_comb, yieldCrops) ;
     if oilcrops_proxy_fruitveg_sugar
         % Make sure we can handle this setup
-        yieldCrops = get_cropsCombined(yield_lpj.varNames) ;
-        if ~isequal({'FruitAndVeg', 'Sugar'}, setdiff(listCrops_lpj_comb, yieldCrops))
+        if ~isequal({'FruitAndVeg', 'Sugar'}, missingCrops)
             error('yield_lpj is missing more crops than can be handled by oilcrops_proxy_fruitveg_sugar')
         end
         % Do it
@@ -106,6 +107,60 @@ if exist('filename_guess_yield', 'var')
             yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcropsi'),:), ...
             yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcropsi'),:)) ;
         yield_lpj.varNames = [yield_lpj.varNames {'FruitAndVeg', 'Sugar', 'FruitAndVegi', 'Sugari'}] ;
+    
+    % Use TeSW and TeCo as proxy for everything, if needed
+    elseif exist('remapVer', 'var') && strcmp(remapVer, '13_g2p')
+        Nmissing = length(missingCrops) ;
+        % Get substitutes
+        theseSubs = cell(Nmissing, 1) ;
+        [~, IB] = intersect(missingCrops, ...
+            {'FruitAndVeg', 'OilNfix', 'OilOther', 'Pulses', 'StarchyRoots', 'Sugarbeet'}) ;
+        theseSubs(IB) = {'CerealsC3s'} ;
+        [~, IB] = intersect(missingCrops, ...
+            {'Sugarcane'}) ;
+        theseSubs(IB) = {'CerealsC4'} ;
+        if any(cellfun(@isempty, theseSubs))
+            error('Some unknown substitute(s)')
+        end
+        % Add new crop names
+        yield_lpj.varNames = [yield_lpj.varNames ...
+            missingCrops strcat(missingCrops, 'i')] ;
+        % Substitute...
+        addSize = size(yield_lpj.maps_YXvy) ;
+        addSize(3) = Nmissing ;
+        toAdd_YXvy = nan(addSize) ;
+        clear addSize
+        % ...rainfed
+        toSub = strcmp(theseSubs, 'CerealsC3s') ;
+        print_missing(toSub, missingCrops, 'CerealsC3s')
+        toAdd_YXvy(:,:,toSub,:) = ...
+            repmat(yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'CerealsC3s'),:), ...
+            [1 1 length(find(toSub)) 1]) ;
+        toSub = strcmp(theseSubs, 'CerealsC4') ;
+        print_missing(toSub, missingCrops, 'CerealsC4')
+        toAdd_YXvy(:,:,toSub,:) = ...
+            repmat(yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'CerealsC4'),:), ...
+            [1 1 length(find(toSub)) 1]) ;
+        yield_lpj.maps_YXvy = cat(3, yield_lpj.maps_YXvy, toAdd_YXvy) ;
+        % ...irrigated
+        toSub = strcmp(theseSubs, 'CerealsC3s') ;
+        toAdd_YXvy(:,:,toSub,:) = ...
+            repmat(yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'CerealsC3si'),:), ...
+            [1 1 length(find(toSub)) 1]) ;
+        toSub = strcmp(theseSubs, 'CerealsC4') ;
+        toAdd_YXvy(:,:,toSub,:) = ...
+            repmat(yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'CerealsC4i'),:), ...
+            [1 1 length(find(toSub)) 1]) ;
+        % ...finish
+        yield_lpj.maps_YXvy = cat(3, yield_lpj.maps_YXvy, toAdd_YXvy) ;
+        clear toAdd_YXvy
+    end
+    
+    % Make sure no crops are still missing
+    yieldCrops = get_cropsCombined(yield_lpj.varNames) ;
+    missingCrops = setdiff(listCrops_lpj_comb, yieldCrops) ;
+    if ~isempty(missingCrops)
+        error('Crop(s) missing from yield output!')
     end
     
     % Get maximum of spring/winter CerealsC3, if needed
@@ -208,7 +263,7 @@ end
 % Oilcrops
 supercrop = 'Oilcrops' ;
 combine_oilcrops = any(contains(listCrops_lpj_comb, ...
-    {supercrop, 'OilNfix', 'OilOther'})) ...
+    {'OilNfix', 'OilOther'})) ...
     && length(intersect(listCrops_fa2o_tmp, ...
     {'OilNfix', 'OilOther'})) < 2 ;
 if combine_oilcrops
@@ -233,7 +288,7 @@ if is_ggcmi
     
     % yield
     if strcmp(model_name, 'LPJ-GUESS-sim')
-        yield_lpj.maps_YXvy = mean(yield_lpj.maps_YXvy,4) ;
+        yield_lpj.maps_YXvy = nanmean(yield_lpj.maps_YXvy,4) ;
     else
         if isfield(yield_lpj,'yearList') || isfield(yield_lpj,'maps_YXvy')
             error('GGCMI yields have years??')
@@ -393,6 +448,41 @@ if ~is_ggcmi && (strcmp(version_name,'stijn_20180119') || contains(version_name,
     end
 end
 
+% Remove Miscanthus area
+if ~any(strcmp(listCrops_lpj_comb, 'Miscanthus'))
+    if any(contains(cropfrac_lpj.varNames, 'Miscanthus'))
+        if isfield(yield_lpj, 'maps_YXv')
+            if any(any(cropfrac_lpj.maps_YXv(:,:,contains(cropfrac_lpj.varNames, 'Miscanthus')) > 1e-6))
+                error('Large amounts of Miscanthus being removed (max %g)', ...
+                    max(max(cropfrac_lpj.maps_YXv(:,:,contains(cropfrac_lpj.varNames, 'Miscanthus'))))) ;
+            end
+            cropfrac_lpj.maps_YXv(:,:,contains(cropfrac_lpj.varNames, 'Miscanthus')) = [] ;
+        end
+        if isfield(yield_lpj, 'maps_YXvy')
+            if any(any(any(cropfrac_lpj.maps_YXvy(:,:,contains(cropfrac_lpj.varNames, 'Miscanthus'),:) > 1e-6)))
+                error('Large amounts of Miscanthus being removed (max %g)', ...
+                    max(max(max(cropfrac_lpj.maps_YXvy(:,:,contains(cropfrac_lpj.varNames, 'Miscanthus'),:))))) ;
+            end
+            cropfrac_lpj.maps_YXvy(:,:,contains(cropfrac_lpj.varNames, 'Miscanthus'),:) = [] ;
+        end
+        cropfrac_lpj.varNames(contains(cropfrac_lpj.varNames, 'Miscanthus')) = [] ;
+    end
+    if any(contains(yield_lpj.varNames, 'Miscanthus'))
+        if isfield(yield_lpj, 'maps_YXv')
+            yield_lpj.maps_YXv(:,:,contains(yield_lpj.varNames, 'Miscanthus')) = [] ;
+        end
+        if isfield(yield_lpj, 'maps_YXvy')
+            yield_lpj.maps_YXvy(:,:,contains(yield_lpj.varNames, 'Miscanthus'),:) = [] ;
+        end
+        yield_lpj.varNames(contains(yield_lpj.varNames, 'Miscanthus')) = [] ;
+    end
+end
+
+% Make sure cropfrac_lpj and yield_lpj contain the same variables
+if ~isequal(sort(cropfrac_lpj.varNames), sort(yield_lpj.varNames))
+    error('Crops differ between cropfrac_lpj and yield_lpj')
+end
+
 % Rearrange cropfrac_lpj so that variables are in the same order as
 % yield_lpj variables
 if ~isequal(sort(listCrops_lpj_comb), get_cropsCombined(yield_lpj.varNames))
@@ -422,14 +512,6 @@ else
         cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,new_order,:) ;
     end
 end
-%%
-
-% % % %%%%%%%
-% % % % landuse_lpj_orig = landuse_lpj ;
-% % % % if exist('version_name','var') && strcmp(version_name,'2017-05-17')
-% landuse_lpj.maps_YXvy = landuse_lpj.maps_YXvy(:,:,:,ismember(landuse_lpj.yearList,yield_lpj.yearList)) ;
-% landuse_lpj.yearList = landuse_lpj.yearList(ismember(landuse_lpj.yearList,yield_lpj.yearList)) ;
-% % % % end
 
 % Get year info
 Nyears_lpj = length(landuse_lpj.yearList) ;
@@ -764,6 +846,23 @@ if removed_area_dueto_NaNsim
 end
 listCrops_lpj_comb = [listCrops_lpj_comb supercrop] ;
 
+
+end
+
+
+function print_missing(toSub, missingCrops, thisSub)
+
+toSub_I = find(toSub) ;
+toSub_txt = '' ;
+for c = 1:length(toSub_I)
+    C = toSub_I(c) ;
+    toSub_txt = [toSub_txt missingCrops{C}] ;
+    if c < length(toSub_I)
+        toSub_txt = [toSub_txt ', '] ;
+    end
+end
+
+fprintf('Using %s yield for: %s\n', thisSub, toSub_txt) ;
 
 end
 

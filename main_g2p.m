@@ -13,7 +13,8 @@ model_name = 'LPJ-GUESS-sim' ;
 % remapVer = '8b' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 % remapVer = '9_g2p' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 % remapVer = '10_g2p' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
-remapVer = '11_g2p' ; calib_ver = 23 ;   % The version of mapping FAO to PLUM crop types
+% remapVer = '11_g2p' ; calib_ver = 23 ;   % The version of mapping FAO to PLUM crop types
+remapVer = '13_g2p' ; calib_ver = 23 ;   % The version of mapping FAO to PLUM crop types
 
 ctry_excluded_area_thresh = 0.1 ; % The fraction of a country's excluded
 % area of a given crop (due to no simulated yield) above which the country
@@ -37,6 +38,12 @@ filename_guess_landuse = sprintf( ...
 filename_guess_cropfrac = sprintf( ...
     '%s/cropfracs.remapv%s.txt', ...
     LUdir, remapVer);
+if strcmp(remapVer, '13_g2p')
+    % Stripped-down crop list used for running. Complete crop list needed
+    % for calibration.
+    filename_guess_cropfrac = strrep(filename_guess_cropfrac, ...
+        'v13', 'v11') ;
+end
 % filename_guess_sugars = sprintf( ...
 %     '%s/sugar.mat', ...
 %     LUdir);
