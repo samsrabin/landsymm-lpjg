@@ -552,25 +552,18 @@ if removed_area_dueto_NaNsim
     for c = 1:length(yield_lpj.varNames)
         thisCrop = yield_lpj.varNames{c} ;
         tmp_yield_YX1y = yield_lpj.maps_YXvy(:,:,c,:) ;
-        tmp_cropfrac_YX1y = tmp_croparea_YXvy(:,:,c,:) ;
-        I_bad = find(isnan(tmp_yield_YX1y) & tmp_cropfrac_YX1y>0) ;
+        tmp_croparea_YX1y = tmp_croparea_YXvy(:,:,c,:) ;
+        I_bad = find(isnan(tmp_yield_YX1y) & tmp_croparea_YX1y>0) ;
         if ~isempty(I_bad)
-
             % Track how much area is being removed
-            removed_YX1y = zeros(size(tmp_cropfrac_YX1y)) ;
-            removed_YX1y(I_bad) = tmp_cropfrac_YX1y(I_bad) ;
-            area_removed = sum(removed_YX1y(~isnan(removed_YX1y))) ;
-            pct_removed = 100 * area_removed ...
-                ./ sum(tmp_cropfrac_YX1y(~isnan(tmp_cropfrac_YX1y))) ;
+            removed_YX1y = zeros(size(tmp_croparea_YX1y)) ;
+            removed_YX1y(I_bad) = tmp_croparea_YX1y(I_bad) ;
             croparea_lpj_removed.maps_YXvy(:,:,c,:) = removed_YX1y ;
             clear removed_YX1y
-            
-            % Remove it
-            tmp_cropfrac_YX1y(I_bad) = 0 ;
-            tmp_croparea_YXvy(:,:,c,:) = tmp_cropfrac_YX1y ;
         end
         clear *_YX1y I_bad
     end
+    % Remove it
     cropfrac_lpj.maps_YXvy(croparea_lpj_removed.maps_YXvy > 0) = 0 ;
     yield_lpj.maps_YXvy(croparea_lpj_removed.maps_YXvy > 0) = 0 ;
 else
@@ -609,10 +602,24 @@ else
     cropareaRemoved_lpj_YXcy_comb = [] ;
 end
 for c = 1:Ncrops_lpj_comb
+    
+    % Find indices
     thisCropR = listCrops_lpj_comb{c} ;
     thisCropI = [thisCropR 'i'] ;
     iR_cropfrac = find(strcmp(cropfrac_lpj.varNames,thisCropR)) ;
+    if ~isequal(iR_cropfrac, exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropR))
+        % exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropR)
+        % was previously used in getting frac_comb under "else" below
+        error('???')
+    end
     iI_cropfrac = find(strcmp(cropfrac_lpj.varNames,thisCropI)) ;
+    if ~isequal(iI_cropfrac, exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropI))
+        % exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropI)
+        % was previously used in getting frac_comb under "else" below
+        error('???')
+    end
+    
+    % Get rainfed and irrigated weights
     if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
         frac_comb = cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ;
         if ~isempty(iI_cropfrac)
@@ -621,30 +628,41 @@ for c = 1:Ncrops_lpj_comb
             warning([thisCropI ' not found in cropfrac_lpj.varNames.'])
         end
     else
-        frac_comb = cropfrac_lpj.maps_YXvy(:,:,exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropR),:) ...
-                  + cropfrac_lpj.maps_YXvy(:,:,exact_string_in_cellarray(cropfrac_lpj.varNames,thisCropI),:) ;
+        frac_comb = cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ...
+                  + cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:) ;
     end
+    weights_rf_YXvy = cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ./ frac_comb ;
+    weights_ir_YXvy = cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:) ./ frac_comb ;
+    
+    % Combine rainfed and irrigated
     iR_yield = find(strcmp(yield_lpj.varNames,thisCropR)) ;
     iI_yield = find(strcmp(yield_lpj.varNames,thisCropI)) ;
-    if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
-        if ~isempty(iI_cropfrac)
-            tmp = (yield_lpj.maps_YXvy(:,:,iR_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ...
-                 + yield_lpj.maps_YXvy(:,:,iI_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:)) ...
-                ./ frac_comb ;
-        else
-            tmp = yield_lpj.maps_YXvy(:,:,iR_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ...
-                ./ frac_comb ;
-        end
+    if isempty(iI_cropfrac) && (strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128'))
+        tmp = yield_lpj.maps_YXvy(:,:,iR_yield,:) .* weights_rf_YXvy ;
     else
-        tmp = (yield_lpj.maps_YXvy(:,:,iR_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ...
-             + yield_lpj.maps_YXvy(:,:,iI_yield,:) .* cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:)) ...
-            ./ frac_comb ;
+        tmp = yield_lpj.maps_YXvy(:,:,iR_yield,:) .* weights_rf_YXvy ...
+            + yield_lpj.maps_YXvy(:,:,iI_yield,:) .* weights_ir_YXvy ;
     end
+    clear weights_*_YXvy
     tmp(frac_comb==0) = 0 ;
     combined_YXcy_yield(:,:,c,:) = tmp ;
     clear tmp
     combined_YXcy_cropfrac(:,:,c,:) = frac_comb ;
     clear frac_comb
+    
+    % Ensure that this process didn't set any yields to NaN
+    if any(any(any( ...
+            ~isnan(yield_lpj.maps_YXvy(:,:,iR_yield,:)) ...
+            & isnan(combined_YXcy_yield(:,:,c,:)) ...
+            )))
+        error('Combined yield NaN where rainfed yield wasn''t')
+    end
+    if any(any(any( ...
+            ~isnan(yield_lpj.maps_YXvy(:,:,iI_yield,:)) ...
+            & isnan(combined_YXcy_yield(:,:,c,:)) ...
+            )))
+        error('Combined yield NaN where irrigated yield wasn''t')
+    end
     
     if removed_area_dueto_NaNsim
         cropareaRemoved_lpj_YXcy_comb(:,:,c,:) = ...
