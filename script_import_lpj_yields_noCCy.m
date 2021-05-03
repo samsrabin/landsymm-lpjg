@@ -726,19 +726,9 @@ for c = 1:Ncrops_lpj_comb
     combined_YXcy_cropfrac(:,:,c,:) = frac_comb ;
     clear frac_comb
     
-    % Ensure that this process didn't set any positive yields to NaN
-    if any(any(any( ...
-           yield_lpj.maps_YXvy(:,:,iR_yield,:) > 0 ...
-            & isnan(combined_YXcy_yield(:,:,c,:)) ...
-            )))
-        error('Combined yield NaN where rainfed yield was > 0')
-    end
-    if any(any(any( ...
-            yield_lpj.maps_YXvy(:,:,iI_yield,:) > 0 ...
-            & isnan(combined_YXcy_yield(:,:,c,:)) ...
-            )))
-        error('Combined yield NaN where irrigated yield was > 0')
-    end
+    % Check whether this process set any positive yields to NaN
+    check_nanified_yield(yield_lpj.maps_YXvy(:,:,iR_yield,:), combined_YXcy_yield(:,:,c,:), thisCropR) ;
+    check_nanified_yield(yield_lpj.maps_YXvy(:,:,iI_yield,:), combined_YXcy_yield(:,:,c,:), thisCropI) ;
     
     if removed_area_dueto_NaNsim
         cropareaRemoved_lpj_YXcy_comb(:,:,c,:) = ...
@@ -957,6 +947,19 @@ for c = 1:length(toSub_I)
 end
 
 fprintf('Using %s yield for: %s\n', thisSub, toSub_txt) ;
+
+end
+
+
+function check_nanified_yield(yield1, yield2, thisCrop)
+
+isbad = yield1 > 0 & isnan(yield2) ;
+Nbad = length(find(isbad)) ;
+if Nbad > 0
+    worst = max(yield1(isbad)) ;
+    warning('%s: %d positive yields (max %0.3f) NaN-ified after combining rf+ir', ...
+        thisCrop, Nbad, worst)
+end
 
 end
 
