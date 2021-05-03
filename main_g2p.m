@@ -56,8 +56,10 @@ end
 % Get yield file, if LPJ-GUESS simulation. Otherwise, get path to emulated 
 % baseline outputs for whatever N inputs Christoph used.
 clear filename_guess_yield
+specified_topdir = false ;
 if strcmp(model_name, 'LPJ-GUESS-sim')
-    if ~exist('lpjg_run_topDir', 'var')
+    specified_topdir = exist('lpjg_run_topDir', 'var') ;
+    if ~specified_topdir
         lpjg_run_topDir = sprintf('/Volumes/Reacher/G2P/outputs_LPJG/remap%s/calibration', ...
             strrep(remapVer, '_g2p', '')) ;
     end
@@ -102,7 +104,11 @@ dir_code = '/Users/Shared/PLUM/crop_calib_code/' ;
 dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
 
 % Path to figure output directory
-dir_outfigs = '/Volumes/Reacher/G2P/outputs_calibration/' ;
+if specified_topdir
+    dir_outfigs = [lpjg_run_topDir '/outputs'] ;
+else
+    dir_outfigs = '/Volumes/Reacher/G2P/outputs_calibration/' ;
+end
 
 % Add code files to path (just for this session)
 addpath(genpath(dir_code))
