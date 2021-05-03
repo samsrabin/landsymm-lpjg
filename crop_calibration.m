@@ -505,71 +505,22 @@ if ~exist('listCrops_fa2o_ORIG','var')
 else
     listCrops_fa2o = listCrops_fa2o_ORIG ;
 end
-if ~any(strcmp(listCrops_4cal,'CerealsC3'))
-    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Wheat')) = [] ;
-    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Wheat')) = [] ;
+tmpA = {'CerealsC3', 'CerealsC4', 'Rice', 'Oilcrops', 'StarchyRoots', 'Pulses'} ;
+tmpB = {'Wheat', 'Maize', 'Rice', 'Oilcrops', 'Starchy roots', 'Pulses'} ;
+for c = 1:length(tmp)
+    thisCropA = tmpA{c} ;
+    thisCropB = tmpB{c} ;
+    if ~any(strcmp(listCrops_4cal,thisCropA)) && any(strcmp(listCrops_fa2o,thisCropB))
+        yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,thisCropB)) = [] ;
+        ignore_fa2_Cc(:,strcmp(listCrops_fa2o,thisCropB)) = [] ;
     if ~isempty(weights_fa2_4cal_Cyc)
-        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Wheat')) = [] ;
+            weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,thisCropB)) = [] ;
     end
     if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
-        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Wheat')) = [] ;
+            weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,thisCropB)) = [] ;
     end
-    listCrops_fa2o(strcmp(listCrops_fa2o,'Wheat')) = [] ;
-end
-if ~any(strcmp(listCrops_4cal,'CerealsC4'))
-    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Maize')) = [] ;
-    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Maize')) = [] ;
-    if ~isempty(weights_fa2_4cal_Cyc)
-        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Maize')) = [] ;
+        listCrops_fa2o(strcmp(listCrops_fa2o,thisCropB)) = [] ;
     end
-    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
-        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Maize')) = [] ;
-    end
-    listCrops_fa2o(strcmp(listCrops_fa2o,'Maize')) = [] ;
-end
-if ~any(strcmp(listCrops_4cal,'Rice'))
-    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Rice')) = [] ;
-    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Rice')) = [] ;
-    if ~isempty(weights_fa2_4cal_Cyc)
-        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Rice')) = [] ;
-    end
-    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
-        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Rice')) = [] ;
-    end
-    listCrops_fa2o(strcmp(listCrops_fa2o,'Rice')) = [] ;
-end
-if ~any(strcmp(listCrops_4cal,'Oilcrops'))
-    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
-    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
-    if ~isempty(weights_fa2_4cal_Cyc)
-        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
-    end
-    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
-        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
-    end
-    listCrops_fa2o(strcmp(listCrops_fa2o,'Oilcrops')) = [] ;
-end
-if ~any(strcmp(listCrops_4cal,'StarchyRoots'))
-    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
-    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
-    if ~isempty(weights_fa2_4cal_Cyc)
-        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
-    end
-    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
-        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
-    end
-    listCrops_fa2o(strcmp(listCrops_fa2o,'Starchy roots')) = [] ;
-end
-if ~any(strcmp(listCrops_4cal,'Pulses'))
-    yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Pulses')) = [] ;
-    ignore_fa2_Cc(:,strcmp(listCrops_fa2o,'Pulses')) = [] ;
-    if ~isempty(weights_fa2_4cal_Cyc)
-        weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,'Pulses')) = [] ;
-    end
-    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
-        weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,'Pulses')) = [] ;
-    end
-    listCrops_fa2o(strcmp(listCrops_fa2o,'Pulses')) = [] ;
 end
 
 disp('ALL POINTS')
