@@ -66,7 +66,7 @@ if strcmp(model_name, 'LPJ-GUESS-sim')
     if ~exist(lpjg_run_topDir, 'dir')
         error('lpjg_run_topDir not found: %s', lpjg_run_topDir)
     end
-    lpjg_run_outDirs = dir(sprintf('%s/output*', lpjg_run_topDir)) ;
+    lpjg_run_outDirs = dir(sprintf('%s/output-*', lpjg_run_topDir)) ;
     if isempty(lpjg_run_outDirs)
         error('No output directories found in %s', lpjg_run_topDir)
     end
@@ -105,9 +105,12 @@ dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
 
 % Path to figure output directory
 if specified_topdir
-    dir_outfigs = [lpjg_run_topDir '/outputs'] ;
+    dir_outfigs = [lpjg_run_topDir '/outputs/'] ;
 else
     dir_outfigs = '/Volumes/Reacher/G2P/outputs_calibration/' ;
+end
+if ~exist(dir_outfigs, 'dir')
+    mkdir(dir_outfigs)
 end
 
 % Add code files to path (just for this session)
