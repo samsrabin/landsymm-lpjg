@@ -739,7 +739,7 @@ if removed_area_dueto_NaNsim
         warning(['NaN sim yield -> 0 area: %s %0.1f%% area ' ...
             '(%0.2g ha) '], ...
             thisCrop, croparea_removed_pct, croparea_removed_ha) ;
-        clear area_removed pct_removed
+        clear area_removed pct_removed croparea_lpj_YX1y_comb
     end
     clear tmp_varNames
 end
