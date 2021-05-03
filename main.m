@@ -56,12 +56,12 @@
 % filename_guess_cropfrac = '/Users/Shared/jianyong_calib.20190128/crop_fractions_fromMIRCA_PLUM_1yr_midpoint_Stijn.txt' ;
 % calib_ver = 21 ;   % The version of mapping FAO to PLUM crop types
 
-% % 2019-02-18
-% version_name = 'remap5e' ;   % calib_ver = 18
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5e.1901-2005/output-2019-02-18-122738/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
-% calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
+% 2019-02-18
+version_name = 'remap5e' ;   % calib_ver = 18
+filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5e.1901-2005/output-2019-02-18-122738/yield.out.gz' ;
+filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
+filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
+calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
 
 % % 2019-02-19
 % version_name = 'remap8a' ;   % calib_ver = 19
@@ -87,12 +87,12 @@
 % calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 % oilcrops_proxy_fruitveg_sugar = true ;
 
-% 2021-03-31
-version_name = 'remap8c' ;   % calib_ver = 20
-filename_guess_yield = '/Users/Shared/PLUM/ssp13/calib.remap8c.1901-2005/output-2021-03-26-215749/yield.out.gz' ;
-filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8c/LU.remapv8c.txt' ;
-filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8c/cropfracs.remapv8c.txt' ;
-calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
+% % 2021-03-31
+% version_name = 'remap8c' ;   % calib_ver = 20
+% filename_guess_yield = '/Users/Shared/PLUM/ssp13/calib.remap8c.1901-2005/output-2021-03-26-215749/yield.out.gz' ;
+% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8c/LU.remapv8c.txt' ;
+% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8c/cropfracs.remapv8c.txt' ;
+% calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 
 
 %% Other options and setup

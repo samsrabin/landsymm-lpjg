@@ -18,8 +18,7 @@ found_in_fao = false(size(listCountries_map_present)) ;
 for c = 1:Ncrops_in
     thisCrop_FAO = listCrops_fa2i{c} ;
     %%%
-    disp(['thisCrop_FAO = ' thisCrop_FAO])
-    if verbose ; disp(thisCrop_FAO) ; end
+    if verbose ; disp(['thisCrop_FAO = ' thisCrop_FAO]) ; end
     
     % Is this crop type in the in2out_key?
     is_in_key = false ;
