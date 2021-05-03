@@ -52,8 +52,10 @@ end
 % baseline outputs for whatever N inputs Christoph used.
 clear filename_guess_yield
 if strcmp(model_name, 'LPJ-GUESS-sim')
+    if ~exist('lpjg_run_topDir', 'var')
     lpjg_run_topDir = sprintf('/Volumes/Reacher/G2P/outputs_LPJG/remap%s/calibration', ...
         strrep(remapVer, '_g2p', '')) ;
+    end
     if ~exist(lpjg_run_topDir, 'dir')
         error('lpjg_run_topDir not found: %s', lpjg_run_topDir)
     end
