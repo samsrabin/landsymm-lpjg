@@ -31,7 +31,7 @@ elseif calib_ver == 20 || calib_ver == 23
             listCrops_lpj_comb = ...
                 {'CerealsC3','CerealsC4','Rice','OilNfix','OilOther',...
                 'StarchyRoots','Pulses','Sugarbeet','Sugarcane','FruitAndVeg'} ;
-        case {'11_g2p', '13_g2p'}
+        case {'11_g2p', '12_g2p', '13_g2p'}
             listCrops_lpj_comb = ...
                 {'CerealsC3s','CerealsC3w','CerealsC4','Rice','OilNfix','OilOther',...
                 'StarchyRoots','Pulses','Sugarbeet','Sugarcane','FruitAndVeg'} ;
@@ -109,15 +109,26 @@ if exist('filename_guess_yield', 'var')
         yield_lpj.varNames = [yield_lpj.varNames {'FruitAndVeg', 'Sugar', 'FruitAndVegi', 'Sugari'}] ;
     
     % Use TeSW and TeCo as proxy for everything, if needed
-    elseif exist('remapVer', 'var') && strcmp(remapVer, '13_g2p')
+    elseif exist('remapVer', 'var') && any(strcmp(remapVer, {'12_g2p', '13_g2p'}))
         Nmissing = length(missingCrops) ;
+        % Set up substitute lists
+        if any(strcmp(yield_lpj.varNames, 'Oilcrops'))
+            subList_oil = {'OilNfix'} ;
+            subList_c3s = {'FruitAndVeg', 'OilOther', 'Pulses', 'StarchyRoots', 'Sugarbeet'} ;
+        else
+            subList_oil = {} ;
+            subList_c3s = {'FruitAndVeg', 'OilNfix', 'OilOther', 'Pulses', 'StarchyRoots', 'Sugarbeet'} ;
+        end
+        subList_c4s = {'Sugarcane'} ;
         % Get substitutes
         theseSubs = cell(Nmissing, 1) ;
-        [~, IB] = intersect(missingCrops, ...
-            {'FruitAndVeg', 'OilNfix', 'OilOther', 'Pulses', 'StarchyRoots', 'Sugarbeet'}) ;
+        if ~isempty(subList_oil)
+            [~, IB] = intersect(missingCrops, subList_oil) ;
+            theseSubs(IB) = {'Oilcrops'} ;
+        end
+        [~, IB] = intersect(missingCrops, subList_c3s) ;
         theseSubs(IB) = {'CerealsC3s'} ;
-        [~, IB] = intersect(missingCrops, ...
-            {'Sugarcane'}) ;
+        [~, IB] = intersect(missingCrops, subList_c4s) ;
         theseSubs(IB) = {'CerealsC4'} ;
         if any(cellfun(@isempty, theseSubs))
             error('Some unknown substitute(s)')
@@ -131,6 +142,13 @@ if exist('filename_guess_yield', 'var')
         toAdd_YXvy = nan(addSize) ;
         clear addSize
         % ...rainfed
+        if ~isempty(subList_oil)
+            toSub = strcmp(theseSubs, 'Oilcrops') ;
+            print_missing(toSub, missingCrops, 'Oilcrops')
+            toAdd_YXvy(:,:,toSub,:) = ...
+                repmat(yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcrops'),:), ...
+                [1 1 length(find(toSub)) 1]) ;
+        end
         toSub = strcmp(theseSubs, 'CerealsC3s') ;
         print_missing(toSub, missingCrops, 'CerealsC3s')
         toAdd_YXvy(:,:,toSub,:) = ...
@@ -143,6 +161,12 @@ if exist('filename_guess_yield', 'var')
             [1 1 length(find(toSub)) 1]) ;
         yield_lpj.maps_YXvy = cat(3, yield_lpj.maps_YXvy, toAdd_YXvy) ;
         % ...irrigated
+        if ~isempty(subList_oil)
+            toSub = strcmp(theseSubs, 'Oilcrops') ;
+            toAdd_YXvy(:,:,toSub,:) = ...
+                repmat(yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'Oilcrops'),:), ...
+                [1 1 length(find(toSub)) 1]) ;
+        end
         toSub = strcmp(theseSubs, 'CerealsC3s') ;
         toAdd_YXvy(:,:,toSub,:) = ...
             repmat(yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'CerealsC3si'),:), ...
@@ -151,6 +175,11 @@ if exist('filename_guess_yield', 'var')
         toAdd_YXvy(:,:,toSub,:) = ...
             repmat(yield_lpj.maps_YXvy(:,:,strcmp(yield_lpj.varNames, 'CerealsC4i'),:), ...
             [1 1 length(find(toSub)) 1]) ;
+        % Remove Oilcrops, if needed
+        if ~isempty(subList_oil)
+            yield_lpj.maps_YXvy(:,:,contains(yield_lpj.varNames, 'Oilcrops'),:) = [] ;
+            yield_lpj.varNames(contains(yield_lpj.varNames, 'Oilcrops')) = [] ;
+        end
         % ...finish
         yield_lpj.maps_YXvy = cat(3, yield_lpj.maps_YXvy, toAdd_YXvy) ;
         clear toAdd_YXvy
@@ -479,7 +508,7 @@ if ~any(strcmp(listCrops_lpj_comb, 'Miscanthus'))
 end
 
 % Make sure cropfrac_lpj and yield_lpj contain the same variables
-if ~isequal(sort(cropfrac_lpj.varNames), sort(yield_lpj.varNames))
+if ~isempty(setxor(cropfrac_lpj.varNames, yield_lpj.varNames))
     error('Crops differ between cropfrac_lpj and yield_lpj')
 end
 
