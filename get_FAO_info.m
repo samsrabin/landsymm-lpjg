@@ -409,12 +409,12 @@ elseif calib_ver==22
     FAO_to_FAO_key{getFi('whe')}           = {'Wheat'} ;
 elseif calib_ver==23
 %     error('Do this')
-    listCrops_fa2o = {'Wheat','Maize','Rice','OilNfix','OilOther','Pulses', ...
-        'Starchy roots','Sugarbeet','Sugarcane','FruitAndVeg'} ;
+    listCrops_fa2o = {'CerealsC3','CerealsC4','Rice','OilNfix','OilOther','Pulses', ...
+        'StarchyRoots','Sugarbeet','Sugarcane','FruitAndVeg'} ;
     getFi = @(x)find(strcmp(listCrops_fa2o,x)) ;
     % Get item names for PRODUCTION: CROPS dataset
-    FAO_to_FAO_key1{getFi('Wheat')}          = {'Wheat','Barley','Rye'} ;
-    FAO_to_FAO_key1{getFi('Maize')}          = {'Maize','Millet','Sorghum'} ;
+    FAO_to_FAO_key1{getFi('CerealsC3')}          = {'Wheat','Barley','Rye'} ;
+    FAO_to_FAO_key1{getFi('CerealsC4')}          = {'Maize','Millet','Sorghum'} ;
     FAO_to_FAO_key1{getFi('Rice')}           = {'Rice, paddy'} ;
     allOilcrops_key1 = { ...
         'Coconuts',...
@@ -437,7 +437,7 @@ elseif calib_ver==23
         allOilcrops_key1, FAO_to_FAO_key1{getFi('OilNfix')}) ;
         
     FAO_to_FAO_key1{getFi('Pulses')}         = {'Pulses Total'} ;
-    FAO_to_FAO_key1{getFi('Starchy roots')}  = {'Roots and Tubers Total'} ;
+    FAO_to_FAO_key1{getFi('StarchyRoots')}  = {'Roots and Tubers Total'} ;
     FAO_to_FAO_key1{getFi('Sugarbeet')}          = {'Sugar beet'} ;
     FAO_to_FAO_key1{getFi('Sugarcane')}          = {'Sugar cane'} ;
         % Sugar (production) could also include 'Sugar crops nes'
@@ -460,8 +460,8 @@ elseif calib_ver==23
         'Vegetables, fresh nes', 'Vegetables, leguminous nes' ...
         } ;
     % Get item names for COMMODITY BALANCE: CROPS PRIMARY EQUIVALENT dataset
-    FAO_to_FAO_key2{getFi('Wheat')}          = {'Wheat and products','Barley and products','Rye and products'} ;
-    FAO_to_FAO_key2{getFi('Maize')}          = {'Maize and products','Millet and products','Sorghum and products'} ;
+    FAO_to_FAO_key2{getFi('CerealsC3')}          = {'Wheat and products','Barley and products','Rye and products'} ;
+    FAO_to_FAO_key2{getFi('CerealsC4')}          = {'Maize and products','Millet and products','Sorghum and products'} ;
     FAO_to_FAO_key2{getFi('Rice')}           = {'Rice (Paddy Equivalent)'} ;
     allOilcrops_key2 = { ...
         'Coconuts - Incl Copra', 'Cottonseed', 'Groundnuts (Shelled Eq)', ...
@@ -472,7 +472,7 @@ elseif calib_ver==23
     FAO_to_FAO_key2{getFi('OilOther')}       = setdiff( ...
         allOilcrops_key2, FAO_to_FAO_key2{getFi('OilNfix')}) ;
     FAO_to_FAO_key2{getFi('Pulses')}         = {'Pulses'} ;
-    FAO_to_FAO_key2{getFi('Starchy roots')}  = {'Starchy Roots'} ;
+    FAO_to_FAO_key2{getFi('StarchyRoots')}  = {'Starchy Roots'} ;
     FAO_to_FAO_key2{getFi('Sugarbeet')}          = {'Sugar beet'} ;
     FAO_to_FAO_key2{getFi('Sugarcane')}          = {'Sugar cane'} ;
         % Sugar (commodity balance) could also include:

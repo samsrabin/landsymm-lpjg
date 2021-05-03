@@ -57,6 +57,22 @@ end
     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
     faoCommBalElement, is_ggcmi) ;
 
+if calib_ver_used == 23
+    if ~isempty(setxor(listCrops_fa2o, listCrops_lpj_comb))
+        error('listCrops mismatch prevents rearranging')
+    end
+    [~, ~, IB] = intersect(listCrops_lpj_comb, listCrops_fa2o, 'stable') ;
+    listCrops_fa2o = listCrops_fa2o(IB) ;
+    total_fa2_Ccy = total_fa2_Ccy(:,IB,:) ;
+    croparea_fa2_Ccy = croparea_fa2_Ccy(:,IB,:) ;
+    yield_fa2_Ccy = yield_fa2_Ccy(:,IB,:) ;
+    if ~isequal(listCrops_fa2o, listCrops_lpj_comb)
+        error('listCrops mismatch even after rearranging')
+    end
+elseif calib_ver_used > 23
+    error('calib_ver_used %d not recognized', calib_ver_used)
+end
+
 verbose = false ;
 getPi = @(x) find(strcmp(listCrops_lpj_comb,x)) ;
 
@@ -199,35 +215,69 @@ else
 end
 
 % Make sure LPJ-GUESS isn't missing a big chunk of area in any crop
-tmp_croparea_lpj_4cal_Cc = max(croparea_lpj_4cal_Ccy, [], 3) ;
-tmp_croparea_fa2_4cal_Cc = nanmean(croparea_fa2_4cal_Ccy, 3) ;
-halt = false ;
-for c = 1:length(yield_lpj_comb.varNames)
-    thisCrop = yield_lpj_comb.varNames{c} ;
-    lpj_missing_area_C = ...
-        (isnan(tmp_croparea_lpj_4cal_Cc(:,c)) ...
-        | 0 == tmp_croparea_lpj_4cal_Cc(:,c)) ...
-        & 0 < tmp_croparea_fa2_4cal_Cc(:,c) ;
-    pctMissing = 100*sum(tmp_croparea_fa2_4cal_Cc(lpj_missing_area_C,c)) ...
-        / nansum(tmp_croparea_fa2_4cal_Cc(:,c)) ;
-    fprintf('%s: LPJ-GUESS missing %d countries (%0.1f%% of global FAO area)\n', ...
-        thisCrop, length(find(lpj_missing_area_C)), pctMissing) ;
-    if pctMissing > 5
-        halt = true ;
+if isequal(listCrops_fa2o, listCrops_lpj_comb)
+    tmp_croparea_lpj_4cal_Cc = max(croparea_lpj_4cal_Ccy, [], 3) ;
+    tmp_croparea_fa2_4cal_Cc = nanmean(croparea_fa2_4cal_Ccy, 3) ;
+    halt = false ;
+    tooMuchMissing_thresh = 10 ; % percent
+    tooMuchMissing = false(size(yield_lpj_comb.varNames)) ;
+    for c = 1:length(yield_lpj_comb.varNames)
+        thisCrop = yield_lpj_comb.varNames{c} ;
+        is_lpj_missing_area_C = ...
+            (isnan(tmp_croparea_lpj_4cal_Cc(:,c)) ...
+            | 0 == tmp_croparea_lpj_4cal_Cc(:,c)) ...
+            & 0 < tmp_croparea_fa2_4cal_Cc(:,c) ;
+        pctMissing = 100*sum(tmp_croparea_fa2_4cal_Cc(is_lpj_missing_area_C,c)) ...
+            / nansum(tmp_croparea_fa2_4cal_Cc(:,c)) ;
+        fprintf('%s: LPJ-GUESS missing %d countries (%0.1f%% of global FAO area)\n', ...
+            thisCrop, length(find(is_lpj_missing_area_C)), pctMissing) ;
+        if pctMissing > tooMuchMissing_thresh
+            halt = true ;
+            tooMuchMissing(c) = true ;
+        end
+    end; clear c
+    if halt
+        fprintf('Global crop area maps: %0.4g ha\n', ...
+            nansum(croparea_lpj_YXcy_comb(:)))
+        fprintf('Global crop area _Ccy: %0.4g ha\n', ...
+            nansum(croparea_lpj_Ccy(:)))
+        fprintf('Global crop area _Ccy: %0.4g ha (incl. removed)\n', ...
+            nansum(croparea_lpj_Ccy(:)) ...
+            + nansum(cropareaRemoved_lpj_Ccy(:)))
+        I_tooMuchMissing = find(tooMuchMissing) ;
+        for ii = 1:length(I_tooMuchMissing)
+            c = I_tooMuchMissing(ii) ;
+            thisCrop = yield_lpj_comb.varNames{c} ;
+            is_lpj_missing_area_C = ...
+                (isnan(tmp_croparea_lpj_4cal_Cc(:,c)) ...
+                | 0 == tmp_croparea_lpj_4cal_Cc(:,c)) ...
+                & 0 < tmp_croparea_fa2_4cal_Cc(:,c) ;
+            pctMissing = 100*sum(tmp_croparea_fa2_4cal_Cc(is_lpj_missing_area_C,c)) ...
+                / nansum(tmp_croparea_fa2_4cal_Cc(:,c)) ;
+            [lpj_missing_area_sorted_C, I] = sort( ...
+                tmp_croparea_fa2_4cal_Cc(is_lpj_missing_area_C,c), ...
+                'descend') ;
+            lpj_missing_area_sorted_pct_C = 100 * lpj_missing_area_sorted_C ...
+                / sum(lpj_missing_area_sorted_C) ;
+            ctry_names_C = listCountries_map_present_all(is_lpj_missing_area_C) ;
+            ctry_names_sorted_C = ctry_names_C(I) ;
+            accum_missing = 0 ;
+            m = 0 ;
+            fprintf('Top %g%% of missing %s:\n', 100 - tooMuchMissing_thresh, thisCrop)
+            while accum_missing < 100 - tooMuchMissing_thresh
+                m = m + 1 ;
+                thisMissingPct = lpj_missing_area_sorted_pct_C(m) ;
+                fprintf('   %s: %0.1f%% of missing area\n', ...
+                    ctry_names_sorted_C{m}, thisMissingPct)
+                accum_missing = accum_missing + thisMissingPct ;
+            end
+        end
+        error('Stopping because LPJ-GUESS is missing an unexpectedly large fraction of area for one or more crops')
     end
-end; clear c
-clear tmp_croparea_*_Cc
-if halt
-    fprintf('Global crop area maps: %0.4g ha\n', ...
-        nansum(croparea_lpj_YXcy_comb(:)))
-    fprintf('Global crop area _Ccy: %0.4g ha\n', ...
-        nansum(croparea_lpj_Ccy(:)))
-    fprintf('Global crop area _Ccy: %0.4g ha (incl. removed)\n', ...
-        nansum(croparea_lpj_Ccy(:)) ...
-        + nansum(cropareaRemoved_lpj_Ccy(:)))
-    error('Stopping because LPJ-GUESS is missing an unexpectedly large fraction of area for one or more crops')
+    clear halt tmp_croparea_*_Cc
+else
+    warning('Not checking whether LPJ-GUESS is missing a big chunk of area in any crop')
 end
-clear halt
 
 % Convert to form for regression
 if calib_ver==11 || calib_ver==21
@@ -366,16 +416,7 @@ elseif calib_ver==19 || calib_ver==20
         FA2_to_PLUM_key{getPi2('FruitAndVeg')}    = {'FruitAndVeg'} ;
     end
 elseif calib_ver==23
-    FA2_to_PLUM_key{getPi2('CerealsC3')}     = {'Wheat'} ;
-    FA2_to_PLUM_key{getPi2('CerealsC4')}     = {'Maize'} ;
-    FA2_to_PLUM_key{getPi2('Rice')}          = {'Rice'} ;
-    FA2_to_PLUM_key{getPi2('OilNfix')}      = {'OilNfix'} ;
-    FA2_to_PLUM_key{getPi2('OilOther')}      = {'OilOther'} ;
-    FA2_to_PLUM_key{getPi2('StarchyRoots')}  = {'Starchy roots'} ;
-    FA2_to_PLUM_key{getPi2('Pulses')}        = {'Pulses'} ;
-    FA2_to_PLUM_key{getPi2('Sugarbeet')}         = {'Sugarbeet'} ;
-    FA2_to_PLUM_key{getPi2('Sugarcane')}         = {'Sugarcane'} ;
-    FA2_to_PLUM_key{getPi2('FruitAndVeg')}    = {'FruitAndVeg'} ;
+    FA2_to_PLUM_key = {} ;
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
@@ -513,12 +554,12 @@ for c = 1:length(tmp)
     if ~any(strcmp(listCrops_4cal,thisCropA)) && any(strcmp(listCrops_fa2o,thisCropB))
         yield_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,thisCropB)) = [] ;
         ignore_fa2_Cc(:,strcmp(listCrops_fa2o,thisCropB)) = [] ;
-    if ~isempty(weights_fa2_4cal_Cyc)
+        if ~isempty(weights_fa2_4cal_Cyc)
             weights_fa2_4cal_Cyc(:,:,strcmp(listCrops_fa2o,thisCropB)) = [] ;
-    end
-    if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
+        end
+        if ~isempty(weights4pts_Cyc) && any(~isnan(weights4pts_Cyc(:)))
             weights4pts_Cyc(:,:,strcmp(listCrops_fa2o,thisCropB)) = [] ;
-    end
+        end
         listCrops_fa2o(strcmp(listCrops_fa2o,thisCropB)) = [] ;
     end
 end

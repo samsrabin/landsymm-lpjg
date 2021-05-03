@@ -106,15 +106,19 @@ for c_plot = 1:Ncrops_plot
         thisCrop_plot = 'Miscanthus' ;
     else
         thisCrop_plot = listCrops_plot{c_plot} ;
-        thisCrop_found = false ;
-        for c_data = 1:Ncrops_data
-            if any(find(strcmp(plot2data_key{c_data},thisCrop_plot)))
-                thisCrop_found = true ;
-                break
+        if isempty(plot2data_key)
+            c_data = c_plot ;
+        else
+            thisCrop_found = false ;
+            for c_data = 1:Ncrops_data
+                if any(find(strcmp(plot2data_key{c_data},thisCrop_plot)))
+                    thisCrop_found = true ;
+                    break
+                end
             end
-        end
-        if ~thisCrop_found
-            error([thisCrop_plot ' not found in plot2data_key!'])
+            if ~thisCrop_found
+                error([thisCrop_plot ' not found in plot2data_key!'])
+            end
         end
         thisCrop_data = listCrops_data{c_data} ;
         disp(['thisCrop_plot = ' thisCrop_plot  ' (index ' num2str(c_plot) ')'])
