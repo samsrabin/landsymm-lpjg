@@ -8,6 +8,9 @@
 need_countries = true ;
 
 diary('off')
+if exist(out_diary, 'file')
+    delete(out_diary)
+end
 diary(out_diary)
 diary('on')
 
