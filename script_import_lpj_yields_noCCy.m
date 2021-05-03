@@ -67,6 +67,10 @@ if exist('filename_guess_yield', 'var')
     end
     yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true) ;
     
+    if indiv_years && ~isempty(setdiff(listYears_fao, yield_lpj.yearList))
+        error('yield_lpj does not contain all years in listYears_fao')
+    end
+    
     % Remove any factorial experiment stands (i.e., stands with names
     % containing a digit, after char'ing digits we actually care about)
     varNames_tmp = yield_lpj.varNames ;
@@ -316,36 +320,70 @@ disp('Processing...')
 if is_ggcmi 
     
     % yield
-    if strcmp(model_name, 'LPJ-GUESS-sim')
-        yield_lpj.maps_YXvy = nanmean(yield_lpj.maps_YXvy,4) ;
-    else
-        if isfield(yield_lpj,'yearList') || isfield(yield_lpj,'maps_YXvy')
-            error('GGCMI yields have years??')
+    if indiv_years
+        if ~(isfield(yield_lpj,'yearList') && isfield(yield_lpj,'maps_YXvy'))
+            error('indiv_years specified but yield_lpj.maps_YXvy not found')
+        elseif ~isempty(setxor(yield_lpj.yearList, listYears_fao))
+            [~, ~, IB] = intersect(listYears_fao, yield_lpj.yearList) ;
+            yield_lpj.maps_YXvy = yield_lpj.maps_YXvy(:,:,:,IB) ;
+            yield_lpj.yearList = listYears_fao ;
         end
-        yield_lpj.maps_YXvy = yield_lpj.maps_YXv ;
-        yield_lpj = rmfield(yield_lpj, 'maps_YXv') ;
+    else
+        if strcmp(model_name, 'LPJ-GUESS-sim')
+            yield_lpj.maps_YXvy = nanmean(yield_lpj.maps_YXvy,4) ;
+        else
+            if isfield(yield_lpj,'yearList') || isfield(yield_lpj,'maps_YXvy')
+                error('GGCMI yields have years??')
+            end
+            yield_lpj.maps_YXvy = yield_lpj.maps_YXv ;
+            yield_lpj = rmfield(yield_lpj, 'maps_YXv') ;
+        end
+        yield_lpj.yearList = -pi ;
     end
-    yield_lpj.yearList = -pi ;
     
     % landuse
-    if isfield(landuse_lpj,'maps_YXvy')
-        landuse_lpj.maps_YXvy = nanmean(landuse_lpj.maps_YXvy(:,:,:, ...
-            landuse_lpj.yearList>=year1 & landuse_lpj.yearList<=yearN), 4) ;
+    if indiv_years
+        if ~isfield(landuse_lpj,'maps_YXvy')
+            landuse_lpj.maps_YXvy = repmat(landuse_lpj.maps_YXv, [1 1 1 Nyears_fao]) ;
+            landuse_lpj = rmfield(landuse_lpj, 'maps_YXv') ;
+            landuse_lpj.yearList = listYears_fao ;
+        elseif ~isempty(setxor(landuse_lpj.yearList, listYears_fao))
+            [~, ~, IB] = intersect(listYears_fao, landuse_lpj.yearList) ;
+            landuse_lpj.maps_YXvy = landuse_lpj.maps_YXvy(:,:,:,IB) ;
+            landuse_lpj.yearList = listYears_fao ;
+        end
     else
-        landuse_lpj.maps_YXvy = landuse_lpj.maps_YXv ;
-        landuse_lpj = rmfield(landuse_lpj, 'maps_YXv') ;
+        if isfield(landuse_lpj,'maps_YXvy')
+            landuse_lpj.maps_YXvy = nanmean(landuse_lpj.maps_YXvy(:,:,:, ...
+                landuse_lpj.yearList>=year1 & landuse_lpj.yearList<=yearN), 4) ;
+        else
+            landuse_lpj.maps_YXvy = landuse_lpj.maps_YXv ;
+            landuse_lpj = rmfield(landuse_lpj, 'maps_YXv') ;
+        end
+        landuse_lpj.yearList = -pi ;
     end
-    landuse_lpj.yearList = -pi ;
     
     % cropfrac
-    if isfield(cropfrac_lpj,'maps_YXvy')
-        cropfrac_lpj.maps_YXvy = nanmean(cropfrac_lpj.maps_YXvy(:,:,:, ...
-            cropfrac_lpj.yearList>=year1 & cropfrac_lpj.yearList<=yearN), 4) ;
+    if indiv_years
+        if ~isfield(cropfrac_lpj,'maps_YXvy')
+            cropfrac_lpj.maps_YXvy = repmat(cropfrac_lpj.maps_YXv, [1 1 1 Nyears_fao]) ;
+            cropfrac_lpj = rmfield(cropfrac_lpj, 'maps_YXv') ;
+            cropfrac_lpj.yearList = listYears_fao ;
+        elseif ~isempty(setxor(cropfrac_lpj.yearList, listYears_fao))
+            [~, ~, IB] = intersect(listYears_fao, cropfrac_lpj.yearList) ;
+            cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXvy(:,:,:,IB) ;
+            cropfrac_lpj.yearList = listYears_fao ;
+        end
     else
-        cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXv ;
-        cropfrac_lpj = rmfield(cropfrac_lpj, 'maps_YXv') ;
+        if isfield(cropfrac_lpj,'maps_YXvy')
+            cropfrac_lpj.maps_YXvy = nanmean(cropfrac_lpj.maps_YXvy(:,:,:, ...
+                cropfrac_lpj.yearList>=year1 & cropfrac_lpj.yearList<=yearN), 4) ;
+        else
+            cropfrac_lpj.maps_YXvy = cropfrac_lpj.maps_YXv ;
+            cropfrac_lpj = rmfield(cropfrac_lpj, 'maps_YXv') ;
+        end
+        cropfrac_lpj.yearList = -pi ;
     end
-    cropfrac_lpj.yearList = -pi ;
 end
 
 % Trim out CC3G, CC4G, ExtraCrop, and OtHr from yield_lpj

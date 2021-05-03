@@ -55,7 +55,7 @@ end
     = get_fao_data(year1,yearN,calib_ver,...
     need_countries, ...
     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
-    faoCommBalElement, is_ggcmi) ;
+    faoCommBalElement, indiv_years) ;
 
 if calib_ver_used == 23
     if ~isempty(setxor(listCrops_fa2o, listCrops_lpj_comb))
@@ -67,7 +67,7 @@ if calib_ver_used == 23
     croparea_fa2_Ccy = croparea_fa2_Ccy(:,IB,:) ;
     yield_fa2_Ccy = yield_fa2_Ccy(:,IB,:) ;
     if ~isequal(listCrops_fa2o, listCrops_lpj_comb)
-        error('listCrops mismatch even after rearranging')
+        error('listCrops mismatch even after rearranging???')
     end
 elseif calib_ver_used > 23
     error('calib_ver_used %d not recognized', calib_ver_used)

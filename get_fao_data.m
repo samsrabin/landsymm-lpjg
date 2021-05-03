@@ -16,14 +16,14 @@ function [total_fa2_Ccy, croparea_fa2_Ccy, yield_fa2_Ccy, ...
 
 if ~isempty(varargin)
     if length(varargin) ~= 6
-        error('0 or 6 optional arguments required: Ncountries, listCountries_map_present, countries_YX, countries_key, faoCommBalElement, is_ggcmi')
+        error('0 or 6 optional arguments required: Ncountries, listCountries_map_present, countries_YX, countries_key, faoCommBalElement, indiv_years')
     end
     Ncountries = varargin{1} ;
     listCountries_map_present = varargin{2} ;
     countries_YX = varargin{3} ;
     countries_key = varargin{4} ;
     faoCommBalElement = varargin{5} ;
-    is_ggcmi = varargin{6} ;
+    indiv_years = varargin{6} ;
 end
 
 yearList = year1:yearN ;
@@ -119,7 +119,7 @@ ignoreNoData = true ;
 % end
 % 
 
-if is_ggcmi
+if ~indiv_years
     total_fa2_Ccy = nanmean(total_fa2_Ccy,3) ;
     croparea_fa2_Ccy = nanmean(croparea_fa2_Ccy,3) ;
     yield_fa2_Ccy = nanmean(yield_fa2_Ccy,3) ;

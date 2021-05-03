@@ -24,6 +24,9 @@ ctry_excluded_area_thresh = 0.1 ; % The fraction of a country's excluded
 % will be excluded from that crop's calibration.
 ctrymapVer = 1 ;
 
+% Compare individual years? Or take mean over period?
+indiv_years = true ;
+
 
 %% Other options and setup
 
@@ -96,8 +99,13 @@ version_name = sprintf('ggcmi_%s_%s%d_ctry%d_caet%g', ...
     model_name, remapVer, calib_ver, ctrymapVer, ctry_excluded_area_thresh) ;
 
 % Years for calibration
-year1 = 1980 ;
-yearN = 2010 ;
+if indiv_years
+    year1 = 1995 ;
+    yearN = 2005 ;
+else
+    year1 = 1980 ;
+    yearN = 2010 ;
+end
 
 % Paths to calibration code and data
 dir_code = '/Users/Shared/PLUM/crop_calib_code/' ;

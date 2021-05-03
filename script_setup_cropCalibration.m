@@ -81,3 +81,6 @@ if ~exist('is_ggcmi', 'var')
         | contains(version_name,'GGCMI') ...
         | contains(version_name,'emu') ;
 end
+if ~exist('indiv_years', 'var')
+    indiv_years = true ;
+end
