@@ -196,25 +196,6 @@ if exist('filename_guess_yield', 'var')
         error('Crop(s) missing from yield output!')
     end
     
-    % Get maximum of spring/winter CerealsC3, if needed
-    remove = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]')) ;
-    if any(remove)
-        I_wheats_rf = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]$')) ;
-        I_wheats_ir = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]i$')) ;
-        maxWheat_rf_YX1y = max(yield_lpj.maps_YXvy(:,:,I_wheats_rf,:), [], 3) ;
-        maxWheat_ir_YX1y = max(yield_lpj.maps_YXvy(:,:,I_wheats_ir,:), [], 3) ;
-        yield_lpj.maps_YXvy(:,:,remove,:) = [] ;
-        yield_lpj.varNames(remove) = [] ;
-        yield_lpj.varNames = [yield_lpj.varNames {'CerealsC3' 'CerealsC3i'}] ;
-        yield_lpj.maps_YXvy = cat(3, yield_lpj.maps_YXvy, ...
-            maxWheat_rf_YX1y, maxWheat_ir_YX1y) ;
-        clear I_wheats* maxWheat_*
-        remove = ~cellfun(@isempty, regexp(listCrops_lpj_comb, 'CerealsC3[sw]')) ;
-        listCrops_lpj_comb(remove) = [] ;
-        listCrops_lpj_comb{end+1} = 'CerealsC3' ;
-    end
-    clear remove
-    
 elseif exist('dirname_emuBL_yields', 'var')
     % GGCMI phase 2
     cropList_ggcmi = {'maize', 'rice', 'soy', 'spring_wheat', 'winter_wheat'} ;
@@ -274,6 +255,34 @@ elseif exist('dirname_emuBL_yields', 'var')
 else
     error('How am I supposed to import yields?')
 end
+
+% Get maximum of spring/winter CerealsC3, if needed
+remove = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]')) ;
+if any(remove)
+    I_wheats_rf = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]$')) ;
+    I_wheats_ir = ~cellfun(@isempty, regexp(yield_lpj.varNames, 'CerealsC3[sw]i$')) ;
+    if isfield(yield_lpj, 'maps_YXvy')
+        maxWheat_rf_YX1y = max(yield_lpj.maps_YXvy(:,:,I_wheats_rf,:), [], 3) ;
+        maxWheat_ir_YX1y = max(yield_lpj.maps_YXvy(:,:,I_wheats_ir,:), [], 3) ;
+        yield_lpj.maps_YXvy(:,:,remove,:) = [] ;
+        yield_lpj.varNames(remove) = [] ;
+        yield_lpj.maps_YXvy = cat(3, yield_lpj.maps_YXvy, ...
+            maxWheat_rf_YX1y, maxWheat_ir_YX1y) ;
+    else
+        maxWheat_rf_YX = max(yield_lpj.maps_YXv(:,:,I_wheats_rf), [], 3) ;
+        maxWheat_ir_YX = max(yield_lpj.maps_YXv(:,:,I_wheats_ir), [], 3) ;
+        yield_lpj.maps_YXv(:,:,remove) = [] ;
+        yield_lpj.varNames(remove) = [] ;
+        yield_lpj.maps_YXv = cat(3, yield_lpj.maps_YXv, ...
+            maxWheat_rf_YX, maxWheat_ir_YX) ;
+    end
+    yield_lpj.varNames = [yield_lpj.varNames {'CerealsC3' 'CerealsC3i'}] ;
+    clear I_wheats* maxWheat_*
+    remove = ~cellfun(@isempty, regexp(listCrops_lpj_comb, 'CerealsC3[sw]')) ;
+    listCrops_lpj_comb(remove) = [] ;
+    listCrops_lpj_comb{end+1} = 'CerealsC3' ;
+end
+clear remove
 
 % Start dealing with sugar and oilcrops, if needed
 try
@@ -449,7 +458,7 @@ if ~is_ggcmi && (~isequal(yield_lpj.yearList,cropfrac_lpj.yearList) || ~isequal(
 end
 
 % Combine WW and SW, if necessary
-if any(strcmp(cropfrac_lpj.varNames,'CerealsC3w')) || any(strcmp(cropfrac_lpj.varNames,'CerealsC3s'))
+if ~isempty(intersect(cropfrac_lpj.varNames,{'CerealsC3w','CerealsC3s'}))
     warning('Combining WW and SW.')
     if is_ggcmi % You've already combined yields, above
         % Rainfed
