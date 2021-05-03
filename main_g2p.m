@@ -8,6 +8,12 @@
 % model_name = 'GEPIC' ;
 % model_name = 'pDSSAT' ;
 model_name = 'LPJ-GUESS-sim' ;
+% lpjg_run_topDir = '/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/calibration' ;
+% lpjg_run_topDir = '/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/calibration_Ks1' ;
+% lpjg_run_topDir = '/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/calibration_Ks2' ;
+% lpjg_run_topDir = '/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/calibration_Ks3' ;
+% lpjg_run_topDir = '/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/calibration_Ks3_Oilcrops_ownDates' ;
+lpjg_run_topDir = '/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/calibration_Ks3_Oilcrops_ownDates_TeSo' ;
 
 % remapVer = '5e' ; calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
 % remapVer = '8b' ; calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
@@ -17,15 +23,13 @@ model_name = 'LPJ-GUESS-sim' ;
 % remapVer = '13_g2p' ; calib_ver = 23 ;   % The version of mapping FAO to PLUM crop types
 remapVer = '12_g2p' ; calib_ver = 23 ;   % The version of mapping FAO to PLUM crop types
 
-lpjg_run_topDir = '/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/calibration' ;
-
 ctry_excluded_area_thresh = 0.1 ; % The fraction of a country's excluded
 % area of a given crop (due to no simulated yield) above which the country
 % will be excluded from that crop's calibration.
 ctrymapVer = 1 ;
 
 % Compare individual years? Or take mean over period?
-indiv_years = true ;
+indiv_years = false ;
 
 
 %% Other options and setup
