@@ -15,8 +15,10 @@ for c = 1:length(varNames_out)
             thisCrop_agm = 'maize' ;
         case {'Oilcrops','Pulses','OilNfix'}
             thisCrop_agm = 'soy' ;
-        case {'StarchyRoots', 'FruitAndVeg', 'Sugarbeet', 'OilOther'}
+        case {'CerealsC3s', 'StarchyRoots', 'FruitAndVeg', 'Sugarbeet', 'OilOther'}
             thisCrop_agm = 'spring_wheat' ;
+        case {'CerealsC3w'}
+            thisCrop_agm = 'winter_wheat' ;
         case {'Sugar'}
             thisCrop_agm = 'sugar' ;
         case {'Rice'}
