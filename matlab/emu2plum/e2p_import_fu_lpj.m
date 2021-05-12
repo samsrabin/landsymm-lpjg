@@ -1,6 +1,6 @@
 function data_fu_lpj = e2p_import_fu_lpj( ...
     baseline_yN, future_ts, future_yN, topDir_lpj, which_file, ...
-    varNames_bl_lpj, get_unneeded, gridlist_target)
+    get_unneeded, gridlist_target)
 
 % Future: Set up
 y1 = baseline_yN + 1 ;
@@ -77,11 +77,6 @@ end
 
 % Trim unneeded variables
 data_fu_lpj = e2p_trim_unneeded(data_fu_lpj, get_unneeded) ;
-
-% Test for matching variable names between baseline and future
-if ~isequal(varNames_bl_lpj, data_fu_lpj.varNames)
-    error('Mismatch between baseline and future LPJ-GUESS variable names')
-end
 
 
 end

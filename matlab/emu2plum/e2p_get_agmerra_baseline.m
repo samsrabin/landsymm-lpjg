@@ -1,6 +1,6 @@
 function S_out = e2p_get_agmerra_baseline(...
     varNames_emu, topDir_phase2, topDir_emu, ggcm, list2map, lonlats, getN, ...
-    adaptation, which_file, required)
+    adaptation, which_file)
 
 warning('on','all')
 
@@ -101,14 +101,8 @@ for v = 1:Nvars_emu
                             false) ;
                         
                         if isempty(thisFile)
-                            if required
-                                error('Could not find baseline AgMERRA %s for %s', ...
-                                    which_file, thisCropIrr)
-                            else
-                                nofilefound = true ;
-                                warning('%s\n  Will not check for missing or low baseline AgMERRA %s!', ...
-                                    msg, which_file) ;
-                            end
+                            error('Could not find baseline AgMERRA %s for %s', ...
+                                which_file, thisCropIrr)
                         end
                     end
                 end

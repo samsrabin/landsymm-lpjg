@@ -8,11 +8,7 @@ for g = 1:length(gcm_list)
 
         outDir = sprintf('%s_work/A%d_%s_%s_%s_%s', ...
             topDir_emu, adaptation, emuVer, gcm, ssp, thisVer) ;
-        if use_ph2_baseline
-            outDir = [outDir '_ph2bl'] ; %#ok<AGROW>
-        elseif ~use_lpjg_baseline
-            error('What suffix do I use for this baseline?')
-        end
+        outDir = [outDir '_ph2bl'] ; %#ok<AGROW>
         if interp_infs
             outDir = [outDir '_intpinfs'] ;
         end
@@ -66,15 +62,9 @@ for g = 1:length(gcm_list)
                 
                 % Get LPJ-GUESS simulation data for this file
                 if strcmp(which_file, 'yield')
-                    data_bl_lpj = data_bl_lpj_yield ;
                     data_fu_lpj = data_fu_lpj_yield ;
-                    data_bl_lpj0 = data_bl_lpj0_yield ;
-                    data_fu_lpj0 = data_fu_lpj0_yield ;
                 elseif strcmp(which_file, 'gsirrigation')
-                    data_bl_lpj = data_bl_lpj_irrig ;
                     data_fu_lpj = data_fu_lpj_irrig ;
-                    data_bl_lpj0 = data_bl_lpj0_irrig ;
-                    data_fu_lpj0 = data_fu_lpj0_irrig ;
                 else
                     error('which_file (%s) not recognized', which_file)
                 end
@@ -83,9 +73,7 @@ for g = 1:length(gcm_list)
                 out_file = sprintf('%s/future_%s.mat', outDir_ggcm, which_file) ;
                 did_load_existing = load_existing_file && exist(out_file, 'file') ;
                 if did_load_existing
-                    if ~use_lpjg_baseline
                         error('load_existing_file only tested with use_lpjg_baseline')
-                    end
                     
                     fprintf('    Importing future_%s.mat...\n', which_file) ;
 
@@ -145,37 +133,33 @@ for g = 1:length(gcm_list)
                     end
                     
                     false_xc = false(length(data_bl_emu.list2map),length(cropList_emu_basei)) ;
-                    missing_agmerra_xc = false_xc ;
-                    if (excl_lowBL_agmerra && strcmp(which_file, 'yield')) ...
-                            || use_ph2_baseline
-                        fprintf('    Importing AgMERRA %s...\n', which_file)
-                        if ~isequal(data_fu_lpj.list2map, data_bl_emu.list2map)
-                            error('gridlist mismatch')
-                        end
-                        data_bl_agm = e2p_get_agmerra_baseline(...
-                            varNames_emu, topDir_phase2, topDir_emu, ggcm, ...
-                            data_bl_emu.list2map, data_fu_lpj.lonlats, getN, ...
-                            adaptation, which_file, use_ph2_baseline) ;
-                        if ~any(any(~isnan(data_bl_agm.garr_xv)))
-                            error('data_bl_agm.garr_xv is all NaN')
-                        end
-                        % Translate to output crops
-                        [varNames_agm, cropList_agm, ...
-                            varNames_agm_basei, cropList_agm_basei, ...
-                            Nlist_agm, ~] = ...
-                            e2p_get_names(data_bl_agm.varNames, [], ...
-                            getN, get_unneeded) ;
-                        [cropList_agm_asEmu, used_emuCrops_agm] = e2p_translate_crops_lpj2emu( ...
-                            cropList_agm, cropList_emu) ;
-                        % Sanity check
-                        if ~isequal(size(shiftdim(cropList_emu)), size(shiftdim(used_emuCrops_agm)))
-                            error('Size mismatch between cropList_emu and used_emuCrops_agm')
-                        end
-                        % Find missing crops
-                        missing_agmerra_xc = e2p_exclude_missing( ...
-                            varNames_emu_basei, cropList_emu_basei, Nlist, ...
-                            data_bl_agm.garr_xv) ;
+                    fprintf('    Importing AgMERRA %s...\n', which_file)
+                    if ~isequal(data_fu_lpj.list2map, data_bl_emu.list2map)
+                        error('gridlist mismatch')
                     end
+                    data_bl_agm = e2p_get_agmerra_baseline(...
+                        varNames_emu, topDir_phase2, topDir_emu, ggcm, ...
+                        data_bl_emu.list2map, data_fu_lpj.lonlats, getN, ...
+                        adaptation, which_file) ;
+                    if ~any(any(~isnan(data_bl_agm.garr_xv)))
+                        error('data_bl_agm.garr_xv is all NaN')
+                    end
+                    % Translate to output crops
+                    [varNames_agm, cropList_agm, ...
+                        varNames_agm_basei, cropList_agm_basei, ...
+                        Nlist_agm, ~] = ...
+                        e2p_get_names(data_bl_agm.varNames, [], ...
+                        getN, get_unneeded) ;
+                    [cropList_agm_asEmu, used_emuCrops_agm] = e2p_translate_crops_lpj2emu( ...
+                        cropList_agm, cropList_emu) ;
+                    % Sanity check
+                    if ~isequal(size(shiftdim(cropList_emu)), size(shiftdim(used_emuCrops_agm)))
+                        error('Size mismatch between cropList_emu and used_emuCrops_agm')
+                    end
+                    % Find missing crops
+                    missing_agmerra_xc = e2p_exclude_missing( ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist, ...
+                        data_bl_agm.garr_xv) ;
 
                     
                     %% Get and apply exclusions, if doing so
@@ -192,17 +176,14 @@ for g = 1:length(gcm_list)
                     
                     if strcmp(which_file, 'yield')
                         
-                        isexcl_lowBL_agmerra_xc = false_xc ;
                         isexcl_lowBL_emu_xc = false_xc ;
                         
                         % Where do we exclude based on low AgMERRA yield at max N
                         % (or existing exclusions)?
-                        if excl_lowBL_agmerra || use_ph2_baseline
-                            disp('    Excluding based on low AgMERRA yield at max N...')
-                            isexcl_lowBL_agmerra_xc = e2p_exclude_lowBLyield_atMaxN( ...
-                                varNames_emu, cropList_emu_basei, Nlist_emu, ...
-                                data_bl_agm.garr_xv, low_yield_threshold_kgm2) ;
-                        end
+                        disp('    Excluding based on low AgMERRA yield at max N...')
+                        isexcl_lowBL_agmerra_xc = e2p_exclude_lowBLyield_atMaxN( ...
+                            varNames_emu, cropList_emu_basei, Nlist_emu, ...
+                            data_bl_agm.garr_xv, low_yield_threshold_kgm2) ;
                         if ~any(any(~isexcl_lowBL_agmerra_xc))
                             error('All cells excluded because of low AgMERRA yield')
                         end
@@ -332,22 +313,18 @@ for g = 1:length(gcm_list)
                         if ~isequal(winter_wheats, winter_wheats_test)
                             error('Mismatch between winter wheat lists from data_bl_emu vs. data_fu_emu')
                         end
-                        if use_ph2_baseline
-                            [data_bl_agm.garr_xv, data_bl_agm.varNames, ...
-                                is_ww_max_bl_gW, winter_wheats_test, ...
-                                data_bl_agm.actually_emu_char] = ...
-                                e2p_get_max_wheat(data_bl_agm.garr_xv, data_bl_agm.varNames, ...
-                                data_bl_agm.actually_emu) ;
-                            if ~isequal(winter_wheats, winter_wheats_test)
-                                error('Mismatch between winter wheat lists from data_bl_emu vs. data_bl_agm')
-                            end
+                        [data_bl_agm.garr_xv, data_bl_agm.varNames, ...
+                            is_ww_max_bl_gW, winter_wheats_test, ...
+                            data_bl_agm.actually_emu_char] = ...
+                            e2p_get_max_wheat(data_bl_agm.garr_xv, data_bl_agm.varNames, ...
+                            data_bl_agm.actually_emu) ;
+                        if ~isequal(winter_wheats, winter_wheats_test)
+                            error('Mismatch between winter wheat lists from data_bl_emu vs. data_bl_agm')
                         end
                     elseif strcmp(which_file, 'gsirrigation')
                         data_bl_emu = e2p_apply_max_wheat(data_bl_emu, outDir_ggcm) ;
                         data_fu_emu = e2p_apply_max_wheat(data_fu_emu, outDir_ggcm) ;
-                        if use_ph2_baseline
-                            data_bl_agm = e2p_apply_max_wheat(data_bl_agm, outDir_ggcm) ;
-                        end
+                        data_bl_agm = e2p_apply_max_wheat(data_bl_agm, outDir_ggcm) ;
                     elseif ~strcmp(which_file, 'anpp')
                         error('which_file (%s) not recognized', which_file)
                     else
@@ -360,11 +337,9 @@ for g = 1:length(gcm_list)
                     e2p_check_correct_zeros(data_fu_emu.garr_xvt, ...
                         which_file, data_fu_emu.varNames, ...
                         'Future', @getbasenamei)
-                    if use_ph2_baseline
-                        e2p_check_correct_zeros(data_bl_agm.garr_xv, ...
-                            which_file, data_bl_agm.varNames, ...
-                            'Baseline', @getbasenamei)
-                    end
+                    e2p_check_correct_zeros(data_bl_agm.garr_xv, ...
+                        which_file, data_bl_agm.varNames, ...
+                        'Baseline', @getbasenamei)
                     
                     % Refresh variable and crop lists
                     if refresh_vars
@@ -373,32 +348,23 @@ for g = 1:length(gcm_list)
                             Nlist_emu, ~] = ...
                             e2p_get_names(data_bl_emu.varNames, data_fu_emu.varNames, ...
                             getN, get_unneeded) ;
-                        if use_ph2_baseline
-                            [varNames_agm, cropList_agm, ...
-                                varNames_agm_basei, cropList_agm_basei, ...
-                                Nlist_agm, ~] = ...
-                                e2p_get_names(data_bl_agm.varNames, [], ...
-                                getN, get_unneeded) ;
-                        end
+                        [varNames_agm, cropList_agm, ...
+                            varNames_agm_basei, cropList_agm_basei, ...
+                            Nlist_agm, ~] = ...
+                            e2p_get_names(data_bl_agm.varNames, [], ...
+                            getN, get_unneeded) ;
                     end
                     
-                    %% Set up output baseline structure
-                    if use_lpjg_baseline
-                        data_bl_out = data_bl_lpj ;
-                    elseif use_ph2_baseline
-                        % Rearrange and rename AgMERRA baseline to match
-                        % LPJ-GUESS (output) variable names
-                        data_bl_out.list2map = data_bl_agm.list2map ;
-                        data_bl_out.lonlats = data_bl_agm.lonlats ;
-                        I = e2p_translate_crops_agm2out(...
-                            varNames_agm, varNames_out) ;
-                        data_bl_out.varNames = varNames_out ;
-                        data_bl_out.actually_emu_char = ...
-                            data_bl_agm.actually_emu_char(I) ;
-                        data_bl_out.garr_xv = data_bl_agm.garr_xv(:,I) ;
-                    elseif ~(use_lpjg_baseline || use_ph2_baseline)
-                        error('Which baseline are you using? I can''t set up data_bl_out.')
-                    end
+                    % Rearrange and rename AgMERRA baseline to match
+                    % LPJ-GUESS (output) variable names
+                    data_bl_out.list2map = data_bl_agm.list2map ;
+                    data_bl_out.lonlats = data_bl_agm.lonlats ;
+                    I = e2p_translate_crops_agm2out(...
+                        varNames_agm, varNames_out) ;
+                    data_bl_out.varNames = varNames_out ;
+                    data_bl_out.actually_emu_char = ...
+                        data_bl_agm.actually_emu_char(I) ;
+                    data_bl_out.garr_xv = data_bl_agm.garr_xv(:,I) ;
 
                     disp('    Done.')
 
@@ -408,12 +374,9 @@ for g = 1:length(gcm_list)
                     disp('    Harmonizing LPJ-GUESS and emulator data...')
 
                     % Align gridlists
-                    [data_bl_lpj, data_fu_lpj, data_bl_emu, data_fu_emu, list2map] = ...
-                        e2p_align_gridlists(data_bl_lpj, data_fu_lpj, data_bl_emu, data_fu_emu) ;
+                    [data_fu_lpj, data_bl_emu, data_fu_emu, list2map] = ...
+                        e2p_align_gridlists(data_fu_lpj, data_bl_emu, data_fu_emu) ;
 
-                    e2p_check_correct_zeros(data_bl_lpj.garr_xv, ...
-                        which_file, data_bl_lpj.varNames, ...
-                        'Baseline', @getbasenamei)
                     e2p_check_correct_zeros(data_fu_lpj.garr_xvt, ...
                         which_file, data_fu_lpj.varNames, ...
                         'Future', @getbasenamei)
@@ -425,27 +388,17 @@ for g = 1:length(gcm_list)
                         'Future', @getbasenamei)
 
                     % Make sure that N lists match
-                    if use_lpjg_baseline && ~isequal(Nlist_lpj,Nlist_emu)
-                        error('Mismatch in N levels between LPJ-GUESS baseline and emulator future')
-                    elseif use_ph2_baseline && ~isequal(Nlist_agm,Nlist_emu)
+                    if ~isequal(Nlist_agm,Nlist_emu)
                         error('Mismatch in N levels between Phase 2 baseline and emulator future')
-                    elseif ~(use_lpjg_baseline || use_ph2_baseline)
-                        error('Which baseline are you using? I can''t check for matching N levels.')
                     end
 
                     % Translate crop names
                     [cropList_lpj_asEmu, used_emuCrops_lpj] = e2p_translate_crops_lpj2emu( ...
                         cropList_lpj, cropList_emu) ;
                     cropList_out_asEmu = cropList_lpj_asEmu ;
-                    if use_lpjg_baseline
-                        used_emuCrops = used_emuCrops_lpj ;
-                    elseif use_ph2_baseline
-                        [cropList_agm_asEmu, used_emuCrops_agm] = e2p_translate_crops_lpj2emu( ...
-                            cropList_agm, cropList_emu) ;
-                        used_emuCrops = used_emuCrops_agm ;
-                    else
-                        error('What used_emuCrops should I use?')
-                    end
+                    [cropList_agm_asEmu, used_emuCrops_agm] = e2p_translate_crops_lpj2emu( ...
+                        cropList_agm, cropList_emu) ;
+                    used_emuCrops = used_emuCrops_agm ;
                     % Sanity check
                     if ~isequal(size(shiftdim(cropList_emu)), size(shiftdim(used_emuCrops)))
                         error('Size mismatch between cropList_emu and used_emuCrops')
@@ -495,6 +448,7 @@ for g = 1:length(gcm_list)
                     
                     %% Get fake N1000 values
                     if fake1k
+                        error('Need to rework now that you''re never using bl_lpj or bl_lpj0')
                         data_fu_lpj = e2p_fake_1000(data_fu_lpj, data_bl_lpj0, ...
                             cropList_lpj, Nlist_lpj0, Nlist_emu, which_file) ;
                         data_fu_out = e2p_fake_1000(data_fu_out, data_bl_lpj0, ...
@@ -586,25 +540,18 @@ for g = 1:length(gcm_list)
                 %% Save yield diagnostic figures, if doing so
                 if save_out_figs
                     disp('    Saving output figures...')
-                    if ~isempty(data_fu_lpj0) && ~save_out_figs_Nth0
-                        tmp = [] ;
-                    else
-                        tmp = data_fu_lpj0 ;
-                    end
                     if strcmp(which_file, 'yield')
-                        e2p_save_out_figs(data_fu_lpj, tmp, ...
+                        e2p_save_out_figs(data_fu_lpj, ...
                             data_fu_emu, data_fu_out, ...
                             ggcm, getN, outDir_yield_figs, ...
                             which_file, cropList_lpj_asEmu, figure_visibility, figure_extension, ...
-                            which_out_figs, overwrite_existing_figs, renderer, ...
-                            use_lpjg_baseline, use_ph2_baseline)
+                            which_out_figs, overwrite_existing_figs, renderer)
                     elseif strcmp(which_file, 'gsirrigation')
-                        e2p_save_out_figs(data_fu_lpj, tmp, ...
+                        e2p_save_out_figs(data_fu_lpj, ...
                             data_fu_emu, data_fu_out, ...
                             ggcm, getN, outDir_irrig_figs, ...
                             which_file, cropList_lpj_asEmu, figure_visibility, figure_extension, ...
-                            which_out_figs, overwrite_existing_figs, renderer, ...
-                            use_lpjg_baseline, use_ph2_baseline)
+                            which_out_figs, overwrite_existing_figs, renderer)
                     else
                         warning('which_file (%s) not recognized for save_yield_figs; skipping.', which_file)
                     end
