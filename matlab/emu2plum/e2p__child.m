@@ -3,6 +3,13 @@ warning('on','all')
 for g = 1:length(gcm_list)
     gcm = gcm_list{g} ;
     
+    switch gcm
+        case 'UKESM1-0-LL'
+            gcm_prefix = 'ukesm' ;
+        otherwise
+            error('What prefix should be used for GCM %s?', gcm)
+    end
+    
     for s = 1:length(ssp_list)
         ssp = ssp_list{s} ;
 
@@ -46,6 +53,65 @@ for g = 1:length(gcm_list)
         if ~exist(outDir_lpj, 'dir')
             mkdir(outDir_lpj) ;
         end
+        
+        % Import LPJ-GUESS yield and irrigation
+        if strcmp(which_system, 'mymac')
+            tmp = sprintf('/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/%s_actual_2015soc_default/outputs', ...
+                gcm_prefix) ;
+        else
+            error('Error parsing which_system "%s" for topDir_lpj', which_system)
+        end
+        if ~exist(tmp, 'dir')
+            error('%s not found', tmp)
+        end
+        outdirs = dir(sprintf('%s/outForPLUM*', tmp)) ;
+        topDir_lpj = sprintf('%s/%s', ...
+            outdirs(end).folder, outdirs(end).name) ;
+        clear outdirs tmp
+        disp('Importing LPJ-GUESS yield...')
+        which_file = 'yield' ;
+        data_fu_lpj_yield = e2p_import_fu_lpj(future_y1-1, future_ts, future_yN_lpj, topDir_lpj, ...
+            which_file, get_unneeded) ;
+        e2p_check_correct_zeros(data_fu_lpj_yield.garr_xvt, ...
+            which_file, data_fu_lpj_yield.varNames, ...
+            'Future', @getbasenamei)
+        [varNames_lpj, cropList_lpj, ...
+            varNames_lpj_basei, cropList_lpj_basei, ...
+            Nlist_lpj, ~] = ...
+            e2p_get_names({}, data_fu_lpj_yield.varNames, ...
+            getN, get_unneeded) ;
+        varNames_out = varNames_lpj ;
+        cropList_out = cropList_lpj ;
+        varNames_out_basei = varNames_lpj_basei ;
+        cropList_out_basei = cropList_lpj_basei ;
+        gridlist.list_to_map = data_fu_lpj_yield.list2map ;
+        gridlist.lonlats = data_fu_lpj_yield.lonlats ;
+        gridlist.mask_YX = false(360, 720) ;
+        gridlist.mask_YX(gridlist.list_to_map) = true ;
+        gridlist_target = {gridlist.lonlats gridlist.list_to_map} ;
+        disp('Importing LPJ-GUESS irrigation...')
+        which_file = 'gsirrigation' ;
+        data_fu_lpj_irrig = e2p_import_fu_lpj(future_y1-1, future_ts, future_yN_lpj, topDir_lpj, ...
+            which_file, get_unneeded, gridlist_target) ;
+        e2p_check_correct_zeros(data_fu_lpj_irrig.garr_xvt, ...
+            which_file, data_fu_lpj_irrig.varNames, ...
+            'Future', @getbasenamei)
+        [varNames_lpj, cropList_lpj2, ...
+            varNames_lpj_basei2, cropList_lpj_basei2, ...
+            Nlist_lpj2, ~] = ...
+            e2p_get_names({}, data_fu_lpj_irrig.varNames, ...
+            getN, get_unneeded) ;
+        if ~isequal(cropList_lpj,cropList_lpj2)
+            error('Mismatch between cropList_lpj for yield vs. gsirrigation')
+        elseif ~isequal(varNames_lpj_basei,varNames_lpj_basei2)
+            error('Mismatch between varNames_lpj_basei for yield vs. gsirrigation')
+        elseif ~isequal(cropList_lpj_basei,cropList_lpj_basei2)
+            error('Mismatch between cropList_lpj_basei for yield vs. gsirrigation')
+        elseif ~isequal(Nlist_lpj,Nlist_lpj2)
+            error('Mismatch between Nlist_lpj2 for yield vs. gsirrigation')
+        end
+        clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj2
+        disp('Done importing LPJ-GUESS yield and irrigation.')
 
         for ggcm_counter = 1:length(ggcm_list)
 
@@ -73,7 +139,7 @@ for g = 1:length(gcm_list)
                 out_file = sprintf('%s/future_%s.mat', outDir_ggcm, which_file) ;
                 did_load_existing = load_existing_file && exist(out_file, 'file') ;
                 if did_load_existing
-                        error('load_existing_file only tested with use_lpjg_baseline')
+                    error('load_existing_file only tested with use_lpjg_baseline')
                     
                     fprintf('    Importing future_%s.mat...\n', which_file) ;
 
@@ -567,6 +633,8 @@ for g = 1:length(gcm_list)
 
         fprintf('Done with %s %s.\n', gcm, ssp)
         diary('off')
+        
+        clear data_fu_lpj_yield data_fu_lpj_irrig
 
     end
     

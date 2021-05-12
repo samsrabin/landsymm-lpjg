@@ -31,30 +31,24 @@ thisVer = '20210226' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
 
+future_y1 = 2015 ;
 baseline_y1 = 2001 ;
 baseline_yN = 2010 ;
 future_ts = 10 ; % Number of years in future time step
 future_yN_emu = 2084 ;
-
-tmp_rcp = 'rcp45' ;
-warning('Arbitrarily using %s LPJ-GUESS run! Fix this once you''ve done the CMIP6 runs.', ...
-    tmp_rcp)
 
 
 %% Setup
 
 current_dir = pwd ;
 if strcmp(current_dir(1:6), '/Users') || strcmp(current_dir(1:6), '/Volum')
+    which_system = 'mymac' ;
     topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
-    topDir_lpj = sprintf('%s/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
-        '/Volumes/Reacher/GGCMI/g2p/lpj-guess_runs', ...
-        tmp_rcp) ;
     topDir_agmipout = '/Volumes/Reacher/GGCMI/AgMIP.output' ;
     topDir_emu = sprintf('%s/CMIP_emulated', topDir_agmipout) ;
 elseif strcmp(current_dir(1:3), '/pd')
+    which_system = 'keal' ;
     topdir_db = '/pd/data/lpj/sam/ggcmi2plum' ;
-    topDir_lpj = sprintf('%s/GGCMIPLUM_2001-2100_remap6p7_forPotYields_%s', ...
-        topdir_db, tmp_rcp) ;
     topDir_agmipout = sprintf('%s/AgMIP.output', topdir_db) ;
     topDir_emu = '/pd/data/lpj/sam/ggcmi2plum/CMIP_emulated' ;
 else
@@ -79,11 +73,7 @@ remove_outliers = ~strcmp(when_remove_outliers, 'off') ...
     & ~isempty(when_remove_outliers) ;
 
 % Check that directories exist
-if ~contains(topDir_lpj, tmp_rcp)
-    error('~contains(topDir_lpj, rcp)')
-elseif ~exist(topDir_lpj, 'dir')
-    error('topDir_lpj does not exist:\n %s', topDir_lpj)
-elseif ~exist(topDir_emu, 'dir')
+if ~exist(topDir_emu, 'dir')
     error('topDir_emu does not exist:\n %s', topDir_emu)
 elseif ~exist(topDir_agmipout, 'dir')
     error('topDir_agmipout does not exist:\n %s', topDir_agmipout)
@@ -103,17 +93,10 @@ NN = length(Nlist) ;
 irrList_in = {'rf', 'ir'} ;
 irrList_out = {'', 'i'} ;
 
-gridlist_file = sprintf('%s/../gridlist_62892.runAEclimOK.txt', ...
-    topDir_lpj) ;
-gridlist = lpjgu_matlab_readTable_then2map(gridlist_file, ...
-    'force_mat_nosave', true, 'force_mat_save', false) ;
-gridlist_target = {gridlist.lonlats gridlist.list_to_map} ;
-
 % Figure out timesteps
 Nyears_ts = future_ts ;
-ts1_y1 = ceil(baseline_yN/Nyears_ts)*Nyears_ts+1 ;
 tsN_y1 = floor(future_yN_emu/Nyears_ts)*Nyears_ts ;
-ts1_list = ts1_y1:Nyears_ts:tsN_y1 ;
+ts1_list = future_y1:Nyears_ts:tsN_y1 ;
 tsN_list = ts1_list + Nyears_ts - 1 ;
 Ntpers = length(ts1_list) ;
 
@@ -155,63 +138,6 @@ for c = 1:length(cropIrrList_out)
 end
 header_out = [header_out '\n'] ;
 format_out = [format_out '\n'] ;
-
-
-%% Import LPJ-GUESS yield and irrigation
-
-disp('Importing LPJ-GUESS yield...')
-
-which_file = 'yield' ;
-
-data_fu_lpj_yield = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj, ...
-    which_file, get_unneeded, gridlist_target) ;
-e2p_check_correct_zeros(data_fu_lpj_yield.garr_xvt, ...
-    which_file, data_fu_lpj_yield.varNames, ...
-    'Future', @getbasenamei)
-
-[varNames_lpj, cropList_lpj, ...
-    varNames_lpj_basei, cropList_lpj_basei, ...
-    Nlist_lpj, ~] = ...
-    e2p_get_names({}, data_fu_lpj_yield.varNames, ...
-    getN, get_unneeded) ;
-varNames_out = varNames_lpj ;
-cropList_out = cropList_lpj ;
-varNames_out_basei = varNames_lpj_basei ;
-cropList_out_basei = cropList_lpj_basei ;
-
-if use_lpjg_baseline && ~isequal(sort(cropIrrNlist_out), sort(varNames_lpj))
-    error('Mismatch between cropIrrNlist_out and varNames_lpj')
-end
-
-
-disp('Importing LPJ-GUESS irrigation...')
-
-which_file = 'gsirrigation' ;
-
-data_fu_lpj_irrig = e2p_import_fu_lpj(baseline_yN, future_ts, future_yN_lpj, topDir_lpj, ...
-    which_file, get_unneeded, gridlist_target) ;
-e2p_check_correct_zeros(data_fu_lpj_irrig.garr_xvt, ...
-    which_file, data_fu_lpj_irrig.varNames, ...
-    'Future', @getbasenamei)
-
-[varNames_lpj, cropList_lpj2, ...
-    varNames_lpj_basei2, cropList_lpj_basei2, ...
-    Nlist_lpj2, ~] = ...
-    e2p_get_names({}, data_fu_lpj_irrig.varNames, ...
-    getN, get_unneeded) ;
-
-if ~isequal(cropList_lpj,cropList_lpj2)
-    error('Mismatch between cropList_lpj for yield vs. gsirrigation')
-elseif ~isequal(varNames_lpj_basei,varNames_lpj_basei2)
-    error('Mismatch between varNames_lpj_basei for yield vs. gsirrigation')
-elseif ~isequal(cropList_lpj_basei,cropList_lpj_basei2)
-    error('Mismatch between cropList_lpj_basei for yield vs. gsirrigation')
-elseif ~isequal(Nlist_lpj,Nlist_lpj2)
-    error('Mismatch between Nlist_lpj2 for yield vs. gsirrigation')
-end
-clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj2
-
-disp('Done.')
 
 
 %% Loop though GGCM emulators
