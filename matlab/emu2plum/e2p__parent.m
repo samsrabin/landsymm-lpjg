@@ -83,7 +83,7 @@ end
 % getbasenamei = @(x) regexprep(x,'\d\d\d$','') ;
 % getbasename0 = @(x) regexprep(regexprep(regexprep(x,'i?\d\d\d\d$',''),'i0$',''),'0$','') ;
 % getbasename0i = @(x) regexprep(regexprep(x,'\d\d\d\d$',''),'0$','') ;
-% getN = @(x) regexprep(regexprep(x, 'CerealsC[34]', ''), '^[a-zA-Z_]+', '') ;
+% getN_char = @(x) regexprep(regexprep(x, 'CerealsC[34]', ''), '^[a-zA-Z_]+', '') ;
 get_unneeded = @(x)cellfun(@isempty, ...
     regexp(regexprep(x,'CerealsC[34]','CerealsC'),'.*\d+')) | contains(x,'G_ic') ;
 
@@ -129,14 +129,26 @@ cropIrrList_out = [cropList_out strcat(cropList_out, 'i')] ;
 header_out = 'Lon\tLat' ;
 format_out = '%0.2f\t%0.2f' ;
 varNames_out = {} ;
+varNames_out_allN = {} ;
+varNames_out_overlapN = {} ;
 for c = 1:length(cropIrrList_out)
     thisCropIrr = cropIrrList_out{c} ;
     for n = 1:length(Nlist_out)
-        thisN = pad(num2str(Nlist_out(n)), 3, 'left', '0') ;
+        thisN_num = Nlist_out(n) ;
+        thisN = pad(num2str(thisN_num), 4, 'left', '0') ;
         thisCropIrrN = [thisCropIrr thisN] ;
         varNames_out{end+1} = thisCropIrrN ; %#ok<SAGROW>
+        if any(Nlist_emu == thisN_num)
+            varNames_out_overlapN{end+1} = thisCropIrrN ; %#ok<SAGROW>
+        end
         header_out = [header_out '\t' thisCropIrrN] ; %#ok<AGROW>
         format_out = [format_out '\t%0.3f'] ; %#ok<AGROW>
+    end
+    for n = 1:length(Nlist_lpj)
+        thisN_num = Nlist_lpj(n) ;
+        thisN = pad(num2str(thisN_num), 4, 'left', '0') ;
+        thisCropIrrN = [thisCropIrr thisN] ;
+        varNames_out_allN{end+1} = thisCropIrrN ; %#ok<SAGROW>
     end
 end
 header_out = [header_out '\n'] ;

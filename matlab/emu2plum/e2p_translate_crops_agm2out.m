@@ -1,7 +1,7 @@
 function [I_agm, I_out] = e2p_translate_crops_agm2out(...
     varNames_agm, varNames_out)
 
-Nvals_agm = cellfun(@str2double, getN(varNames_agm)) ;
+Nvals_agm = getN_num(varNames_agm) ;
 basenameIs_agm = getbasenamei(varNames_agm) ;
 
 I_agm = nan(size(varNames_out)) ;
@@ -13,7 +13,7 @@ for c = 1:length(varNames_out)
     thisCrop_out = getbasename(thisVar_out) ;
     thisCropI_out = getbasenamei(thisVar_out) ;
     iN = strrep(thisVar_out, thisCrop_out, '') ;
-    thisN = str2double(getN(thisVar_out)) ;
+    thisN = getN_num(thisVar_out) ;
     if ~any(Nvals_agm == thisN)
         continue
     end

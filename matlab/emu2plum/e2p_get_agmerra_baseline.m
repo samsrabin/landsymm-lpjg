@@ -28,7 +28,7 @@ for v = 1:Nvars_emu
     
     % Get info about this crop
     thisCropIrr = getbasenamei(varNames_emu{v}) ;
-    thisN = str2double(getN(varNames_emu{v})) ;
+    thisN = getN_num(varNames_emu{v}) ;
     thisAN = sprintf('A%d_N%d', adaptation, thisN) ;
     isirrig = strcmp(thisCropIrr(end),'i') ;
     thisCrop = thisCropIrr ;

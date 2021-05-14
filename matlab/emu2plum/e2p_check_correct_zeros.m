@@ -7,10 +7,16 @@ function e2p_check_correct_zeros(data_gvt, which_file, varNames, ...
 % one or more rainfed crops.
 
 warn_in_test_gt0_is_good = false ;
+missing_N = {} ;
 if ~isempty(varargin)
-    warn_in_test_gt0_is_good = varargin{1} & strcmp(which_file, 'gsirrigation') ;
+    if ~isempty(varargin(1))
+        warn_in_test_gt0_is_good = varargin{1} & strcmp(which_file, 'gsirrigation') ;
+    end
     if length(varargin) > 1
-        error('At most one optional argument allowed (warn_in_test_gt0_is_good)')
+        missing_N = varargin{2} ;
+        if length(varargin) > 2
+            error('At most two optional arguments allowed (warn_in_test_gt0_is_good, missing_N)')
+        end
     end
 end
 

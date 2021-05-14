@@ -13,17 +13,9 @@ Ntpers = size(data_fu_emu.garr_xvt,3) ;
 emu_bl_xvt = repmat(data_bl_emu.garr_xv, [1 1 Ntpers]) ;
 deltas0_emu_xvt = data_fu_emu.garr_xvt ./ emu_bl_xvt ;
 
-e2p_check_correct_zeros(deltas0_emu_xvt, ...
-    which_file, data_fu_emu.varNames, ...
-    'Future', @getbasenamei)
-
 % Set delta=0 where both emulated baseline and future had 0. Note, this
 % only applies for ZERO, not NaN.
 deltas0_emu_xvt(emu_bl_xvt==0 & data_fu_emu.garr_xvt==0) = 0 ;
-
-e2p_check_correct_zeros(deltas0_emu_xvt, ...
-    which_file, data_fu_emu.varNames, ...
-    'Future', @getbasenamei)
 
 % Deal with 0 baseline --> positive future (results in delta=Inf)
 % Might want to instead limit to (e.g.) 99.9th percentile of deltas
@@ -143,9 +135,6 @@ elseif ~isempty(isbad) && interp_infs
             end
             
             deltas_emu_xvt(:,v,t) = tmp_x ;
-            e2p_check_correct_zeros(deltas_emu_xvt(:,:,t), ...
-                which_file, data_fu_emu.varNames, ...
-                'Future', @getbasenamei)
             
             if save_interp_figs && t==Ntpers
                 

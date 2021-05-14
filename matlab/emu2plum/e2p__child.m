@@ -77,7 +77,7 @@ for g = 1:length(gcm_list)
             'Future', @getbasenamei)
         [varNames_lpj, cropList_lpj, ...
             varNames_lpj_basei, cropList_lpj_basei, ...
-            Nlist_lpj, ~] = ...
+            Nlist_lpj_char, ~] = ...
             e2p_get_names({}, data_fu_lpj_yield.varNames, ...
             get_unneeded) ;
         cropList_out_basei = cropIrrList_out ;
@@ -96,7 +96,7 @@ for g = 1:length(gcm_list)
             'Future', @getbasenamei)
         [~, cropList_lpj2, ...
             varNames_lpj_basei2, cropList_lpj_basei2, ...
-            Nlist_lpj2, ~] = ...
+            Nlist_lpj_char2, ~] = ...
             e2p_get_names({}, data_fu_lpj_irrig.varNames, ...
             get_unneeded) ;
         if ~isequal(cropList_lpj,cropList_lpj2)
@@ -105,10 +105,10 @@ for g = 1:length(gcm_list)
             error('Mismatch between varNames_lpj_basei for yield vs. gsirrigation')
         elseif ~isequal(cropList_lpj_basei,cropList_lpj_basei2)
             error('Mismatch between cropList_lpj_basei for yield vs. gsirrigation')
-        elseif ~isequal(Nlist_lpj,Nlist_lpj2)
-            error('Mismatch between Nlist_lpj2 for yield vs. gsirrigation')
+        elseif ~isequal(Nlist_lpj_char,Nlist_lpj_char2)
+            error('Mismatch between Nlist_lpj_char2 for yield vs. gsirrigation')
         end
-        clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj2
+        clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj_char2
         
         % Get max wheat and irrigation, if needed
         if any(strcmp(cropList_out, 'CerealsC3')) && ~any(strcmp(cropList_lpj, 'CerealsC3'))
@@ -162,7 +162,7 @@ for g = 1:length(gcm_list)
                     % Translate crop names
                     [varNames_emu, cropList_emu, ...
                             varNames_emu_basei, cropList_emu_basei, ...
-                            Nlist_emu, ~] = ...
+                            Nlist_emu_char, ~] = ...
                             e2p_get_names([], data_fu_emu.varNames, ...
                             get_unneeded) ;
                     [cropList_out_asEmu, used_emuCrops_out] = e2p_translate_crops_2emu( ...
@@ -204,7 +204,7 @@ for g = 1:length(gcm_list)
 
                         [varNames_emu, cropList_emu, ...
                             varNames_emu_basei, cropList_emu_basei, ...
-                            Nlist_emu, ~] = ...
+                            Nlist_emu_char, ~] = ...
                             e2p_get_names(data_bl_emu.varNames, data_fu_emu.varNames, ...
                             get_unneeded) ;
 
@@ -229,7 +229,7 @@ for g = 1:length(gcm_list)
                     % Translate to output crops
                     [varNames_agm, cropList_agm, ...
                         varNames_agm_basei, cropList_agm_basei, ...
-                        Nlist_agm, ~] = ...
+                        Nlist_agm_char, ~] = ...
                         e2p_get_names(data_bl_agm.varNames, [], ...
                         get_unneeded) ;
                     [cropList_agm_asEmu, used_emuCrops_agm] = e2p_translate_crops_2emu( ...
@@ -240,7 +240,7 @@ for g = 1:length(gcm_list)
                     end
                     % Find missing crops
                     missing_agmerra_xc = e2p_exclude_missing( ...
-                        varNames_emu_basei, cropList_emu_basei, Nlist_emu, ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist_emu_char, ...
                         data_bl_agm.garr_xv) ;
 
                     
@@ -249,10 +249,10 @@ for g = 1:length(gcm_list)
                     % Where do we exclude based on missing
                     % emulation?
                     [missing_emu_bl_xc, all0_emu_bl_c] = e2p_exclude_missing( ...
-                        varNames_emu_basei, cropList_emu_basei, Nlist_emu, ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist_emu_char, ...
                         data_bl_emu.garr_xv) ;
                     [missing_emu_fu_xc, all0_emu_fu_c] = e2p_exclude_missing( ...
-                        varNames_emu_basei, cropList_emu_basei, Nlist_emu, ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist_emu_char, ...
                         data_fu_emu.garr_xvt) ;
                     missing_emu_xc = missing_emu_bl_xc | missing_emu_fu_xc ;
                     
@@ -264,7 +264,7 @@ for g = 1:length(gcm_list)
                         % (or existing exclusions)?
                         disp('    Excluding based on low AgMERRA yield at max N...')
                         isexcl_lowBL_agmerra_xc = e2p_exclude_lowBLyield_atMaxN( ...
-                            varNames_emu, cropList_emu_basei, Nlist_emu, ...
+                            varNames_emu, cropList_emu_basei, Nlist_emu_char, ...
                             data_bl_agm.garr_xv, low_yield_threshold_kgm2) ;
                         if ~any(any(~isexcl_lowBL_agmerra_xc))
                             error('All cells excluded because of low AgMERRA yield')
@@ -275,7 +275,7 @@ for g = 1:length(gcm_list)
                         if excl_lowBL_emu
                             disp('    Excluding based on NaN/low baseline-year emulated yield at max N...')
                             isexcl_lowBL_emu_xc = e2p_exclude_lowBLyield_atMaxN( ...
-                                varNames_emu, cropList_emu_basei, Nlist_emu, ...
+                                varNames_emu, cropList_emu_basei, Nlist_emu_char, ...
                                 data_bl_emu.garr_xv, low_yield_threshold_kgm2) ;
                         end
                         
@@ -329,7 +329,7 @@ for g = 1:length(gcm_list)
                     for c = 1:length(cropList_emu_basei)
                         thisCrop = cropList_emu_basei{c} ;
                         thisCrop_i = find(strcmp(varNames_emu_basei,thisCrop)) ;
-                        if length(thisCrop_i)~=length(Nlist_emu)
+                        if length(thisCrop_i)~=length(Nlist_emu_char)
                             error('Error finding isThisCrop (%d found)', length(thisCrop_i))
                         end
                         
@@ -427,27 +427,86 @@ for g = 1:length(gcm_list)
                     if refresh_vars
                         [varNames_emu, cropList_emu, ...
                             varNames_emu_basei, cropList_emu_basei, ...
-                            Nlist_emu, ~] = ...
+                            Nlist_emu_char, ~] = ...
                             e2p_get_names(data_bl_emu.varNames, data_fu_emu.varNames, ...
                             get_unneeded) ;
                         [varNames_agm, cropList_agm, ...
                             varNames_agm_basei, cropList_agm_basei, ...
-                            Nlist_agm, ~] = ...
+                            Nlist_agm_char, ~] = ...
                             e2p_get_names(data_bl_agm.varNames, [], ...
                             get_unneeded) ;
                     end
                     
                     % Rearrange and rename AgMERRA baseline to match
-                    % LPJ-GUESS (output) variable names, stripping any
-                    % missing N values
+                    % all possible variable names, expanding with
+                    % NaN as needed where N values are missing.
                     data_bl_out.list2map = data_bl_agm.list2map ;
                     data_bl_out.lonlats = data_bl_agm.lonlats ;
                     [I_agm, I_out] = e2p_translate_crops_agm2out(...
-                        varNames_agm, varNames_out, getN) ;
-                    data_bl_out.varNames = varNames_out(I_out) ;
-                    data_bl_out.actually_emu_char = ...
+                        varNames_agm, varNames_out_allN) ;
+                    data_bl_out.varNames = varNames_out_allN ;
+                    data_bl_out.actually_emu_char = cell(1,length(data_bl_out.varNames)) ;
+                    data_bl_out.actually_emu_char(I_out) = ...
                         data_bl_agm.actually_emu_char(I_agm) ;
-                    data_bl_out.garr_xv = data_bl_agm.garr_xv(:,I_agm) ;
+                    tmp = find(cellfun(@isempty, data_bl_out.actually_emu_char)) ;
+                    data_bl_out.actually_emu_char(tmp) = ...
+                        strcat(data_bl_out.actually_emu_char(tmp-1), 'xLPJG200-1000') ;
+                    clear tmp
+                    data_bl_out.garr_xv = nan(Ncells, ...
+                        length(data_bl_out.varNames)) ;
+                    data_bl_out.garr_xv(:,I_out) = data_bl_agm.garr_xv(:,I_agm) ;
+                    clear tmp_garr_xv
+                    
+                    % Do the same thing for emulated baseline.
+                    tmp_garr_xv = data_bl_emu.garr_xv ;
+                    data_bl_emu = rmfield(data_bl_emu, 'garr_xv') ;
+                    data_bl_emu.list2map = data_bl_emu.list2map ;
+                    data_bl_emu.lonlats = gridlist.lonlats ;
+                    [I_emu, I_out] = e2p_translate_crops_agm2out(...
+                        varNames_emu, varNames_out_allN) ;
+                    data_bl_emu.varNames = varNames_out_allN ;
+                    data_bl_emu.garr_xv = nan(Ncells, length(data_bl_emu.varNames)) ;
+                    data_bl_emu.garr_xv(:,I_out) = tmp_garr_xv(:,I_emu,:) ;
+                    clear tmp_garr_xv
+                    
+                    % Do the same thing for emulated future.
+                    tmp_garr_xvt = data_fu_emu.garr_xvt ;
+                    data_fu_emu = rmfield(data_fu_emu, 'garr_xvt') ;
+                    data_fu_emu.list2map = data_fu_emu.list2map ;
+                    data_fu_emu.lonlats = gridlist.lonlats ;
+                    [I_emu, I_out] = e2p_translate_crops_agm2out(...
+                        varNames_emu, varNames_out_allN) ;
+                    data_fu_emu.varNames = varNames_out_allN ;
+                    data_fu_emu.garr_xvt = nan(Ncells, length(data_fu_emu.varNames), Ntpers) ;
+                    data_fu_emu.garr_xvt(:,I_out,:) = tmp_garr_xvt(:,I_emu,:) ;
+                    clear tmp_garr_xvt
+                    
+                    % Do the same thing for LPJ-GUESS simulated future.
+                    tmp_garr_xvt = data_fu_lpj.garr_xvt ;
+                    data_fu_lpj = rmfield(data_fu_lpj, 'garr_xvt') ;
+                    data_fu_lpj.list2map = data_fu_lpj.list2map ;
+                    data_fu_lpj.lonlats = gridlist.lonlats ;
+                    [I_lpj, I_out] = e2p_translate_crops_lpj2out(...
+                        varNames_lpj, varNames_out_allN) ;
+                    data_fu_lpj.varNames = varNames_out_allN ;
+                    data_fu_lpj.garr_xvt = nan(Ncells, length(data_fu_lpj.varNames), Ntpers) ;
+                    data_fu_lpj.garr_xvt(:,I_out,:) = tmp_garr_xvt(:,I_lpj,:) ;
+                    clear tmp_garr_xvt
+                    
+                    % Now that you've expanded to match PLUM (output) 
+                    % variable names, these are the same.
+                    Nlist_agm_char = Nlist_lpj_char ;
+                    Nlist_emu_char = Nlist_lpj_char ;
+                    
+                    % Get indices of variables that should NOT be missing
+                    tmp_Ns_out = cellfun(@str2double, getN_char(varNames_out_allN)) ;
+                    C = setdiff(tmp_Ns_out, Nlist_emu) ;
+                    ok_missing_v = false(size(varNames_out_allN)) ;
+                    for n = 1:length(C)
+                        ok_missing_v(tmp_Ns_out==C(n)) = true ;
+                    end; clear n
+                    clear tmp_Ns_out C
+                    
                     disp('    Done.')
 
 
@@ -462,15 +521,19 @@ for g = 1:length(gcm_list)
                     e2p_check_correct_zeros(data_fu_lpj.garr_xvt, ...
                         which_file, data_fu_lpj.varNames, ...
                         'Future', @getbasenamei)
-                    e2p_check_correct_zeros(data_bl_emu.garr_xv, ...
-                        which_file, data_bl_emu.varNames, ...
+                    tmp_garr_xv = data_bl_emu.garr_xv(:,~ok_missing_v) ;
+                    tmp_varNames = data_fu_emu.varNames(~ok_missing_v) ;
+                    e2p_check_correct_zeros(tmp_garr_xv, ...
+                        which_file, tmp_varNames, ...
                         'Baseline', @getbasenamei)
-                    e2p_check_correct_zeros(data_fu_emu.garr_xvt, ...
-                        which_file, data_fu_emu.varNames, ...
+                    tmp_garr_xvt = data_fu_emu.garr_xvt(:,~ok_missing_v,:) ;
+                    e2p_check_correct_zeros(tmp_garr_xvt, ...
+                        which_file, tmp_varNames, ...
                         'Future', @getbasenamei)
+                    clear tmp_garr_xv tmp_garr_xvt
 
                     % Make sure that N lists match
-                    if ~isequal(Nlist_agm,Nlist_emu)
+                    if ~isequal(Nlist_agm_char,Nlist_emu_char)
                         error('Mismatch in N levels between Phase 2 baseline and emulator future')
                     end
 
@@ -499,22 +562,31 @@ for g = 1:length(gcm_list)
                             used_emuCrops_agm, list2map, ...
                             save_interp_figs, outDir_interp_figs, ggcm, figure_visibility, ...
                             when_remove_outliers, outDir_ggcm, renderer) ;
-                        e2p_check_correct_zeros(deltas_emu_xvt, ...
-                            which_file, data_fu_emu.varNames, ...
+                        
+                        % Check
+                        tmp_garr_xvt = deltas_emu_xvt(:,~ok_missing_v,:) ;
+                        e2p_check_correct_zeros(tmp_garr_xvt, ...
+                            which_file, tmp_varNames, ...
                             'Future', @getbasenamei)
+                        clear tmp_garr_xvt
+                        
                         disp('    Done.')
-
                     elseif ~strcmp(which_file, 'anpp')
                         error('which_file (%s) not recognized', which_file)
                     end
-
-
-                    %% Apply emulator deltas to chosen baseline.
+                    
+                    % Apply emulator deltas to chosen baseline.
                     disp('    Applying deltas...')
                     data_fu_out = e2p_apply_deltas( ...
                         data_bl_out, data_bl_emu, data_fu_emu, deltas_emu_xvt, ...
-                        cropList_out, cropList_out_asEmu, varNames_out, ...
+                        cropList_out, cropList_out, varNames_out_allN, ...
                         list2map, which_file, figure_visibility) ;
+                    % Check
+                    tmp_garr_xvt = data_fu_out.garr_xvt(:,~ok_missing_v,:) ;
+                    e2p_check_correct_zeros(tmp_garr_xvt, ...
+                        which_file, tmp_varNames, ...
+                        'Future', @getbasenamei)
+                    clear tmp_garr_xvt tmp_varNames ok_missing_v
                     
                     % Sort variable names in data_fu_lpj (was previously
                     % done in e2p_apply_deltas()
@@ -527,17 +599,15 @@ for g = 1:length(gcm_list)
                             'Baseline', @getbasenamei)
                     end
                     
+                    % Get fake N1000 values; trim unneeded N200
+                    data_fu_out = e2p_fake_1000(data_fu_out, data_fu_lpj, ...
+                        Nlist_lpj_char, Nlist_emu_char, which_file) ;
+                    unneededN200 = find(getN_num(data_fu_out.varNames)==200) ;
+                    data_fu_out.garr_xvt(:,unneededN200,:) = [] ;
+                    data_fu_out.varNames(unneededN200) = [] ;
+                    data_fu_out.actually_emu_char(unneededN200) = [] ;
                     
-                    %% Get fake N1000 values
-                    if fake1k
-                        error('Need to rework now that you''re never using bl_lpj or bl_lpj0')
-                        data_fu_lpj = e2p_fake_1000(data_fu_lpj, data_bl_lpj0, ...
-                            cropList_lpj, Nlist_lpj0, Nlist_emu, which_file) ;
-                        data_fu_out = e2p_fake_1000(data_fu_out, data_bl_lpj0, ...
-                            cropList_lpj, Nlist_lpj0, Nlist_emu, which_file) ;
-                    end
-                    
-                    %% Remove outliers
+                    % Remove outliers
                     if strcmp(when_remove_outliers, 'end')
                         disp('    Removing outliers...')
 
@@ -566,8 +636,8 @@ for g = 1:length(gcm_list)
                 
                 % Sort. Technically unnecessary, but maybe PLUM isn't
                 % robust to non-sorted crops.
-                data_fu_lpj = do_sort(data_fu_lpj, getN) ;
-                data_fu_out = do_sort(data_fu_out, getN) ;
+                data_fu_lpj = do_sort(data_fu_lpj) ;
+                data_fu_out = do_sort(data_fu_out) ;
 
                 disp('    Done.')
 
@@ -625,13 +695,13 @@ for g = 1:length(gcm_list)
                     if strcmp(which_file, 'yield')
                         e2p_save_out_figs(data_fu_lpj, ...
                             data_fu_emu, data_fu_out, ...
-                            ggcm, getN, outDir_yield_figs, ...
+                            ggcm, outDir_yield_figs, ...
                             which_file, cropList_out_asEmu, figure_visibility, figure_extension, ...
                             which_out_figs, overwrite_existing_figs, renderer)
                     elseif strcmp(which_file, 'gsirrigation')
                         e2p_save_out_figs(data_fu_lpj, ...
                             data_fu_emu, data_fu_out, ...
-                            ggcm, getN, outDir_irrig_figs, ...
+                            ggcm, outDir_irrig_figs, ...
                             which_file, cropList_out_asEmu, figure_visibility, figure_extension, ...
                             which_out_figs, overwrite_existing_figs, renderer)
                     else
@@ -663,10 +733,10 @@ disp('All done!')
 
 %% FUNCTIONS
 
-function S = do_sort(S, getN)
+function S = do_sort(S)
 
 % Sort N strings
-Nlist = unique(getN(S.varNames)) ;
+Nlist = unique(getN_char(S.varNames)) ;
 Nlist_num = str2double(Nlist) ;
 [Nlist_num, I] = sort(Nlist_num) ; %#ok<ASGLU>
 Nlist = Nlist(I) ;

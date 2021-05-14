@@ -110,7 +110,7 @@ for v = 1:length(data_fu_out.varNames)
     thisCropi_out = getbasenamei(thisVar_out) ;
     thisCropi_emu = strrep(thisCropi_out, thisCrop_out, ...
         cropList_lpj_asEmu{strcmp(cropList_lpj, thisCrop_out)}) ;
-    thisVar_emu = sprintf('%s%s', thisCropi_emu, getN(thisVar_out)) ;
+    thisVar_emu = sprintf('%s%s', thisCropi_emu, getN_char(thisVar_out)) ;
     
     % Skip if looking at irrigation of a rainfed crop
     if strcmp(which_file, 'gsirrigation') && strcmp(thisCrop_out, thisCropi_out)
