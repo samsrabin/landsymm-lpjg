@@ -87,8 +87,10 @@ getN = @(x) regexprep(regexprep(x, 'CerealsC[34]', ''), '^[a-zA-Z_]+', '') ;
 get_unneeded = @(x)cellfun(@isempty, ...
     regexp(regexprep(x,'CerealsC[34]','CerealsC'),'.*\d+')) | contains(x,'G_ic') ;
 
-Nlist = [10 60 200] ;
-NN = length(Nlist) ;
+% Set up N lists
+Nlist_lpj = [10 60 200 1000] ;
+Nlist_emu = [10 60 200] ;
+Nlist_out = [10 60 1000] ;
 
 irrList_in = {'rf', 'ir'} ;
 irrList_out = {'', 'i'} ;
@@ -125,13 +127,13 @@ Ncrops_out = length(cropList_out) ;
 cropIrrList_out = [cropList_out strcat(cropList_out, 'i')] ;
 header_out = 'Lon\tLat' ;
 format_out = '%0.2f\t%0.2f' ;
-cropIrrNlist_out = {} ;
+% cropIrrNlist_out = {} ;
 for c = 1:length(cropIrrList_out)
     thisCropIrr = cropIrrList_out{c} ;
-    for n = 1:NN
-        thisN = pad(num2str(Nlist(n)), 3, 'left', '0') ;
+    for n = 1:length(Nlist_out)
+        thisN = pad(num2str(Nlist_out(n)), 3, 'left', '0') ;
         thisCropIrrN = [thisCropIrr thisN] ;
-        cropIrrNlist_out{end+1} = thisCropIrrN ; %#ok<SAGROW>
+%         cropIrrNlist_out{end+1} = thisCropIrrN ; %#ok<SAGROW>
         header_out = [header_out '\t' thisCropIrrN] ; %#ok<AGROW>
         format_out = [format_out '\t%0.3f'] ; %#ok<AGROW>
     end

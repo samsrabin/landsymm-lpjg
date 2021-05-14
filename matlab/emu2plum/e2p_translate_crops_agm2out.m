@@ -1,13 +1,22 @@
-function I_out = e2p_translate_crops_agm2out(...
-    varNames_agm, varNames_out)
+function [I_agm, I_out] = e2p_translate_crops_agm2out(...
+    varNames_agm, varNames_out, getN)
 
-I_out = nan(size(varNames_out)) ;
+Nvals_agm = cellfun(@str2double, getN(varNames_agm)) ;
+basenameIs_agm = getbasenamei(varNames_agm) ;
+
+I_agm = nan(size(varNames_out)) ;
+I_out = 1:length(varNames_out) ;
 
 % Assign equivalents
 for c = 1:length(varNames_out)
     thisVar_out = varNames_out{c} ;
     thisCrop_out = getbasename(thisVar_out) ;
+    thisCropI_out = getbasenamei(thisVar_out) ;
     iN = strrep(thisVar_out, thisCrop_out, '') ;
+    thisN = str2double(getN(thisVar_out)) ;
+    if ~any(Nvals_agm == thisN)
+        continue
+    end
     switch thisCrop_out
         case {'CerealsC3'}
             thisCrop_agm = 'max_wheat' ;
@@ -27,17 +36,22 @@ for c = 1:length(varNames_out)
             error('GGCMI equivalent of %s not specified', thisCrop_out)
     end
     thisVar_agm = [thisCrop_agm iN] ;
-    I = find(strcmp(varNames_agm, thisVar_agm)) ;
+    thisCropI_agm = [thisCrop_agm strrep(thisCropI_out, thisCrop_out, '')] ;
+    I = find(strcmp(basenameIs_agm, thisCropI_agm) & Nvals_agm==thisN) ;
     if length(I) ~= 1
         error('Error finding %s in varNames_agm: expected 1, found %d', ...
             thisVar_agm, length(I))
     end
-    I_out(c) = I ;
+    I_agm(c) = I ;
 end
 
+% Strip skipped
+I_out(isnan(I_agm)) = [] ;
+I_agm(isnan(I_agm)) = [] ;
+
 % Check
-if any(isnan(I_out))
-    error('any(isnan(I_out))')
+if length(I_out) ~= length(I_agm)
+    error('Length mismatch in e2p_translate_crops_agm2out()')
 end
 
 

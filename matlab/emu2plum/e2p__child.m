@@ -114,7 +114,6 @@ for g = 1:length(gcm_list)
         disp('Done importing LPJ-GUESS yield and irrigation.')
 
         for ggcm_counter = 1:length(ggcm_list)
-
             ggcm = ggcm_list{ggcm_counter} ;
             topDir_phase2 = sprintf('%s/%s/phase2', topDir_agmipout, ggcm) ;
             outDir_ggcm = sprintf('%s/emu_%s', outDir, ggcm) ;
@@ -164,7 +163,7 @@ for g = 1:length(gcm_list)
                         try
                             [data_bl_emu, data_fu_emu] = e2p_import_emu( ...
                                 topDir_emu, gcm, ggcm, ssp, which_file, ...
-                                cropList_in, gridlist, ts1_list, tsN_list, Nlist, ...
+                                cropList_in, gridlist, ts1_list, tsN_list, Nlist_emu, ...
                                 baseline_yN, future_yN_emu, irrList_in, irrList_out, ...
                                 emuVer, adaptation) ;
                         catch ME
@@ -224,7 +223,7 @@ for g = 1:length(gcm_list)
                     end
                     % Find missing crops
                     missing_agmerra_xc = e2p_exclude_missing( ...
-                        varNames_emu_basei, cropList_emu_basei, Nlist, ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist_emu, ...
                         data_bl_agm.garr_xv) ;
 
                     
@@ -233,10 +232,10 @@ for g = 1:length(gcm_list)
                     % Where do we exclude based on missing
                     % emulation?
                     [missing_emu_bl_xc, all0_emu_bl_c] = e2p_exclude_missing( ...
-                        varNames_emu_basei, cropList_emu_basei, Nlist, ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist_emu, ...
                         data_bl_emu.garr_xv) ;
                     [missing_emu_fu_xc, all0_emu_fu_c] = e2p_exclude_missing( ...
-                        varNames_emu_basei, cropList_emu_basei, Nlist, ...
+                        varNames_emu_basei, cropList_emu_basei, Nlist_emu, ...
                         data_fu_emu.garr_xvt) ;
                     missing_emu_xc = missing_emu_bl_xc | missing_emu_fu_xc ;
                     
@@ -422,16 +421,16 @@ for g = 1:length(gcm_list)
                     end
                     
                     % Rearrange and rename AgMERRA baseline to match
-                    % LPJ-GUESS (output) variable names
+                    % LPJ-GUESS (output) variable names, stripping any
+                    % missing N values
                     data_bl_out.list2map = data_bl_agm.list2map ;
                     data_bl_out.lonlats = data_bl_agm.lonlats ;
-                    I = e2p_translate_crops_agm2out(...
-                        varNames_agm, varNames_out) ;
-                    data_bl_out.varNames = varNames_out ;
+                    [I_agm, I_out] = e2p_translate_crops_agm2out(...
+                        varNames_agm, varNames_out, getN) ;
+                    data_bl_out.varNames = varNames_out(I_out) ;
                     data_bl_out.actually_emu_char = ...
-                        data_bl_agm.actually_emu_char(I) ;
-                    data_bl_out.garr_xv = data_bl_agm.garr_xv(:,I) ;
-
+                        data_bl_agm.actually_emu_char(I_agm) ;
+                    data_bl_out.garr_xv = data_bl_agm.garr_xv(:,I_agm) ;
                     disp('    Done.')
 
 
