@@ -1,5 +1,5 @@
 function [I_agm, I_out] = e2p_translate_crops_agm2out(...
-    varNames_agm, varNames_out, getN)
+    varNames_agm, varNames_out)
 
 Nvals_agm = cellfun(@str2double, getN(varNames_agm)) ;
 basenameIs_agm = getbasenamei(varNames_agm) ;

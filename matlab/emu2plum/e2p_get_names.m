@@ -1,6 +1,6 @@
 function [varNames, cropList, varNames_basei, cropList_basei, Nlist, maxN] = ...
     e2p_get_names(varNames_A, varNames_B, ...
-    getN, get_unneeded)
+    get_unneeded)
 
 % Make sure A and B variable lists match (if A is included)
 if ~isempty(varNames_A) && ~isempty(varNames_B)
@@ -37,7 +37,7 @@ if length(cropList_basei) ~= Ncrops*2
 end
 
 % Get N levels
-Nlist = unique(cellfun(getN, varNames, 'UniformOutput', false)) ;
+Nlist = unique(cellfun(@getN, varNames, 'UniformOutput', false)) ;
 if any(isnan(str2double(Nlist)))
     error('Problem getting Nlist: Translates to NaN')
 end
