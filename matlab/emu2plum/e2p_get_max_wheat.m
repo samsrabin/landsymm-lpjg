@@ -20,8 +20,11 @@ end
 data_out = data_in ;
 
 % Get variable names of all winter wheats
-winter_wheats = varNames(contains(varNames,'winter_wheat')) ;
+winter_wheats = varNames(contains(varNames,{'winter_wheat', 'CerealsC3w'})) ;
 Nww = length(winter_wheats) ;
+if Nww == 0
+    error('No winter wheats found!')
+end
 
 % Set up array for tracking whether winter wheat was max
 tmp_size = size(data_in) ;

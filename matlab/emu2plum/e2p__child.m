@@ -109,8 +109,25 @@ for g = 1:length(gcm_list)
             error('Mismatch between Nlist_lpj2 for yield vs. gsirrigation')
         end
         clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj2
+        
+        % Get max wheat and irrigation, if needed
+        if any(strcmp(cropList_out, 'CerealsC3')) && ~any(strcmp(cropList_lpj, 'CerealsC3'))
+            disp('Getting max wheats...')
+            [data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, is_ww_max_fu_gWt, winter_wheats] = ...
+                e2p_get_max_wheat(data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames) ;
+            out_file = sprintf('%s/is_ww_max.mat', topDir_lpj) ;
+            save(out_file, 'is_ww_max_fu_gWt', 'winter_wheats') ;
+            clear is_ww_max_fu_gWt winter_wheats
+            data_fu_lpj_irrig = e2p_apply_max_wheat(data_fu_lpj_irrig, topDir_lpj) ;
+            [varNames_lpj, cropList_lpj, ...
+                varNames_lpj_basei, cropList_lpj_basei] = ...
+                e2p_get_names(data_fu_lpj_yield.varNames, data_fu_lpj_irrig.varNames, ...
+                getN, get_unneeded) ;
+        end
+        
         disp('Done importing LPJ-GUESS yield and irrigation.')
-
+        
+        % Loop through crop emulators
         for ggcm_counter = 1:length(ggcm_list)
             ggcm = ggcm_list{ggcm_counter} ;
             topDir_phase2 = sprintf('%s/%s/phase2', topDir_agmipout, ggcm) ;

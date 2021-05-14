@@ -1,4 +1,4 @@
-function Sout = e2p_apply_max_wheat(Sin, outDir)
+function Sout = e2p_apply_max_wheat(Sin, theDir)
 
 Sout = Sin ;
 
@@ -10,17 +10,18 @@ if isfield(Sin, 'actually_emu')
 end
 
 % Load existing info
-is_ww_max_file = sprintf('%s/is_ww_max.mat', outDir) ;
-load(is_ww_max_file, 'is_ww_max_bl_gW', 'is_ww_max_fu_gWt', 'winter_wheats') ;
-
-Nww = length(winter_wheats) ;
+is_ww_max_file = sprintf('%s/is_ww_max.mat', theDir) ;
 if isfield(Sin,'garr_xv')
     out_xvt = Sin.garr_xv ;
+    load(is_ww_max_file, 'is_ww_max_bl_gW', 'winter_wheats') ;
 elseif isfield(Sin,'garr_xvt')
     out_xvt = Sin.garr_xvt ;
+    load(is_ww_max_file, 'is_ww_max_fu_gWt', 'winter_wheats') ;
 else
     error('???')
 end
+Nww = length(winter_wheats) ;
+
 for w = 1:Nww
     
     % Get indices

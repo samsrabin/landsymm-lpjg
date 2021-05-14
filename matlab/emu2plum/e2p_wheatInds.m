@@ -1,8 +1,14 @@
 function [i_thisWW, i_thisSW, i_thisMW, varNames] = ...
     e2p_wheatInds(thisWW, varNames)
 
-thisSW = strrep(thisWW, 'winter', 'spring') ;
-thisMW = strrep(thisWW, 'winter', 'max') ;
+thisSW = strrep(strrep(thisWW, 'winter', 'spring'), 'C3w', 'C3s') ;
+thisMW = strrep(strrep(thisWW, 'winter', 'max'), 'C3w', 'C3') ;
+
+if strcmp(thisSW, thisWW)
+    error('Error finding spring-wheat counterpart for %s', thisWW)
+elseif strcmp(thisMW, thisWW)
+    error('Error finding max-wheat counterpart for %s', thisWW)
+end
 
 i_thisWW = find(strcmp(varNames,thisWW));
 if length(i_thisWW) ~= 1
