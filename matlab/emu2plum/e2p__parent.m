@@ -119,7 +119,8 @@ low_yield_threshold_kgm2 = 0.01 ;
 %% Set up crop lists
 
 cropList_in = {'spring_wheat', 'winter_wheat', 'maize', 'soy', 'rice'} ;
-cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Oilcrops', 'Pulses', 'StarchyRoots'} ;
+cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
+    'OilNfix', 'OilOther', 'Sugarbeet', 'Sugarcane'} ;
 Ncrops_in = length(cropList_in) ;
 Ncrops_out = length(cropList_out) ;
 
@@ -127,13 +128,13 @@ Ncrops_out = length(cropList_out) ;
 cropIrrList_out = [cropList_out strcat(cropList_out, 'i')] ;
 header_out = 'Lon\tLat' ;
 format_out = '%0.2f\t%0.2f' ;
-% cropIrrNlist_out = {} ;
+varNames_out = {} ;
 for c = 1:length(cropIrrList_out)
     thisCropIrr = cropIrrList_out{c} ;
     for n = 1:length(Nlist_out)
         thisN = pad(num2str(Nlist_out(n)), 3, 'left', '0') ;
         thisCropIrrN = [thisCropIrr thisN] ;
-%         cropIrrNlist_out{end+1} = thisCropIrrN ; %#ok<SAGROW>
+        varNames_out{end+1} = thisCropIrrN ; %#ok<SAGROW>
         header_out = [header_out '\t' thisCropIrrN] ; %#ok<AGROW>
         format_out = [format_out '\t%0.3f'] ; %#ok<AGROW>
     end
