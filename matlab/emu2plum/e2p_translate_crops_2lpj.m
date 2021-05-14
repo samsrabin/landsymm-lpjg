@@ -14,11 +14,13 @@ cropList_in_asLpj = cell(size(cropList_in)) ;
 % Assign equivalents
 for c = 1:length(cropList_in)
     thisCrop_in = cropList_in{c} ;
-    if contains(lower(thisCrop_in),cropList_lpj)
+    if contains(thisCrop_in, cropList_lpj)
+        cropList_in_asLpj{c} = thisCrop_in ;
+    elseif contains(lower(thisCrop_in), cropList_lpj)
         cropList_in_asLpj{c} = lower(thisCrop_in) ;
     elseif contains(thisCrop_in, {'Sugarcane'})
         cropList_in_asLpj{c} = 'CerealsC4' ;
-    elseif contains(thisCrop_in,{'OilNfix'})
+    elseif contains(thisCrop_in,{'OilNfix', 'Pulses'})
         cropList_in_asLpj{c} = 'Oilcrops' ;
     elseif contains(thisCrop_in,{'StarchyRoots', 'OilOther', 'Sugarbeet'})
         cropList_in_asLpj{c} = 'CerealsC3s' ;
