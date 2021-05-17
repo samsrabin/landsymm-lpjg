@@ -677,7 +677,7 @@ for g = 1:length(gcm_list)
                         y1 = data_fu_out.y1s(t) ;
                         yN = data_fu_out.yNs(t) ;
 
-                        if strcmp(ggcm, ggcm_list{1})
+                        if save_txt_files_lpjg && strcmp(ggcm, ggcm_list{1})
                             % Trim unneeded N200 from LPJ-GUESS
                             unneededN200 = getN_num(data_fu_lpj.varNames)==200 ;
                             tmp_xv = data_fu_lpj.garr_xvt(:,~unneededN200,t) ;
