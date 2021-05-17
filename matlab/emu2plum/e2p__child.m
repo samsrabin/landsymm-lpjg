@@ -678,9 +678,12 @@ for g = 1:length(gcm_list)
                         yN = data_fu_out.yNs(t) ;
 
                         if strcmp(ggcm, ggcm_list{1})
+                            % Trim unneeded N200 from LPJ-GUESS
+                            unneededN200 = getN_num(data_fu_lpj.varNames)==200 ;
+                            tmp_xv = data_fu_lpj.garr_xvt(:,~unneededN200,t) ;
                             fprintf('    %d/%d lpj', t, Ntpers)
                             e2p_save(outDir_lpj, y1, yN, out_header_cell, ...
-                                data_fu_lpj.lonlats, data_fu_lpj.garr_xvt(:,:,t), which_file, ...
+                                data_fu_lpj.lonlats, tmp_xv, which_file, ...
                                 false)
                         end
                         fprintf('    %d/%d emu', t, Ntpers)
