@@ -205,7 +205,9 @@ for v = 1:length(data_fu_out.varNames)
     %             ) ;
     %     end
         max_out = max(yield_fu_out_max_YX(:)) ;
-        if max_out >= max_raw
+        if isnan(max_raw) || isnan(max_out)
+            error('yield_fu_[lpj and/or out]_max_YX all NaN!')
+        elseif max_out >= max_raw
             new_caxis = [0 min(max_raw*1.25, max_out)] ;
         else
             new_caxis = [0 max_raw] ;
