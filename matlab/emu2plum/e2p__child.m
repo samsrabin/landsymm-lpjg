@@ -622,7 +622,9 @@ for g = 1:length(gcm_list)
                             'Future', @getbasenamei)
 
                         % Save info
+                        if strcmp(ggcm, ggcm_list{1})
                         e2p_save_outlier_info(outlier_info_lpj, outDir_lpj, which_file, data_fu_out.y1s, data_fu_out.yNs)
+                        end
                         e2p_save_outlier_info(outlier_info_out, outDir_ggcm, which_file, data_fu_out.y1s, data_fu_out.yNs)
                     end
                     
