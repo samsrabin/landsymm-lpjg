@@ -36,6 +36,7 @@ for g = 1:length(gcm_list)
         end
         
         % Copy log to file
+        diary('off')
         diaryfile = sprintf('%s/matlab_log.txt', outDir) ;
         if exist(diaryfile, 'file')
             delete(diaryfile) ;
@@ -623,7 +624,7 @@ for g = 1:length(gcm_list)
 
                         % Save info
                         if strcmp(ggcm, ggcm_list{1})
-                        e2p_save_outlier_info(outlier_info_lpj, outDir_lpj, which_file, data_fu_out.y1s, data_fu_out.yNs)
+                            e2p_save_outlier_info(outlier_info_lpj, outDir_lpj, which_file, data_fu_out.y1s, data_fu_out.yNs)
                         end
                         e2p_save_outlier_info(outlier_info_out, outDir_ggcm, which_file, data_fu_out.y1s, data_fu_out.yNs)
                     end
@@ -720,17 +721,17 @@ for g = 1:length(gcm_list)
             
             fprintf('Done with %s %s %s.\n', gcm, ssp, ggcm)
 
-        end
+        end % Loop through crop models
 
         fprintf('Done with %s %s.\n', gcm, ssp)
         diary('off')
         
         clear data_fu_lpj_yield data_fu_lpj_irrig
 
-    end
+    end % Loop through SSPs
     
     fprintf('Done with %s.\n', gcm)
-end
+end % Loop through climate models
 
 disp(' ')
 disp('All done!')
