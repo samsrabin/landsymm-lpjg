@@ -19,21 +19,27 @@ deltas0_emu_xvt(emu_bl_xvt==0 & data_fu_emu.garr_xvt==0) = 0 ;
 
 % Deal with 0 baseline --> positive future (results in delta=Inf)
 % Might want to instead limit to (e.g.) 99.9th percentile of deltas
-isbad = find(data_fu_emu.garr_xvt>0 & emu_bl_xvt==0) ;
+isbad_xvt = data_fu_emu.garr_xvt>0 & emu_bl_xvt==0 ;
+isbad_vt = squeeze(any(isbad_xvt, 1)) ;
+isbad = find(isbad_xvt) ;
+Nbad = length(isbad) ;
 
 % Sanity check
 if ~isequal(size(shiftdim(cropList_emu)), size(shiftdim(used_emuCrops)))
     error('Size mismatch between cropList_emu and used_emuCrops')
 end
 
-if ~isempty(isbad) && ~interp_infs
+if Nbad > 0 && ~interp_infs
     warning('%d elements of data_fu_emu.garr_xvt are positive but were 0 in baseline, resulting in delta=Inf. Will NOT fix.', ...
         length(find(isbad)))
     deltas_emu_xvt = deltas0_emu_xvt ;
-elseif ~isempty(isbad) && interp_infs
-    fprintf('Interpolating %d elements of deltas_emu_xvt where baseline was 0 but future is positive...\n', ...
-        length(find(isbad)))
+elseif Nbad > 0 && interp_infs
+    fprintf('Interpolating %d elements of deltas_emu_xvt where baseline was 0 but future is positive (%d interpolations)...\n', ...
+        length(find(isbad)), length(find(isbad_vt)))
     
+%     if Nbad > 100
+%         warning('Large number of interpolations. Could you make this more efficient by using each cell''s first interpolated value as its "baseline"?')
+%     end
     
     if strcmp(when_remove_outliers, 'before_interp')
         disp('    Removing outliers...')
@@ -64,7 +70,7 @@ elseif ~isempty(isbad) && interp_infs
                 fprintf('    %s: Skipping (not needed)\n', thisVar_emu) ;
             end
             continue
-        elseif ~any(any(isinf(deltas0_emu_xvt(:,v,:))))
+        elseif ~any(isbad_vt(v,:))
             if verbose
                 fprintf('    %s: Skipping (no Inf)\n', thisVar_emu) ;
             end
@@ -74,6 +80,10 @@ elseif ~isempty(isbad) && interp_infs
             fprintf('    %s:\n', thisVar_emu) ;
         end
         for t = 1:Ntpers
+            
+            if ~isbad_vt(v,t)
+                continue
+            end
             
             tmp_x = deltas0_emu_xvt(:,v,t) ;
             
