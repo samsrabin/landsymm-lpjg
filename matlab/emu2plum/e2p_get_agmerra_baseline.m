@@ -206,8 +206,8 @@ thisFile = sprintf(['%s/%s_agmerra_fullharm_%s_%s_global_annual_' ...
 using_emulated = 0 ;
 
 % If not found, see if there's an emulated version
-if allow_emulated
-    if ~exist(thisFile, 'file')
+if ~exist(thisFile, 'file')
+    if allow_emulated
         
         if isnan(thisN)
             error('Deal with N=NaN when looking for emulated replacement for Phase 2 baseline')
@@ -241,11 +241,10 @@ if allow_emulated
                 error('???')
             end
         end
-        
+    else
+        thisFile = '' ;
+        using_emulated = -1 ;
     end
-else
-    thisFile = '' ;
-    using_emulated = -1 ;
 end
 
 
