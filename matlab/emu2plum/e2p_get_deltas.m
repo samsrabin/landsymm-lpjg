@@ -128,12 +128,6 @@ elseif Nbad > 0 && interp_infs
             tmp_YX(list2map) = tmp_x ;
             intp_YX = inpaint_nans(tmp_YX, 4) ;
             
-%             % TROUBLESHOOTING
-%             intp_YX(isnan(orig_YX)) = NaN ;
-%             shademap(orig_YX) ;
-%             shademap(intp_YX) ;
-%             stop
-            
             tmp_x = intp_YX(list2map) ;
             if ~any(tmp_x>0)
                 error('No positive values!')
@@ -143,6 +137,12 @@ elseif Nbad > 0 && interp_infs
             if ~any(~isnan(tmp_x))
                 error('No non-NaN values!')
             end
+            
+%             % TROUBLESHOOTING
+%             new_YX = nan(360,720) ;
+%             new_YX(list2map) = tmp_x ;
+%             shademap(orig_YX) ; title('original')
+%             shademap(new_YX) ; title('interpolated')
             
             deltas_emu_xvt(:,v,t) = tmp_x ;
             
@@ -219,7 +219,7 @@ elseif Nbad > 0 && interp_infs
             clear orig_YX intp_YX
         end
     end
-elseif isempty(isbad)
+elseif verbose && isempty(isbad)
     disp('No values of data_fu_emu.garr_xvt are positive but were 0 in baseline.')
     deltas_emu_xvt = deltas0_emu_xvt ;
 end
