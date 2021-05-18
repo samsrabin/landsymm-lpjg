@@ -500,13 +500,7 @@ for g = 1:length(gcm_list)
                     Nlist_emu_char = Nlist_lpj_char ;
                     
                     % Get indices of variables that should NOT be missing
-                    tmp_Ns_out = cellfun(@str2double, getN_char(varNames_out_allN)) ;
-                    C = setdiff(tmp_Ns_out, Nlist_emu) ;
-                    ok_missing_v = false(size(varNames_out_allN)) ;
-                    for n = 1:length(C)
-                        ok_missing_v(tmp_Ns_out==C(n)) = true ;
-                    end; clear n
-                    clear tmp_Ns_out C
+                    ok_missing_v = get_ok_missing(varNames_out_allN, Nlist_emu) ;
                     
                     disp('    Done.')
 
@@ -523,13 +517,13 @@ for g = 1:length(gcm_list)
                         which_file, data_fu_lpj.varNames, ...
                         'Future', @getbasenamei)
                     tmp_garr_xv = data_bl_emu.garr_xv(:,~ok_missing_v) ;
-                    tmp_varNames = data_fu_emu.varNames(~ok_missing_v) ;
+                    varNames_NOTok_missing = data_fu_emu.varNames(~ok_missing_v) ;
                     e2p_check_correct_zeros(tmp_garr_xv, ...
-                        which_file, tmp_varNames, ...
+                        which_file, varNames_NOTok_missing, ...
                         'Baseline', @getbasenamei)
                     tmp_garr_xvt = data_fu_emu.garr_xvt(:,~ok_missing_v,:) ;
                     e2p_check_correct_zeros(tmp_garr_xvt, ...
-                        which_file, tmp_varNames, ...
+                        which_file, varNames_NOTok_missing, ...
                         'Future', @getbasenamei)
                     clear tmp_garr_xv tmp_garr_xvt
 
@@ -567,7 +561,7 @@ for g = 1:length(gcm_list)
                         % Check
                         tmp_garr_xvt = deltas_emu_xvt(:,~ok_missing_v,:) ;
                         e2p_check_correct_zeros(tmp_garr_xvt, ...
-                            which_file, tmp_varNames, ...
+                            which_file, varNames_NOTok_missing, ...
                             'Future', @getbasenamei)
                         clear tmp_garr_xvt
                         
@@ -575,6 +569,7 @@ for g = 1:length(gcm_list)
                     elseif ~strcmp(which_file, 'anpp')
                         error('which_file (%s) not recognized', which_file)
                     end
+                    clear varNames_NOTok_missing ok_missing_v
                     
                     % Apply emulator deltas to chosen baseline.
                     disp('    Applying deltas...')
@@ -583,11 +578,13 @@ for g = 1:length(gcm_list)
                         cropList_out, cropList_out, varNames_out_allN, ...
                         list2map, which_file, figure_visibility) ;
                     % Check
+                    [ok_missing_v, varNames_NOTok_missing] = ...
+                        get_ok_missing(data_fu_out.varNames, Nlist_emu) ;
                     tmp_garr_xvt = data_fu_out.garr_xvt(:,~ok_missing_v,:) ;
                     e2p_check_correct_zeros(tmp_garr_xvt, ...
-                        which_file, tmp_varNames, ...
+                        which_file, varNames_NOTok_missing, ...
                         'Future', @getbasenamei)
-                    clear tmp_garr_xvt tmp_varNames ok_missing_v
+                    clear ok_missing_v varNames_NOTok_missing
                     
                     % Sort variable names in data_fu_lpj (was previously
                     % done in e2p_apply_deltas()
@@ -738,6 +735,19 @@ disp('All done!')
 
 
 %% FUNCTIONS
+
+function [ok_missing_v, varNames_NOTok_missing] = get_ok_missing(varNames, Nlist_emu)
+
+tmp_Ns_out = cellfun(@str2double, getN_char(varNames)) ;
+C = setdiff(tmp_Ns_out, Nlist_emu) ;
+ok_missing_v = false(size(varNames)) ;
+for n = 1:length(C)
+    ok_missing_v(tmp_Ns_out==C(n)) = true ;
+end
+
+varNames_NOTok_missing = varNames(~ok_missing_v) ;
+
+end
 
 function S = do_sort(S)
 
