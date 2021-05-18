@@ -6,6 +6,11 @@ function e2p_check_correct_zeros(data_gvt, which_file, varNames, ...
 % for one or more irrigated crops, or if any positive cells are found for
 % one or more rainfed crops.
 
+if size(data_gvt, 2) ~= length(varNames)
+    error('Mismatch in number of variables: data_gvt (%d) vs. varNames (%d)', ...
+        size(data_gvt, 2), length(varNames))
+end
+
 warn_in_test_gt0_is_good = false ;
 missing_N = {} ;
 if ~isempty(varargin)
@@ -29,7 +34,7 @@ elseif strcmp(which_file, 'gsirrigation')
     isirrig = cellfun(test_isirrig, basenamesi) ;
     data_gvt_rf = data_gvt(:,~isirrig,:) ;
     data_gvt_ir = data_gvt(:,isirrig,:) ;
-    test_gt0_is_bad(data_gvt_rf)
+    test_gt0_is_bad(data_gvt_rf, varNames)
     test_gt0_is_good(data_gvt_ir, warn_in_test_gt0_is_good, varNames, bl_or_fu)
 else
     error('which_file (%s) not recognized', which_file)
@@ -68,14 +73,14 @@ end
 end
 
 
-function test_gt0_is_bad(data_gvt)
+function test_gt0_is_bad(data_gvt, varNames)
 
 for t = 1:size(data_gvt, 3)
     if any(any(data_gvt(:,:,t)>0,1))
         Ifound = find(~any(data_gvt(:,:,t)>0,1)) ;
         Nfound = length(Ifound) ;
-        error('Positive cells found for %d/%d variables (first %d) at timestep %d', ...
-            Nfound, size(data_gvt, 2), Ifound(1), t)
+        error('Positive cells found for %d/%d variables (first %d, %s) at timestep %d', ...
+            Nfound, size(data_gvt, 2), Ifound(1), varNames{Ifound(1)}, t)
     end
 end
 
