@@ -19,7 +19,7 @@ deltas0_emu_xvt(emu_bl_xvt==0 & data_fu_emu.garr_xvt==0) = 0 ;
 
 % Deal with 0 baseline --> positive future (results in delta=Inf)
 % Might want to instead limit to (e.g.) 99.9th percentile of deltas
-isbad_xvt = data_fu_emu.garr_xvt>0 & emu_bl_xvt==0 ;
+isbad_xvt = isinf(deltas0_emu_xvt) ;
 isbad_vt = squeeze(any(isbad_xvt, 1)) ;
 isbad = find(isbad_xvt) ;
 Nbad = length(isbad) ;
@@ -81,70 +81,90 @@ elseif Nbad > 0 && interp_infs
         end
         for t = 1:Ntpers
             
-            if ~isbad_vt(v,t)
+            fixnow_x = isbad_xvt(:,v,t) ;
+            if ~any(fixnow_x)
                 continue
             end
             
-            tmp_x = deltas0_emu_xvt(:,v,t) ;
+            deltas0_emu_x = deltas0_emu_xvt(:,v,t) ;
             
-            if ~any(tmp_x>0)
+            if ~any(deltas0_emu_x>0)
                 error('No positive values!')
             end
             
 % % %             % TROUBLESHOOTING
-% % %             tmp_x(tmp_x>10 & ~isinf(tmp_x)) = 10 ;
-% % %             figure; hist(tmp_x(tmp_x>0 & ~isinf(tmp_x)));
+% % %             deltas0_emu_x(deltas0_emu_x>10 & ~isinf(deltas0_emu_x)) = 10 ;
+% % %             figure; hist(deltas0_emu_x(deltas0_emu_x>0 & ~isinf(deltas0_emu_x)));
 % % %             pause(3)
 % % %             close
             
 % % %             % TROUBLESHOOTING
 % % %             fprintf('%0.2f, %0.2f\n', ...
-% % %                 prctile(tmp_x(tmp_x>0 & ~isinf(tmp_x)),99), ...
-% % %                 prctile(tmp_x(tmp_x>0 & ~isinf(tmp_x)),99.9)) ;
+% % %                 prctile(deltas0_emu_x(deltas0_emu_x>0 & ~isinf(deltas0_emu_x)),99), ...
+% % %                 prctile(deltas0_emu_x(deltas0_emu_x>0 & ~isinf(deltas0_emu_x)),99.9)) ;
             
-            % Skip if no Infs
-            if ~any(isinf(tmp_x))
-                if verbose
-                    fprintf('        %d/%d skipped\n', t, Ntpers) ; %#ok<UNRCH>
-                end
-                continue
-            else
-                if verbose
-                    fprintf('        %d/%d (%d bad)...\n', t, Ntpers, length(find(isinf(tmp_x)))) ; %#ok<UNRCH>
-                end
+            % There should be infs here!
+            if ~any(isinf(deltas0_emu_x))
+                error('Why are there no Inf values here?')
+            end
+            if verbose
+                fprintf('        %d/%d (%d bad)...', t, Ntpers, length(find(isinf(deltas0_emu_x)))) ; %#ok<UNRCH>
             end
             
             % Record cells that were already NaN
-            already_nan = isnan(tmp_x) ;
+            already_nan = isnan(deltas0_emu_x) ;
             
             % Make map of original
             orig_YX = nan(360,720) ;
-            orig_YX(list2map) = tmp_x ;
+            orig_YX(list2map) = deltas0_emu_x ;
             
             % Interpolate over Infs
-            tmp_x(already_nan) = 0 ;
-            tmp_x(isinf(tmp_x)) = NaN ;
+            deltas0_emu_x(already_nan) = 0 ;
+            deltas0_emu_x(isinf(deltas0_emu_x)) = NaN ;
             tmp_YX = nan(360,720) ;
-            tmp_YX(list2map) = tmp_x ;
+            tmp_YX(list2map) = deltas0_emu_x ;
             intp_YX = inpaint_nans(tmp_YX, 4) ;
-            
-            tmp_x = intp_YX(list2map) ;
-            if ~any(tmp_x>0)
+            deltas_emu_x = intp_YX(list2map) ;
+            if ~any(deltas0_emu_x>0)
                 error('No positive values!')
-            end
-            
-            tmp_x(already_nan) = NaN ;
-            if ~any(~isnan(tmp_x))
-                error('No non-NaN values!')
             end
             
 %             % TROUBLESHOOTING
 %             new_YX = nan(360,720) ;
-%             new_YX(list2map) = tmp_x ;
+%             new_YX(list2map) = deltas0_emu_x ;
 %             shademap(orig_YX) ; title('original')
 %             shademap(new_YX) ; title('interpolated')
             
-            deltas_emu_xvt(:,v,t) = tmp_x ;
+            % Fill back in NaNs
+            deltas_emu_x(already_nan) = NaN ;
+            if ~any(~isnan(deltas_emu_x))
+                error('No non-NaN values!')
+            end
+            
+            % Put into output array
+            deltas_emu_xvt(:,v,t) = deltas_emu_x ;
+            
+            % Fix any subsequent infinite deltas for cells we just fixed
+            if t < Ntpers
+                deltas0_emu_x1Fut = deltas0_emu_xvt(:,v,t+1:end) ;
+                Nbad_fut_toFix = length(find(isinf(deltas0_emu_x1Fut(fixnow_x,:,:)))) ;
+                if Nbad_fut_toFix > 0
+                    if verbose
+                        fprintf(' + %d in future timesteps', Nbad_fut_toFix)
+                    end
+                    deltas0_emu_x1Fut(fixnow_x,:,:) = ...
+                        deltas_emu_x(fixnow_x) ...
+                        .* data_fu_emu.garr_xvt(fixnow_x,v,t+1:end) ...
+                        ./ data_fu_emu.garr_xvt(fixnow_x,v,t) ;
+                    deltas_emu_xvt(fixnow_x,v,t+1:end) = deltas0_emu_x1Fut(fixnow_x,:,:) ;
+                end
+                if verbose
+                    fprintf('\n')
+                end
+            end
+            
+            % Update check for infinite deltas
+            isbad_xvt = isinf(deltas_emu_xvt) ;
             
             if save_interp_figs && t==Ntpers
                 
