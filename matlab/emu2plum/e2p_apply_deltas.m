@@ -6,6 +6,10 @@ function data_fu_out = e2p_apply_deltas( ...
 % warning('TROUBLESHOOTING')
 % deltas_emu_xvt = ones(size(deltas_emu_xvt)) ;
 
+if any(any(any(isinf(deltas_emu_xvt))))
+    error('Infinite deltas were supposed to have been fixed by now!')
+end
+
 Ntpers = size(deltas_emu_xvt,3) ;
 
 % Set up output structure
@@ -58,10 +62,14 @@ if length(tmp_i_thisBL) ~= length(unique(tmp_i_thisBL))
     error('length(tmp_i_thisBL) ~= length(unique(tmp_i_thisBL))')
 end
 
-
 % Actually apply the deltas
 deltas_tmp_xvt = deltas_emu_xvt(:,tmp_i_emu,:) ;
 byield_tmp_xvt = repmat(data_bl_thisBL.garr_xv(:,tmp_i_thisBL), [1 1 Ntpers]) ;
+positive_delta_on_zero_baseline_xv = any(byield_tmp_xvt==0 & deltas_tmp_xvt>0, 3) ;
+if any(any(positive_delta_on_zero_baseline_xv))
+    warning('%d cell-variables have positive deltas applied to zero baseline', ...
+        length(find(positive_delta_on_zero_baseline_xv)))
+end
 data_fu_out.garr_xvt = deltas_tmp_xvt .* byield_tmp_xvt ;
 
 % Sort variable names
