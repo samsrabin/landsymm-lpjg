@@ -239,8 +239,10 @@ elseif Nbad > 0 && interp_infs
             clear orig_YX intp_YX
         end
     end
-elseif verbose && isempty(isbad)
-    disp('No values of data_fu_emu.garr_xvt are positive but were 0 in baseline.')
+else
+    if verbose
+        disp('No values of data_fu_emu.garr_xvt are positive but were 0 in baseline.')
+    end
     deltas_emu_xvt = deltas0_emu_xvt ;
 end
 clear emu_bl_xvt
