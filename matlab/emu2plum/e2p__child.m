@@ -545,13 +545,16 @@ for g = 1:length(gcm_list)
                     end
 
                     disp('    Done.')
-
+                    
 
                     % Get deltas
+                    if strcmp(when_remove_outliers, 'before_interp')
+                        error('Need to rethink before_interp outlier removal when using e2p_[get,apply]_deltas2(). Previously happened in e2p_get_deltas().')
+                    end
                     if contains(which_file, {'yield','gsirrigation'})
                         disp('    Getting deltas...')
 
-                        deltas_emu_xvt = e2p_get_deltas(...
+                        deltas_emu_xvt = e2p_get_deltas2(...
                             data_bl_emu, data_fu_emu, interp_infs, cropList_emu, ...
                             which_file, ...
                             used_emuCrops_agm, list2map, ...
@@ -569,14 +572,13 @@ for g = 1:length(gcm_list)
                     elseif ~strcmp(which_file, 'anpp')
                         error('which_file (%s) not recognized', which_file)
                     end
-                    clear varNames_NOTok_missing ok_missing_v
                     
                     % Apply emulator deltas to chosen baseline.
                     disp('    Applying deltas...')
-                    data_fu_out = e2p_apply_deltas( ...
+                    data_fu_out = e2p_apply_deltas2( ...
                         data_bl_out, data_bl_emu, data_fu_emu, deltas_emu_xvt, ...
                         cropList_out, cropList_out, varNames_out_allN, ...
-                        list2map, which_file, figure_visibility) ;
+                        list2map, which_file, figure_visibility, interp_infs) ;
                     % Check
                     [ok_missing_v, varNames_NOTok_missing] = ...
                         get_ok_missing(data_fu_out.varNames, Nlist_emu) ;
