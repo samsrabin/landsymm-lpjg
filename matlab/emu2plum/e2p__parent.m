@@ -7,12 +7,12 @@ whichfile_list = {'yield', 'gsirrigation'} ;
 % Development vs. production
 figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
 figure_extension = 'png' ; % fig or png
-save_excl_figs = false ;
-save_interp_figs = false ;
-save_out_figs = false ;
+save_excl_figs = true ;
+save_interp_figs = true ;
+save_out_figs = true ;
 which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
-save_txt_files = false ;
-save_txt_files_lpjg = false ;
+save_txt_files = true ;
+save_txt_files_lpjg = true ;
 load_existing_file = false ;
 
 % Behaviors
@@ -27,8 +27,8 @@ overwrite_existing_figs = true ;
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
 ggcm_list = {'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
-ssp_list = {'ssp126', 'ssp585'} ;
-thisVer = '20210226' ;
+ssp_list = {'ssp126'} ;
+thisVer = '20210514' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
 
