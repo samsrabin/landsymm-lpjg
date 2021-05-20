@@ -39,34 +39,34 @@ yield4_out_xv = data_fu_out.garr_xvt(:,:,4) ;
 cropList_lpj = unique(getbasename(data_fu_lpj.varNames)) ;
 Ncrops = length(cropList_lpj) ;
 if strcmp(which_file, 'yield')
-    cf_lpj = nan(Ncrops,1) ;
-    cf_lpj(strcmp(cropList_lpj, 'CerealsC3')) = 1.056 ;
-    cf_lpj(strcmp(cropList_lpj, 'CerealsC4')) = 0.738 ;
-    cf_lpj(strcmp(cropList_lpj, 'Rice')) = 1.052 ;
-    cf_lpj(strcmp(cropList_lpj, 'Oilcrops')) = 0.687 ;
-    cf_lpj(strcmp(cropList_lpj, 'Pulses')) = 0.865 ;
-    cf_lpj(strcmp(cropList_lpj, 'StarchyRoots')) = 5.443 ;
+%     cf_lpj = get_CFs_Rabin2020(cropList_lpj) ;
+    cf_lpj = get_CFs_e2p(cropList_lpj) ;
     for c = 1:Ncrops
         thisCrop = cropList_lpj{c} ;
-%         fprintf('%s lpj: %0.3f\n', thisCrop, cf_lpj(c)) ;
+        thisCF = cf_lpj(c) ;
+        if isnan(thisCF)
+            error('Calibration factor not defined for %s', ...
+                thisCrop)
+        end
+%         fprintf('%s lpj: %0.3f\n', thisCrop, thisCF) ;
         
         % Apply to LPJ-GUESS sim
         isThisCrop = contains(data_fu_lpj.varNames, thisCrop) ;
         yield_fu_lpj_max_xv(:,isThisCrop) = ...
-            cf_lpj(c) * yield_fu_lpj_max_xv(:,isThisCrop) ;
+            thisCF * yield_fu_lpj_max_xv(:,isThisCrop) ;
         yield1_lpj_xv(:,isThisCrop) = ...
-            cf_lpj(c) * yield1_lpj_xv(:,isThisCrop) ;
+            thisCF * yield1_lpj_xv(:,isThisCrop) ;
         yield4_lpj_xv(:,isThisCrop) = ...
-            cf_lpj(c) * yield4_lpj_xv(:,isThisCrop) ;
+            thisCF * yield4_lpj_xv(:,isThisCrop) ;
         
         % Apply to final outputs
         isThisCrop = contains(data_fu_out.varNames, thisCrop) ;
         yield_fu_out_max_xv(:,isThisCrop) = ...
-            cf_lpj(c) * yield_fu_out_max_xv(:,isThisCrop) ;
+            thisCF * yield_fu_out_max_xv(:,isThisCrop) ;
         yield1_out_xv(:,isThisCrop) = ...
-            cf_lpj(c) * yield1_out_xv(:,isThisCrop) ;
+            thisCF * yield1_out_xv(:,isThisCrop) ;
         yield4_out_xv(:,isThisCrop) = ...
-            cf_lpj(c) * yield4_out_xv(:,isThisCrop) ;
+            thisCF * yield4_out_xv(:,isThisCrop) ;
     end
 end
 
@@ -429,4 +429,35 @@ for v = 1:length(data_fu_out.varNames)
 end
     
     
+end
+
+
+function cf_lpj = get_CFs_Rabin2020(cropList_lpj)
+
+cf_lpj = nan(length(cropList_lpj),1) ;
+cf_lpj(strcmp(cropList_lpj, 'CerealsC3')) = 1.204 ;
+cf_lpj(strcmp(cropList_lpj, 'CerealsC4')) = 0.738 ;
+cf_lpj(strcmp(cropList_lpj, 'Rice')) = 1.052 ;
+cf_lpj(strcmp(cropList_lpj, 'Oilcrops')) = 0.687 ;
+cf_lpj(strcmp(cropList_lpj, 'Pulses')) = 0.865 ;
+cf_lpj(strcmp(cropList_lpj, 'StarchyRoots')) = 5.443 ;
+
+end
+
+
+function cf_lpj = get_CFs_e2p(cropList_lpj)
+% /Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/calibration_Ks3_Oilcrops_ownDates/output-2021-05-03-230307
+
+cf_lpj = nan(length(cropList_lpj),1) ;
+cf_lpj(strcmp(cropList_lpj, 'CerealsC3')) = 1.056 ;
+cf_lpj(strcmp(cropList_lpj, 'CerealsC4')) = 0.626 ;
+cf_lpj(strcmp(cropList_lpj, 'Rice')) = 1.576 ;
+cf_lpj(strcmp(cropList_lpj, 'OilNfix')) = 0.906 ;
+cf_lpj(strcmp(cropList_lpj, 'OilOther')) = 0.686 ;
+cf_lpj(strcmp(cropList_lpj, 'Pulses')) = 0.693 ;
+cf_lpj(strcmp(cropList_lpj, 'StarchyRoots')) = 7.537 ;
+cf_lpj(strcmp(cropList_lpj, 'Sugarbeet')) = 16.082 ;
+cf_lpj(strcmp(cropList_lpj, 'Sugarcane')) = 11.489 ;
+cf_lpj(strcmp(cropList_lpj, 'FruitAndVeg')) = 10.433 ;
+
 end
