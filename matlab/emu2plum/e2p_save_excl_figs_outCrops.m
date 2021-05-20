@@ -119,7 +119,7 @@ fontSize_big = fontSize + 4 ;
 % Translate crop names
 verbose = false ;
 cropList_lpj_asEmu = e2p_translate_crops_2emu( ...
-    cropList_lpj, cropList_emu, verbose) ;
+    cropList_lpj, cropList_emu, 'PLUM', verbose) ;
 
 % Set up for filename
 if strcmp(which_file,'yield')
