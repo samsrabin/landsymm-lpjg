@@ -605,6 +605,9 @@ for g = 1:length(gcm_list)
                     data_fu_out.garr_xvt(:,unneededN200,:) = [] ;
                     data_fu_out.varNames(unneededN200) = [] ;
                     data_fu_out.actually_emu_char(unneededN200) = [] ;
+                    e2p_check_correct_zeros(data_fu_out.garr_xvt, ...
+                        which_file, data_fu_out.varNames, ...
+                        'Future', @getbasenamei)
                     
                     % Remove outliers
                     if strcmp(when_remove_outliers, 'end')
