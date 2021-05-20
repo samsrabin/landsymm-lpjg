@@ -11,8 +11,8 @@ save_excl_figs = true ;
 save_interp_figs = true ;
 save_out_figs = true ;
 which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
-save_txt_files = true ;
-save_txt_files_lpjg = true ;
+save_txt_files = false ;
+save_txt_files_lpjg = false ;
 load_existing_file = false ;
 
 % Behaviors
