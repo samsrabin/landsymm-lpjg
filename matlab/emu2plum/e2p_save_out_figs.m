@@ -108,8 +108,7 @@ for v = 1:length(data_fu_out.varNames)
     thisVar_out = data_fu_out.varNames{v} ;
     thisCrop_out = getbasename(thisVar_out) ;
     thisCropi_out = getbasenamei(thisVar_out) ;
-    thisCropi_emu = strrep(thisCropi_out, thisCrop_out, ...
-        cropList_lpj_asEmu{strcmp(cropList_lpj, thisCrop_out)}) ;
+    thisCropi_emu = thisCropi_out ;
     thisVar_emu = sprintf('%s%s', thisCropi_emu, getN_char(thisVar_out)) ;
     
     % Skip if looking at irrigation of a rainfed crop
