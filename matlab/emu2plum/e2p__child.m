@@ -595,7 +595,7 @@ for g = 1:length(gcm_list)
                         clear I
                         e2p_check_correct_zeros(data_fu_lpj.garr_xvt, ...
                             which_file, data_fu_lpj.varNames, ...
-                            'Baseline', @getbasenamei)
+                            'Future', @getbasenamei)
                     end
                     
                     % Get fake N1000 values; trim unneeded N200
