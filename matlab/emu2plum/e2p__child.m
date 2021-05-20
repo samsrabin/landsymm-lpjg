@@ -59,6 +59,9 @@ for g = 1:length(gcm_list)
         if strcmp(which_system, 'mymac')
             tmp = sprintf('/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/%s_actual_2015soc_default/outputs', ...
                 gcm_prefix) ;
+        elseif strcmp(which_system, 'keal')
+            tmp = sprintf('/pd/data/lpj/sam/ggcmi2plum/lpj-guess_runs/remap12_2016/%s_actual_2015soc_default/outputs', ...
+                gcm_prefix) ;
         else
             error('Error parsing which_system "%s" for topDir_lpj', which_system)
         end
