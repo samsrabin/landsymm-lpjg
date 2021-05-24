@@ -672,7 +672,7 @@ for g = 1:length(gcm_list)
                 end
 
                 % Save outputs (for PLUM)
-                if save_txt_files
+                if save_txt_files_emu || save_txt_files_lpjg
                     disp('    Saving txt files for PLUM...')
                     out_header_cell = [{'Lon', 'Lat'} data_fu_out.varNames] ;
                     for t = 1:Ntpers
@@ -688,10 +688,12 @@ for g = 1:length(gcm_list)
                                 data_fu_lpj.lonlats, tmp_xv, which_file, ...
                                 false)
                         end
-                        fprintf('    %d/%d emu', t, Ntpers)
-                        e2p_save(outDir_ggcm, y1, yN, out_header_cell, ...
-                            data_fu_out.lonlats, data_fu_out.garr_xvt(:,:,t), which_file, ...
-                            overwrite_existing_txt)
+                        if save_txt_files_emu
+                            fprintf('    %d/%d emu', t, Ntpers)
+                            e2p_save(outDir_ggcm, y1, yN, out_header_cell, ...
+                                data_fu_out.lonlats, data_fu_out.garr_xvt(:,:,t), which_file, ...
+                                overwrite_existing_txt)
+                        end
 
                     end
                 end
