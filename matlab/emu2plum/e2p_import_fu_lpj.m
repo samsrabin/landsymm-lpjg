@@ -88,7 +88,9 @@ if any(test_Nyears ~= future_ts)
 end
 
 % Trim unneeded variables
-data_fu_lpj = e2p_trim_unneeded(data_fu_lpj, get_unneeded) ;
+if ~isempty(get_unneeded)
+    data_fu_lpj = e2p_trim_unneeded(data_fu_lpj, get_unneeded) ;
+end
 
 
 end

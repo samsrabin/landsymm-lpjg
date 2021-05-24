@@ -673,6 +673,25 @@ for g = 1:length(gcm_list)
 
                 % Save outputs (for PLUM)
                 if save_txt_files_emu || save_txt_files_lpjg
+                    
+                    % Import ANPP and runoff, if needed
+                    save_anpp_runoff = save_txt_files_lpjg ...
+                        & strcmp(ggcm, ggcm_list{1}) ...
+                        & strcmp(which_file, 'yield') ;
+                    if save_anpp_runoff
+                        disp('Importing LPJ-GUESS ANPP and runoff...')
+                        data_fu_lpj_anpp = e2p_import_fu_lpj(...
+                            future_y1-1, future_ts, future_yN_lpj, ...
+                            topDir_lpj, 'anpp', [], ...
+                            gridlist_target) ;
+                        data_fu_lpj_runoff = e2p_import_fu_lpj(...
+                            future_y1-1, future_ts, future_yN_lpj, ...
+                            topDir_lpj, 'tot_runoff', [], ...
+                            gridlist_target) ;
+                        out_header_cell_anpp = [{'Lon', 'Lat'} data_fu_lpj_anpp.varNames] ;
+                        out_header_cell_runoff = [{'Lon', 'Lat'} data_fu_lpj_runoff.varNames] ;
+                    end
+                    
                     disp('    Saving txt files for PLUM...')
                     out_header_cell = [{'Lon', 'Lat'} data_fu_out.varNames] ;
                     for t = 1:Ntpers
@@ -687,6 +706,18 @@ for g = 1:length(gcm_list)
                             e2p_save(outDir_lpj, y1, yN, out_header_cell, ...
                                 data_fu_lpj.lonlats, tmp_xv, which_file, ...
                                 false)
+                            
+                            % Save ANPP and runoff
+                            if save_anpp_runoff
+                                fprintf('    %d/%d lpj ANPP', t, Ntpers)
+                                e2p_save(outDir_lpj, y1, yN, out_header_cell_anpp, ...
+                                    data_fu_lpj.lonlats, data_fu_lpj_anpp.garr_xvt(:,:,t), ...
+                                    'anpp', false)
+                                fprintf('    %d/%d lpj runoff', t, Ntpers)
+                                e2p_save(outDir_lpj, y1, yN, out_header_cell_runoff, ...
+                                    data_fu_lpj.lonlats, data_fu_lpj_runoff.garr_xvt(:,:,t), ...
+                                    'tot_runoff', false)
+                            end
                         end
                         if save_txt_files_emu
                             fprintf('    %d/%d emu', t, Ntpers)
@@ -696,6 +727,7 @@ for g = 1:length(gcm_list)
                         end
 
                     end
+                    clear data_fu_lpj_anpp data_fu_lpj_runoff
                 end
 
                 %% Save yield diagnostic figures, if doing so
