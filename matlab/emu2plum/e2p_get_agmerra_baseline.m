@@ -156,6 +156,8 @@ for v = 1:Nvars_emu
     
 end
 
+S_out.incl_years = e2p_get_incl_years(thisFile) ;
+
 end
 
 

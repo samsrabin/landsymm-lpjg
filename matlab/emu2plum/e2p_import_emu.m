@@ -14,7 +14,7 @@ else
 end
 
 Ncells = length(gridlist.list_to_map) ;
-Nts = length(ts1_list) ;
+Ntpers = length(ts1_list) ;
 NN = length(Nlist) ;
 Ncrops_in = length(cropList_in) ;
 yearList_in = (baseline_yN+1):future_yN_emu ;
@@ -54,7 +54,7 @@ Ncrops_in_this = length(cropList_in_this) ;
 
 % Set up input arrays
 data_in_bl_xcni = nan(Ncells, Ncrops_in_this, NN, 2) ;
-data_in_fu_xtcni = nan(Ncells, Nts, Ncrops_in_this, NN, 2) ;
+data_in_fu_xtcni = nan(Ncells, Ntpers, Ncrops_in_this, NN, 2) ;
 if strcmp(which_file, 'iwd')
     data_in_bl_xcni(:,:,:,strcmp(irrList_in,'rf')) = 0 ;
     data_in_fu_xtcni(:,:,:,:,strcmp(irrList_in,'rf')) = 0 ;
@@ -165,7 +165,7 @@ end
 % Combine crop*Nfert*irrig
 clear thisCrop*
 data_out_bl_xv = nan(Ncells, length(cropIrrNlist_in)) ;
-data_out_fu_xtv = nan(Ncells, Nts, length(cropIrrNlist_in)) ;
+data_out_fu_xtv = nan(Ncells, Ntpers, length(cropIrrNlist_in)) ;
 for c = 1:Ncrops_in_this
     thisCrop_in = cropList_in_this{c} ;
     for ii = 1:2
@@ -183,20 +183,52 @@ for c = 1:Ncrops_in_this
     end
 end
             
-% Create required output arrays, converting tons/ha to kg/m2
+% Create required output structs, converting tons/ha to kg/m2
 tpha_to_kgpm2 = 0.1 ;
 
 data_bl_emu.varNames = cropIrrNlist_in ;
 data_bl_emu.list2map = gridlist.list_to_map ;
-data_bl_emu.y1s = ts1_list ;
-data_bl_emu.yNs = tsN_list ;
+data_bl_emu.incl_years = e2p_get_incl_years(thisFile_BL) ;
 data_bl_emu.garr_xv = data_out_bl_xv * tpha_to_kgpm2;
 
 data_fu_emu.varNames = cropIrrNlist_in ;
 data_fu_emu.list2map = gridlist.list_to_map ;
 data_fu_emu.y1s = ts1_list ;
 data_fu_emu.yNs = tsN_list ;
+data_fu_emu.incl_years = e2p_get_incl_years(thisFile) ;
 data_fu_emu.garr_xvt = permute(data_out_fu_xtv, [1 3 2]) * tpha_to_kgpm2;
+
+% Fill any missing "future" years by weighting with baseline
+t = 1 ;
+while min(data_fu_emu.incl_years) > ts1_list(t) && t <= Ntpers
+    yearList_pd = ts1_list(t):tsN_list(t) ;
+    Nyears_pd = length(yearList_pd) ;
+    missing_years = setdiff(yearList_pd, data_fu_emu.incl_years) ;
+    if isempty(missing_years)
+        error('How are no years missing here?')
+    end
+    Nmissing = length(missing_years) ;
+    Npresent = Nyears_pd - Nmissing ;
+    if min(data_bl_emu.incl_years) > missing_years(1) || max(data_bl_emu.incl_years) < missing_years(end)
+        error('Unable to fill missing "future" years %d-%d with baseline because baseline range is %d-%d', ...
+            missing_years(1), missing_years(end), data_bl_emu.incl_years(1), data_bl_emu.incl_years(end))
+    end
+    wt_fu = Npresent / Nyears_pd ;
+    wt_bl = 1 - wt_fu ;
+    warning('Filling missing "future" years %d-%d (%d/%d in period %d-%d) with emulated baseline mean', ...
+        missing_years(1), missing_years(end), ...
+        Nmissing, Nyears_pd, ts1_list(t), tsN_list(t))
+    data_fu_emu.garr_xvt(:,:,t) = ...
+        data_fu_emu.garr_xvt(:,:,t) * wt_fu ...
+        + data_bl_emu.garr_xv * wt_bl ;
+    t = t+1 ;
+end
+
+% Make sure emulated future range covers the latest period
+if max(data_fu_emu.incl_years) < tsN_list(end)
+    error('Last period ends %d but future emulation only goes to %d', ...
+        tsN_list(end), max(data_fu_emu.incl_years))
+end
 
 
 end
@@ -205,10 +237,10 @@ end
 function out_xt = process_timesteps(ts1_list, tsN_list, yearList_in, ...
     in_YXy, gridlist)
 
-Nts = length(ts1_list) ;
-out_xt = nan(length(gridlist.list_to_map), Nts) ;
+Ntpers = length(ts1_list) ;
+out_xt = nan(length(gridlist.list_to_map), Ntpers) ;
 
-for t = 1:Nts
+for t = 1:Ntpers
     thisY1 = ts1_list(t) ;
     thisYN = tsN_list(t) ;
     okyrs = yearList_in>=thisY1 & yearList_in<=thisYN ;

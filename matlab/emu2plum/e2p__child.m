@@ -180,7 +180,6 @@ for g = 1:length(gcm_list)
                     if contains(which_file, {'yield', 'gsirrigation'})
 
                         disp('    Importing emulator outputs...')
-
                         try
                             [data_bl_emu, data_fu_emu] = e2p_import_emu( ...
                                 topDir_emu, gcm, ggcm, ssp, which_file, ...
