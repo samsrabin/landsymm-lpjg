@@ -134,6 +134,7 @@ regression_type = 'slope-only' ;
 % Set up figure and diary files
 out_file = [version_name '_v' num2str(calib_ver)] ;
 out_diary = [dir_outfigs out_file '.txt'] ;
+out_csv = [dir_outfigs out_file '.csv'] ;
 out_figure = [dir_outfigs out_file '.pdf'] ;
 
 
@@ -142,10 +143,16 @@ out_figure = [dir_outfigs out_file '.pdf'] ;
 crop_calibration
 
 
-%% Save figure
+%% Save figure and table
+
+fprintf('Saving outputs to %s...\n', dir_outfigs)
 
 export_fig(out_figure,'-r300')
 close
+
+T_out = table(shiftdim(listCrops_fa2o), shiftdim(round(calib_factors_u,3)), ...
+    'VariableNames', {'Crop', 'calibration_factor'}) ;
+writetable(T_out, out_csv)
 
 disp('All done!')
 
