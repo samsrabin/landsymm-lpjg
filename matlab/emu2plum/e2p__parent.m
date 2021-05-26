@@ -122,7 +122,7 @@ low_yield_threshold_kgm2 = 0.01 ;
 
 cropList_in = {'spring_wheat', 'winter_wheat', 'maize', 'soy', 'rice'} ;
 cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
-    'OilNfix', 'OilOther', 'Sugarbeet', 'Sugarcane'} ;
+    'OilNfix', 'OilOther', 'Sugarbeet', 'Sugarcane', 'FruitAndVeg'} ;
 Ncrops_in = length(cropList_in) ;
 Ncrops_out = length(cropList_out) ;
 

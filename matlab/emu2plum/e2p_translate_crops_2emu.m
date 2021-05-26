@@ -26,7 +26,7 @@ for c = 1:length(cropList_in)
         else
             cropList_in_asEmu{c} = 'spring_wheat' ;
         end
-    elseif contains(thisCrop_in,{'StarchyRoots', 'Rice', 'OilOther', 'Sugarbeet'})
+    elseif contains(thisCrop_in,{'StarchyRoots', 'Rice', 'OilOther', 'Sugarbeet', 'FruitAndVeg'})
         cropList_in_asEmu{c} = 'spring_wheat' ;
     else
         error('GGCMI equivalent of %s not specified', thisCrop_in)

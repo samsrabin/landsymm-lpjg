@@ -22,7 +22,7 @@ for c = 1:length(cropList_in)
         cropList_in_asLpj{c} = 'CerealsC4' ;
     elseif contains(thisCrop_in,{'OilNfix', 'Pulses'})
         cropList_in_asLpj{c} = 'Oilcrops' ;
-    elseif contains(thisCrop_in,{'StarchyRoots', 'OilOther', 'Sugarbeet'})
+    elseif contains(thisCrop_in,{'StarchyRoots', 'OilOther', 'Sugarbeet', 'FruitAndVeg'})
         cropList_in_asLpj{c} = 'CerealsC3s' ;
     else
         error('LPJ-GUESS equivalent of %s not specified', thisCrop_in)
