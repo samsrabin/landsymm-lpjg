@@ -35,15 +35,6 @@ for g = 1:length(gcm_list)
             mkdir(outDir) ;
         end
         
-        % Copy log to file
-        diary('off')
-        diaryfile = sprintf('%s/matlab_log.txt', outDir) ;
-        if exist(diaryfile, 'file')
-            delete(diaryfile) ;
-        end
-        diary(diaryfile)
-        diary('on')
-            
         outDir_lpj = sprintf('%s/sim_LPJ-GUESS', outDir) ;
         outDir_excl_figs_inCrops = sprintf('%s/excl_figs_GGCMIcrops', outDir) ;
         outDir_excl_figs_outCrops = sprintf('%s/excl_figs_PLUMcrops', outDir) ;
@@ -139,6 +130,16 @@ for g = 1:length(gcm_list)
             if ~exist(outDir_ggcm, 'dir')
                 mkdir(outDir_ggcm) ;
             end
+            
+            % Copy log to file
+            diary('off')
+            diaryfile = sprintf('%s/matlab_log_%s.txt', ...
+                outDir_ggcm, datetime('now', 'Format', 'yyyyMMdd_HHmmss'))
+            if exist(diaryfile, 'file')
+                delete(diaryfile) ;
+            end
+            diary(diaryfile)
+            diary('on')
             
             for w = 1:length(whichfile_list)
                 which_file = whichfile_list{w} ;
@@ -754,11 +755,11 @@ for g = 1:length(gcm_list)
             end
             
             fprintf('Done with %s %s %s.\n', gcm, ssp, ggcm)
+            diary('off')
 
         end % Loop through crop models
 
         fprintf('Done with %s %s.\n', gcm, ssp)
-        diary('off')
         
         clear data_fu_lpj_yield data_fu_lpj_irrig
 
