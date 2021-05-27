@@ -57,6 +57,10 @@ else
     error('Failed to interpret what system you''re on')
 end
 
+% Define location of calibration factor files:
+cfDir = sprintf('%s/emulation/calibration_factors/calibration_factors_20210526', ...
+    topdir_db) ;
+
 % If started with -nodisplay option, you have to specify '-painters' in the
 % export_fig() call.
 if ~usejava('desktop')

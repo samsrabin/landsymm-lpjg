@@ -2,7 +2,8 @@ function e2p_save_out_figs(data_fu_lpj, ...
     data_fu_emu, data_fu_out, ...
     ggcm, outDir_figs, ...
     which_file, cropList_lpj_asEmu, figure_visibility, ...
-    figure_extension, which_out_figs, overwrite_existing_figs, renderer)
+    figure_extension, which_out_figs, overwrite_existing_figs, renderer, ...
+    cfDir)
 
 if ~exist(outDir_figs, 'dir')
     mkdir(outDir_figs)
@@ -35,38 +36,49 @@ yield1_out_xv = data_fu_out.garr_xvt(:,:,1) ;
 yield4_lpj_xv = data_fu_lpj.garr_xvt(:,:,4) ;
 yield4_out_xv = data_fu_out.garr_xvt(:,:,4) ;
 
-% Apply calibration factors used in ES paper
+% Apply calibration factors
 cropList_lpj = unique(getbasename(data_fu_lpj.varNames)) ;
 Ncrops = length(cropList_lpj) ;
 if strcmp(which_file, 'yield')
 %     cf_lpj = get_CFs_Rabin2020(cropList_lpj) ;
-    cf_lpj = get_CFs_e2p(cropList_lpj) ;
+%     cf_lpj = get_CFs_e2p(cropList_lpj) ;
+    cf_lpj = get_CFs(cropList_lpj, 'LPJ-GUESS', cfDir) ;
+    cf_emu = get_CFs(cropList_lpj, ggcm, cfDir) ;
+    if isempty(cf_lpj) || isempty(cf_emu)
+        return
+    end
     for c = 1:Ncrops
         thisCrop = cropList_lpj{c} ;
-        thisCF = cf_lpj(c) ;
-        if isnan(thisCF)
-            error('Calibration factor not defined for %s', ...
+        thisCF_lpj = cf_lpj(c) ;
+        if isnan(thisCF_lpj)
+            error('LPJ-GUESS calibration factor not defined for %s', ...
                 thisCrop)
         end
-%         fprintf('%s lpj: %0.3f\n', thisCrop, thisCF) ;
+%         fprintf('%s lpj: %0.3f\n', thisCrop, thisCF_lpj) ;
+        thisCF_emu = cf_emu(c) ;
+        if isnan(thisCF_emu)
+            error('%s calibration factor not defined for %s', ...
+                ggcm, thisCrop)
+        end
+%         fprintf('%s emu: %0.3f\n', thisCrop, thisCF_emu) ;
         
         % Apply to LPJ-GUESS sim
         isThisCrop = contains(data_fu_lpj.varNames, thisCrop) ;
         yield_fu_lpj_max_xv(:,isThisCrop) = ...
-            thisCF * yield_fu_lpj_max_xv(:,isThisCrop) ;
+            thisCF_lpj * yield_fu_lpj_max_xv(:,isThisCrop) ;
         yield1_lpj_xv(:,isThisCrop) = ...
-            thisCF * yield1_lpj_xv(:,isThisCrop) ;
+            thisCF_lpj * yield1_lpj_xv(:,isThisCrop) ;
         yield4_lpj_xv(:,isThisCrop) = ...
-            thisCF * yield4_lpj_xv(:,isThisCrop) ;
+            thisCF_lpj * yield4_lpj_xv(:,isThisCrop) ;
         
         % Apply to final outputs
         isThisCrop = contains(data_fu_out.varNames, thisCrop) ;
         yield_fu_out_max_xv(:,isThisCrop) = ...
-            thisCF * yield_fu_out_max_xv(:,isThisCrop) ;
+            thisCF_emu * yield_fu_out_max_xv(:,isThisCrop) ;
         yield1_out_xv(:,isThisCrop) = ...
-            thisCF * yield1_out_xv(:,isThisCrop) ;
+            thisCF_emu * yield1_out_xv(:,isThisCrop) ;
         yield4_out_xv(:,isThisCrop) = ...
-            thisCF * yield4_out_xv(:,isThisCrop) ;
+            thisCF_emu * yield4_out_xv(:,isThisCrop) ;
     end
 end
 
@@ -461,3 +473,45 @@ cf_lpj(strcmp(cropList_lpj, 'Sugarcane')) = 11.489 ;
 cf_lpj(strcmp(cropList_lpj, 'FruitAndVeg')) = 10.433 ;
 
 end
+
+
+function cf = get_CFs(cropList, ggcm, cfDir)
+
+cf = [] ;
+
+% Make sure the directory exists
+if ~exist(cfDir, 'dir')
+    warning('Calibration factor directory (%s) not found; skipping figure.', ...
+        cfDir)
+    return
+end
+
+% Find the latest file for this GGCM
+thePattern = sprintf('%s/*%s*.csv', cfDir, ggcm) ;
+cf_files = dir(thePattern) ;
+if isempty(cf_files)
+    warning('No calibration factor CSV found matching %s; skipping figure.', ...
+        thePattern)
+    return
+end
+[~, I] = sort([cf_files.datenum]) ;
+cf_file = sprintf('%s/%s', ...
+    cf_files(I(end)).folder, cf_files(I(end)).name) ;
+
+% Read and sort
+T = readtable(cf_file) ;
+[C, ~, IB] = intersect(cropList, table2cell(T(:,1)), 'stable') ;
+if ~isequal(shiftdim(C), shiftdim(cropList))
+    warning('Calibration factor CSV %s does not contain all values in cropList. Skipping figure.')
+    return
+end
+T = T(IB,:) ;
+fprintf('%s calibration factors from\n', ggcm)
+disp(cf_file)
+disp(T)
+cf = table2array(T(:,2)) ;
+
+
+    
+end
+
