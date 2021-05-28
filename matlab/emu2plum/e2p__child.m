@@ -598,16 +598,9 @@ for g = 1:length(gcm_list)
                             'Future', @getbasenamei)
                     end
                     
-                    % Get fake N1000 values; trim unneeded N200
+                    % Get fake N1000 values
                     data_fu_out = e2p_fake_1000(data_fu_out, data_fu_lpj, ...
                         Nlist_lpj_char, Nlist_emu_char, which_file) ;
-                    unneededN200 = find(getN_num(data_fu_out.varNames)==200) ;
-                    data_fu_out.garr_xvt(:,unneededN200,:) = [] ;
-                    data_fu_out.varNames(unneededN200) = [] ;
-                    data_fu_out.actually_emu_char(unneededN200) = [] ;
-                    e2p_check_correct_zeros(data_fu_out.garr_xvt, ...
-                        which_file, data_fu_out.varNames, ...
-                        'Future', @getbasenamei)
                     
                     % Remove outliers
                     if strcmp(when_remove_outliers, 'end')
@@ -630,38 +623,22 @@ for g = 1:length(gcm_list)
                         e2p_save_outlier_info(outlier_info_out, outDir_ggcm, which_file, data_fu_out.y1s, data_fu_out.yNs)
                     end
                     
-                    % Consistency check
-                    if isfield(data_fu_out, 'actually_emu_char') ...
-                    && ~isequal(size(shiftdim(data_fu_out.varNames)), size(shiftdim(data_fu_out.actually_emu_char)))
-                        error('data_fu_out.actually_emu_char must be the same size as data_fu_out.varNames')
-                    end
-
-                end
-                
-                % Sort. Technically unnecessary, but maybe PLUM isn't
-                % robust to non-sorted crops.
-                data_fu_lpj = do_sort(data_fu_lpj) ;
-                data_fu_out = do_sort(data_fu_out) ;
-
-                disp('    Done.')
-
-
-                %% Save outputs
-                
-                if ~did_load_existing
+                    % Sort. Technically unnecessary, but maybe PLUM isn't
+                    % robust to non-sorted crops.
+                    data_fu_lpj = do_sort(data_fu_lpj) ;
+                    data_fu_out = do_sort(data_fu_out) ;
+                    
+                    % Save MAT files
                     disp('    Saving MAT file(s)...')
-
                     % Save outputs (one file)
                     out_file = sprintf('%s/future_%s.mat', outDir_ggcm, which_file) ;
                     save(out_file, 'data_fu_lpj', 'data_fu_emu', 'data_fu_out')
-
                     % Save exclusion info
                     if strcmp(which_file, 'yield')
                         out_file = sprintf('%s/missing_or_excluded.mat', outDir_ggcm) ;
                         save(out_file, 'exclude_lowBLyield_xc', 'missing_yield_xc')
                     end
                     clear exclude_xc exclude_lowBLyield_xc missing_yield_xc
-                    
                     % For yield, save is_ww_max_bl_gW*
                     if strcmp(which_file, 'yield')
                         out_file = sprintf('%s/is_ww_max.mat', outDir_ggcm) ;
@@ -669,9 +646,30 @@ for g = 1:length(gcm_list)
                     elseif ~contains(which_file, {'anpp', 'gsirrigation'})
                         error('which_file (%s) not recognized', which_file)
                     end
-                end
+                    
+                    % Trim unneeded N200
+                    unneededN200 = find(getN_num(data_fu_out.varNames)==200) ;
+                    data_fu_out.garr_xvt(:,unneededN200,:) = [] ;
+                    data_fu_out.varNames(unneededN200) = [] ;
+                    data_fu_out.actually_emu_char(unneededN200) = [] ;
+                    e2p_check_correct_zeros(data_fu_out.garr_xvt, ...
+                        which_file, data_fu_out.varNames, ...
+                        'Future', @getbasenamei)
+                    
+                    % Consistency check
+                    if isfield(data_fu_out, 'actually_emu_char') ...
+                    && ~isequal(size(shiftdim(data_fu_out.varNames)), size(shiftdim(data_fu_out.actually_emu_char)))
+                        error('data_fu_out.actually_emu_char must be the same size as data_fu_out.varNames')
+                    end
 
-                % Save outputs (for PLUM)
+                end % if did_load_existing
+                
+                disp('    Done.')
+
+
+                %% Save outputs
+                
+                % Save text file outputs (for PLUM)
                 if save_txt_files_emu || save_txt_files_lpjg
                     
                     % Import ANPP and runoff, if needed
@@ -730,7 +728,7 @@ for g = 1:length(gcm_list)
                     clear data_fu_lpj_anpp data_fu_lpj_runoff
                 end
 
-                %% Save yield diagnostic figures, if doing so
+                % Save yield diagnostic figures, if doing so
                 if save_out_figs
                     disp('    Saving output figures...')
                     if strcmp(which_file, 'yield')
@@ -754,7 +752,7 @@ for g = 1:length(gcm_list)
                 end
                 fprintf('Done with %s %s %s %s.\n', gcm, ssp, ggcm, which_file)
                 
-            end
+            end % loop through whichfile_list
             
             fprintf('Done with %s %s %s.\n', gcm, ssp, ggcm)
             diary('off')
