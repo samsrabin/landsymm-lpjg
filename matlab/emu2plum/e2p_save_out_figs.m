@@ -42,8 +42,9 @@ Ncrops = length(cropList_lpj) ;
 if strcmp(which_file, 'yield')
 %     cf_lpj = get_CFs_Rabin2020(cropList_lpj) ;
 %     cf_lpj = get_CFs_e2p(cropList_lpj) ;
-    cf_lpj = e2p_get_CFs(cropList_lpj, 'LPJ-GUESS', cfDir) ;
-    cf_emu = e2p_get_CFs(cropList_lpj, ggcm, cfDir) ;
+    verbose = true ;
+    cf_lpj = e2p_get_CFs(cropList_lpj, 'LPJ-GUESS', cfDir, verbose) ;
+    cf_emu = e2p_get_CFs(cropList_lpj, ggcm, cfDir, verbose) ;
     if isempty(cf_lpj) || isempty(cf_emu)
         return
     end

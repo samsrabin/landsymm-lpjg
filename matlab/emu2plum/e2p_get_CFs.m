@@ -1,4 +1,4 @@
-function cf = e2p_get_CFs(cropList, ggcm, cfDir)
+function cf = e2p_get_CFs(cropList, ggcm, cfDir, verbose)
 
 cf = [] ;
 
@@ -29,9 +29,13 @@ if ~isequal(shiftdim(C), shiftdim(cropList))
     return
 end
 T = T(IB,:) ;
-fprintf('%s calibration factors from\n', ggcm)
-disp(cf_file)
-disp(T)
+
+if verbose
+    fprintf('%s calibration factors from\n', ggcm)
+    disp(cf_file)
+    disp(T)
+end
+
 cf = table2array(T(:,2)) ;
 
 
