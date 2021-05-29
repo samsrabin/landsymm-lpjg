@@ -53,10 +53,17 @@ ts1_list = future_y1:Nyears_ts:tsN_y1 ;
 tsN_list = ts1_list + Nyears_ts - 1 ;
 Ntpers = length(ts1_list) ;
 
+% Set up directory for output figure files
 outDir = sprintf('%s/fert-yield_curves', topDir) ;
 if ~exist(outDir, 'dir')
     mkdir(outDir)
 end
+
+% Calibration factors
+% Should really save these into the MAT files
+topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
+cfDir = sprintf('%s/emulation/calibration_factors/calibration_factors_20210526', ...
+    topdir_db) ;
 
 
 %% Import yields
@@ -183,7 +190,7 @@ for g = 1:Nggcm
     data_fu_tmp = data_fu ;
     data_fu_tmp.garr_xvtg = data_fu.garr_xvtg(:,:,:,g) ;
     make_figure(cropareas, data_fu_tmp, t, ggcm_list(g), cropList, irrList, ...
-        thisPos, fontSize, lineWidth, thisCO(g,:))
+        thisPos, fontSize, lineWidth, thisCO(g,:), cfDir)
     export_fig(sprintf('%s/fertyield_%d-%d_%s.pdf', ...
         outDir, data_fu.ts1_list(t), data_fu.tsN_list(t), ...
         thisGGCM))
@@ -195,7 +202,7 @@ disp('Done!')
 %% FUNCTIONS
 
 function make_figure(cropareas, data_fu, t, ggcm_list, cropList, irrList, ...
-    thisPos, fontSize, lineWidth, thisCO)
+    thisPos, fontSize, lineWidth, thisCO, cfDir)
 
 Nggcm = length(ggcm_list) ;
 Ncrops = length(cropList) ;
@@ -208,6 +215,13 @@ theLegend = theLegend(:) ;
 
 figure('Color', 'w', 'Position', thisPos)
 tiledlayout('flow')
+
+% Get calibration factors
+cfs_cg = nan(Ncrops, Nggcm) ;
+for g = 1:Nggcm
+    thisGGCM = ggcm_list{g} ;
+    cfs_cg(:,g) = e2p_get_CFs(cropList, thisGGCM, cfDir, false) ;
+end
 
 for cc = 1:Ncrops+1
     c = min(cc,Ncrops) ;
@@ -224,14 +238,9 @@ for cc = 1:Ncrops+1
     thisCrop_area_x = nansum(...
         cropareas.garr_xv(:,contains(cropareas.varNames, thisCrop)), 2) ;
     
-    % GET CALIBRATION FACTORS HERE
-    
-    % Set up
-        
-    
     nexttile
     for g = 1:Nggcm
-%         thisGGCM = ggcm_list{g} ;
+        
         for ii = 1:length(irrList)
             
             % Rainfed dashed, irrigated solid
@@ -262,6 +271,9 @@ for cc = 1:Ncrops+1
                 data_thisCrop_xvg(:,I_is_thisCropIrr,g) ...
                 .* thisCrop_area_x, ...
                 1) * 1e-6 ;
+            % Multiply by calibration factors
+            data_thisCropIrr_n = data_thisCropIrr_n ...
+                * cfs_cg(c,g) ;
             
             % Make fakeplot lines invisible
             if is_fakeplot
@@ -284,6 +296,17 @@ for cc = 1:Ncrops+1
             if ii == 2
                 set(hl, 'MarkerFaceColor', thisColor)
             end
+            
+            % Add calibration factor text
+            if length(ggcm_list) == 1 && ii==1 && ~is_fakeplot
+                thisText = sprintf('Calib. factor = %0.3f', ...
+                    cfs_cg(c,g)) ;
+                text(0.5, 0.05, thisText, ...
+                    'FontSize', fontSize, ...
+                    'Units', 'normalized', ...
+                    'HorizontalAlignment', 'center') ;
+            end
+            
             hold off
             
         end % Loop through irrigation
