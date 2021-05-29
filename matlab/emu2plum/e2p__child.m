@@ -134,7 +134,7 @@ for g = 1:length(gcm_list)
             % Copy log to file
             diary('off')
             diaryfile = sprintf('%s/matlab_log_%s.txt', ...
-                outDir_ggcm, datetime('now', 'Format', 'yyyyMMdd_HHmmss'))
+                outDir_ggcm, datetime('now', 'Format', 'yyyyMMdd_HHmmss')) ;
             if exist(diaryfile, 'file')
                 delete(diaryfile) ;
             end
