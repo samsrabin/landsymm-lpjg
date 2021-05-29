@@ -171,6 +171,11 @@ lineWidth = 1.25 ;
 
 thisCO = colororder ;
 
+make_figure(cropareas, data_fu, t, ggcm_list, cropList, irrList, ...
+    thisPos, fontSize, lineWidth, thisCO, cfDir)
+export_fig(sprintf('%s/fertyield_%d-%d.pdf', ...
+    outDir, data_fu.ts1_list(t), data_fu.tsN_list(t)))
+close
  
 for g = 1:Nggcm
     thisGGCM = ggcm_list{g} ;
