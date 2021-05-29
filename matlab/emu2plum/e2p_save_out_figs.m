@@ -42,8 +42,8 @@ Ncrops = length(cropList_lpj) ;
 if strcmp(which_file, 'yield')
 %     cf_lpj = get_CFs_Rabin2020(cropList_lpj) ;
 %     cf_lpj = get_CFs_e2p(cropList_lpj) ;
-    cf_lpj = get_CFs(cropList_lpj, 'LPJ-GUESS', cfDir) ;
-    cf_emu = get_CFs(cropList_lpj, ggcm, cfDir) ;
+    cf_lpj = e2p_get_CFs(cropList_lpj, 'LPJ-GUESS', cfDir) ;
+    cf_emu = e2p_get_CFs(cropList_lpj, ggcm, cfDir) ;
     if isempty(cf_lpj) || isempty(cf_emu)
         return
     end
@@ -472,46 +472,5 @@ cf_lpj(strcmp(cropList_lpj, 'Sugarbeet')) = 16.082 ;
 cf_lpj(strcmp(cropList_lpj, 'Sugarcane')) = 11.489 ;
 cf_lpj(strcmp(cropList_lpj, 'FruitAndVeg')) = 10.433 ;
 
-end
-
-
-function cf = get_CFs(cropList, ggcm, cfDir)
-
-cf = [] ;
-
-% Make sure the directory exists
-if ~exist(cfDir, 'dir')
-    warning('Calibration factor directory (%s) not found; skipping figure.', ...
-        cfDir)
-    return
-end
-
-% Find the latest file for this GGCM
-thePattern = sprintf('%s/*%s*.csv', cfDir, ggcm) ;
-cf_files = dir(thePattern) ;
-if isempty(cf_files)
-    warning('No calibration factor CSV found matching %s; skipping figure.', ...
-        thePattern)
-    return
-end
-[~, I] = sort([cf_files.datenum]) ;
-cf_file = sprintf('%s/%s', ...
-    cf_files(I(end)).folder, cf_files(I(end)).name) ;
-
-% Read and sort
-T = readtable(cf_file) ;
-[C, ~, IB] = intersect(cropList, table2cell(T(:,1)), 'stable') ;
-if ~isequal(shiftdim(C), shiftdim(cropList))
-    warning('Calibration factor CSV %s does not contain all values in cropList. Skipping figure.')
-    return
-end
-T = T(IB,:) ;
-fprintf('%s calibration factors from\n', ggcm)
-disp(cf_file)
-disp(T)
-cf = table2array(T(:,2)) ;
-
-
-    
 end
 
