@@ -1,6 +1,6 @@
 function data_fu_out = e2p_fake_1000( ...
     data_fu_out, data_fu_lpj, Nlist_lpj, Nlist_emu, ...
-    which_file)
+    which_file, scale_200to1000)
 
 % Get crop lists
 cropList_out = unique(getbasename(data_fu_out.varNames)) ;
@@ -43,8 +43,38 @@ for c = 1:Ncrops
         ind_out_1000 = find_stand(data_fu_out.varNames, thisCropIrr, 1000) ;
         
         % Calculate deltas
-        delta_x1t = calculate_deltas( ...
-            data_fu_lpj, ind_lpj_200, ind_lpj_1000, which_file) ;
+        delta_200_lpjg_x1t = get_deltas_betweenNs( ...
+            data_fu_lpj, ind_lpj_200, ind_lpj_1000, which_file, ...
+            thisCropIrr, 'LPJ-GUESS', 200, 1000) ;
+        
+        % If needed, change 200-1000 deltas according to ratio of
+        % 60-200 deltas
+        if scale_200to1000
+            ind_lpj_60 = find_stand(data_fu_lpj.varNames, thisCropIrr, 60) ;
+            ind_out_60 = find_stand(data_fu_out.varNames, thisCropIrr, 60) ;
+            delta_60_lpj_x1t = get_deltas_betweenNs( ...
+                data_fu_lpj, ind_lpj_60, ind_lpj_200, which_file, ...
+                thisCropIrr, 'LPJ-GUESS', 60, 200) ;
+            [delta_60_out_x1t, use_lpj_x1t] = get_deltas_betweenNs( ...
+                data_fu_out, ind_out_60, ind_out_200, which_file, ...
+                thisCropIrr, 'emulator', 60, 200) ;
+            delta_60_ratio_x1t = delta_60_out_x1t ./ delta_60_lpj_x1t ;
+            
+            % Handle cells with zero delta in LPJ-GUESS
+            delta_60_ratio_x1t(delta_60_lpj_x1t==0) = 1 ;
+            
+            % Adjust deltas, assuming that there's no way increasing N from
+            % 200 to 100 should *decrease* yield or irrigation requirement
+            delta_x1t = max(1, delta_200_lpjg_x1t .* delta_60_ratio_x1t) ;
+            
+            % Handle cells with infinite emulated N60-N200 where N200 was
+            % too high to be ignored
+            delta_x1t(use_lpj_x1t) = ...
+                delta_200_lpjg_x1t(use_lpj_x1t) ;
+        else
+            delta_x1t = delta_200_lpjg_x1t ;
+        end
+
         
         % Multiply onto existing N200 to get fake N1000
         thisInd = (c-1)*Nirr + ii ;
@@ -65,17 +95,28 @@ e2p_check_correct_zeros(data_fu_out.garr_xvt, ...
 end
 
 
-function delta_x1t = calculate_deltas(data_fu, ind_loN, ind_hiN, which_file)
+function [delta_x1t, use_lpj_x1t] = get_deltas_betweenNs(data_fu, ind_loN, ind_hiN, ...
+    which_file, thisCropIrr, whichModel, loN, hiN)
 
-delta_x1t = data_fu.garr_xvt(:,ind_hiN,:) ./ data_fu.garr_xvt(:,ind_loN,:) ;
+% Calculate deltas
+data_lo_x1t = data_fu.garr_xvt(:,ind_loN,:) ;
+data_hi_x1t = data_fu.garr_xvt(:,ind_hiN,:) ;
+delta_x1t = data_hi_x1t ./ data_lo_x1t ;
+
+% MATLAB sometimes gives -Inf when it should be positive Inf????????
+delta_x1t(isinf(delta_x1t) & delta_x1t<0 ...
+    & data_hi_x1t>=0 & data_lo_x1t>=0) = Inf ;
+
 delta_x1t(data_fu.garr_xvt(:,ind_loN,:)==0 & data_fu.garr_xvt(:,ind_hiN,:)==0) = 1 ;
 
 % If any infinite, first try excluding very small values
-if any(isinf(delta_x1t))
+if any(any(isinf(delta_x1t)))
     if strcmp(which_file, 'yield')
-        small_thresh = 0.001 ; % 0.001 kgC/m2 yield
+        small_thresh = 0.005 ; % 0.001 kgC/m2 yield
+        small_thresh_units = 'kgC/m2 yield' ;
     elseif strcmp(which_file, 'gsirrigation')
         small_thresh = 20 ; % 20 mm irrigation
+        small_thresh_units = 'mm irrigation' ;
     else
         error('which_file (%s) not recognized for e2p_fake_1000().', which_file)
     end
@@ -83,8 +124,41 @@ if any(isinf(delta_x1t))
         data_fu.garr_xvt(:,ind_hiN,:) <= small_thresh ;
     delta_x1t(is_small) = 1 ;
 end
-if any(isinf(delta_x1t))
-    error('Infs remain in delta_x1t. Deal with these.')
+
+% Make sure no values are negative
+if any(any(delta_x1t < 0 ))
+    error('Trouble getting %s %s deltas between N%d and N%d: Negative value(s)', ...
+        whichModel, thisCropIrr, loN, hiN)
+end
+
+% If infinite values remain, either throw error or mark for processing in
+% next step
+use_lpj_x1t = false(size(delta_x1t)) ;
+if any(any(isinf(delta_x1t)))
+    hiN_x1t = data_fu.garr_xvt(:,ind_hiN,:) ;
+    bad_hiN = hiN_x1t(isinf(delta_x1t)) ;
+    Nbad = length(find(isinf(delta_x1t))) ;
+    if strcmp(whichModel, 'emulator') && loN==60 && hiN==200
+        warning(['Trouble getting %s %s deltas between N%d and N%d: %d cell-' ...
+            'timesteps have zero at low N but at high N exceed "small value" ' ...
+            'threshold of %g %s (median %g, mean %g, max %g). ' ...
+            'These will use unmodified LPJ-GUESS deltas.'], ...
+            whichModel, thisCropIrr, loN, hiN, Nbad, ...
+            small_thresh, small_thresh_units, median(bad_hiN), ...
+            mean(bad_hiN), max(bad_hiN))
+        use_lpj_x1t(isinf(delta_x1t)) = true ;
+    else
+        error(['Trouble getting %s %s deltas between N%d and N%d: %d cell-' ...
+            'timesteps have zero at low N but at high N exceed "small value" ' ...
+            'threshold of %g %s (median %g, mean %g, max %g).'], ...
+            whichModel, thisCropIrr, loN, hiN, Nbad, ...
+            small_thresh, small_thresh_units, median(bad_hiN), ...
+            mean(bad_hiN), max(bad_hiN))
+    end
+end
+if any(any(isinf(delta_x1t) & ~use_lpj_x1t))
+    error('Trouble getting %s %s deltas between N%d and N%d: How do you STILL have infinite values?', ...
+        whichModel, thisCropIrr, loN, hiN)
 end
 
 end

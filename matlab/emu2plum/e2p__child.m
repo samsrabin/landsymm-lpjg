@@ -122,7 +122,7 @@ for g = 1:length(gcm_list)
         
         disp('Done importing LPJ-GUESS yield and irrigation.')
         
-        % Loop through crop emulators
+        %% Loop through crop emulators
         for ggcm_counter = 1:length(ggcm_list)
             ggcm = ggcm_list{ggcm_counter} ;
             topDir_phase2 = sprintf('%s/%s/phase2', topDir_agmipout, ggcm) ;
@@ -600,7 +600,8 @@ for g = 1:length(gcm_list)
                     
                     % Get fake N1000 values
                     data_fu_out = e2p_fake_1000(data_fu_out, data_fu_lpj, ...
-                        Nlist_lpj_char, Nlist_emu_char, which_file) ;
+                        Nlist_lpj_char, Nlist_emu_char, which_file, ...
+                        scale_200to1000) ;
                     
                     % Remove outliers
                     if strcmp(when_remove_outliers, 'end')
