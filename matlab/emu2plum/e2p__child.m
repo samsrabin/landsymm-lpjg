@@ -633,7 +633,7 @@ for g = 1:length(gcm_list)
                     disp('    Saving MAT file(s)...')
                     % Save outputs (one file)
                     out_file = sprintf('%s/future_%s.mat', outDir_ggcm, which_file) ;
-                    save(out_file, 'data_fu_emu', 'data_fu_out')
+                    save(out_file, 'data_bl_emu', 'data_bl_out', 'data_fu_emu', 'data_fu_out')
                     if ggcm_counter == 1
                         out_file = sprintf('%s/future_%s.mat', outDir_lpj, which_file) ;
                         save(out_file, 'data_fu_lpj')
