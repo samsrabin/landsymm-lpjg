@@ -49,13 +49,7 @@ for v = 1:Nvars_emu
         topDir_phase2, topDir_emu, thisCrop, ...
         adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
         false) ;
-    nofilefound = false ;
-    replacementAN = '' ;
     if isempty(thisFile)
-        msg = sprintf('Phase 2 AgMERRA %s %s not found, nor were any substitutes', ...
-            thisCropIrr, thisAN) ;
-        msg = sprintf('%s (A%d_N%d, A%d_NNA, or A%d_NNA)', ...
-            msg, ~adaptation, thisN, adaptation, ~adaptation) ;
         
         % Try A[other], again not allowing emulated version
         tmp_thisAdapt = ~adaptation ;
@@ -110,49 +104,43 @@ for v = 1:Nvars_emu
         end
         
         % Warn if using a substitute file
-        if ~nofilefound
-            if isnan(tmp_thisN)
-                replacementAN = sprintf('A%d_NNA', tmp_thisAdapt) ;
-            else
-                replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
-            end
-            if using_emulated == 1
-                warning('Phase 2 simulated %s %s not found; using *EMULATED* %s instead', ...
-                    thisCropIrr, thisAN, replacementAN) ;
-            else
-                warning('Phase 2 simulated %s %s not found; using %s instead', ...
-                    thisCropIrr, thisAN, replacementAN) ;
-            end
+        if isnan(tmp_thisN)
+            replacementAN = sprintf('A%d_NNA', tmp_thisAdapt) ;
+        else
+            replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
+        end
+        if using_emulated == 1
+            warning('Phase 2 simulated %s %s not found; using *EMULATED* %s instead', ...
+                thisCropIrr, thisAN, replacementAN) ;
+        else
+            warning('Phase 2 simulated %s %s not found; using %s instead', ...
+                thisCropIrr, thisAN, replacementAN) ;
         end
     end
     
     % Import (exclude last timestep to avoid incomplete final seasons)
-    if nofilefound
-        S_out.garr_xv(:,v) = Inf ;
-    else
-        varname = sprintf('%s_%s', fileVar, thisCrop_short) ;
-        if using_emulated == 1
-            S_out.actually_emu(v) = true ;
-            if strcmp(which_file, 'yield')
-                if isirrig
-                    varname = strrep(varname, '_', '_ir_') ;
-                else
-                    varname = strrep(varname, '_', '_rf_') ;
-                end
+    varname = sprintf('%s_%s', fileVar, thisCrop_short) ;
+    if using_emulated == 1
+        S_out.actually_emu(v) = true ;
+        if strcmp(which_file, 'yield')
+            if isirrig
+                varname = strrep(varname, '_', '_ir_') ;
+            else
+                varname = strrep(varname, '_', '_rf_') ;
             end
-            tmp_YX = flipud(transpose(ncread( ...
-                thisFile, ...
-                varname))) ;
-        else
-            tmp_XYt = ncread(thisFile, varname) ;
-            tmp_YX = flipud(transpose(nanmean(tmp_XYt(:,:,1:end-1), 3))) ;
         end
-        tmp = tmp_YX(list2map) ;
-        if ~any(~isnan(tmp))
-            warning('%s is all NaN', thisCrop)
-        end
-        S_out.garr_xv(:,v) = tmp * conv_fact ;
+        tmp_YX = flipud(transpose(ncread( ...
+            thisFile, ...
+            varname))) ;
+    else
+        tmp_XYt = ncread(thisFile, varname) ;
+        tmp_YX = flipud(transpose(nanmean(tmp_XYt(:,:,1:end-1), 3))) ;
     end
+    tmp = tmp_YX(list2map) ;
+    if ~any(~isnan(tmp))
+        warning('%s is all NaN', thisCrop)
+    end
+    S_out.garr_xv(:,v) = tmp * conv_fact ;
     
 end
 
