@@ -40,6 +40,11 @@ else
     error('which_file (%s) not recognized', which_file)
 end
 
+% Make sure no values are negative
+if any(any(any(data_gvt < 0 )))
+    error('Negative value(s) in %s', which_file)
+end
+
 
 end
 
