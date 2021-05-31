@@ -23,29 +23,26 @@ else
     error('which_file %s not recognized', which_file)
 end
 
-% Get AgMERRA-forced yield or irrigation water applied
+% Find files
+file_list = cell(Nvars_emu, 1) ;
+fileVar_list = cell(Nvars_emu, 1) ;
+A_used = adaptation * ones(Nvars_emu, 1) ;
+sim_used = ones(Nvars_emu, 1) ;
 for v = 1:Nvars_emu
     
     % Get info about this crop
-    thisCropIrr = getbasenamei(varNames_emu{v}) ;
-    thisN = getN_num(varNames_emu{v}) ;
-    thisAN = sprintf('A%d_N%d', adaptation, thisN) ;
-    isirrig = strcmp(thisCropIrr(end),'i') ;
-    thisCrop = thisCropIrr ;
-    if isirrig
-        thisCrop = thisCrop(1:end-1) ;
-    end
+    [thisCropIrr, thisN, thisAN, isirrig, thisCrop, thisCrop_short] = ...
+        get_crop_info(varNames_emu{v}, adaptation) ;
     
     % No irrigation water ever applied for non-irrigated crops
     if ~isirrig && strcmp(which_file, 'gsirrigation')
-        S_out.garr_xv(:,v) = 0 ;
+        file_list{v} = '' ;
+        fileVar_list{v} = '' ;
         continue
     end
     
-    thisCrop_short = e2p_get_thisCrop_short(thisCrop) ;
-    
     % Look for file, not allowing emulated version
-    [thisFile, fileVar, using_emulated] = get_file( ...
+    [thisFile, fileVar] = get_file( ...
         topDir_phase2, topDir_emu, thisCrop, ...
         adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
         false) ;
@@ -95,7 +92,7 @@ for v = 1:Nvars_emu
                             false) ;
                         
                         if isempty(thisFile)
-                            error('Could not find baseline AgMERRA %s for %s', ...
+                            error('Could not find baseline file %s for %s', ...
                                 which_file, thisCropIrr)
                         end
                     end
@@ -108,15 +105,41 @@ for v = 1:Nvars_emu
             replacementAN = sprintf('A%d_NNA', tmp_thisAdapt) ;
         else
             replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
+            A_used(v) = tmp_thisAdapt ;
         end
         if using_emulated == 1
             warning('Phase 2 simulated %s %s not found; using *EMULATED* %s instead', ...
                 thisCropIrr, thisAN, replacementAN) ;
+            sim_used(v) = 0 ;
         else
             warning('Phase 2 simulated %s %s not found; using %s instead', ...
                 thisCropIrr, thisAN, replacementAN) ;
         end
     end
+    
+    % Save information about this file
+    file_list{v} = thisFile ;
+    fileVar_list{v} = fileVar ;
+    
+end % Loop through variables
+
+% Import
+for v = 1:Nvars_emu
+    
+    % Get info about this crop
+    [~, ~, ~, isirrig, thisCrop, thisCrop_short] = ...
+        get_crop_info(varNames_emu{v}, adaptation) ;
+    
+    % No irrigation water ever applied for non-irrigated crops
+    if ~isirrig && strcmp(which_file, 'gsirrigation')
+        S_out.garr_xv(:,v) = 0 ;
+        continue
+    end
+    
+    % Get information about this file
+    thisFile = file_list{v} ;
+    fileVar = fileVar_list{v} ;
+    using_emulated = ~sim_used(v) ;
     
     % Import (exclude last timestep to avoid incomplete final seasons)
     varname = sprintf('%s_%s', fileVar, thisCrop_short) ;
@@ -145,6 +168,22 @@ for v = 1:Nvars_emu
 end
 
 S_out.incl_years = e2p_get_incl_years(thisFile) ;
+
+end
+
+
+function [thisCropIrr, thisN, thisAN, isirrig, thisCrop, thisCrop_short] = ...
+    get_crop_info(thisVar, adaptation)
+
+thisCropIrr = getbasenamei(thisVar) ;
+thisN = getN_num(thisVar) ;
+thisAN = sprintf('A%d_N%d', adaptation, thisN) ;
+isirrig = strcmp(thisCropIrr(end),'i') ;
+thisCrop = thisCropIrr ;
+if isirrig
+    thisCrop = thisCrop(1:end-1) ;
+end
+thisCrop_short = e2p_get_thisCrop_short(thisCrop) ;
 
 end
 
