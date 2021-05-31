@@ -24,13 +24,14 @@ interp_infs = true ;
 when_remove_outliers = 'end' ; % end, before_interp, off
 fake1k = true ;
 scale_200to1000 = true ;
+force_consistent_baseline = true ;
 
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
 ggcm_list = {'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
 % ggcm_list = {'EPIC-TAMU'} ;
 ssp_list = {'ssp126'} ;
-thisVer = '20210528' ;
+thisVer = '20210531' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
 

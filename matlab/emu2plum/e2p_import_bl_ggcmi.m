@@ -1,6 +1,6 @@
 function S_out = e2p_import_bl_ggcmi(...
     varNames_emu, topDir_phase2, topDir_emu, ggcm, list2map, lonlats, ...
-    adaptation, which_file)
+    adaptation, which_file, force_consistent_baseline)
 
 warning('on','all')
 
@@ -23,105 +23,59 @@ else
     error('which_file %s not recognized', which_file)
 end
 
-% Find files
-file_list = cell(Nvars_emu, 1) ;
-fileVar_list = cell(Nvars_emu, 1) ;
-A_used = adaptation * ones(Nvars_emu, 1) ;
-sim_used = ones(Nvars_emu, 1) ;
-for v = 1:Nvars_emu
-    
-    % Get info about this crop
-    [thisCropIrr, thisN, thisAN, isirrig, thisCrop, thisCrop_short] = ...
-        get_crop_info(varNames_emu{v}, adaptation) ;
-    
-    % No irrigation water ever applied for non-irrigated crops
-    if ~isirrig && strcmp(which_file, 'gsirrigation')
-        file_list{v} = '' ;
-        fileVar_list{v} = '' ;
-        continue
-    end
-    
-    % Look for file, not allowing emulated version
-    [thisFile, fileVar] = get_file( ...
-        topDir_phase2, topDir_emu, thisCrop, ...
-        adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
-        false) ;
-    if isempty(thisFile)
-        
-        % Try A[other], again not allowing emulated version
-        tmp_thisAdapt = ~adaptation ;
-        tmp_thisN = thisN ;
-        [thisFile, fileVar, using_emulated] = get_file( ...
-            topDir_phase2, topDir_emu, thisCrop, ...
-            tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
-            false) ;
-        
-        if isempty(thisFile)
-            
-            % Look for canonical file again, this time allowing emulated
-            % version
-            [thisFile, fileVar, using_emulated] = get_file( ...
-                topDir_phase2, topDir_emu, thisCrop, ...
-                adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
-                true) ;
-            
-            if isempty(thisFile)
-                % Try A[other], this time allowing emulated version
-                tmp_thisAdapt = ~adaptation ;
-                tmp_thisN = thisN ;
-                [thisFile, fileVar, using_emulated] = get_file( ...
-                    topDir_phase2, topDir_emu, thisCrop, ...
-                    tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
-                    true) ;
-                
-                if isempty(thisFile)
-                    % Try NNA
-                    tmp_thisAdapt = adaptation ;
-                    tmp_thisN = NaN ;
-                    [thisFile, fileVar, using_emulated] = get_file( ...
-                        topDir_phase2, topDir_emu, thisCrop, ...
-                        tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
-                        false) ;
-                    
-                    if isempty(thisFile)
-                        % Try A[other] NNA
-                        tmp_thisAdapt = ~adaptation ;
-                        [thisFile, fileVar, using_emulated] = get_file( ...
-                            topDir_phase2, topDir_emu, thisCrop, ...
-                            tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
-                            false) ;
-                        
-                        if isempty(thisFile)
-                            error('Could not find baseline file %s for %s', ...
-                                which_file, thisCropIrr)
-                        end
-                    end
-                end
+% Find "best" possible files
+[file_list, fileVar_list, A_used, sim_used] = get_files( ...
+    varNames_emu, adaptation, which_file, topDir_phase2, topDir_emu, ...
+    ggcm, force_consistent_baseline, false) ;
+
+% If you had to resort to emulator for ANY treatment of a crop, use
+% emulator for ALL treatments of that crop
+if force_consistent_baseline
+    varNames_emu_asCrop = getbasename(varNames_emu) ;
+    cropList_emu = unique(varNames_emu_asCrop) ;
+    for c = 1:length(cropList_emu)
+        thisCrop = cropList_emu{c} ;
+        isThisCrop = strcmp(varNames_emu_asCrop, thisCrop) ;
+        if any(~sim_used(isThisCrop))
+            warning('Using emulated (not simulated) baseline for %s', thisCrop)
+            sim_used(isThisCrop) = 0 ;
+            % Find emulator files
+            [tmp_file_list, tmp_fileVar_list, tmp_A_used, tmp_sim_used] = get_files( ...
+                varNames_emu(isThisCrop), adaptation, which_file, topDir_phase2, topDir_emu, ...
+                ggcm, force_consistent_baseline, true) ;
+            file_list(isThisCrop) = tmp_file_list ;
+            fileVar_list(isThisCrop) = tmp_fileVar_list ;
+            A_used(isThisCrop) = tmp_A_used ;
+            sim_used(isThisCrop) = tmp_sim_used ;
+            % Sanity check
+            if any(sim_used(isThisCrop))
+                error('???')
             end
         end
+    end
+end
+
+% Warn, if you didn't already
+if force_consistent_baseline
+    for v = 1:Nvars_emu
+        % Get info about this crop
+        [thisCropIrr, thisN, thisAN] = ...
+            get_crop_info(varNames_emu{v}, adaptation) ;
+        this_sim_used = sim_used(v) ;
+        this_A_used = A_used(v) ;
         
-        % Warn if using a substitute file
-        if isnan(tmp_thisN)
-            replacementAN = sprintf('A%d_NNA', tmp_thisAdapt) ;
-        else
-            replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
-            A_used(v) = tmp_thisAdapt ;
-        end
-        if using_emulated == 1
-            warning('Phase 2 simulated %s %s not found; using *EMULATED* %s instead', ...
-                thisCropIrr, thisAN, replacementAN) ;
-            sim_used(v) = 0 ;
-        else
-            warning('Phase 2 simulated %s %s not found; using %s instead', ...
-                thisCropIrr, thisAN, replacementAN) ;
+        if this_A_used ~= adaptation
+            if this_sim_used
+                sim_or_em = 'simulated' ;
+            else
+                sim_or_em = '*emulated*' ;
+            end
+            replacementAN = sprintf('A%d_N%d', this_A_used, thisN) ;
+            warning('Phase 2 %s %s %s not found; using %s instead', ...
+                sim_or_em, thisCropIrr, thisAN, replacementAN) ;
         end
     end
-    
-    % Save information about this file
-    file_list{v} = thisFile ;
-    fileVar_list{v} = fileVar ;
-    
-end % Loop through variables
+end
 
 % Import
 for v = 1:Nvars_emu
@@ -226,17 +180,21 @@ else
 end
 
 % First, try actual phase2 result
-thisDir_phase2 = sprintf('%s/%s/A%d/%s', ...
-    topDir_phase2, thisCrop, adaptation, fileVar) ;
-thisFile = sprintf(['%s/%s_agmerra_fullharm_%s_%s_global_annual_' ...
-    '1980_2010_C360_T0_%s_%s_A%d.nc4'], ...
-    thisDir_phase2, lower(ggcm), ...
-    fileVar, thisCrop_short, W_char, N_char, adaptation) ;
-using_emulated = 0 ;
+% OR skip if FORCING emulated
+thisFile = '' ;
+if allow_emulated < 2
+    thisDir_phase2 = sprintf('%s/%s/A%d/%s', ...
+        topDir_phase2, thisCrop, adaptation, fileVar) ;
+    thisFile = sprintf(['%s/%s_agmerra_fullharm_%s_%s_global_annual_' ...
+        '1980_2010_C360_T0_%s_%s_A%d.nc4'], ...
+        thisDir_phase2, lower(ggcm), ...
+        fileVar, thisCrop_short, W_char, N_char, adaptation) ;
+    using_emulated = 0 ;
+end
 
 % If not found, see if there's an emulated version
-if ~exist(thisFile, 'file')
-    if allow_emulated
+if isempty(thisFile) || ~exist(thisFile, 'file')
+    if allow_emulated > 0
         
         if isnan(thisN)
             error('Deal with N=NaN when looking for emulated replacement for Phase 2 baseline')
@@ -276,6 +234,128 @@ if ~exist(thisFile, 'file')
     end
 end
 
+end
+
+
+function [file_list, fileVar_list, A_used, sim_used] = get_files( ...
+    varNames_emu, adaptation, which_file, topDir_phase2, topDir_emu, ...
+    ggcm, force_consistent_baseline, force_emulator)
+
+Nvars_emu = length(varNames_emu) ;
+file_list = cell(Nvars_emu, 1) ;
+fileVar_list = cell(Nvars_emu, 1) ;
+A_used = adaptation * ones(Nvars_emu, 1) ;
+sim_used = ones(Nvars_emu, 1) ;
+for v = 1:Nvars_emu
+    
+    % Get info about this crop
+    [thisCropIrr, thisN, thisAN, isirrig, thisCrop, thisCrop_short] = ...
+        get_crop_info(varNames_emu{v}, adaptation) ;
+    
+    % No irrigation water ever applied for non-irrigated crops
+    if ~isirrig && strcmp(which_file, 'gsirrigation')
+        file_list{v} = '' ;
+        fileVar_list{v} = '' ;
+        continue
+    end
+    
+    % Look for file, not allowing emulated version
+    % OR skip if forcing to use emulated
+    thisFile = '' ;
+    if ~force_emulator
+        [thisFile, fileVar] = get_file( ...
+            topDir_phase2, topDir_emu, thisCrop, ...
+            adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
+            false) ;
+    end
+    if isempty(thisFile)
+        
+        % Try A[other], again not allowing emulated version
+        % OR skip if forcing to use emulated
+        tmp_thisAdapt = ~adaptation ;
+        tmp_thisN = thisN ;
+        if ~force_emulator
+            [thisFile, fileVar, using_emulated] = get_file( ...
+                topDir_phase2, topDir_emu, thisCrop, ...
+                tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
+                false) ;
+        end
+        
+        if isempty(thisFile)
+            
+            % Look for canonical file again, this time allowing emulated
+            % version
+            [thisFile, fileVar, using_emulated] = get_file( ...
+                topDir_phase2, topDir_emu, thisCrop, ...
+                adaptation, ggcm, thisCrop_short, thisN, isirrig, which_file, ...
+                1+force_emulator) ;
+            
+            if isempty(thisFile)
+                % Try A[other], this time allowing emulated version
+                tmp_thisAdapt = ~adaptation ;
+                tmp_thisN = thisN ;
+                [thisFile, fileVar, using_emulated] = get_file( ...
+                    topDir_phase2, topDir_emu, thisCrop, ...
+                    tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
+                    1+force_emulator) ;
+                
+                if isempty(thisFile)
+                    
+                    if force_consistent_baseline
+                        error('Finding NaN fertilization files not yet coded for force_consistent_baseline')
+                    end
+                    
+                    % Try NNA
+                    tmp_thisAdapt = adaptation ;
+                    tmp_thisN = NaN ;
+                    [thisFile, fileVar, using_emulated] = get_file( ...
+                        topDir_phase2, topDir_emu, thisCrop, ...
+                        tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
+                        false) ;
+                    
+                    if isempty(thisFile)
+                        % Try A[other] NNA
+                        tmp_thisAdapt = ~adaptation ;
+                        [thisFile, fileVar, using_emulated] = get_file( ...
+                            topDir_phase2, topDir_emu, thisCrop, ...
+                            tmp_thisAdapt, ggcm, thisCrop_short, tmp_thisN, isirrig, which_file, ...
+                            false) ;
+                        
+                        if isempty(thisFile)
+                            error('Could not find baseline file %s for %s', ...
+                                which_file, thisCropIrr)
+                        end
+                    end
+                end
+            end
+        end
+        
+        sim_used(v) = ~using_emulated ;
+        
+        % Warn if using a substitute file
+        if isnan(tmp_thisN)
+            replacementAN = sprintf('A%d_NNA', tmp_thisAdapt) ;
+        else
+            replacementAN = sprintf('A%d_N%d', tmp_thisAdapt, thisN) ;
+            A_used(v) = tmp_thisAdapt ;
+        end
+        if ~force_consistent_baseline
+            if using_emulated == 1
+                warning('Phase 2 simulated %s %s not found; using *EMULATED* %s instead', ...
+                    thisCropIrr, thisAN, replacementAN) ;
+            else
+                warning('Phase 2 simulated %s %s not found; using %s instead', ...
+                    thisCropIrr, thisAN, replacementAN) ;
+            end
+        end
+    end
+    
+    % Save information about this file
+    file_list{v} = thisFile ;
+    fileVar_list{v} = fileVar ;
+    
+end % Loop through variables
 
 
 end
+
