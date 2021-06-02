@@ -219,14 +219,22 @@ for g = 1:length(gcm_list)
                     end
                     
                     false_xc = false(length(data_bl_emu.list2map),length(cropList_emu_basei)) ;
-                    fprintf('    Importing AgMERRA %s...\n', which_file)
                     if ~isequal(data_fu_lpj.list2map, data_bl_emu.list2map)
                         error('gridlist mismatch')
                     end
-                    data_bl_agm = e2p_import_bl_ggcmi(...
-                        varNames_emu, topDir_phase2, topDir_emu, ggcm, ...
-                        data_bl_emu.list2map, data_fu_lpj.lonlats, ...
-                        adaptation, which_file, force_consistent_baseline) ;
+                    if emulated_baseline
+                        fprintf('    Using emulated %s as "true" baseline...\n', which_file)
+                        data_bl_agm = data_bl_emu ;
+                        data_bl_agm.list2map = gridlist.list_to_map ;
+                        data_bl_agm.lonlats = gridlist.lonlats ;
+                        data_bl_agm.actually_emu = true(size(data_bl_agm.varNames)) ;
+                    else
+                        fprintf('    Importing AgMERRA %s...\n', which_file)
+                        data_bl_agm = e2p_import_bl_ggcmi(...
+                            varNames_emu, topDir_phase2, topDir_emu, ggcm, ...
+                            data_bl_emu.list2map, data_fu_lpj.lonlats, ...
+                            adaptation, which_file, force_consistent_baseline) ;
+                    end
                     if ~any(any(~isnan(data_bl_agm.garr_xv)))
                         error('data_bl_agm.garr_xv is all NaN')
                     end
