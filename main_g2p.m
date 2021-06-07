@@ -99,7 +99,7 @@ else
 end
 
 % Get version name
-version_name = sprintf('ggcmi_%s_%s%d_ctry%d_caet%g', ...
+verName_calib = sprintf('ggcmi_%s_%s%d_ctry%d_caet%g', ...
     model_name, remapVer, calib_ver, ctrymapVer, ctry_excluded_area_thresh) ;
 
 % Years for calibration
@@ -132,7 +132,7 @@ addpath(genpath('/Users/sam/Documents/git_repos/g2p_emulation/matlab/emu2plum'))
 regression_type = 'slope-only' ;
 
 % Set up figure and diary files
-out_file = [version_name '_v' num2str(calib_ver)] ;
+out_file = [verName_calib '_v' num2str(calib_ver)] ;
 out_diary = [dir_outfigs out_file '.txt'] ;
 out_csv = [dir_outfigs out_file '.csv'] ;
 out_figure = [dir_outfigs out_file '.pdf'] ;

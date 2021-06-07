@@ -1,7 +1,7 @@
 % Setup
 crops2remove = {'CC3G','CC4G','OtHr','ExtraCrop'} ;
 
-if strcmp(version_name,'stijn_20180119')
+if strcmp(verName_calib,'stijn_20180119')
     if calib_ver~=11
         error('When doing stijn_20180119, you must use calib_ver=11.')
     end
@@ -44,13 +44,13 @@ elseif calib_ver == 14
     listCrops_lpj_comb = {'Wheat','Maize','Sorghum','Rice'} ;
 elseif calib_ver <= 10 || calib_ver == 17
     listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi'} ;
-elseif contains(version_name,'jianyong_20190128')
+elseif contains(verName_calib,'jianyong_20190128')
     if calib_ver~=21
-        error('When doing %s, you must use calib_ver= 21.', version_name)
+        error('When doing %s, you must use calib_ver= 21.', verName_calib)
     end
     listCrops_lpj_comb = {'FaBe','GlyM','TeCo','TeSW','TeWW','TrRi','TrSo'} ;
 else
-    error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb (version_name '  ').']) ;
+    error(['calib_ver ' num2str(calib_ver) ' not recognized for setting listCrops_lpj_comb (verName_calib '  ').']) ;
 end
 
 % Import land uses
@@ -510,7 +510,7 @@ if ~isempty(intersect(cropfrac_lpj.varNames,{'CerealsC3w','CerealsC3s'}))
 end
 
 % Stijn didn't include irrigated of these?
-if ~is_ggcmi && (strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128'))
+if ~is_ggcmi && (strcmp(verName_calib,'stijn_20180119') || contains(verName_calib,'jianyong_20190128'))
     tmpRemoveList = {'FaBei','GlyMi','TrSoi'} ;
     for c = 1:length(tmpRemoveList)
         thisCrop = tmpRemoveList{c} ;
@@ -696,7 +696,7 @@ for c = 1:Ncrops_lpj_comb
     end
     
     % Get rainfed and irrigated weights
-    if strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128')
+    if strcmp(verName_calib,'stijn_20180119') || contains(verName_calib,'jianyong_20190128')
         frac_comb = cropfrac_lpj.maps_YXvy(:,:,iR_cropfrac,:) ;
         if ~isempty(iI_cropfrac)
             frac_comb = frac_comb + cropfrac_lpj.maps_YXvy(:,:,iI_cropfrac,:) ;
@@ -713,7 +713,7 @@ for c = 1:Ncrops_lpj_comb
     % Combine rainfed and irrigated
     iR_yield = find(strcmp(yield_lpj.varNames,thisCropR)) ;
     iI_yield = find(strcmp(yield_lpj.varNames,thisCropI)) ;
-    if isempty(iI_cropfrac) && (strcmp(version_name,'stijn_20180119') || contains(version_name,'jianyong_20190128'))
+    if isempty(iI_cropfrac) && (strcmp(verName_calib,'stijn_20180119') || contains(verName_calib,'jianyong_20190128'))
         tmp = yield_lpj.maps_YXvy(:,:,iR_yield,:) .* weights_rf_YXvy ;
     else
         tmp = yield_lpj.maps_YXvy(:,:,iR_yield,:) .* weights_rf_YXvy ...

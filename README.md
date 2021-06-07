@@ -29,7 +29,7 @@ In addition to the included files, you also need a master script. It should look
 ```matlab
 %% Information about this calibration run
 
-version_name = 'remap2_PLUM6xtra_WWSW' ;   % calib_ver = 16
+verName_calib = 'remap2_PLUM6xtra_WWSW' ;   % calib_ver = 16
 filename_guess_yield = '/Volumes/WDMPP_Storage/PLUM/trunk_runs_external/calib.remap2.PLUM6xtra_WWSW.1901-2005/output-2018-02-16-185453/yield.out.gz' ;
 filename_guess_landuse = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v2/LU_xtraCROPtoPAST.remapv2.20180214.m0.txt' ;
 filename_guess_cropfrac = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v2/cropfracs.remapv2.20180214.m0.assignWWorSW_cruncep.txt' ;
@@ -62,7 +62,7 @@ crop_calibration
 
 %% Save figure
 
-out_file = [dir_outfigs version_name '_v' num2str(calib_ver) '.pdf'] ;
+out_file = [dir_outfigs verName_calib '_v' num2str(calib_ver) '.pdf'] ;
 export_fig(out_file,'-r300')
 ```
 
