@@ -6,7 +6,7 @@ function [total_fa2_Ccy, croparea_fa2_Ccy, yield_fa2_Ccy, ...
     calib_ver_used, twofiles, ...
     yieldWasInf_fa2_Ccy] ...
     = get_fao_data(year1,yearN,calib_ver,...
-    need_countries, ...
+    need_countries, listCrops_lpj_comb, ...
     varargin)
 
 % UNITS
@@ -24,6 +24,11 @@ if ~isempty(varargin)
     countries_key = varargin{4} ;
     faoCommBalElement = varargin{5} ;
     indiv_years = varargin{6} ;
+end
+
+if exist('faoCommBalElement', 'var') && ~strcmp(faoCommBalElement,'Production')
+    error(['faoCommBalElement is set to something other than Production. '...
+           'If this is intentional, continue manually.'])
 end
 
 yearList = year1:yearN ;
@@ -123,6 +128,22 @@ if ~indiv_years
     total_fa2_Ccy = nanmean(total_fa2_Ccy,3) ;
     croparea_fa2_Ccy = nanmean(croparea_fa2_Ccy,3) ;
     yield_fa2_Ccy = nanmean(yield_fa2_Ccy,3) ;
+end
+
+if calib_ver_used == 23
+    if ~isempty(setxor(listCrops_fa2o, listCrops_lpj_comb))
+        error('listCrops mismatch prevents rearranging')
+    end
+    [~, ~, IB] = intersect(listCrops_lpj_comb, listCrops_fa2o, 'stable') ;
+    listCrops_fa2o = listCrops_fa2o(IB) ;
+    total_fa2_Ccy = total_fa2_Ccy(:,IB,:) ;
+    croparea_fa2_Ccy = croparea_fa2_Ccy(:,IB,:) ;
+    yield_fa2_Ccy = yield_fa2_Ccy(:,IB,:) ;
+    if ~isequal(listCrops_fa2o, listCrops_lpj_comb)
+        error('listCrops mismatch even after rearranging???')
+    end
+elseif calib_ver_used > 23
+    error('calib_ver_used %d not recognized', calib_ver_used)
 end
 
 end

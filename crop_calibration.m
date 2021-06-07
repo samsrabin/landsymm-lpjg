@@ -29,6 +29,8 @@ end
 
 script_adjust_countries
 
+getPi = @(x) find(strcmp(listCrops_lpj_comb,x)) ;
+
 
 %% Read FAO data
 
@@ -44,11 +46,6 @@ faoCommBalElement = 'Production' ;
 % faoCommBalElement = 'Processing' ;
 % faoCommBalElement = 'Other uses' ;
 
-if ~strcmp(faoCommBalElement,'Production')
-    error(['faoCommBalElement is set to something other than Production. '...
-           'If this is intentional, continue manually.'])
-end
-
 [total_fa2_Ccy, croparea_fa2_Ccy, yield_fa2_Ccy, ...
     fao_itemNames, ...
     listCrops_fa2o, Ncrops_fa2o, ...
@@ -56,28 +53,9 @@ end
     is_tropical, is_xtratrop, ...
     calib_ver_used, twofiles] ...
     = get_fao_data(year1,yearN,calib_ver,...
-    need_countries, ...
+    need_countries, listCrops_lpj_comb, ...
     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
     faoCommBalElement, indiv_years) ;
-
-if calib_ver_used == 23
-    if ~isempty(setxor(listCrops_fa2o, listCrops_lpj_comb))
-        error('listCrops mismatch prevents rearranging')
-    end
-    [~, ~, IB] = intersect(listCrops_lpj_comb, listCrops_fa2o, 'stable') ;
-    listCrops_fa2o = listCrops_fa2o(IB) ;
-    total_fa2_Ccy = total_fa2_Ccy(:,IB,:) ;
-    croparea_fa2_Ccy = croparea_fa2_Ccy(:,IB,:) ;
-    yield_fa2_Ccy = yield_fa2_Ccy(:,IB,:) ;
-    if ~isequal(listCrops_fa2o, listCrops_lpj_comb)
-        error('listCrops mismatch even after rearranging???')
-    end
-elseif calib_ver_used > 23
-    error('calib_ver_used %d not recognized', calib_ver_used)
-end
-
-verbose = false ;
-getPi = @(x) find(strcmp(listCrops_lpj_comb,x)) ;
 
 
 %% (OPTIONAL) Save FAO data for 1961-2010
