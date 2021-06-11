@@ -79,26 +79,36 @@ for c = 1:Ncrops_in_this
     for n = 1:NN
         thisN = Nlist(n) ;
         
-        % Get file with data for baseline
-        thisDir = sprintf('%s/%s/CMIP6/A%d_N%d_%s/%s/%s', ...
+        % Get directories and file search patterns
+        thisDir_bl = sprintf('%s/%s/CMIP6/A%d_N%d_%s/baseline/%s', ...
+            topDir_emu, which_file, adaptation, thisN, emuVer, thisEmu) ;
+        pattern_in_BL = sprintf('%s/*_%s_%s_*baseline*', ...
+            thisDir_bl, thisCrop, thisEmu) ;
+        thisDir_fu = sprintf('%s/%s/CMIP6/A%d_N%d_%s/%s/%s', ...
             topDir_emu, which_file, adaptation, thisN, emuVer, thisSSP, thisEmu) ;
-        if ~exist(thisDir, 'dir')
-            error('thisDir does not exist: %s', thisDir)
+        if ~exist(thisDir_fu, 'dir')
+            error('thisDir_fu does not exist: %s', thisDir_fu)
         end
-        pattern_in_BL = sprintf('%s/*_%s_*_%s_%s_*baseline*', ...
-            thisDir, thisGCM, thisCrop, thisEmu) ;
+        if ~exist(thisDir_bl, 'dir')
+            warning('baseline/ directory not found; looking in thisDir_fu (%s)', thisDir_fu)
+            thisDir_bl = thisDir_fu ;
+            pattern_in_BL = sprintf('%s/*_%s_*_%s_%s_*baseline*', ...
+                thisDir_bl, thisGCM, thisCrop, thisEmu) ;
+        end
+        
+        % Get file with data for baseline
         files = dir(pattern_in_BL) ;
-        if length(files) > 1
-            error('thisDir_yield ok, but error finding thisFile_BL: %d found', length(files))
+        if length(files) ~= 1
+            error('thisDir_bl ok, but error finding thisFile_BL: %d found', length(files))
         end
         thisFile_BL = sprintf('%s/%s', files.folder, files.name) ;
         
         % Get file with data for future
         pattern_in = sprintf('%s/*_%s_*_%s_%s_*movingwindow*', ...
-            thisDir, thisGCM, thisCrop, thisEmu) ;
+            thisDir_fu, thisGCM, thisCrop, thisEmu) ;
         files = dir(pattern_in) ;
         if length(files) ~= 1
-            error('thisDir ok, but error finding thisFile: %d found', length(files))
+            error('thisDir_fu ok, but error finding thisFile: %d found', length(files))
         end
         thisFile = sprintf('%s/%s', files.folder, files.name) ;
         
