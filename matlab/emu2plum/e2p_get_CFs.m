@@ -25,7 +25,8 @@ cf_file = sprintf('%s/%s', ...
 T = readtable(cf_file) ;
 [C, ~, IB] = intersect(cropList, table2cell(T(:,1)), 'stable') ;
 if ~isequal(shiftdim(C), shiftdim(cropList))
-    warning('Calibration factor CSV %s does not contain all values in cropList. Skipping figure.')
+    warning('Calibration factor CSV %s does not contain all values in cropList. Skipping figure.', ...
+        cf_file)
     return
 end
 T = T(IB,:) ;
