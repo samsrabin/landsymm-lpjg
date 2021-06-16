@@ -4,8 +4,12 @@
 
 ggcm_list = {'LPJ-GUESS', 'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
 
+% topDir = ['/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/' ...
+%     'A1_v2.5_UKESM1-0-LL_ssp126_20210528_ph2bl_intpinfs_rmolend_fake1k'] ;
 topDir = ['/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/' ...
-    'A1_v2.5_UKESM1-0-LL_ssp126_20210528_ph2bl_intpinfs_rmolend_fake1k'] ;
+    'A1_v2.5_UKESM1-0-LL_ssp126_20210531_ph2bl_intpinfs_rmolend_fake1k'] ;
+% topDir = ['/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/' ...
+%     'h'] ;
 remapVer = '12_g2p' ;
 
 
@@ -169,7 +173,7 @@ disp('Done.')
 warning off export_fig:exportgraphics
 
 % Which time period?
-t = 1 ;
+t = 2 ;
 % Figure options
 thisPos = figurePos ;
 fontSize = 12 ;
@@ -180,8 +184,8 @@ thisCO = colororder ;
 
 make_figure(cropareas, data_fu, t, ggcm_list, cropList, irrList, ...
     thisPos, fontSize, lineWidth, thisCO, cfDir)
-export_fig(sprintf('%s/fertyield_%d-%d.pdf', ...
-    outDir, data_fu.ts1_list(t), data_fu.tsN_list(t)))
+export_fig(sprintf('%s/fertyield_%d-%d.png', ...
+    outDir, data_fu.ts1_list(t), data_fu.tsN_list(t)), '-r200')
 close
  
 for g = 1:Nggcm
@@ -191,9 +195,9 @@ for g = 1:Nggcm
     data_fu_tmp.garr_xvtg = data_fu.garr_xvtg(:,:,:,g) ;
     make_figure(cropareas, data_fu_tmp, t, ggcm_list(g), cropList, irrList, ...
         thisPos, fontSize, lineWidth, thisCO(g,:), cfDir)
-    export_fig(sprintf('%s/fertyield_%d-%d_%s.pdf', ...
+    export_fig(sprintf('%s/fertyield_%d-%d_%s.png', ...
         outDir, data_fu.ts1_list(t), data_fu.tsN_list(t), ...
-        thisGGCM))
+        thisGGCM), '-r200')
     close
 end
 disp('Done!')
