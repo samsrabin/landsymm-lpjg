@@ -3,7 +3,7 @@ function e2p_save_out_figs(data_fu_lpj, ...
     ggcm, outDir_figs, ...
     which_file, cropList_lpj_asEmu, figure_visibility, ...
     figure_extension, which_out_figs, overwrite_existing_figs, renderer, ...
-    cfDir)
+    cf_lpj, cf_emu)
 
 if ~exist(outDir_figs, 'dir')
     mkdir(outDir_figs)
@@ -42,9 +42,6 @@ Ncrops = length(cropList_lpj) ;
 if strcmp(which_file, 'yield')
 %     cf_lpj = get_CFs_Rabin2020(cropList_lpj) ;
 %     cf_lpj = get_CFs_e2p(cropList_lpj) ;
-    verbose = true ;
-    cf_lpj = e2p_get_CFs(cropList_lpj, 'LPJ-GUESS', cfDir, verbose) ;
-    cf_emu = e2p_get_CFs(cropList_lpj, ggcm, cfDir, verbose) ;
     if isempty(cf_lpj) || isempty(cf_emu)
         return
     end

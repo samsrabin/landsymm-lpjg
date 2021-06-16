@@ -120,6 +120,9 @@ for g = 1:length(gcm_list)
                 get_unneeded) ;
         end
         
+        % Get LPJ-GUESS calibration factors
+        cf_lpj = e2p_get_CFs(cropList_out, 'LPJ-GUESS', cfDir, true) ;
+        
         disp('Done importing LPJ-GUESS yield and irrigation.')
         
         %% Loop through crop emulators
@@ -140,6 +143,9 @@ for g = 1:length(gcm_list)
             end
             diary(diaryfile)
             diary('on')
+            
+            % Get this emulator's calibration factors
+            cf_emu = e2p_get_CFs(cropList_out, ggcm, cfDir, true) ;
             
             for w = 1:length(whichfile_list)
                 which_file = whichfile_list{w} ;
@@ -196,7 +202,7 @@ for g = 1:length(gcm_list)
                                 rethrow(ME)
                             end
                         end
-
+                        
                         e2p_check_correct_zeros(data_bl_emu.garr_xv, ...
                             which_file, data_bl_emu.varNames, ...
                             'Baseline', @getbasenamei, ...
@@ -750,14 +756,14 @@ for g = 1:length(gcm_list)
                             ggcm, outDir_yield_figs, ...
                             which_file, cropList_out_asEmu, figure_visibility, figure_extension, ...
                             which_out_figs, overwrite_existing_figs, renderer, ...
-                            cfDir)
+                            cf_lpj, cf_emu)
                     elseif strcmp(which_file, 'gsirrigation')
                         e2p_save_out_figs(data_fu_lpj, ...
                             data_fu_emu, data_fu_out, ...
                             ggcm, outDir_irrig_figs, ...
                             which_file, cropList_out_asEmu, figure_visibility, figure_extension, ...
                             which_out_figs, overwrite_existing_figs, renderer, ...
-                            cfDir)
+                            cf_lpj, cf_emu)
                     else
                         warning('which_file (%s) not recognized for save_yield_figs; skipping.', which_file)
                     end
