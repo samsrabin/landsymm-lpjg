@@ -1,32 +1,40 @@
-function [i_thisWW, i_thisSW, i_thisMW, varNames] = ...
-    e2p_wheatInds(thisWW, varNames)
+function [i_theseABetc, i_thisM, varNames] = ...
+    e2p_wheatInds(thisA, varNames, combineCrops_row)
 
-thisSW = strrep(strrep(thisWW, 'winter', 'spring'), 'C3w', 'C3s') ;
-thisMW = strrep(strrep(thisWW, 'winter', 'max'), 'C3w', 'C3') ;
+combineCrops_dest = combineCrops_row{1} ;
+combineCrops_sources = combineCrops_row{2} ;
+Nsources = length(combineCrops_sources) ;
 
-if strcmp(thisSW, thisWW)
-    error('Error finding spring-wheat counterpart for %s', thisWW)
-elseif strcmp(thisMW, thisWW)
-    error('Error finding max-wheat counterpart for %s', thisWW)
+% Get list of source variables
+theseABetc = cell(1, Nsources) ;
+theseABetc{1} = thisA ;
+for s = 2:Nsources
+    thisSource = combineCrops_sources{s} ;
+    theseABetc{s} = strrep(thisA, getbasename(thisA), thisSource) ;
+end
+thisM = strrep(thisA, getbasename(thisA), combineCrops_dest) ;
+
+if length(unique(theseABetc)) ~= length(theseABetc)
+    error('Error defining counterpart source variable name(s) for %s', thisA)
 end
 
-i_thisWW = find(strcmp(varNames,thisWW));
-if length(i_thisWW) ~= 1
-    error('Error finding i_thisWW (%d found)', length(i_thisWW))
+missing_sources = setdiff(theseABetc, varNames) ;
+if ~isempty(missing_sources)
+    error('%s not found in varNames', missing_sources{1})
 end
 
-i_thisSW = find(strcmp(varNames,thisSW));
-if length(i_thisSW) ~= 1
-    error('Error finding i_thisSW (%d found)', length(i_thisSW))
+[C, ~, i_theseABetc] = intersect(theseABetc, varNames, 'stable') ;
+if ~isequal(shiftdim(C), shiftdim(theseABetc))
+    error('~isequal(shiftdim(C), shiftdim(theseABetc))')
 end
 
-if ~contains(thisMW, varNames)
-    varNames{end+1} = thisMW ;
+if ~contains(thisM, varNames)
+    varNames{end+1} = thisM ;
 end
 
-i_thisMW = find(strcmp(varNames,thisMW));
-if length(i_thisMW) ~= 1
-    error('Error finding i_thisMW (%d found)', length(i_thisMW))
+i_thisM = find(strcmp(varNames,thisM));
+if length(i_thisM) ~= 1
+    error('Error finding %s (%d found)', thisM, length(i_thisM))
 end
 
 

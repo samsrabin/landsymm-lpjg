@@ -2,7 +2,7 @@ function [varNames, cropList, varNames_basei, cropList_basei, Nlist, maxN] = ...
     e2p_get_names(varNames_A, varNames_B, ...
     get_unneeded)
 
-% Make sure A and B variable lists match (if A is included)
+% Make sure A and B variable lists match (if both are included)
 if ~isempty(varNames_A) && ~isempty(varNames_B)
     if ~isequal(varNames_A, varNames_B)
         error('Mismatch between variable lists A and B.')

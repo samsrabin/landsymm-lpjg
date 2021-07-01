@@ -1,7 +1,9 @@
-function [data_out, varNames, is_ww_max, winter_wheats, actually_emu_char] = ...
-    e2p_get_max_wheat(data_in, varNames, varargin)
-% If tied, goes to spring wheat.
+function [data_out, varNames, combineCrops_out, actually_emu_char] = ...
+    e2p_get_max_wheat(data_in, varNames, combineCrops_in, ...
+    cropList_mid, cropList_out, cf_list, varargin)
+% If tied, goes to alphabetically-first source type.
 
+cropList_cf = cropList_mid ;
 actually_emu = [] ;
 if ~isempty(varargin)
     actually_emu = varargin{1} ;
@@ -18,50 +20,111 @@ if ~isempty(actually_emu)
 end
 
 data_out = data_in ;
+Ncombines = size(combineCrops_in, 1) ;
+combineCrops_out = [combineCrops_in cell(Ncombines, 2)] ;
 
-% Get variable names of all winter wheats
-winter_wheats = varNames(contains(varNames,{'winter_wheat', 'CerealsC3w'})) ;
-Nww = length(winter_wheats) ;
-if Nww == 0
-    error('No winter wheats found!')
-end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Loop through specified combinations %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Set up array for tracking whether winter wheat was max
-tmp_size = size(data_in) ;
-tmp_size(2) = Nww ;
-is_ww_max = false(tmp_size) ;
-
-for w = 1:Nww
+for t = 1:Ncombines
     
-    % Get indices
-    thisWW = winter_wheats{w} ;
-    [i_thisWW, i_thisSW, i_thisMW, varNames] = ...
-        e2p_wheatInds(thisWW, varNames) ;
+    % Get info about this transformation
+    combineCrops_row = combineCrops_in(t,:) ;
+    combineCrops_sources = combineCrops_row{2} ;
+    combineCrops_dest = combineCrops_row{1} ;
     
-    % Which wheat is max?
-    is_ww_max(:,w,:) = ... 
-        data_in(:,i_thisWW,:) > data_in(:,i_thisSW,:) ;
-    
-    % Above is always false if either winter or spring wheat is NaN. Here,
-    % make sure that winter wheat is correctly registered as maximum if it
-    % has a yield and spring wheat has NaN.
-    tmp = is_ww_max(:,w,:) ;
-    tmp(isnan(data_in(:,i_thisSW,:)) & ~isnan(data_in(:,i_thisWW,:))) = true ;
-    is_ww_max(:,w,:) = tmp ;
-    
-    % Assign max to i_thisMW
-    data_out(:,i_thisMW,:) = ...
-        max(data_in(:,[i_thisWW i_thisSW],:), [], 2) ;
-    
-    % Assign character-based designator for whether it was simulated or
-    % emulated
-    if ~isempty(actually_emu)
-        if actually_emu(i_thisWW) == actually_emu(i_thisSW)
-            actually_emu_char{i_thisMW} = actually_emu_char{i_thisWW} ;
+    % Change target and destination names for wheat, if needed
+    combineCrops_dest_orig = combineCrops_dest ;
+    varNames_base = unique(getbasename(varNames)) ;
+    C = intersect(varNames_base, combineCrops_sources) ;
+    if length(C) ~= length(combineCrops_sources)
+        if ~strcmp(combineCrops_dest, 'CerealsC3') || ~isempty(C)
+            error('%s: Error finding combineCrops_sources in cropList_mid: Expected %d, found %d', ...
+                combineCrops_dest, length(combineCrops_sources), length(C))
         else
-            actually_emu_char{i_thisMW} = ...
-                [actually_emu_char{i_thisWW} actually_emu_char{i_thisSW}] ;
+            combineCrops_sources2 = {'spring_wheat', 'winter_wheat'} ;
+            C2 = intersect(varNames_base, combineCrops_sources2) ;
+            if length(C2) ~= length(combineCrops_sources2)
+                st = dbstack ;
+                error('%s for %s: Error finding combineCrops_sources in cropList_mid: Expected %d, found %d', ...
+                    st.name, combineCrops_dest, length(combineCrops_sources), length(C))
+            end
+            combineCrops_sources = combineCrops_sources2 ;
+            combineCrops_dest = 'max_wheat' ;
+            combineCrops_row = {combineCrops_dest, combineCrops_sources} ;
         end
     end
     
+    % If combination not needed, then skip
+    if isempty(C) && any(strcmp(cropList_mid, combineCrops_dest))
+%         fprintf('Skipping %s\n', combineCrops_dest)
+        continue
+    end
+    
+    % Get variable names of all instances of sourceA
+    sourceA = combineCrops_sources{1} ;
+    varNames_sourceA = varNames(contains(varNames, sourceA)) ;
+    NsourceA = length(varNames_sourceA) ;
+    if NsourceA == 0
+        error('No variables found matching %s', sourceA)
+    end
+    
+    % Set up array for tracking which source was max
+    tmp_size = size(data_in) ;
+    tmp_size(2) = NsourceA ;
+    which_is_max = nan(tmp_size) ;
+    
+    for w = 1:NsourceA
+        
+        % Get indices
+        thisA = varNames_sourceA{w} ;
+        [i_theseABetc, i_thisM, varNames] = ...
+            e2p_wheatInds(thisA, varNames, combineCrops_row) ;
+        
+        % Get maxima
+        [M, I] = max(data_in(:,i_theseABetc,:), [], 2) ;
+        I(isnan(M)) = NaN ;
+        which_is_max(:,w,:) = I ;
+        data_out(:,i_thisM,:) = M ;
+        
+        % Assign character-based designator for whether it was simulated or
+        % emulated
+        if ~isempty(actually_emu)
+            actually_emu_these = actually_emu_char(i_theseABetc) ;
+            if length(unique(actually_emu_these)) == 1
+                actually_emu_char{i_thisM} = actually_emu_these{1} ; %#ok<AGROW>
+            else
+                tmp = '' ;
+                for s = 1:length(i_theseABetc)
+                    tmp = [tmp actually_emu_char{i_theseABetc(1)}] ; %#ok<AGROW>
+                end
+                actually_emu_char{i_thisM} = tmp ; %#ok<AGROW>
+            end
+        end
+        
+    end
+    
+    % Save results to combineCrops_out
+    combineCrops_row{:,3} = which_is_max ;
+    combineCrops_row{:,4} = varNames_sourceA ;
+    combineCrops_out(t,:) = combineCrops_row ;
+    
+    % "Burn in" calibration factors?
+    if ~any(strcmp(cropList_mid, combineCrops_dest_orig))
+        
+        if length(cropList_mid) ~= length(cf_list)
+            error('Length mismatch between cropList_mid and cf_list')
+        end
+        
+        error('Need to add code for burn-in')
+        
+    end
+    
+    
 end
+
+% if ~isequal(cropList_cf, cropList_out)
+%     error('After all crop combining and burning-in, cropList_cf and cropList_out should be identical')
+% end
+

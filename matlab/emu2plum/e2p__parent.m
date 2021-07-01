@@ -5,19 +5,31 @@
 whichfile_list = {'yield', 'gsirrigation'} ;
 
 % Development vs. production
-figure_visibility = 'off' ; % 'off' or 'on'. Determines whether figures are shown on screen
+figure_visibility = 'on' ; % 'off' or 'on'. Determines whether figures are shown on screen
 figure_extension = 'png' ; % fig or png
-save_excl_figs = true ;
-save_interp_figs = true ;
-save_out_figs = true ;
+save_excl_figs = false ;
+save_interp_figs = false ;
+save_out_figs = false ;
 which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
-save_txt_files_emu = true ;
-save_txt_files_lpjg = true ;
+save_txt_files_emu = false ;
+save_txt_files_lpjg = false ;
 load_existing_file = false ;
-overwrite_existing_txt = true ;
-overwrite_existing_figs = true ;
+overwrite_existing_txt = false ;
+overwrite_existing_figs = false ;
 
-% Behaviors
+% Behavior for combining crops
+%  {:,1} = Output crop
+%  {:,2} = "Mid" crops (i.e., the crops in the calibration factor set)
+% % % combineCrops = { ...
+% % %     'CerealsC3', {'CerealsC3s', 'CerealsC3w'} ;
+% % %     'Oilcrops', {'OilNfix', 'OilOther'} ;
+% % %     'Sugar', {'Sugarbeet', 'Sugarcane'} ;
+% % %     } ;
+combineCrops = { ...
+    'CerealsC3', {'CerealsC3s', 'CerealsC3w'} ;
+    } ;
+
+% Other behaviors
 excl_lowBL_agmerra = true ;
 excl_lowBL_emu = true ;
 interp_infs = true ;
@@ -32,7 +44,7 @@ gcm_list = {'UKESM1-0-LL'} ;
 % ggcm_list = {'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
 ggcm_list = {'EPIC-TAMU'} ;
 ssp_list = {'ssp126'} ;
-thisVer = '20210701' ;
+thisVer = '20210702' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
 
@@ -124,44 +136,65 @@ end
 % as Jim did
 low_yield_threshold_kgm2 = 0.01 ;
 
+% Make sure burnIn sources are sorted alphabetically
+for c = 1:size(combineCrops,1)
+    combineCrops{c,2} = sort(combineCrops{c,2}) ;
+end; clear c
+
 
 %% Set up crop lists
 
+% The crops present in the GGCMI outputs
 cropList_in = {'spring_wheat', 'winter_wheat', 'maize', 'soy', 'rice'} ;
-cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
+
+% The crops present in the calibration factors
+cropList_mid = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
     'OilNfix', 'OilOther', 'Sugarbeet', 'Sugarcane', 'FruitAndVeg'} ;
+
+% The crops present in the outputs of this code
+% % % cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
+% % %     'Oilcrops', 'Sugar', 'FruitAndVeg'} ;
+cropList_out = cropList_mid ;
+
+% Sanity checks for combineCrops
+if isempty(combineCrops)
+    if ~isequal(shiftdim(sort(cropList_mid)), shiftdim(sort(cropList_out)))
+        error('If cropList_mid and cropList_out aren''t the same, you must specify a transformation key using combineCrops')
+    end
+else
+    
+    % Make sure "source" types in combineCrops are in cropList_mid
+    % OR the destination type is
+    for c = 1:size(combineCrops, 1)
+        thisDest = combineCrops{c,1} ;
+        theseSources = combineCrops{c,2} ;
+        D = setdiff(theseSources, cropList_mid) ;
+        if ~isempty(D) && ~any(strcmp(cropList_mid, thisDest))
+            error('Neither %s nor all of its sources were found in cropList_mid')
+        end
+    end; clear c D thisDest theseSources IA
+    
+    % Make sure "destination" types in combineCrops are in cropList_out
+    combineCrops_dest = combineCrops(:,1) ;
+    if length(intersect(cropList_out, combineCrops_dest)) ~= length(combineCrops_dest)
+        error('Missing %d expected burnIn destination crops from cropList_out', ...
+            length(combineCrops_dest) - length(intersect(cropList_out, combineCrops_dest)))
+    end
+        
+end
+
 Ncrops_in = length(cropList_in) ;
 Ncrops_out = length(cropList_out) ;
 
-% Get output file header
-cropIrrList_out = [cropList_out strcat(cropList_out, 'i')] ;
-header_out = 'Lon\tLat' ;
-format_out = '%0.2f\t%0.2f' ;
-varNames_out = {} ;
-varNames_out_allN = {} ;
-varNames_out_overlapN = {} ;
-for c = 1:length(cropIrrList_out)
-    thisCropIrr = cropIrrList_out{c} ;
-    for n = 1:length(Nlist_out)
-        thisN_num = Nlist_out(n) ;
-        thisN = pad(num2str(thisN_num), 4, 'left', '0') ;
-        thisCropIrrN = [thisCropIrr thisN] ;
-        varNames_out{end+1} = thisCropIrrN ; %#ok<SAGROW>
-        if any(Nlist_emu == thisN_num)
-            varNames_out_overlapN{end+1} = thisCropIrrN ; %#ok<SAGROW>
-        end
-        header_out = [header_out '\t' thisCropIrrN] ; %#ok<AGROW>
-        format_out = [format_out '\t%0.3f'] ; %#ok<AGROW>
-    end
-    for n = 1:length(Nlist_lpj)
-        thisN_num = Nlist_lpj(n) ;
-        thisN = pad(num2str(thisN_num), 4, 'left', '0') ;
-        thisCropIrrN = [thisCropIrr thisN] ;
-        varNames_out_allN{end+1} = thisCropIrrN ; %#ok<SAGROW>
-    end
-end
-header_out = [header_out '\n'] ;
-format_out = [format_out '\n'] ;
+% Get output file header and other cropList-derived vars
+[cropIrrList_mid, ~, ~, ...
+    varNames_mid, varNames_mid_allN, varNames_mid_overlapN] = ...
+    process_cropLists(cropList_mid, irrList_out, ...
+    Nlist_out, Nlist_emu, Nlist_lpj) ;
+[cropIrrList_out, header_out, format_out, ...
+    varNames_out, varNames_out_allN, varNames_out_overlapN] = ...
+    process_cropLists(cropList_out, irrList_out, ...
+    Nlist_out, Nlist_emu, Nlist_lpj) ;
 
 
 %% Loop though GGCM emulators
@@ -169,6 +202,43 @@ format_out = [format_out '\n'] ;
 e2p__child
 
 
+%% FUNCTIONS
 
+function [cropIrrList_this, header_this, format_this, ...
+    varNames_this, varNames_this_allN, varNames_this_overlapN] = ...
+    process_cropLists(cropList_this, irrList_this, ...
+    Nlist_this, Nlist_emu, Nlist_lpj)
 
+cropIrrList_this = [ ...
+    strcat(cropList_this, irrList_this{1}) ...
+    strcat(cropList_this, irrList_this{2})] ;
+header_this = 'Lon\tLat' ;
+format_this = '%0.2f\t%0.2f' ;
+varNames_this = {} ;
+varNames_this_allN = {} ;
+varNames_this_overlapN = {} ;
+for c = 1:length(cropIrrList_this)
+    thisCropIrr = cropIrrList_this{c} ;
+    for n = 1:length(Nlist_this)
+        thisN_num = Nlist_this(n) ;
+        thisN = pad(num2str(thisN_num), 4, 'left', '0') ;
+        thisCropIrrN = [thisCropIrr thisN] ;
+        varNames_this{end+1} = thisCropIrrN ; %#ok<AGROW>
+        if any(Nlist_emu == thisN_num)
+            varNames_this_overlapN{end+1} = thisCropIrrN ; %#ok<AGROW>
+        end
+        header_this = [header_this '\t' thisCropIrrN] ; %#ok<AGROW>
+        format_this = [format_this '\t%0.3f'] ; %#ok<AGROW>
+    end
+    for n = 1:length(Nlist_lpj)
+        thisN_num = Nlist_lpj(n) ;
+        thisN = pad(num2str(thisN_num), 4, 'left', '0') ;
+        thisCropIrrN = [thisCropIrr thisN] ;
+        varNames_this_allN{end+1} = thisCropIrrN ; %#ok<AGROW>
+    end
+end
+header_this = [header_this '\n'] ;
+format_this = [format_this '\n'] ;
+
+end
 

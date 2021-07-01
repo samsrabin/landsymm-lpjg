@@ -75,6 +75,7 @@ for g = 1:length(gcm_list)
             Nlist_lpj_char, ~] = ...
             e2p_get_names({}, data_fu_lpj_yield.varNames, ...
             get_unneeded) ;
+        cropList_mid_basei = cropIrrList_mid ;
         cropList_out_basei = cropIrrList_out ;
         gridlist.list_to_map = data_fu_lpj_yield.list2map ;
         gridlist.lonlats = data_fu_lpj_yield.lonlats ;
@@ -105,23 +106,25 @@ for g = 1:length(gcm_list)
         end
         clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj_char2
         
-        % Get max wheat and irrigation, if needed
-        if any(strcmp(cropList_out, 'CerealsC3')) && ~any(strcmp(cropList_lpj, 'CerealsC3'))
+        % Get LPJ-GUESS calibration factors
+        cf_lpj = e2p_get_CFs(cropList_mid, 'LPJ-GUESS', cfDir, combineCrops, true) ;
+        
+        %% Get max wheat and irrigation, if needed
+        if any(strcmp(cropList_mid, 'CerealsC3')) && ~any(strcmp(cropList_lpj, 'CerealsC3'))
             disp('Getting max wheats...')
-            [data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, is_ww_max_fu_gWt, winter_wheats] = ...
-                e2p_get_max_wheat(data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames) ;
-            out_file = sprintf('%s/is_ww_max.mat', topDir_lpj) ;
-            save(out_file, 'is_ww_max_fu_gWt', 'winter_wheats') ;
-            clear is_ww_max_fu_gWt winter_wheats
-            data_fu_lpj_irrig = e2p_apply_max_wheat(data_fu_lpj_irrig, topDir_lpj) ;
+            [data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, combineCrops_lpj] = ...
+                e2p_get_max_wheat(data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, ...
+                combineCrops, cropList_mid, cropList_out, cf_lpj) ;
+            out_file = sprintf('%s/combineCrops_lpj.mat', topDir_lpj) ;
+            save_combineCrops(combineCrops_lpj, 'yield', out_file)
+            clear is_ww_max_fu_gWt spring_wheats
+            %%
+            data_fu_lpj_irrig = e2p_apply_max_wheat(data_fu_lpj_irrig, out_file) ;
             [varNames_lpj, cropList_lpj, ...
                 varNames_lpj_basei, cropList_lpj_basei] = ...
                 e2p_get_names(data_fu_lpj_yield.varNames, data_fu_lpj_irrig.varNames, ...
                 get_unneeded) ;
         end
-        
-        % Get LPJ-GUESS calibration factors
-        cf_lpj = e2p_get_CFs(cropList_out, 'LPJ-GUESS', cfDir, true) ;
         
         disp('Done importing LPJ-GUESS yield and irrigation.')
         
@@ -144,8 +147,8 @@ for g = 1:length(gcm_list)
             diary(diaryfile)
             diary('on')
             
-            % Get this emulator's calibration factors
-            cf_emu = e2p_get_CFs(cropList_out, ggcm, cfDir, true) ;
+            %% Get this emulator's calibration factors
+            cf_emu = e2p_get_CFs(cropList_mid, ggcm, cfDir, combineCrops, true) ;
             
             for w = 1:length(whichfile_list)
                 which_file = whichfile_list{w} ;
@@ -169,23 +172,19 @@ for g = 1:length(gcm_list)
                     fprintf('    Importing future_%s.mat...\n', which_file) ;
 
                     load(out_file, 'data_fu_lpj', 'data_fu_emu', 'data_fu_out')
-
+                    
                     % Translate crop names
                     [varNames_emu, cropList_emu, ...
-                            varNames_emu_basei, cropList_emu_basei, ...
-                            Nlist_emu_char, ~] = ...
-                            e2p_get_names([], data_fu_emu.varNames, ...
-                            get_unneeded) ;
-                    [cropList_out_asEmu, used_emuCrops_out] = e2p_translate_crops_2emu( ...
-                        cropList_out, cropList_emu, 'PLUM') ;
-                    [cropList_out_asLpj, used_lpjCrops_out] = e2p_translate_crops_2lpj( ...
-                        cropList_out, cropList_lpj, 'PLUM') ;
+                        varNames_emu_basei, cropList_emu_basei, ...
+                        Nlist_emu_char, ~] = ...
+                        e2p_get_names([], data_fu_emu.varNames, ...
+                        get_unneeded) ;
                 else
-
+                    
                     %% Import emulator outputs
-
+                    
                     if contains(which_file, {'yield', 'gsirrigation'})
-
+                        
                         disp('    Importing emulator outputs...')
                         try
                             [data_bl_emu, data_fu_emu] = e2p_import_emu( ...
@@ -244,28 +243,27 @@ for g = 1:length(gcm_list)
                     if ~any(any(~isnan(data_bl_agm.garr_xv)))
                         error('data_bl_agm.garr_xv is all NaN')
                     end
-                    % Translate to output crops
+                    %% Translate to output crops
                     [varNames_agm, cropList_agm, ...
                         varNames_agm_basei, cropList_agm_basei, ...
-                        Nlist_agm_char, ~] = ...
+                        ~, ~] = ...
                         e2p_get_names(data_bl_agm.varNames, [], ...
                         get_unneeded) ;
-                    [cropList_agm_asEmu, used_emuCrops_agm] = e2p_translate_crops_2emu( ...
+                    [~, used_emuCrops_agm] = e2p_translate_crops_2emu( ...
                         cropList_agm, cropList_emu, 'Phase 2 sims') ;
                     % Sanity check
                     if ~isequal(size(shiftdim(cropList_emu)), size(shiftdim(used_emuCrops_agm)))
                         error('Size mismatch between cropList_emu and used_emuCrops_agm')
                     end
-                    % Find missing crops
+                    
+                    
+                    % Get and apply exclusions, if doing so
+                    
+                    % Where do we exclude based on missing
+                    % emulation (or Phase 2, if using)?
                     missing_agmerra_xc = e2p_exclude_missing( ...
                         varNames_emu_basei, cropList_emu_basei, Nlist_emu_char, ...
                         data_bl_agm.garr_xv) ;
-
-                    
-                    %% Get and apply exclusions, if doing so
-                    
-                    % Where do we exclude based on missing
-                    % emulation?
                     [missing_emu_bl_xc, all0_emu_bl_c] = e2p_exclude_missing( ...
                         varNames_emu_basei, cropList_emu_basei, Nlist_emu_char, ...
                         data_bl_emu.garr_xv) ;
@@ -329,7 +327,7 @@ for g = 1:length(gcm_list)
                         disp('    Saving exclusion figures...')
                         e2p_save_excl_figs_outCrops( ...
                             ggcm, which_file, gridlist, excl_vecs, ...
-                            cropList_out, cropList_out_basei, ...
+                            cropList_mid, cropList_mid_basei, ...
                             cropList_emu, cropList_emu_basei, ...
                             figure_visibility, figure_extension, ...
                             outDir_excl_figs_outCrops, ...
@@ -398,39 +396,52 @@ for g = 1:length(gcm_list)
                     if ~any(any(any(~isnan(data_fu_emu.garr_xvt))))
                         error('data_fu_emu.garr_xvt is all NaN!')
                     end
+                    
 
-
-                    %% Get max wheats
+                    % Get max wheats
 
                     disp('    Getting max wheats...')
 
                     refresh_vars = true ;
                     if strcmp(which_file, 'yield')
-                        [data_bl_emu.garr_xv, data_bl_emu.varNames, is_ww_max_bl_gW, winter_wheats] = ...
-                            e2p_get_max_wheat(data_bl_emu.garr_xv, data_bl_emu.varNames) ;
-                        [data_fu_emu.garr_xvt, data_fu_emu.varNames, is_ww_max_fu_gWt, winter_wheats_test] = ...
-                            e2p_get_max_wheat(data_fu_emu.garr_xvt, data_fu_emu.varNames) ;
-                        if ~isequal(winter_wheats, winter_wheats_test)
-                            error('Mismatch between winter wheat lists from data_bl_emu vs. data_fu_emu')
+                        [data_bl_emu.garr_xv, data_bl_emu.varNames, combineCrops_bl_emu] = ...
+                            e2p_get_max_wheat(data_bl_emu.garr_xv, data_bl_emu.varNames, ...
+                            combineCrops, cropList_mid, cropList_out, cf_emu) ;
+                        [data_fu_emu.garr_xvt, data_fu_emu.varNames, combineCrops_fu_emu] = ...
+                            e2p_get_max_wheat(data_fu_emu.garr_xvt, data_fu_emu.varNames, ...
+                            combineCrops, cropList_mid, cropList_out, cf_emu) ;
+                        if ~isequal(combineCrops_bl_emu(:,4), combineCrops_fu_emu(:,4))
+                            error('Mismatch between varNames_sourceA lists from data_bl_emu vs. data_fu_emu')
                         end
+                        % For yield, save result combineCrops
+                        save_combineCrops(combineCrops_bl_emu, which_file, ...
+                            sprintf('%s/combineCrops_bl_emu.mat', outDir_ggcm))
+                        save_combineCrops(combineCrops_fu_emu, which_file, ...
+                            sprintf('%s/combineCrops_fu_emu.mat', outDir_ggcm))
+                        % Combine crops in phase 2 outputs
                         [data_bl_agm.garr_xv, data_bl_agm.varNames, ...
-                            ~, winter_wheats_test, ...
+                            combineCrops_bl_agm, ...
                             data_bl_agm.actually_emu_char] = ...
                             e2p_get_max_wheat(data_bl_agm.garr_xv, data_bl_agm.varNames, ...
-                            data_bl_agm.actually_emu) ;
-                        if ~isequal(winter_wheats, winter_wheats_test)
-                            error('Mismatch between winter wheat lists from data_bl_emu vs. data_bl_agm')
+                            combineCrops, cropList_mid, cf_emu, cropList_out, data_bl_agm.actually_emu) ;
+                        if ~isequal(combineCrops_bl_emu(:,4), combineCrops_bl_agm(:,4))
+                            error('Mismatch between varNames_sourceA lists from data_bl_emu vs. data_bl_agm')
                         end
                     elseif strcmp(which_file, 'gsirrigation')
-                        data_bl_emu = e2p_apply_max_wheat(data_bl_emu, outDir_ggcm) ;
-                        data_fu_emu = e2p_apply_max_wheat(data_fu_emu, outDir_ggcm) ;
-                        data_bl_agm = e2p_apply_max_wheat(data_bl_agm, outDir_ggcm) ;
+                        data_bl_emu = e2p_apply_max_wheat(data_bl_emu, ...
+                            sprintf('%s/combineCrops_bl_emu.mat', outDir_ggcm)) ;
+                        data_fu_emu = e2p_apply_max_wheat(data_fu_emu, ...
+                            sprintf('%s/combineCrops_fu_emu.mat', outDir_ggcm)) ;
+                        % Phase 2 should choose same source crops as
+                        % emulator
+                        data_bl_agm = e2p_apply_max_wheat(data_bl_agm, ...
+                            sprintf('%s/combineCrops_bl_emu.mat', outDir_ggcm)) ;
                     elseif ~strcmp(which_file, 'anpp')
                         error('which_file (%s) not recognized', which_file)
                     else
                         refresh_vars = false ;
                     end
-
+%%
                     e2p_check_correct_zeros(data_bl_emu.garr_xv, ...
                         which_file, data_bl_emu.varNames, ...
                         'Baseline', @getbasenamei)
@@ -450,7 +461,7 @@ for g = 1:length(gcm_list)
                             get_unneeded) ;
                         [varNames_agm, cropList_agm, ...
                             varNames_agm_basei, cropList_agm_basei, ...
-                            Nlist_agm_char, ~] = ...
+                            ~, ~] = ...
                             e2p_get_names(data_bl_agm.varNames, [], ...
                             get_unneeded) ;
                     end
@@ -550,12 +561,9 @@ for g = 1:length(gcm_list)
                     end
 
                     % Translate crop names
-                    [cropList_out_asEmu, used_emuCrops_out] = e2p_translate_crops_2emu( ...
-                        cropList_out, cropList_emu, 'PLUM') ;
-                    [cropList_agm_asEmu, used_emuCrops_agm] = e2p_translate_crops_2emu( ...
+                    [~, used_emuCrops_agm] = e2p_translate_crops_2emu( ...
                         cropList_agm, cropList_emu, 'Phase2 sims') ;
-                    [cropList_out_asLpj, used_lpjCrops_out] = e2p_translate_crops_2lpj( ...
-                        cropList_out, cropList_lpj, 'PLUM') ;
+
                     % Sanity check
                     if ~isequal(size(shiftdim(cropList_emu)), size(shiftdim(used_emuCrops_agm)))
                         error('Size mismatch between cropList_emu and used_emuCrops_agm')
@@ -637,7 +645,7 @@ for g = 1:length(gcm_list)
                         end
                         e2p_save_outlier_info(outlier_info_out, outDir_ggcm, which_file, data_fu_out.y1s, data_fu_out.yNs)
                     end
-                    
+                                        
                     % Sort. Technically unnecessary, but maybe PLUM isn't
                     % robust to non-sorted crops.
                     data_fu_lpj = do_sort(data_fu_lpj) ;
@@ -658,13 +666,7 @@ for g = 1:length(gcm_list)
                         save(out_file, 'exclude_lowBLyield_xc', 'missing_yield_xc')
                     end
                     clear exclude_xc exclude_lowBLyield_xc missing_yield_xc
-                    % For yield, save is_ww_max_bl_gW*
-                    if strcmp(which_file, 'yield')
-                        out_file = sprintf('%s/is_ww_max.mat', outDir_ggcm) ;
-                        save(out_file, 'is_ww_max_bl_gW', 'is_ww_max_fu_gWt', 'winter_wheats') ;
-                    elseif ~contains(which_file, {'anpp', 'gsirrigation'})
-                        error('which_file (%s) not recognized', which_file)
-                    end
+                    
                     
                     % Trim unneeded N200
                     unneededN200 = find(getN_num(data_fu_out.varNames)==200) ;
@@ -754,14 +756,14 @@ for g = 1:length(gcm_list)
                         e2p_save_out_figs(data_fu_lpj, ...
                             data_fu_emu, data_fu_out, ...
                             ggcm, outDir_yield_figs, ...
-                            which_file, cropList_out_asEmu, figure_visibility, figure_extension, ...
+                            which_file, figure_visibility, figure_extension, ...
                             which_out_figs, overwrite_existing_figs, renderer, ...
                             cf_lpj, cf_emu)
                     elseif strcmp(which_file, 'gsirrigation')
                         e2p_save_out_figs(data_fu_lpj, ...
                             data_fu_emu, data_fu_out, ...
                             ggcm, outDir_irrig_figs, ...
-                            which_file, cropList_out_asEmu, figure_visibility, figure_extension, ...
+                            which_file, figure_visibility, figure_extension, ...
                             which_out_figs, overwrite_existing_figs, renderer, ...
                             cf_lpj, cf_emu)
                     else
@@ -775,6 +777,8 @@ for g = 1:length(gcm_list)
             
             fprintf('Done with %s %s %s.\n', gcm, ssp, ggcm)
             diary('off')
+            
+            stop
 
         end % Loop through crop models
 
@@ -843,6 +847,16 @@ end
 
 end
 
+
+function save_combineCrops(combineCrops, which_file, out_file)
+
+if strcmp(which_file, 'yield')
+    save(out_file, 'combineCrops') ;
+elseif ~contains(which_file, {'anpp', 'gsirrigation'})
+    error('which_file (%s) not recognized', which_file)
+end
+
+end
 
 
 
