@@ -29,10 +29,10 @@ emulated_baseline = true ;
 
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
-ggcm_list = {'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
-% ggcm_list = {'EPIC-TAMU'} ;
+% ggcm_list = {'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
+ggcm_list = {'EPIC-TAMU'} ;
 ssp_list = {'ssp126'} ;
-thisVer = '20210531' ;
+thisVer = '20210701' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
 
