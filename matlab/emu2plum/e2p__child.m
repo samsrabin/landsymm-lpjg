@@ -106,11 +106,8 @@ for g = 1:length(gcm_list)
         end
         clear cropList_lpj02 varNames_lpj0_basei2 cropList_lpj0_basei2 Nlist_lpj0_char2
         
-        % Get LPJ-GUESS calibration factors
-        cf_lpj = e2p_get_CFs(cropList_mid, 'LPJ-GUESS', cfDir, combineCrops, true) ;
-        
         % Rename crops to match GGCMI names
-        if any(strcmp(cropList_lpj, 'CerealsC3'))
+        if any(strcmp(cropList_lpj0, 'CerealsC3'))
             error('This version assumes that you simulated spring and winter wheat separately')
         end
         cropList_lpj1 = e2p_translate_crops_2emu(cropList_lpj0, cropList_in, 'LPJ-GUESS') ;
@@ -133,29 +130,33 @@ for g = 1:length(gcm_list)
         data_fu_lpj1_yield.varNames = varNames_lpj1 ;
         data_fu_lpj1_irrig = data_fu_lpj0_irrig;
         data_fu_lpj1_irrig.varNames = varNames_lpj1 ;
+                
+        % Get LPJ-GUESS calibration factors
+        cf_lpj = e2p_get_CFs(cropList_mid, 'LPJ-GUESS', cfDir, combineCrops, true) ;
         
-        error('Work in progress, stopping here')
-        
-        
-        %% Get max wheat and irrigation, if needed
+        % Split crops up to match calibration factor list; combine as
+        % necessary to match PLUM-expected list, burning in calibration
+        % factors of combined crops.
         if ~any(strcmp(cropList_mid, 'CerealsC3'))
             error('This version assumes calibration factor for combined spring/winter CerealsC3')
         end
-        disp('Getting max wheats...')
-        [data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, combineCrops_lpj] = ...
-            e2p_get_max_wheat(data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, ...
+        disp('Splitting and combining...')
+        data_fu_lpj2_yield = data_fu_lpj1_yield ;
+        [data_fu_lpj2_yield.garr_xvt, data_fu_lpj2_yield.varNames, combineCrops_lpj, ...
+            ~, cf_lpj] = ...
+            e2p_split_combine_burn(data_fu_lpj1_yield.garr_xvt, data_fu_lpj1_yield.varNames, ...
             combineCrops, cropList_mid, cropList_out, cf_lpj) ;
         out_file = sprintf('%s/combineCrops_lpj.mat', topDir_lpj) ;
         save_combineCrops(combineCrops_lpj, 'yield', out_file)
-        clear is_ww_max_fu_gWt spring_wheats
-        %%
-        data_fu_lpj_irrig = e2p_apply_max_wheat(data_fu_lpj_irrig, out_file) ;
-        [varNames_lpj, cropList_lpj, ...
-            varNames_lpj_basei, cropList_lpj_basei] = ...
-            e2p_get_names(data_fu_lpj_yield.varNames, data_fu_lpj_irrig.varNames, ...
+        data_fu_lpj2_irrig = e2p_apply_max(data_fu_lpj1_irrig, out_file) ;
+        [varNames_lpj2, cropList_lpj2, ...
+            varNames_lpj2_basei, cropList_lpj2_basei] = ...
+            e2p_get_names(data_fu_lpj2_yield.varNames, data_fu_lpj2_irrig.varNames, ...
             get_unneeded) ;
         
         disp('Done importing LPJ-GUESS yield and irrigation.')
+        
+        error('Work in progress, stopping here')
         
         %% Loop through crop emulators
         for ggcm_counter = 1:length(ggcm_list)
