@@ -65,66 +65,95 @@ for g = 1:length(gcm_list)
         clear outdirs tmp
         disp('Importing LPJ-GUESS yield...')
         which_file = 'yield' ;
-        data_fu_lpj_yield = e2p_import_fu_lpj(future_y1-1, future_ts, future_yN_lpj, topDir_lpj, ...
+        data_fu_lpj0_yield = e2p_import_fu_lpj(future_y1-1, future_ts, future_yN_lpj, topDir_lpj, ...
             which_file, get_unneeded) ;
-        e2p_check_correct_zeros(data_fu_lpj_yield.garr_xvt, ...
-            which_file, data_fu_lpj_yield.varNames, ...
+        e2p_check_correct_zeros(data_fu_lpj0_yield.garr_xvt, ...
+            which_file, data_fu_lpj0_yield.varNames, ...
             'Future', @getbasenamei)
-        [varNames_lpj, cropList_lpj, ...
-            varNames_lpj_basei, cropList_lpj_basei, ...
-            Nlist_lpj_char, ~] = ...
-            e2p_get_names({}, data_fu_lpj_yield.varNames, ...
+        [varNames_lpj0, cropList_lpj0, ...
+            varNames_lpj0_basei, cropList_lpj0_basei, ...
+            Nlist_lpj0_char, ~] = ...
+            e2p_get_names({}, data_fu_lpj0_yield.varNames, ...
             get_unneeded) ;
         cropList_mid_basei = cropIrrList_mid ;
         cropList_out_basei = cropIrrList_out ;
-        gridlist.list_to_map = data_fu_lpj_yield.list2map ;
-        gridlist.lonlats = data_fu_lpj_yield.lonlats ;
+        gridlist.list_to_map = data_fu_lpj0_yield.list2map ;
+        gridlist.lonlats = data_fu_lpj0_yield.lonlats ;
         gridlist.mask_YX = false(360, 720) ;
         gridlist.mask_YX(gridlist.list_to_map) = true ;
         Ncells = length(gridlist.list_to_map) ;
         gridlist_target = {gridlist.lonlats gridlist.list_to_map} ;
         disp('Importing LPJ-GUESS irrigation...')
         which_file = 'gsirrigation' ;
-        data_fu_lpj_irrig = e2p_import_fu_lpj(future_y1-1, future_ts, future_yN_lpj, topDir_lpj, ...
+        data_fu_lpj0_irrig = e2p_import_fu_lpj(future_y1-1, future_ts, future_yN_lpj, topDir_lpj, ...
             which_file, get_unneeded, gridlist_target) ;
-        e2p_check_correct_zeros(data_fu_lpj_irrig.garr_xvt, ...
-            which_file, data_fu_lpj_irrig.varNames, ...
+        e2p_check_correct_zeros(data_fu_lpj0_irrig.garr_xvt, ...
+            which_file, data_fu_lpj0_irrig.varNames, ...
             'Future', @getbasenamei)
-        [~, cropList_lpj2, ...
-            varNames_lpj_basei2, cropList_lpj_basei2, ...
-            Nlist_lpj_char2, ~] = ...
-            e2p_get_names({}, data_fu_lpj_irrig.varNames, ...
+        [~, cropList_lpj0i, ...
+            varNames_lpj0_basei2, cropList_lpj0_basei2, ...
+            Nlist_lpj0_char2, ~] = ...
+            e2p_get_names({}, data_fu_lpj0_irrig.varNames, ...
             get_unneeded) ;
-        if ~isequal(cropList_lpj,cropList_lpj2)
-            error('Mismatch between cropList_lpj for yield vs. gsirrigation')
-        elseif ~isequal(varNames_lpj_basei,varNames_lpj_basei2)
-            error('Mismatch between varNames_lpj_basei for yield vs. gsirrigation')
-        elseif ~isequal(cropList_lpj_basei,cropList_lpj_basei2)
-            error('Mismatch between cropList_lpj_basei for yield vs. gsirrigation')
-        elseif ~isequal(Nlist_lpj_char,Nlist_lpj_char2)
-            error('Mismatch between Nlist_lpj_char2 for yield vs. gsirrigation')
+        if ~isequal(cropList_lpj0, cropList_lpj0i)
+            error('Mismatch between cropList_lpj0 for yield vs. gsirrigation')
+        elseif ~isequal(varNames_lpj0_basei, varNames_lpj0_basei2)
+            error('Mismatch between varNames_lpj0_basei for yield vs. gsirrigation')
+        elseif ~isequal(cropList_lpj0_basei, cropList_lpj0_basei2)
+            error('Mismatch between cropList_lpj0_basei for yield vs. gsirrigation')
+        elseif ~isequal(Nlist_lpj0_char, Nlist_lpj0_char2)
+            error('Mismatch between Nlist_lpj0_char2 for yield vs. gsirrigation')
         end
-        clear cropList_lpj2 varNames_lpj_basei2 cropList_lpj_basei2 Nlist_lpj_char2
+        clear cropList_lpj02 varNames_lpj0_basei2 cropList_lpj0_basei2 Nlist_lpj0_char2
         
         % Get LPJ-GUESS calibration factors
         cf_lpj = e2p_get_CFs(cropList_mid, 'LPJ-GUESS', cfDir, combineCrops, true) ;
         
-        %% Get max wheat and irrigation, if needed
-        if any(strcmp(cropList_mid, 'CerealsC3')) && ~any(strcmp(cropList_lpj, 'CerealsC3'))
-            disp('Getting max wheats...')
-            [data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, combineCrops_lpj] = ...
-                e2p_get_max_wheat(data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, ...
-                combineCrops, cropList_mid, cropList_out, cf_lpj) ;
-            out_file = sprintf('%s/combineCrops_lpj.mat', topDir_lpj) ;
-            save_combineCrops(combineCrops_lpj, 'yield', out_file)
-            clear is_ww_max_fu_gWt spring_wheats
-            %%
-            data_fu_lpj_irrig = e2p_apply_max_wheat(data_fu_lpj_irrig, out_file) ;
-            [varNames_lpj, cropList_lpj, ...
-                varNames_lpj_basei, cropList_lpj_basei] = ...
-                e2p_get_names(data_fu_lpj_yield.varNames, data_fu_lpj_irrig.varNames, ...
-                get_unneeded) ;
+        % Rename crops to match GGCMI names
+        if any(strcmp(cropList_lpj, 'CerealsC3'))
+            error('This version assumes that you simulated spring and winter wheat separately')
         end
+        cropList_lpj1 = e2p_translate_crops_2emu(cropList_lpj0, cropList_in, 'LPJ-GUESS') ;
+        if length(cropList_lpj1) ~= length(cropList_lpj0)
+            error('Error renaming LPJ-GUESS crops to match GGCMI names: Length mismatch???')
+        elseif length(cropList_lpj1) ~= length(unique(cropList_lpj1))
+            error('Error renaming LPJ-GUESS crops to match GGCMI names: Non-unique names in result')
+        end
+        varNames_lpj1 = varNames_lpj0 ;
+        varNames_lpj1_basei = varNames_lpj0_basei ;
+        cropList_lpj1_basei = cropList_lpj0_basei ;
+        for c = 1:length(cropList_lpj1)
+            thisCrop0 = cropList_lpj0{c} ;
+            thisCrop1 = cropList_lpj1{c} ;
+            varNames_lpj1 = strrep(varNames_lpj1, thisCrop0, thisCrop1) ;
+            varNames_lpj1_basei = strrep(varNames_lpj1_basei, thisCrop0, thisCrop1) ;
+            cropList_lpj1_basei = strrep(cropList_lpj1_basei, thisCrop0, thisCrop1) ;
+        end
+        data_fu_lpj1_yield = data_fu_lpj0_yield;
+        data_fu_lpj1_yield.varNames = varNames_lpj1 ;
+        data_fu_lpj1_irrig = data_fu_lpj0_irrig;
+        data_fu_lpj1_irrig.varNames = varNames_lpj1 ;
+        
+        error('Work in progress, stopping here')
+        
+        
+        %% Get max wheat and irrigation, if needed
+        if ~any(strcmp(cropList_mid, 'CerealsC3'))
+            error('This version assumes calibration factor for combined spring/winter CerealsC3')
+        end
+        disp('Getting max wheats...')
+        [data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, combineCrops_lpj] = ...
+            e2p_get_max_wheat(data_fu_lpj_yield.garr_xvt, data_fu_lpj_yield.varNames, ...
+            combineCrops, cropList_mid, cropList_out, cf_lpj) ;
+        out_file = sprintf('%s/combineCrops_lpj.mat', topDir_lpj) ;
+        save_combineCrops(combineCrops_lpj, 'yield', out_file)
+        clear is_ww_max_fu_gWt spring_wheats
+        %%
+        data_fu_lpj_irrig = e2p_apply_max_wheat(data_fu_lpj_irrig, out_file) ;
+        [varNames_lpj, cropList_lpj, ...
+            varNames_lpj_basei, cropList_lpj_basei] = ...
+            e2p_get_names(data_fu_lpj_yield.varNames, data_fu_lpj_irrig.varNames, ...
+            get_unneeded) ;
         
         disp('Done importing LPJ-GUESS yield and irrigation.')
         
