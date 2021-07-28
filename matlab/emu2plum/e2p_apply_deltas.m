@@ -1,10 +1,5 @@
 function data_fu_out = e2p_apply_deltas( ...
-    data_bl_thisBL, data_bl_emu, data_fu_emu, deltas_emu_xvt, ...
-    cropList_thisBL, cropList_thisBL_asEmu, varNames_thisBL, ...
-    list2map, which_file, figure_visibility)
-
-% warning('TROUBLESHOOTING')
-% deltas_emu_xvt = ones(size(deltas_emu_xvt)) ;
+    data_bl_thisBL, data_bl_emu, data_fu_emu, deltas_emu_xvt)
 
 if any(any(any(isinf(deltas_emu_xvt))))
     error('Infinite deltas were supposed to have been fixed by now!')
@@ -13,9 +8,9 @@ end
 Ntpers = size(deltas_emu_xvt,3) ;
 
 % Set up output structure
-data_fu_out.list2map = list2map ;
+data_fu_out.list2map = data_bl_thisBL.list2map ;
 data_fu_out.lonlats = data_bl_thisBL.lonlats ;
-data_fu_out.varNames = varNames_thisBL ;
+data_fu_out.varNames = data_bl_thisBL.varNames ;
 data_fu_out.y1s = data_fu_emu.y1s ;
 data_fu_out.yNs = data_fu_emu.yNs ;
 if isfield(data_bl_thisBL, 'actually_emu_char')
@@ -40,8 +35,7 @@ for v = 1:length(tmp_i_emu)
     thisN = thisVar_thisBL(regexp(thisVar_thisBL,'\d\d\d$'):end) ; % regexp: Get last 3 digits (must also be last 3 characters)
     thisI = strrep(strrep(thisVar_thisBL,thisCrop_thisBL,''), thisN, '') ;
 %     fprintf('%s = %s + %s + %s\n', thisVar_thisBL, thisCrop_thisBL, thisI, thisN)
-    thisCrop_emu = cropList_thisBL_asEmu{strcmp(cropList_thisBL, thisCrop_thisBL)} ;
-    thisVar_emu = sprintf('%s%s%s', thisCrop_emu, thisI, thisN) ;
+    thisVar_emu = sprintf('%s%s%s', thisCrop_thisBL, thisI, thisN) ;
     
     ii = find(strcmp(data_bl_thisBL.varNames, thisVar_thisBL)) ;
     if length(ii) ~= 1
