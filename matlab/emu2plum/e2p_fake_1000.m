@@ -112,10 +112,10 @@ delta_x1t(data_fu.garr_xvt(:,ind_loN,:)==0 & data_fu.garr_xvt(:,ind_hiN,:)==0) =
 % If any infinite, first try excluding very small values
 if any(any(isinf(delta_x1t)))
     if strcmp(which_file, 'yield')
-        small_thresh = 0.005 ; % 0.001 kgC/m2 yield
+        small_thresh = 0.01 ; % kgC/m2 yield
         small_thresh_units = 'kgC/m2 yield' ;
     elseif strcmp(which_file, 'gsirrigation')
-        small_thresh = 20 ; % 20 mm irrigation
+        small_thresh = 20 ; % mm irrigation
         small_thresh_units = 'mm irrigation' ;
     else
         error('which_file (%s) not recognized for e2p_fake_1000().', which_file)
