@@ -7,26 +7,23 @@ whichfile_list = {'yield', 'gsirrigation'} ;
 % Development vs. production
 figure_visibility = 'on' ; % 'off' or 'on'. Determines whether figures are shown on screen
 figure_extension = 'png' ; % fig or png
-save_excl_figs = false ;
-save_interp_figs = false ;
-save_out_figs = false ;
+save_excl_figs = true ;
+save_interp_figs = true ;
+save_out_figs = true ;
 which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
-save_txt_files_emu = false ;
-save_txt_files_lpjg = false ;
+save_txt_files_emu = true ;
+save_txt_files_lpjg = true ;
 load_existing_file = false ;
-overwrite_existing_txt = false ;
-overwrite_existing_figs = false ;
+overwrite_existing_txt = true ;
+overwrite_existing_figs = true ;
 
 % Behavior for combining crops
 %  {:,1} = Output crop
 %  {:,2} = "Mid" crops (i.e., the crops in the calibration factor set)
-% % % combineCrops = { ...
-% % %     'CerealsC3', {'CerealsC3s', 'CerealsC3w'} ;
-% % %     'Oilcrops', {'OilNfix', 'OilOther'} ;
-% % %     'Sugar', {'Sugarbeet', 'Sugarcane'} ;
-% % %     } ;
 combineCrops = { ...
     'CerealsC3', {'CerealsC3s', 'CerealsC3w'} ;
+    'Oilcrops', {'OilNfix', 'OilOther'} ;
+    'Sugar', {'Sugarbeet', 'Sugarcane'} ;
     } ;
 
 % Other behaviors
@@ -100,11 +97,6 @@ elseif ~exist(topDir_agmipout, 'dir')
     error('topDir_agmipout does not exist:\n %s', topDir_agmipout)
 end
 
-% getbasename = @(x) regexprep(x,'i?\d\d\d$','') ;
-% getbasenamei = @(x) regexprep(x,'\d\d\d$','') ;
-% getbasename0 = @(x) regexprep(regexprep(regexprep(x,'i?\d\d\d\d$',''),'i0$',''),'0$','') ;
-% getbasename0i = @(x) regexprep(regexprep(x,'\d\d\d\d$',''),'0$','') ;
-% getN_char = @(x) regexprep(regexprep(x, 'CerealsC[34]', ''), '^[a-zA-Z_]+', '') ;
 get_unneeded = @(x)cellfun(@isempty, ...
     regexp(regexprep(x,'CerealsC[34]','CerealsC'),'.*\d+')) | contains(x,'G_ic') ;
 
@@ -152,9 +144,8 @@ cropList_mid = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
     'OilNfix', 'OilOther', 'Sugarbeet', 'Sugarcane', 'FruitAndVeg'} ;
 
 % The crops present in the outputs of this code
-% % % cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
-% % %     'Oilcrops', 'Sugar', 'FruitAndVeg'} ;
-cropList_out = cropList_mid ;
+cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
+    'Oilcrops', 'Sugar', 'FruitAndVeg'} ;
 
 % Sanity checks for combineCrops
 if isempty(combineCrops)

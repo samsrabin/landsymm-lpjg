@@ -1,7 +1,12 @@
-function [data_out, varNames, combineCrops_out, actually_emu_char, cf_list] = ...
-    e2p_split_combine_burn(data_in, varNames, combineCrops_in, ...
+function [S, combineCrops_out, actually_emu_char, cf_list] = ...
+    e2p_split_combine_burn(S, combineCrops_in, ...
     cropList_mid, cropList_out, cf_list, varargin)
 % If tied, goes to alphabetically-first source type.
+
+verbose = true ;
+
+varNames = S.varNames ;
+data_in = S.garr_xvt ;
 
 cropList_cf = cropList_mid ;
 cropList_data = unique(getbasename(varNames)) ;
@@ -40,10 +45,6 @@ for t = 1:Ncombines
     
     % If combination not needed, then skip
     C = intersect(cropList_data, combineCrops_sources) ;
-%     if isempty(C) && any(strcmp(cropList_data, combineCrops_dest))
-% %         fprintf('Skipping %s\n', combineCrops_dest)
-%         continue
-%     end
     
     % Change target and destination names, if needed.
     % (Initially looks for CerealsC3s and CerealsC3w, as in LPJ-GUESS,
@@ -84,6 +85,24 @@ for t = 1:Ncombines
             combineCrops_dest = 'max_wheat' ;
             combineCrops_row = {combineCrops_dest, combineCrops_sources} ;
         end
+    end
+    
+    if verbose
+        str = [combineCrops_dest ' <- max('] ;
+        for s = 1:length(combineCrops_sources)
+            str = [str combineCrops_sources{s}] ;
+            if s < length(combineCrops_sources)
+                str = [str ', '] ;
+            else
+                str = [str ')'] ;
+            end
+        end
+        if needs_burnin
+            str = [str '; burning in calib. factors'] ;
+        end
+        str = [str '\n'] ;
+        fprintf(str)
+        clear str
     end
     
     % Get variable names of all instances of sourceA
@@ -154,8 +173,6 @@ for t = 1:Ncombines
                 end
                 thisIsMax = which_is_max(:,w,:) == s ;
                 data_out_x1t(thisIsMax) = data_out_x1t(thisIsMax) * thisCF ;
-%                 data_thisSource_x1t = data_theseABetc_xvt(:,s,:) ;
-%                 tmp_x1t(thisIsMax) = data_thisSource_x1t(thisIsMax) ;
             end
             data_out(:,w,:) = data_out_x1t ;
         end
@@ -171,11 +188,18 @@ for t = 1:Ncombines
 end
 
 % Sort new calibration factors list
-[C, ~, IB] = intersect(cropList_out, cropList_cf, 'stable') ;
+[~, ~, IB] = intersect(cropList_out, cropList_cf, 'stable') ;
 cropList_cf = cropList_cf(IB) ;
 cf_list = cf_list(IB) ;
 
 if ~isequal(cropList_cf, cropList_out)
     error('After all crop combining and burning-in, cropList_cf and cropList_out should be identical')
 end
+
+% Make output structure
+S = rmfield(S, 'garr_xvt') ;
+S.varNames = varNames ;
+S.garr_xvt = data_out ;
+
+
 

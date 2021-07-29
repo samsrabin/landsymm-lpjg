@@ -14,33 +14,41 @@ for c = 1:length(varNames_out)
     thisVar_out = varNames_out{c} ;
     thisCrop_out = getbasename(thisVar_out) ;
     thisCropI_out = getbasenamei(thisVar_out) ;
-    iN = strrep(thisVar_out, thisCrop_out, '') ;
-    if has_Nvals
-        thisN = getN_num(thisVar_out) ;
-        if ~any(Nvals_agm == thisN)
-            continue
+    
+    if any(strcmp(basenameIs_agm, thisCropI_out))
+        thisVar_agm = thisVar_out ;
+        thisCropI_agm = thisCropI_out ;
+    else
+    
+        iN = strrep(thisVar_out, thisCrop_out, '') ;
+        if has_Nvals
+            thisN = getN_num(thisVar_out) ;
+            if ~any(Nvals_agm == thisN)
+                continue
+            end
         end
+        switch thisCrop_out
+            case {'CerealsC3'}
+                thisCrop_agm = 'max_wheat' ;
+            case {'CerealsC4', 'Miscanthus', 'Sugarcane'}
+                thisCrop_agm = 'maize' ;
+            case {'Oilcrops','Pulses','OilNfix'}
+                thisCrop_agm = 'soy' ;
+            case {'CerealsC3s', 'StarchyRoots', 'FruitAndVeg', 'Sugarbeet', 'OilOther'}
+                thisCrop_agm = 'spring_wheat' ;
+            case {'CerealsC3w'}
+                thisCrop_agm = 'winter_wheat' ;
+            case {'Sugar'}
+                thisCrop_agm = 'sugar' ;
+            case {'Rice'}
+                thisCrop_agm = 'rice' ;
+            otherwise
+                error('GGCMI equivalent of %s not specified', thisCrop_out)
+        end
+        thisVar_agm = [thisCrop_agm iN] ;
+        thisCropI_agm = [thisCrop_agm strrep(thisCropI_out, thisCrop_out, '')] ;
     end
-    switch thisCrop_out
-        case {'CerealsC3'}
-            thisCrop_agm = 'max_wheat' ;
-        case {'CerealsC4', 'Miscanthus', 'Sugarcane'}
-            thisCrop_agm = 'maize' ;
-        case {'Oilcrops','Pulses','OilNfix'}
-            thisCrop_agm = 'soy' ;
-        case {'CerealsC3s', 'StarchyRoots', 'FruitAndVeg', 'Sugarbeet', 'OilOther'}
-            thisCrop_agm = 'spring_wheat' ;
-        case {'CerealsC3w'}
-            thisCrop_agm = 'winter_wheat' ;
-        case {'Sugar'}
-            thisCrop_agm = 'sugar' ;
-        case {'Rice'}
-            thisCrop_agm = 'rice' ;
-        otherwise
-            error('GGCMI equivalent of %s not specified', thisCrop_out)
-    end
-    thisVar_agm = [thisCrop_agm iN] ;
-    thisCropI_agm = [thisCrop_agm strrep(thisCropI_out, thisCrop_out, '')] ;
+    
     ismatch = strcmp(basenameIs_agm, thisCropI_agm) ;
     if has_Nvals
         ismatch = ismatch & Nvals_agm==thisN ;
