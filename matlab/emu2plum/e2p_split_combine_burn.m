@@ -3,7 +3,13 @@ function [S, combineCrops_out, actually_emu_char, cf_list] = ...
     cropList_mid, cropList_out, cf_list, varargin)
 % If tied, goes to alphabetically-first source type.
 
-verbose = true ;
+% Verbosity
+% 0: Silent
+% 1: E.g., "max_wheati <- max(spring_wheati, winter_wheati)"
+% 2: E.g., "max_wheati0010 <- max(spring_wheati0010, winter_wheati0010)"
+%          "max_wheati0060 <- max(spring_wheati0060, winter_wheati0060)"
+%          etc.
+verbose = 0 ;
 
 varNames = S.varNames ;
 data_in = S.garr_xvt ;
@@ -87,22 +93,8 @@ for t = 1:Ncombines
         end
     end
     
-    if verbose
-        str = [combineCrops_dest ' <- max('] ;
-        for s = 1:length(combineCrops_sources)
-            str = [str combineCrops_sources{s}] ;
-            if s < length(combineCrops_sources)
-                str = [str ', '] ;
-            else
-                str = [str ')'] ;
-            end
-        end
-        if needs_burnin
-            str = [str '; burning in calib. factors'] ;
-        end
-        str = [str '\n'] ;
-        fprintf(str)
-        clear str
+    if verbose == 1
+        print_msg(combineCrops_dest, combineCrops_sources, needs_burnin)
     end
     
     % Get variable names of all instances of sourceA
@@ -125,6 +117,10 @@ for t = 1:Ncombines
         [i_theseABetc, i_thisM, varNames] = ...
             e2p_wheatInds(thisA, varNames, combineCrops_row) ;
         cropList_data = unique(getbasename(varNames)) ;
+        
+        if verbose == 2
+            print_msg(varNames{i_thisM}, varNames(i_theseABetc), needs_burnin)
+        end
         
         % Get maxima
         [M, I] = max(data_in(:,i_theseABetc,:), [], 2) ;
@@ -201,5 +197,29 @@ S = rmfield(S, 'garr_xvt') ;
 S.varNames = varNames ;
 S.garr_xvt = data_out ;
 
+end
 
+
+
+function print_msg(thisDest, theseSources, needs_burnin)
+
+% str = [thisDest ' <- max('] ;
+% for s = 1:length(theseSources)
+%     str = [str theseSources{s}] ;
+%     if s < length(theseSources)
+%         str = [str ', '] ;
+%     else
+%         str = [str ')'] ;
+%     end
+% end
+
+dispStr = sprintf('%s <- max(%s)', ...
+    thisDest, strjoin(theseSources, ', ')) ;
+if needs_burnin
+    dispStr = [dispStr '; burning in calib. factors'] ;
+end
+
+disp(dispStr)
+
+end
 
