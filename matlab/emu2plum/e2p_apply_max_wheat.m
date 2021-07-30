@@ -2,11 +2,11 @@ function Sout = e2p_apply_max_wheat(Sin, combineCrops_file)
 
 Sout = Sin ;
 
-actually_emu_char = {} ;
-if isfield(Sin, 'actually_emu')
-    actually_emu_char = cell(size(Sin.actually_emu)) ;
-    actually_emu_char(~Sin.actually_emu) = {'sim'} ;
-    actually_emu_char(Sin.actually_emu) = {'*EMU*'} ;
+actually_emuBL_char = {} ;
+if isfield(Sin, 'actually_emuBL')
+    actually_emuBL_char = cell(size(Sin.actually_emuBL)) ;
+    actually_emuBL_char(~Sin.actually_emuBL) = {'sim'} ;
+    actually_emuBL_char(Sin.actually_emuBL) = {'*EMU*'} ;
 end
 
 % Load existing info
@@ -74,35 +74,35 @@ for t = 1:size(combineCrops, 1)
         
 %         % Assign character-based designator for whether it was simulated or
 %         % emulated
-%         if isfield(Sin, 'actually_emu')
-%             if Sin.actually_emu(i_thisWW) == Sin.actually_emu(i_thisSW)
-%                 actually_emu_char{i_thisMW} = actually_emu_char{i_thisWW} ; %#ok<AGROW>
+%         if isfield(Sin, 'actually_emuBL')
+%             if Sin.actually_emuBL(i_thisWW) == Sin.actually_emuBL(i_thisSW)
+%                 actually_emuBL_char{i_thisMW} = actually_emuBL_char{i_thisWW} ; %#ok<AGROW>
 %             else
-%                 actually_emu_char{i_thisMW} = ...
-%                     [actually_emu_char{i_thisWW} actually_emu_char{i_thisSW}] ; %#ok<AGROW>
+%                 actually_emuBL_char{i_thisMW} = ...
+%                     [actually_emuBL_char{i_thisWW} actually_emuBL_char{i_thisSW}] ; %#ok<AGROW>
 %             end
 %         end
 
         % Assign character-based designator for whether it was simulated or
         % emulated
-        if isfield(Sin, 'actually_emu') && ~isempty(Sin.actually_emu)
-            actually_emu_these = actually_emu_char(i_theseABetc) ;
-            if length(unique(actually_emu_these)) == 1
-                actually_emu_char{i_thisM} = actually_emu_these{1} ; %#ok<AGROW>
+        if isfield(Sin, 'actually_emuBL') && ~isempty(Sin.actually_emuBL)
+            actually_emuBL_these = actually_emuBL_char(i_theseABetc) ;
+            if length(unique(actually_emuBL_these)) == 1
+                actually_emuBL_char{i_thisM} = actually_emuBL_these{1} ; %#ok<AGROW>
             else
                 tmp = '' ;
                 for s = 1:length(i_theseABetc)
-                    tmp = [tmp actually_emu_char{i_theseABetc(1)}] ; %#ok<AGROW>
+                    tmp = [tmp actually_emuBL_char{i_theseABetc(1)}] ; %#ok<AGROW>
                 end
-                actually_emu_char{i_thisM} = tmp ; %#ok<AGROW>
+                actually_emuBL_char{i_thisM} = tmp ; %#ok<AGROW>
             end
         end
     end
     
 end
 
-if isfield(Sin, 'actually_emu')
-    Sout.actually_emu_char = actually_emu_char ;
+if isfield(Sin, 'actually_emuBL')
+    Sout.actually_emuBL_char = actually_emuBL_char ;
 end
 
 if isfield(Sin,'garr_xv')

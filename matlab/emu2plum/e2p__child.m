@@ -276,7 +276,7 @@ for g = 1:length(gcm_list)
                         data_bl_agm = data_bl_emu0 ;
                         data_bl_agm.list2map = gridlist.list_to_map ;
                         data_bl_agm.lonlats = gridlist.lonlats ;
-                        data_bl_agm.actually_emu = true(size(data_bl_agm.varNames)) ;
+                        data_bl_agm.actually_emuBL = true(size(data_bl_agm.varNames)) ;
                     else
                         fprintf('    Importing AgMERRA %s...\n', which_file)
                         data_bl_agm = e2p_import_bl_ggcmi(...
@@ -627,9 +627,9 @@ for g = 1:length(gcm_list)
                     clear exclude_xc exclude_lowBLyield_xc missing_yield_xc
                     
                     % Consistency check
-                    if isfield(data_fu_emu3, 'actually_emu_char') ...
-                    && ~isequal(size(shiftdim(data_fu_emu3.varNames)), size(shiftdim(data_fu_emu3.actually_emu_char)))
-                        error('data_fu_emu3.actually_emu_char must be the same size as data_fu_emu3.varNames')
+                    if isfield(data_fu_emu3, 'actually_emuBL_char') ...
+                    && ~isequal(size(shiftdim(data_fu_emu3.varNames)), size(shiftdim(data_fu_emu3.actually_emuBL_char)))
+                        error('data_fu_emu3.actually_emuBL_char must be the same size as data_fu_emu3.varNames')
                     end
 
                 end % if did_load_existing
@@ -842,8 +842,8 @@ function S = trim_unneeded_N200(S, which_file)
 unneededN200 = find(getN_num(S.varNames)==200) ;
 S.garr_xvt(:,unneededN200,:) = [] ;
 S.varNames(unneededN200) = [] ;
-if isfield(S, 'actually_emu_char')
-    S.actually_emu_char(unneededN200) = [] ;
+if isfield(S, 'actually_emuBL_char')
+    S.actually_emuBL_char(unneededN200) = [] ;
 end
 e2p_check_correct_zeros(S.garr_xvt, ...
     which_file, S.varNames, ...

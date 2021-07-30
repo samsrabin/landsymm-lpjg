@@ -106,10 +106,10 @@ thisPos = figurePos ;
 
 for v = 1:length(data_fu_out.varNames)
     
-    if isfield(data_fu_out, 'actually_emu_char') ...
-    && ~strcmp('sim', data_fu_out.actually_emu_char{v})
+    if isfield(data_fu_out, 'actually_emuBL_char') ...
+    && ~strcmp('sim', data_fu_out.actually_emuBL_char{v})
         title_right_max = strrep(title_right_max_orig, ...
-            'sim bl', [data_fu_out.actually_emu_char{v} ' bl']) ;
+            'sim bl', [data_fu_out.actually_emuBL_char{v} ' bl']) ;
     else
         title_right_max = title_right_max_orig ;
     end

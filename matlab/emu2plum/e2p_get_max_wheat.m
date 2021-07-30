@@ -1,22 +1,22 @@
-function [data_out, varNames, combineCrops_out, actually_emu_char] = ...
+function [data_out, varNames, combineCrops_out, actually_emuBL_char] = ...
     e2p_get_max_wheat(data_in, varNames, combineCrops_in, ...
     cropList_mid, cropList_out, cf_list, varargin)
 % If tied, goes to alphabetically-first source type.
 
 cropList_cf = cropList_mid ;
-actually_emu = [] ;
+actually_emuBL = [] ;
 if ~isempty(varargin)
-    actually_emu = varargin{1} ;
+    actually_emuBL = varargin{1} ;
     if length(varargin) > 1
-        error('Maximum 1 optional argument: actually_emu')
+        error('Maximum 1 optional argument: actually_emuBL')
     end
 end
 
-actually_emu_char = {} ;
-if ~isempty(actually_emu)
-    actually_emu_char = cell(size(actually_emu)) ;
-    actually_emu_char(~actually_emu) = {'sim'} ;
-    actually_emu_char(actually_emu) = {'*EMU*'} ;
+actually_emuBL_char = {} ;
+if ~isempty(actually_emuBL)
+    actually_emuBL_char = cell(size(actually_emuBL)) ;
+    actually_emuBL_char(~actually_emuBL) = {'sim'} ;
+    actually_emuBL_char(actually_emuBL) = {'*EMU*'} ;
 end
 
 data_out = data_in ;
@@ -90,16 +90,16 @@ for t = 1:Ncombines
         
         % Assign character-based designator for whether it was simulated or
         % emulated
-        if ~isempty(actually_emu)
-            actually_emu_these = actually_emu_char(i_theseABetc) ;
-            if length(unique(actually_emu_these)) == 1
-                actually_emu_char{i_thisM} = actually_emu_these{1} ; %#ok<AGROW>
+        if ~isempty(actually_emuBL)
+            actually_emuBL_these = actually_emuBL_char(i_theseABetc) ;
+            if length(unique(actually_emuBL_these)) == 1
+                actually_emuBL_char{i_thisM} = actually_emuBL_these{1} ; %#ok<AGROW>
             else
                 tmp = '' ;
                 for s = 1:length(i_theseABetc)
-                    tmp = [tmp actually_emu_char{i_theseABetc(1)}] ; %#ok<AGROW>
+                    tmp = [tmp actually_emuBL_char{i_theseABetc(1)}] ; %#ok<AGROW>
                 end
-                actually_emu_char{i_thisM} = tmp ; %#ok<AGROW>
+                actually_emuBL_char{i_thisM} = tmp ; %#ok<AGROW>
             end
         end
         

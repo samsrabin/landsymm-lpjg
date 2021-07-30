@@ -13,8 +13,8 @@ data_fu_out.lonlats = data_bl_thisBL.lonlats ;
 data_fu_out.varNames = data_bl_thisBL.varNames ;
 data_fu_out.y1s = data_fu_emu.y1s ;
 data_fu_out.yNs = data_fu_emu.yNs ;
-if isfield(data_bl_thisBL, 'actually_emu_char')
-    data_fu_out.actually_emu_char = data_bl_thisBL.actually_emu_char ;
+if isfield(data_bl_thisBL, 'actually_emuBL_char')
+    data_fu_out.actually_emuBL_char = data_bl_thisBL.actually_emuBL_char ;
 end
 
 % Get corresponding array indices
