@@ -80,7 +80,7 @@ for t = 1:Ncombines
         % Get indices
         thisA = varNames_sourceA{w} ;
         [i_theseABetc, i_thisM, varNames] = ...
-            e2p_wheatInds(thisA, varNames, combineCrops_row) ;
+            e2p_combineCropInds(thisA, varNames, combineCrops_row) ;
         
         % Get maxima
         [M, I] = max(data_in(:,i_theseABetc,:), [], 2) ;

@@ -1,5 +1,5 @@
 function [i_theseABetc, i_thisM, varNames] = ...
-    e2p_wheatInds(thisA, varNames, combineCrops_row)
+    e2p_combineCropInds(thisA, varNames, combineCrops_row)
 
 combineCrops_dest = combineCrops_row{1} ;
 combineCrops_sources = combineCrops_row{2} ;

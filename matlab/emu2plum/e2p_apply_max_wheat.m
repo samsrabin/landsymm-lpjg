@@ -39,7 +39,7 @@ for t = 1:size(combineCrops, 1)
         % Get indices
         thisA = varNames_sourceA{w} ;
         [i_theseABetc, i_thisM, Sout.varNames] = ...
-            e2p_wheatInds(thisA, Sout.varNames, combineCrops_row) ;
+            e2p_combineCropInds(thisA, Sout.varNames, combineCrops_row) ;
         
         if isfield(Sin,'garr_xv')
             data_theseABetc_xvt = Sin.garr_xv(:,i_theseABetc) ;
