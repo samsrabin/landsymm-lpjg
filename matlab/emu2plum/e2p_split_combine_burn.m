@@ -21,6 +21,7 @@ end
 verbose = 1 ;
 
 varNames = S.varNames ;
+varNames_orig = varNames ;
 data_in = S.garr_xvt ;
 
 cropList_cf = cropList_mid ;
@@ -133,6 +134,10 @@ for t = 1:Ncombines
         which_is_max(:,w,:) = I ;
         data_out(:,i_thisM,:) = M ;
         
+        check_noeffect_preexisting( ...
+                data_in, varNames_orig, ...
+                data_out, varNames)
+        
         % Assign character-based designator for whether it was simulated or
         % emulated
         if isfield(S, 'actually_emuBL_char')
@@ -180,7 +185,16 @@ for t = 1:Ncombines
             
         % Multiply outputs by calibration factors
         for w = 1:NsourceA
-            data_out_x1t = data_out(:,w,:) ;
+            
+            % Get index of target variable
+            thisA = varNames_sourceA{w} ;
+            [~, i_thisM_burning, varNames_burning] = ...
+                e2p_combineCropInds(thisA, varNames, combineCrops_row) ;
+            if ~isequal(varNames, varNames_burning)
+                error('varNames should not have changed just now...')
+            end
+        
+            data_out_x1t = data_out(:,i_thisM_burning,:) ;
             for s = 1:length(i_theseABetc)
                 thisSource_cf = combineCrops_sources_orig{s} ;
                 thisCF = cf_list(strcmp(cropList_cf, thisSource_cf)) ;
@@ -191,7 +205,12 @@ for t = 1:Ncombines
                 thisIsMax = which_is_max(:,w,:) == s ;
                 data_out_x1t(thisIsMax) = data_out_x1t(thisIsMax) * thisCF ;
             end
-            data_out(:,w,:) = data_out_x1t ;
+            data_out(:,i_thisM_burning,:) = data_out_x1t ;
+            
+            check_noeffect_preexisting( ...
+                data_in, varNames_orig, ...
+                data_out, varNames)
+            
         end
         
         % Combine calibration factors
@@ -214,7 +233,9 @@ if ~isempty(cf_list)
     end
 end
 
-
+check_noeffect_preexisting( ...
+    data_in, varNames_orig, ...
+    data_out, varNames)
 
 % Make output structure
 S = rmfield(S, 'garr_xvt') ;
@@ -225,7 +246,6 @@ end
 S.garr_xvt = data_out ;
 
 end
-
 
 
 function print_msg(thisDest, theseSources, needs_burnin)
@@ -241,23 +261,25 @@ disp(dispStr)
 end
 
 
-function out_xc = combine_excl_vecs(in_xc, Ibefore, Iafter, ...
-    Iafter_dest, Ibefore_sources, cropListI_after)
+function check_noeffect_preexisting( ...
+    data_in, varNames_orig, ...
+    data_out, varNames)
+% Make sure that no variables present in data_in differ between data_in
+% and data_out.
 
-Nsources = length(Ibefore_sources) ;
-
-Ncells = size(in_xc, 1) ;
-out_xc = nan(Ncells, length(cropListI_after)) ;
-out_xc(:,Iafter) = in_xc(:,Ibefore) ;
-out_xc(:,Iafter_dest) = ...
-    sum(in_xc(:,Ibefore_sources), 2) == Nsources ;
-
-if any(any(isnan(out_xc)))
-    error('NaN in output from combine_excl_vecs()')
+[C, IA, IB] = intersect(varNames_orig, varNames) ;
+if ~isequaln(data_in(:,IA,:), data_out(:,IB,:))
+    affected_variables = {} ;
+    for cc = 1:length(C)
+        if ~isequaln(data_in(:,IA(cc),:), data_out(:,IB(cc),:))
+            affected_variables = [affected_variables C(cc)] ;
+        end
+    end
+    affected_variables
+    error('Why were pre-existing variables affected?')
 end
 
 end
-
 
 
 
