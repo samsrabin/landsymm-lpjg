@@ -1,6 +1,14 @@
 function [varNames, cropList, varNames_basei, cropList_basei, Nlist, maxN] = ...
-    e2p_get_names(varNames_A, varNames_B, ...
-    get_unneeded)
+    e2p_get_names(varNames_A, varNames_B, varargin)
+
+
+okay_unequal_N_rf_ir = false ;
+if ~isempty(varargin)
+    okay_unequal_N_rf_ir = varargin{1} ;
+    if length(varargin) > 1
+        error('Maximum 1 optional argument: okay_unequal_N_rf_ir')
+    end
+end
 
 % Make sure A and B variable lists match (if both are included)
 if ~isempty(varNames_A) && ~isempty(varNames_B)
@@ -32,8 +40,8 @@ varNames_basei = getbasenamei(varNames) ;
 cropList_basei = unique(varNames_basei) ;
 
 % Make sure that each crop has irrigated and rainfed versions
-if length(cropList_basei) ~= Ncrops*2
-    error('Mismatch of crop lists here')
+if ~okay_unequal_N_rf_ir && length(cropList_basei) ~= Ncrops*2
+    error('Unequal number of rainfed and irrigated crops')
 end
 
 % Get N levels

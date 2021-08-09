@@ -13,6 +13,9 @@ data_fu_out.lonlats = data_bl_thisBL.lonlats ;
 data_fu_out.varNames = data_bl_thisBL.varNames ;
 data_fu_out.y1s = data_fu_emu.y1s ;
 data_fu_out.yNs = data_fu_emu.yNs ;
+if isfield(data_bl_thisBL, 'actually_emuBL')
+    data_fu_out.actually_emuBL = data_bl_thisBL.actually_emuBL ;
+end
 if isfield(data_bl_thisBL, 'actually_emuBL_char')
     data_fu_out.actually_emuBL_char = data_bl_thisBL.actually_emuBL_char ;
 end
@@ -65,11 +68,6 @@ if any(any(positive_delta_on_zero_baseline_xv))
         length(find(positive_delta_on_zero_baseline_xv)))
 end
 data_fu_out.garr_xvt = deltas_tmp_xvt .* byield_tmp_xvt ;
-
-% Sort variable names
-[data_fu_out.varNames, I] = sort(data_fu_out.varNames) ;
-data_fu_out.garr_xvt = data_fu_out.garr_xvt(:,I,:) ;
-clear I
 
 % Test for consistent deltas
 a = data_fu_out.garr_xvt(:,strcmp(data_fu_out.varNames,'CerealsC4200'),4) ./ ...

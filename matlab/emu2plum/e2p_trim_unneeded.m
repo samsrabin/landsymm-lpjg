@@ -1,4 +1,4 @@
-function data_out = e2p_trim_unneeded(data_in, get_unneeded)
+function data_out = e2p_trim_unneeded(data_in)
 
 data_out = data_in ;
 

@@ -1,5 +1,5 @@
 function data_bl_lpj = e2p_import_bl_lpj( ...
-    baseline_y1, baseline_yN, topDir_lpj, which_file, get_unneeded, ...
+    baseline_y1, baseline_yN, topDir_lpj, which_file, ...
     gridlist_target)
 
 ii = 0 ;
@@ -37,7 +37,7 @@ while yN < baseline_yN
 end
 
 % Trim unneeded variables
-data_bl_lpj = e2p_trim_unneeded(data_bl_lpj, get_unneeded) ;
+data_bl_lpj = e2p_trim_unneeded(data_bl_lpj) ;
 
 
 end

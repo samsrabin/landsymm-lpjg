@@ -1,6 +1,5 @@
 function e2p_save_excl_figs_outCrops( ...
     ggcm, which_file, gridlist, excl_vecs, ...
-    cropList_lpj, cropList_lpj_basei, ...
     cropList_emu, cropList_emu_basei, ...
     figure_visibility, figure_extension, ...
     outDir_excl_figs_outCrops, overwrite_existing_figs, renderer)
@@ -17,73 +16,6 @@ elseif strcmp(which_file,'gsirrigation')
     isexcl_all0_emu_c = excl_vecs{4} ;
 else
     error('which_file (%s) not recognized', which_file)
-end
-
-% Add max wheats (rainfed), if needed
-if ~any(strcmp(cropList_emu_basei, 'max_wheat'))
-    wheat_inds = [find(strcmp(cropList_emu_basei, 'winter_wheat')) ...
-        find(strcmp(cropList_emu_basei, 'spring_wheat'))] ;
-    if length(wheat_inds) ~= 2
-        error('Error finding wheat_inds: %d found', length(wheat_inds))
-    end
-    missing_emu_xc(:,end+1) = ...
-        missing_emu_xc(:,wheat_inds(1)) ...
-        & missing_emu_xc(:,wheat_inds(2)) ;
-    if strcmp(which_file, 'yield')
-        missing_agmerra_xc(:,end+1) = ...
-            missing_agmerra_xc(:,wheat_inds(1)) ...
-            & missing_agmerra_xc(:,wheat_inds(2)) ;
-        isexcl_lowBL_emu_xc(:,end+1) = ...
-            isexcl_lowBL_emu_xc(:,wheat_inds(1)) ...
-            & isexcl_lowBL_emu_xc(:,wheat_inds(2)) ;
-        isexcl_lowBL_agmerra_xc(:,end+1) = ...
-            isexcl_lowBL_agmerra_xc(:,wheat_inds(1)) ...
-            & isexcl_lowBL_agmerra_xc(:,wheat_inds(2)) ;
-    elseif strcmp(which_file,'gsirrigation')
-        missing_yield_xc(:,end+1) = ...
-            missing_yield_xc(:,wheat_inds(1)) ...
-            & missing_yield_xc(:,wheat_inds(2)) ;
-        isexcl_lowBLyield_xc(:,end+1) = ...
-            isexcl_lowBLyield_xc(:,wheat_inds(1)) ...
-            & isexcl_lowBLyield_xc(:,wheat_inds(2)) ;
-    else
-        error('which_file (%s) not recognized', which_file)
-    end
-    cropList_emu_basei{end+1} = 'max_wheat' ;
-end
-
-% Add max wheats (irrigated), if needed
-if ~any(strcmp(cropList_emu_basei, 'max_wheati'))
-    wheat_inds = [find(strcmp(cropList_emu_basei, 'winter_wheati')) ...
-        find(strcmp(cropList_emu_basei, 'spring_wheati'))] ;
-    if length(wheat_inds) ~= 2
-        error('Error finding wheat_inds: %d found', wheat_inds)
-    end
-    missing_emu_xc(:,end+1) = ...
-        missing_emu_xc(:,wheat_inds(1)) ...
-        & missing_emu_xc(:,wheat_inds(2)) ;
-    if strcmp(which_file, 'yield')
-        missing_agmerra_xc(:,end+1) = ...
-            missing_agmerra_xc(:,wheat_inds(1)) ...
-            & missing_agmerra_xc(:,wheat_inds(2)) ;
-        isexcl_lowBL_emu_xc(:,end+1) = ...
-            isexcl_lowBL_emu_xc(:,wheat_inds(1)) ...
-            & isexcl_lowBL_emu_xc(:,wheat_inds(2)) ;
-        isexcl_lowBL_agmerra_xc(:,end+1) = ...
-            isexcl_lowBL_agmerra_xc(:,wheat_inds(1)) ...
-            & isexcl_lowBL_agmerra_xc(:,wheat_inds(2)) ;
-    elseif strcmp(which_file,'gsirrigation')
-        missing_yield_xc(:,end+1) = ...
-            missing_yield_xc(:,wheat_inds(1)) ...
-            & missing_yield_xc(:,wheat_inds(2)) ;
-        isexcl_lowBLyield_xc(:,end+1) = ...
-            isexcl_lowBLyield_xc(:,wheat_inds(1)) ...
-            & isexcl_lowBLyield_xc(:,wheat_inds(2)) ;
-    else
-        error('which_file (%s) not recognized', which_file)
-    end
-    cropList_emu_basei{end+1} = 'max_wheati' ;
-    cropList_emu{end+1} = 'max_wheat' ;
 end
 
 % Set up for figures
@@ -120,11 +52,6 @@ end
 fontSize_bgy = fontSize - 2 ;
 fontSize_big = fontSize + 4 ;
 
-% Translate crop names
-verbose = false ;
-cropList_lpj_asEmu = e2p_translate_crops_2emu( ...
-    cropList_lpj, cropList_emu, 'PLUM', verbose) ;
-
 % Set up for filename
 if strcmp(which_file,'yield')
     thisFile = 'yield' ;
@@ -134,33 +61,14 @@ else
     error('which_file (%s) not recognized', which_file)
 end
 
-for ci_lpj = 1:length(cropList_lpj_basei)
-    thisCropi = cropList_lpj_basei{ci_lpj} ;
-    thisCrop = thisCropi ;
-    isIrr = strcmp(thisCropi(end), 'i') ;
-    if isIrr
-        thisCrop = thisCrop(1:end-1) ;
-    end
-    thisCropi_title = strrep(thisCropi, '_', '\_') ;
+for c = 1:length(cropList_emu_basei)
+    thisCropi = cropList_emu_basei{c} ;
+    thisCrop = getbasename(thisCropi) ;
     
     % If irrigation, skip rainfed crops
-    if strcmp(which_file,'gsirrigation') && ~isIrr
+    isIrr = ~strcmp(thisCrop, thisCropi) ;
+    if strcmp(which_file, 'gsirrigation') && ~isIrr
         continue
-    end
-    
-    % Get index of equivalent GGCMI crop
-    c_lpj = find(strcmp(cropList_lpj,thisCrop)) ;
-    if length(c_lpj) ~= 1
-        error('Error finding c_lpj: %d found', length(c_lpj))
-    end
-    thisCrop_emu = cropList_lpj_asEmu{c_lpj} ;
-    thisCropi_emu = thisCrop_emu ;
-    if isIrr
-        thisCropi_emu = [thisCrop_emu 'i'] ;
-    end
-    c = find(strcmp(cropList_emu_basei, thisCropi_emu)) ;
-    if length(c) ~= 1
-        error('Error finding index of thisCropi_emu %s', thisCropi_emu)
     end
     
     filename = sprintf('%s/exclusions_%s_%s_%s.png', ...
@@ -312,7 +220,7 @@ for ci_lpj = 1:length(cropList_lpj_basei)
         
         % Add overall title
         hst = sgtitle( ...
-            sprintf('Exclusions: %s %s %s', ggcm, thisCropi_title, thisFile), ...
+            sprintf('Exclusions: %s %s %s', ggcm, thisCropi, thisFile), ...
             'FontWeight', 'bold') ;
         hst.FontSize = fontSize_big ;
         
@@ -377,7 +285,7 @@ for ci_lpj = 1:length(cropList_lpj_basei)
 
             % Add overall title
             hst = sgtitle( ...
-                sprintf('Exclusions: %s %s %s', ggcm, thisCropi_title, thisFile), ...
+                sprintf('Exclusions: %s %s %s', ggcm, thisCropi, thisFile), ...
                 'FontWeight', 'bold') ;
             hst.FontSize = fontSize_big ;
 

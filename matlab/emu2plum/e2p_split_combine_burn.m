@@ -1,7 +1,16 @@
-function [S, combineCrops_out, actually_emuBL_char, cf_list] = ...
+function [S, combineCrops_out, actually_emuBL_char, cf_list, ...
+excl_vecs_after] = ...
     e2p_split_combine_burn(S, combineCrops_in, ...
     cropList_mid, cropList_out, cf_list, varargin)
 % If tied, goes to alphabetically-first source type.
+
+excl_vecs = {} ;
+if ~isempty(varargin)
+    excl_vecs = varargin{1} ;
+    if length(varargin) > 1
+        error('Maximum 1 optional argument: excl_vecs')
+    end
+end
 
 % Verbosity
 % 0: Silent
@@ -9,7 +18,7 @@ function [S, combineCrops_out, actually_emuBL_char, cf_list] = ...
 % 2: E.g., "max_wheati0010 <- max(spring_wheati0010, winter_wheati0010)"
 %          "max_wheati0060 <- max(spring_wheati0060, winter_wheati0060)"
 %          etc.
-verbose = 0 ;
+verbose = 1 ;
 
 varNames = S.varNames ;
 data_in = S.garr_xvt ;
@@ -17,19 +26,12 @@ data_in = S.garr_xvt ;
 cropList_cf = cropList_mid ;
 cropList_data = unique(getbasename(varNames)) ;
 
-actually_emuBL = [] ;
-if ~isempty(varargin)
-    actually_emuBL = varargin{1} ;
-    if length(varargin) > 1
-        error('Maximum 1 optional argument: actually_emuBL')
-    end
-end
-
 actually_emuBL_char = {} ;
-if ~isempty(actually_emuBL)
-    actually_emuBL_char = cell(size(actually_emuBL)) ;
-    actually_emuBL_char(~actually_emuBL) = {'sim'} ;
-    actually_emuBL_char(actually_emuBL) = {'*EMU*'} ;
+if isfield(S, 'actually_emuBL_char')
+    actually_emuBL_char = S.actually_emuBL_char ;
+    if any(cellfun(@isempty, actually_emuBL_char))
+        error('Empty member(s) in actually_emuBL_char')
+    end
 end
 
 data_out = data_in ;
@@ -39,6 +41,9 @@ combineCrops_out = [combineCrops_in cell(Ncombines, 2)] ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Loop through specified combinations %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[~, ~, ~, cropListI_before] = e2p_get_names(varNames, []) ;
+excl_vecs_before = excl_vecs ;
 
 for t = 1:Ncombines
     
@@ -130,7 +135,7 @@ for t = 1:Ncombines
         
         % Assign character-based designator for whether it was simulated or
         % emulated
-        if ~isempty(actually_emuBL)
+        if isfield(S, 'actually_emuBL_char')
             actually_emuBL_these = actually_emuBL_char(i_theseABetc) ;
             if length(unique(actually_emuBL_these)) == 1
                 actually_emuBL_char{i_thisM} = actually_emuBL_these{1} ; %#ok<AGROW>
@@ -141,7 +146,41 @@ for t = 1:Ncombines
                 end
                 actually_emuBL_char{i_thisM} = tmp ; %#ok<AGROW>
             end
+            if any(cellfun(@isempty, actually_emuBL_char))
+                error('Empty member(s) in actually_emuBL_char')
+            end
         end
+        
+        % Update exclusion arrays
+        [~, ~, ~, cropListI_after] = e2p_get_names(varNames, [], true) ;
+        if ~isempty(excl_vecs) && ~isequal(cropListI_before, cropListI_after)
+
+            % Set up for expanding vectors
+            thisDest_cropI = getbasenamei(varNames{i_thisM}) ;
+            theseSources_cropI = getbasenamei(varNames(i_theseABetc)) ;
+            [~, Ibefore, Iafter] = intersect(cropListI_before, cropListI_after) ;
+            Iafter_dest = find(strcmp(cropListI_after, thisDest_cropI)) ;
+            if length(Iafter_dest) ~= 1
+                error('Expected to find 1 Idest; found %d', ...
+                    length(Iafter_dest))
+            end
+            [~, ~, Ibefore_sources] = intersect(cropListI_before, theseSources_cropI) ;
+            Nsources = length(theseSources_cropI) ;
+            if length(Ibefore_sources) ~= Nsources
+                error('Expected to find %d Ibefore_sources; found %d', ...
+                    Nsources, length(Ibefore_sources))
+            end
+            
+            % Expand vectors
+            excl_vecs_after = cell(size(excl_vecs_before)) ;
+            for x = 1:length(excl_vecs_after)
+                excl_vecs_after{x} = combine_excl_vecs(excl_vecs_before{x}, ...
+                    Ibefore, Iafter, Iafter_dest, Ibefore_sources, ...
+                    cropListI_after) ;
+            end
+            excl_vecs_before = excl_vecs_after ;
+        end
+        cropListI_before = cropListI_after ;
         
     end
     
@@ -184,17 +223,23 @@ for t = 1:Ncombines
 end
 
 % Sort new calibration factors list
-[~, ~, IB] = intersect(cropList_out, cropList_cf, 'stable') ;
-cropList_cf = cropList_cf(IB) ;
-cf_list = cf_list(IB) ;
-
-if ~isequal(cropList_cf, cropList_out)
-    error('After all crop combining and burning-in, cropList_cf and cropList_out should be identical')
+if ~isempty(cf_list)
+    [~, ~, IB] = intersect(cropList_out, cropList_cf, 'stable') ;
+    cropList_cf = cropList_cf(IB) ;
+    cf_list = cf_list(IB) ;
+    if ~isequal(cropList_cf, cropList_out)
+        error('After all crop combining and burning-in, cropList_cf and cropList_out should be identical')
+    end
 end
+
+
 
 % Make output structure
 S = rmfield(S, 'garr_xvt') ;
 S.varNames = varNames ;
+if isfield(S, 'actually_emuBL_char')
+    S.actually_emuBL_char = actually_emuBL_char ;
+end
 S.garr_xvt = data_out ;
 
 end
@@ -202,16 +247,6 @@ end
 
 
 function print_msg(thisDest, theseSources, needs_burnin)
-
-% str = [thisDest ' <- max('] ;
-% for s = 1:length(theseSources)
-%     str = [str theseSources{s}] ;
-%     if s < length(theseSources)
-%         str = [str ', '] ;
-%     else
-%         str = [str ')'] ;
-%     end
-% end
 
 dispStr = sprintf('%s <- max(%s)', ...
     thisDest, strjoin(theseSources, ', ')) ;
@@ -222,4 +257,25 @@ end
 disp(dispStr)
 
 end
+
+
+function out_xc = combine_excl_vecs(in_xc, Ibefore, Iafter, ...
+    Iafter_dest, Ibefore_sources, cropListI_after)
+
+Nsources = length(Ibefore_sources) ;
+
+Ncells = size(in_xc, 1) ;
+out_xc = nan(Ncells, length(cropListI_after)) ;
+out_xc(:,Iafter) = in_xc(:,Ibefore) ;
+out_xc(:,Iafter_dest) = ...
+    sum(in_xc(:,Ibefore_sources), 2) == Nsources ;
+
+if any(any(isnan(out_xc)))
+    error('NaN in output from combine_excl_vecs()')
+end
+
+end
+
+
+
 

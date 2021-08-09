@@ -13,9 +13,9 @@ save_out_figs = true ;
 which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
 save_txt_files_emu = true ;
 save_txt_files_lpjg = true ;
-load_existing_file = false ;
-overwrite_existing_txt = true ;
-overwrite_existing_figs = true ;
+load_existing_file = true ;
+overwrite_existing_txt = false ;
+overwrite_existing_figs = false ;
 
 % Behavior for combining crops
 %  {:,1} = Output crop
@@ -96,9 +96,6 @@ if ~exist(topDir_emu, 'dir')
 elseif ~exist(topDir_agmipout, 'dir')
     error('topDir_agmipout does not exist:\n %s', topDir_agmipout)
 end
-
-get_unneeded = @(x)cellfun(@isempty, ...
-    regexp(regexprep(x,'CerealsC[34]','CerealsC'),'.*\d+')) | contains(x,'G_ic') ;
 
 % Set up N lists
 Nlist_lpj = [10 60 200 1000] ;

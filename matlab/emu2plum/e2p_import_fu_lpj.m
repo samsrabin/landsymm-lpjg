@@ -1,6 +1,6 @@
 function data_fu_lpj = e2p_import_fu_lpj( ...
     baseline_yN, future_ts, future_yN, topDir_lpj, which_file, ...
-    get_unneeded, varargin)
+    varargin)
 
 gridlist_target = [] ;
 if ~isempty(varargin)
@@ -88,9 +88,7 @@ if any(test_Nyears ~= future_ts)
 end
 
 % Trim unneeded variables
-if ~isempty(get_unneeded)
-    data_fu_lpj = e2p_trim_unneeded(data_fu_lpj, get_unneeded) ;
-end
+data_fu_lpj = e2p_trim_unneeded(data_fu_lpj) ;
 
 
 end
