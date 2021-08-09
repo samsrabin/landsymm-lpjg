@@ -1,4 +1,13 @@
-function Sout = e2p_apply_max(Sin, combineCrops_file)
+function [Sout, excl_vecs_after] = e2p_apply_max(...
+    Sin, combineCrops_file, varargin)
+
+excl_vecs = {} ;
+if ~isempty(varargin)
+    excl_vecs = varargin{1} ;
+    if length(varargin) > 1
+        error('Maximum 1 optional argument: excl_vecs')
+    end
+end
 
 Sout = Sin ;
 
@@ -24,6 +33,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Loop through specified combinations %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[~, ~, ~, cropListI_before] = e2p_get_names(Sout.varNames, []) ;
+excl_vecs_before = excl_vecs ;
 
 for t = 1:size(combineCrops, 1)
     
@@ -74,17 +86,6 @@ for t = 1:size(combineCrops, 1)
             out_xvt(:,i_thisM,:) = tmp_x1t ;
         end
         
-%         % Assign character-based designator for whether it was simulated or
-%         % emulated
-%         if isfield(Sin, 'actually_emuBL')
-%             if Sin.actually_emuBL(i_thisWW) == Sin.actually_emuBL(i_thisSW)
-%                 actually_emuBL_char{i_thisMW} = actually_emuBL_char{i_thisWW} ; %#ok<AGROW>
-%             else
-%                 actually_emuBL_char{i_thisMW} = ...
-%                     [actually_emuBL_char{i_thisWW} actually_emuBL_char{i_thisSW}] ; %#ok<AGROW>
-%             end
-%         end
-
         % Assign character-based designator for whether it was simulated or
         % emulated
         if ~isempty(actually_emuBL_char)
@@ -99,6 +100,20 @@ for t = 1:size(combineCrops, 1)
                 actually_emuBL_char{i_thisM} = tmp ; %#ok<AGROW>
             end
         end
+        
+        % Update exclusion arrays
+        [~, ~, ~, cropListI_after] = e2p_get_names(Sout.varNames, [], true) ;
+        if ~isempty(excl_vecs) && ~isequal(cropListI_before, cropListI_after)
+            excl_vecs_after = ...
+                e2p_update_excl_arrays( ...
+                Sout.varNames, cropListI_before, cropListI_after, ...
+                i_thisM, i_theseABetc, excl_vecs_before) ;
+%             keyboard
+%             table(cropListI_after', excl_vecs_after{4}')
+            excl_vecs_before = excl_vecs_after ;
+        end
+        cropListI_before = cropListI_after ;
+        
     end
     
 end
