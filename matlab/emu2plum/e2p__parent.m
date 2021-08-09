@@ -13,7 +13,7 @@ save_out_figs = true ;
 which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
 save_txt_files_emu = true ;
 save_txt_files_lpjg = true ;
-load_existing_file = true ;
+load_existing_file = false ;
 overwrite_existing_txt = false ;
 overwrite_existing_figs = false ;
 
@@ -38,8 +38,8 @@ emulated_baseline = true ;
 
 % Run info
 gcm_list = {'UKESM1-0-LL'} ;
-% ggcm_list = {'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
-ggcm_list = {'EPIC-TAMU'} ;
+ggcm_list = {'EPIC-TAMU', 'pDSSAT', 'GEPIC'} ;
+% ggcm_list = {'EPIC-TAMU'} ;
 ssp_list = {'ssp126'} ;
 thisVer = '20210702' ;
 emuVer = 'v2.5' ;
