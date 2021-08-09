@@ -7,6 +7,8 @@ if isfield(Sin, 'actually_emuBL')
     actually_emuBL_char = cell(size(Sin.actually_emuBL)) ;
     actually_emuBL_char(~Sin.actually_emuBL) = {'sim'} ;
     actually_emuBL_char(Sin.actually_emuBL) = {'*EMU*'} ;
+elseif isfield(Sin, 'actually_emuBL_char')
+    actually_emuBL_char = Sin.actually_emuBL_char ;
 end
 
 % Load existing info
@@ -85,7 +87,7 @@ for t = 1:size(combineCrops, 1)
 
         % Assign character-based designator for whether it was simulated or
         % emulated
-        if isfield(Sin, 'actually_emuBL') && ~isempty(Sin.actually_emuBL)
+        if ~isempty(actually_emuBL_char)
             actually_emuBL_these = actually_emuBL_char(i_theseABetc) ;
             if length(unique(actually_emuBL_these)) == 1
                 actually_emuBL_char{i_thisM} = actually_emuBL_these{1} ; %#ok<AGROW>
@@ -101,7 +103,7 @@ for t = 1:size(combineCrops, 1)
     
 end
 
-if isfield(Sin, 'actually_emuBL')
+if ~isempty(actually_emuBL_char)
     Sout.actually_emuBL_char = actually_emuBL_char ;
 end
 
