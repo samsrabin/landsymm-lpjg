@@ -194,7 +194,7 @@ for g = 1:length(gcm_list)
                     data_fu_lpj1 = data_fu_lpj1_yield ;
                     data_fu_lpj2 = data_fu_lpj2_yield ;
                 elseif strcmp(which_file, 'gsirrigation')
-                    data_fu_lpj1 = data_fu_lpj_irrig ;
+                    data_fu_lpj1 = data_fu_lpj1_irrig ;
                     data_fu_lpj2 = data_fu_lpj2_irrig ;
                 else
                     error('which_file (%s) not recognized', which_file)
