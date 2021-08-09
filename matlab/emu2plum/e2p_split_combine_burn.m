@@ -154,30 +154,12 @@ for t = 1:Ncombines
         % Update exclusion arrays
         [~, ~, ~, cropListI_after] = e2p_get_names(varNames, [], true) ;
         if ~isempty(excl_vecs) && ~isequal(cropListI_before, cropListI_after)
-
-            % Set up for expanding vectors
-            thisDest_cropI = getbasenamei(varNames{i_thisM}) ;
-            theseSources_cropI = getbasenamei(varNames(i_theseABetc)) ;
-            [~, Ibefore, Iafter] = intersect(cropListI_before, cropListI_after) ;
-            Iafter_dest = find(strcmp(cropListI_after, thisDest_cropI)) ;
-            if length(Iafter_dest) ~= 1
-                error('Expected to find 1 Idest; found %d', ...
-                    length(Iafter_dest))
-            end
-            [~, ~, Ibefore_sources] = intersect(cropListI_before, theseSources_cropI) ;
-            Nsources = length(theseSources_cropI) ;
-            if length(Ibefore_sources) ~= Nsources
-                error('Expected to find %d Ibefore_sources; found %d', ...
-                    Nsources, length(Ibefore_sources))
-            end
-            
-            % Expand vectors
-            excl_vecs_after = cell(size(excl_vecs_before)) ;
-            for x = 1:length(excl_vecs_after)
-                excl_vecs_after{x} = combine_excl_vecs(excl_vecs_before{x}, ...
-                    Ibefore, Iafter, Iafter_dest, Ibefore_sources, ...
-                    cropListI_after) ;
-            end
+            excl_vecs_after = ...
+                e2p_update_excl_arrays( ...
+                varNames, cropListI_before, cropListI_after, ...
+                i_thisM, i_theseABetc, excl_vecs_before) ;
+%             keyboard
+%             table(cropListI_after', excl_vecs_after{4}')
             excl_vecs_before = excl_vecs_after ;
         end
         cropListI_before = cropListI_after ;
