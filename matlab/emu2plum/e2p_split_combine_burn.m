@@ -1,7 +1,7 @@
-function [S, combineCrops_out, actually_emuBL_char, cf_list, ...
+function [S, combineCrops_out, actually_emuBL_char, cf_table_out, ...
 excl_vecs_after] = ...
     e2p_split_combine_burn(S, combineCrops_in, ...
-    cropList_mid, cropList_out, cf_list, varargin)
+    cropList_out, cf_table_in, varargin)
 % If tied, goes to alphabetically-first source type.
 
 excl_vecs = {} ;
@@ -24,7 +24,9 @@ varNames = S.varNames ;
 varNames_orig = varNames ;
 data_in = S.garr_xvt ;
 
-cropList_cf = cropList_mid ;
+cropList_cf = cf_table_in.Crop ;
+cf_values = cf_table_in.calibration_factor ;
+
 cropList_data = unique(getbasename(varNames)) ;
 
 actually_emuBL_char = {} ;
@@ -179,8 +181,8 @@ for t = 1:Ncombines
     % "Burn in" calibration factors?
     if needs_burnin
         
-        if length(cropList_cf) ~= length(cf_list)
-            error('Length mismatch between cropList_mid and cf_list')
+        if length(cropList_cf) ~= length(cf_values)
+            error('Length mismatch between cropList_cf and cf_values')
         end
             
         % Multiply outputs by calibration factors
@@ -197,7 +199,7 @@ for t = 1:Ncombines
             data_out_x1t = data_out(:,i_thisM_burning,:) ;
             for s = 1:length(i_theseABetc)
                 thisSource_cf = combineCrops_sources_orig{s} ;
-                thisCF = cf_list(strcmp(cropList_cf, thisSource_cf)) ;
+                thisCF = cf_values(strcmp(cropList_cf, thisSource_cf)) ;
                 if length(thisCF) ~= 1
                     error('Error finding thisCF for %s: expected 1, found %d', ...
                         thisSource_cf, length(thisCF))
@@ -215,22 +217,24 @@ for t = 1:Ncombines
         
         % Combine calibration factors
         [~,IA] = intersect(cropList_cf, combineCrops_sources_orig) ;
-        cf_list(IA) = [] ;
+        cf_values(IA) = [] ;
         cropList_cf(IA) = [] ;
-        cf_list(end+1) = 1 ; %#ok<AGROW>
+        cf_values(end+1) = 1 ; %#ok<AGROW>
         cropList_cf{end+1} = combineCrops_dest_orig ; %#ok<AGROW>
     end
     
 end
 
 % Sort new calibration factors list
-if ~isempty(cf_list)
+if ~isempty(cf_values)
     [~, ~, IB] = intersect(cropList_out, cropList_cf, 'stable') ;
     cropList_cf = cropList_cf(IB) ;
-    cf_list = cf_list(IB) ;
-    if ~isequal(cropList_cf, cropList_out)
+    cf_values = cf_values(IB) ;
+    if ~isequal(shiftdim(cropList_cf), shiftdim(cropList_out))
         error('After all crop combining and burning-in, cropList_cf and cropList_out should be identical')
     end
+    cf_table_out = table(cropList_cf, cf_values, ...
+        'VariableNames', cf_table_in.Properties.VariableNames) ;
 end
 
 check_noeffect_preexisting( ...

@@ -1,6 +1,6 @@
-function cf = e2p_get_CFs(cropList, ggcm, cfDir, combineCrops, verbose)
+function T = e2p_get_CFs(cropList, ggcm, cfDir, combineCrops, verbose)
 
-cf = [] ;
+T = table() ;
 
 failure_is_not_an_option = ~isempty(combineCrops) ;
 
@@ -53,9 +53,6 @@ if verbose
     disp(cf_file)
     disp(T)
 end
-
-cf = table2array(T(:,2)) ;
-
 
     
 end

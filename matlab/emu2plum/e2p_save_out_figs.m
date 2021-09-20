@@ -56,16 +56,24 @@ if strcmp(which_file, 'yield')
     end
     for c = 1:Ncrops
         thisCrop = cropList_lpj{c} ;
-        thisCF_lpj = cf_lpj(c) ;
+        thisCF_lpj = cf_lpj.calibration_factor(...
+            strcmp(cf_lpj.Crop, thisCrop)) ;
         if isnan(thisCF_lpj)
             error('LPJ-GUESS calibration factor not defined for %s', ...
                 thisCrop)
+        elseif length(thisCF_lpj) ~= 1
+            error('1 matching LPJ-GUESS calibration factor expected; found %d', ...
+                length(thisCF_lpj))
         end
 %         fprintf('%s lpj: %0.3f\n', thisCrop, thisCF_lpj) ;
-        thisCF_emu = cf_emu(c) ;
+        thisCF_emu = cf_emu.calibration_factor(...
+            strcmp(cf_emu.Crop, thisCrop)) ;
         if isnan(thisCF_emu)
             error('%s calibration factor not defined for %s', ...
                 ggcm, thisCrop)
+        elseif length(thisCF_emu) ~= 1
+            error('1 matching emulator calibration factor expected; found %d', ...
+                length(thisCF_emu))
         end
 %         fprintf('%s emu: %0.3f\n', thisCrop, thisCF_emu) ;
         
