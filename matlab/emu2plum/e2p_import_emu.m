@@ -80,12 +80,20 @@ for c = 1:Ncrops_in_this
         thisN = Nlist(n) ;
         
         % Get directories and file search patterns
-        thisDir_bl = sprintf('%s/%s/CMIP6/A%d_N%d_%s/baseline/%s', ...
-            topDir_emu, which_file, adaptation, thisN, emuVer, thisEmu) ;
+        if strcmp(emuVer, 'v2.5')
+            thisDir_bl = sprintf('%s/%s/CMIP6/A%d_N%d/baseline/%s', ...
+                topDir_emu, which_file, adaptation, thisN, thisEmu) ;
+            thisDir_fu = sprintf('%s/%s/CMIP6/A%d_N%d/%s/%s', ...
+                topDir_emu, which_file, adaptation, thisN, thisSSP, thisEmu) ;
+        else
+            thisDir_bl = sprintf('%s/%s/CMIP6/A%d_N%d_%s/baseline/%s', ...
+                topDir_emu, which_file, adaptation, thisN, emuVer, thisEmu) ;
+            thisDir_fu = sprintf('%s/%s/CMIP6/A%d_N%d_%s/%s/%s', ...
+                topDir_emu, which_file, adaptation, thisN, emuVer, thisSSP, thisEmu) ;
+        end
         pattern_in_BL = sprintf('%s/*_%s_%s_*baseline*', ...
             thisDir_bl, thisCrop, thisEmu) ;
-        thisDir_fu = sprintf('%s/%s/CMIP6/A%d_N%d_%s/%s/%s', ...
-            topDir_emu, which_file, adaptation, thisN, emuVer, thisSSP, thisEmu) ;
+        
         if ~exist(thisDir_fu, 'dir')
             error('thisDir_fu does not exist: %s', thisDir_fu)
         end
@@ -104,8 +112,8 @@ for c = 1:Ncrops_in_this
         thisFile_BL = sprintf('%s/%s', files.folder, files.name) ;
         
         % Get file with data for future
-        pattern_in = sprintf('%s/*_%s_*_%s_%s_*movingwindow*', ...
-            thisDir_fu, thisGCM, thisCrop, thisEmu) ;
+        pattern_in = sprintf('%s/*_%s_*_%s_%s_*movingwindow*%s*', ...
+            thisDir_fu, thisGCM, thisCrop, thisEmu, emuVer) ;
         files = dir(pattern_in) ;
         if length(files) ~= 1
             error('thisDir_fu ok, but error finding thisFile: %d found', length(files))
