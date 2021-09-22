@@ -61,11 +61,25 @@ for t = 1:Ncombines
     C = intersect(cropList_data, combineCrops_sources) ;
     
     % Change target and destination names, if needed.
-    % (Initially looks for CerealsC3s and CerealsC3w, as in LPJ-GUESS,
-    % but other models use spring_wheat and winter_wheat.)
     needs_burnin = false ;
     if length(C) ~= length(combineCrops_sources)
-        if ~strcmp(combineCrops_dest, 'CerealsC3')
+        if strcmp(combineCrops_dest, 'CerealsC3')
+            if ~isempty(C)
+                error('How did you find %d wheats?', length(C))
+            end
+            % (Initially looked for CerealsC3s and CerealsC3w, as in
+            % LPJ-GUESS, but other models use spring_wheat and winter_wheat.)
+            combineCrops_sources2 = {'spring_wheat', 'winter_wheat'} ;
+            C2 = intersect(cropList_data, combineCrops_sources2) ;
+            if length(C2) ~= length(combineCrops_sources2)
+                st = dbstack ;
+                error('%s for %s: Error finding combineCrops_sources in S: Expected %d, found %d', ...
+                    st.name, combineCrops_dest, length(combineCrops_sources), length(C))
+            end
+            combineCrops_sources = combineCrops_sources2 ;
+            combineCrops_dest = 'max_wheat' ;
+            combineCrops_row = {combineCrops_dest, combineCrops_sources} ;
+        else
             needs_burnin = true ;
             try
                 I_data = e2p_translate_crops_lpj2out(...
@@ -84,20 +98,6 @@ for t = 1:Ncombines
             end
             combineCrops_sources = cropList_data(I_data) ;
             combineCrops_row{:,2} = combineCrops_sources ;
-        else
-            if ~isempty(C)
-                error('How did you find %d wheats?', length(C))
-            end
-            combineCrops_sources2 = {'spring_wheat', 'winter_wheat'} ;
-            C2 = intersect(cropList_data, combineCrops_sources2) ;
-            if length(C2) ~= length(combineCrops_sources2)
-                st = dbstack ;
-                error('%s for %s: Error finding combineCrops_sources in cropList_mid: Expected %d, found %d', ...
-                    st.name, combineCrops_dest, length(combineCrops_sources), length(C))
-            end
-            combineCrops_sources = combineCrops_sources2 ;
-            combineCrops_dest = 'max_wheat' ;
-            combineCrops_row = {combineCrops_dest, combineCrops_sources} ;
         end
     end
     
