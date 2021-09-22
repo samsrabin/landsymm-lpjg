@@ -15,18 +15,20 @@ for c = 1:length(varNames_out)
     thisCrop_out = getbasename(thisVar_out) ;
     thisCropI_out = getbasenamei(thisVar_out) ;
     
+    if has_Nvals
+        thisN = getN_num(thisVar_out) ;
+        if ~any(Nvals_agm == thisN)
+%             continue
+            error('~any(Nvals_agm == thisN)')
+        end
+    end
+    
     if any(strcmp(basenameIs_agm, thisCropI_out))
         thisVar_agm = thisVar_out ;
         thisCropI_agm = thisCropI_out ;
     else
     
         iN = strrep(thisVar_out, thisCrop_out, '') ;
-        if has_Nvals
-            thisN = getN_num(thisVar_out) ;
-            if ~any(Nvals_agm == thisN)
-                continue
-            end
-        end
         switch thisCrop_out
             case {'CerealsC3'}
                 thisCrop_agm = 'max_wheat' ;
@@ -59,6 +61,8 @@ for c = 1:length(varNames_out)
             thisVar_agm, length(I))
     end
     I_agm(c) = I ;
+    
+    clear thisN
 end
 
 % Strip skipped

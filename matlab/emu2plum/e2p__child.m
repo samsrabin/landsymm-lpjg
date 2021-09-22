@@ -885,8 +885,6 @@ else
     S = rmfield(S, 'garr_xv') ;
 end
 
-S.list2map = S.list2map ;
-S.lonlats = S.lonlats ;
 [I_in, I_out] = e2p_translate_crops_agm2out(...
     S.varNames, varNames_out) ;
 S.varNames = varNames_out ;

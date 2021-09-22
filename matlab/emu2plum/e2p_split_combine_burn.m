@@ -81,9 +81,13 @@ for t = 1:Ncombines
             combineCrops_row = {combineCrops_dest, combineCrops_sources} ;
         else
             needs_burnin = true ;
+            
+            % First look for LPJ-GUESS-style crop names
             try
                 I_data = e2p_translate_crops_lpj2out(...
                     cropList_data, combineCrops_sources) ;
+                
+            % Failing that, look for GGCMI-style crop names
             catch ME1
                 try
                     I_data = e2p_translate_crops_agm2out(...
