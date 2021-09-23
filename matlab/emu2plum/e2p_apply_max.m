@@ -37,14 +37,12 @@ end
 [~, ~, ~, cropListI_before] = e2p_get_names(Sout.varNames, []) ;
 excl_vecs_before = excl_vecs ;
 
-for t = 1:size(combineCrops, 1)
+for t = 1:length(combineCrops)
     
     % Get info about this transformation
-    combineCrops_row = combineCrops(t,:) ;
-%     combineCrops_sources = combineCrops_row{2} ;
-%     combineCrops_dest = combineCrops_row{1} ;
-    which_is_max = combineCrops_row{:,3} ;
-    varNames_sourceA = combineCrops_row{:,4} ;
+    combineCrops_this = combineCrops(t) ;
+    which_is_max = combineCrops_this.whichmax_xvt ;
+    varNames_sourceA = combineCrops_this.varNames_sourceA ;
     
     NsourceA = length(varNames_sourceA) ;
     
@@ -53,7 +51,7 @@ for t = 1:size(combineCrops, 1)
         % Get indices
         thisA = varNames_sourceA{w} ;
         [i_theseABetc, i_thisM, Sout.varNames] = ...
-            e2p_combineCropInds(thisA, Sout.varNames, combineCrops_row) ;
+            e2p_combineCropInds(thisA, Sout.varNames, combineCrops_this) ;
         
         if isfield(Sin,'garr_xv')
             data_theseABetc_xvt = Sin.garr_xv(:,i_theseABetc) ;

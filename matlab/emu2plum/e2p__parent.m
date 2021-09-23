@@ -18,13 +18,19 @@ overwrite_existing_txt = false ;
 overwrite_existing_figs = false ;
 
 % Behavior for combining crops
-%  {:,1} = Output crop
-%  {:,2} = "Mid" crops (i.e., the crops in the calibration factor set)
-combineCrops = { ...
-    'CerealsC3', {'CerealsC3s', 'CerealsC3w'} ;
-    'Oilcrops', {'OilNfix', 'OilOther'} ;
-    'Sugar', {'Sugarbeet', 'Sugarcane'} ;
+%  outCrop: Output crop
+%  sourceCrops_cf = Input crop types, as named in the calibration factor set
+combineCrops_tmp = { ...
+    'CerealsC3', {'CerealsC3s', 'CerealsC3w'}, [], {} ;
+    'Oilcrops',  {'OilNfix', 'OilOther'}, [], {} ;
+    'Sugar',     {'Sugarbeet', 'Sugarcane'}, [], {} ;
     } ;
+combineCrops = struct( ...
+    'destCrop', combineCrops_tmp(:,1), ...
+    'sourceCrops_cf', combineCrops_tmp(:,2), ...
+    'whichmax_xvt', combineCrops_tmp(:,3), ...
+    'varNames_sourceA', combineCrops_tmp(:,4)) ;
+clear combineCrops_tmp
 
 % Other behaviors
 excl_lowBL_agmerra = true ;
@@ -126,8 +132,8 @@ end
 low_yield_threshold_kgm2 = 0.01 ;
 
 % Make sure burnIn sources are sorted alphabetically
-for c = 1:size(combineCrops,1)
-    combineCrops{c,2} = sort(combineCrops{c,2}) ;
+for c = 1:length(combineCrops)
+    combineCrops(c).sourceCrops_cf = sort(combineCrops(c).sourceCrops_cf) ;
 end; clear c
 
 
@@ -153,9 +159,9 @@ else
     
     % Make sure "source" types in combineCrops are in cropList_cf
     % OR the destination type is
-    for c = 1:size(combineCrops, 1)
-        thisDest = combineCrops{c,1} ;
-        theseSources = combineCrops{c,2} ;
+    for c = 1:length(combineCrops)
+        thisDest = combineCrops(c).destCrop ;
+        theseSources = combineCrops(c).sourceCrops_cf ;
         D = setdiff(theseSources, cropList_cf) ;
         if ~isempty(D) && ~any(strcmp(cropList_cf, thisDest))
             error('Neither %s nor all of its sources were found in cropList_cf')
@@ -163,9 +169,9 @@ else
     end; clear c D thisDest theseSources IA
     
     % Make sure "destination" types in combineCrops are in cropList_out
-    combineCrops_dest = combineCrops(:,1) ;
+    combineCrops_dest = {combineCrops.destCrop} ;
     if length(intersect(cropList_out, combineCrops_dest)) ~= length(combineCrops_dest)
-        error('Missing %d expected burnIn destination crops from cropList_out', ...
+        error('Missing %d expected combineCrops destination crops from cropList_out', ...
             length(combineCrops_dest) - length(intersect(cropList_out, combineCrops_dest)))
     end
         

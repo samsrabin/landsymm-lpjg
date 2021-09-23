@@ -38,8 +38,8 @@ if isfield(S, 'actually_emuBL_char')
 end
 
 data_out = data_in ;
-Ncombines = size(combineCrops_in, 1) ;
-combineCrops_out = [combineCrops_in cell(Ncombines, 2)] ;
+Ncombines = length(combineCrops_in) ;
+combineCrops_out = combineCrops_in ;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Loop through specified combinations %%%
@@ -51,9 +51,9 @@ excl_vecs_before = excl_vecs ;
 for t = 1:Ncombines
     
     % Get info about this transformation
-    combineCrops_row = combineCrops_in(t,:) ;
-    combineCrops_sources = combineCrops_row{2} ;
-    combineCrops_dest = combineCrops_row{1} ;
+    combineCrops_this = combineCrops_in(t) ;
+    combineCrops_sources = combineCrops_this.sourceCrops_cf ;
+    combineCrops_dest = combineCrops_this.destCrop ;
     combineCrops_sources_orig = combineCrops_sources ;
     combineCrops_dest_orig = combineCrops_dest ;
     
@@ -78,7 +78,8 @@ for t = 1:Ncombines
             end
             combineCrops_sources = combineCrops_sources2 ;
             combineCrops_dest = 'max_wheat' ;
-            combineCrops_row = {combineCrops_dest, combineCrops_sources} ;
+            combineCrops_this.destCrop = combineCrops_dest ;
+            combineCrops_this.sourceCrops_cf = combineCrops_sources ;
         else
             needs_burnin = true ;
             
@@ -101,7 +102,7 @@ for t = 1:Ncombines
                 end
             end
             combineCrops_sources = cropList_data(I_data) ;
-            combineCrops_row{:,2} = combineCrops_sources ;
+            combineCrops_this.sourceCrops_cf = combineCrops_sources ;
         end
     end
     
@@ -127,7 +128,7 @@ for t = 1:Ncombines
         % Get indices
         thisA = varNames_sourceA{w} ;
         [i_theseABetc, i_thisM, varNames] = ...
-            e2p_combineCropInds(thisA, varNames, combineCrops_row) ;
+            e2p_combineCropInds(thisA, varNames, combineCrops_this) ;
         cropList_data = unique(getbasename(varNames)) ;
         
         if verbose == 2
@@ -178,9 +179,9 @@ for t = 1:Ncombines
     end
     
     % Save results to combineCrops_out
-    combineCrops_row{:,3} = which_is_max ;
-    combineCrops_row{:,4} = varNames_sourceA ;
-    combineCrops_out(t,:) = combineCrops_row ;
+    combineCrops_this.whichmax_xvt = which_is_max ;
+    combineCrops_this.varNames_sourceA = varNames_sourceA ;
+    combineCrops_out(t) = combineCrops_this ;
     
     % "Burn in" calibration factors?
     if needs_burnin
@@ -195,7 +196,7 @@ for t = 1:Ncombines
             % Get index of target variable
             thisA = varNames_sourceA{w} ;
             [~, i_thisM_burning, varNames_burning] = ...
-                e2p_combineCropInds(thisA, varNames, combineCrops_row) ;
+                e2p_combineCropInds(thisA, varNames, combineCrops_this) ;
             if ~isequal(varNames, varNames_burning)
                 error('varNames should not have changed just now...')
             end

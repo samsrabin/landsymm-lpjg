@@ -1,8 +1,8 @@
 function [i_theseABetc, i_thisM, varNames] = ...
-    e2p_combineCropInds(thisA, varNames, combineCrops_row)
+    e2p_combineCropInds(thisA, varNames, combineCrops_this)
 
-combineCrops_dest = combineCrops_row{1} ;
-combineCrops_sources = combineCrops_row{2} ;
+combineCrops_dest = combineCrops_this.destCrop ;
+combineCrops_sources = combineCrops_this.sourceCrops_cf ;
 Nsources = length(combineCrops_sources) ;
 
 % Get list of source variables
