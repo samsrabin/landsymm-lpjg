@@ -25,10 +25,15 @@ end
 
 % Get max_wheat(i) for emuA, if needed
 cropList_emuA = unique(getbasename(data_fu_emuA.varNames)) ;
-combineCrops = {'max_wheat', {'spring_wheat', 'winter_wheat'}} ;
 if ~any(strcmp(cropList_emuA, 'max_wheat'))
+    % First, make a dummy combineCrops
+    combineCrops.destCrop = 'max_wheat' ;
+    combineCrops.sourceCrops_cf = {'spring_wheat', 'winter_wheat'} ;
+    combineCrops.whichmax_xvt = [] ;
+    combineCrops.maxzero_xvt = [] ;
+    combineCrops.varNames_sourceA = {} ;
     data_fu_emuA = e2p_split_combine_burn(data_fu_emuA, combineCrops, ...
-        cropList_emuA, [cropList_emuA {'max_wheat'}], []) ;
+        [cropList_emuA {'max_wheat'}], []) ;
     cropList_emuA = unique(getbasename(data_fu_emuA.varNames)) ;
 end
 
