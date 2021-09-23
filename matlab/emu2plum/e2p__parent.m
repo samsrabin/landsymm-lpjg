@@ -49,7 +49,7 @@ gcm_list = {'UKESM1-0-LL'} ;
 ggcm_list = {'EPIC-TAMU', 'pDSSAT', 'GEPIC'} ;
 % ggcm_list = {'EPIC-TAMU'} ;
 ssp_list = {'ssp126'} ;
-thisVer = '20210702' ;
+thisVer = '20210923' ;
 emuVer = 'v2.5' ;
 adaptation = 1 ;
 
