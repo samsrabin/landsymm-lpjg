@@ -135,9 +135,6 @@ for g = 1:length(gcm_list)
         % Split crops up to match calibration factor list; combine as
         % necessary to match PLUM-expected list, burning in calibration
         % factors of combined crops.
-        if ~any(strcmp(cropList_cf, 'CerealsC3'))
-            error('This version assumes calibration factor for combined spring/winter CerealsC3')
-        end
         disp('Splitting and combining...')
         [data_fu_lpj2_yield, combineCrops_lpj, ~, cf_lpj] = ...
             e2p_split_combine_burn(data_fu_lpj1_yield, ...
