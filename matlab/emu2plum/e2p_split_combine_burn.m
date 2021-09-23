@@ -24,8 +24,12 @@ varNames = S.varNames ;
 varNames_orig = varNames ;
 data_in = S.garr_xvt ;
 
-cropList_cf = cf_table_in.Crop ;
-cf_values = cf_table_in.calibration_factor ;
+if isempty(cf_table_in)
+    cf_table_out = table() ;
+else
+    cropList_cf = cf_table_in.Crop ;
+    cf_values = cf_table_in.calibration_factor ;
+end
 
 cropList_data = unique(getbasename(varNames)) ;
 
@@ -58,19 +62,23 @@ for t = 1:Ncombines
     combineCrops_dest_orig = combineCrops_dest ;
     
     % Do we need to burn in calibration factors?
-    sources_in_cf = intersect(cropList_cf, combineCrops_sources) ;
-    if any(strcmp(cropList_cf, combineCrops_dest))
-        if ~isempty(sources_in_cf)
-            error(['If destination crop is in calibration factor list, ', ...
-                'then no source crop may be.'])
-        end
+    if isempty(cf_table_in)
         needs_burnin = false ;
-    elseif length(sources_in_cf) ~= length(combineCrops_sources)
-        error(['If destination crop is not in calibration factor list, ', ...
-            'then all sources must be (%d/%d found)'], ...
-            length(sources_in_cf), length(combineCrops_sources))
     else
-        needs_burnin = true ;
+        sources_in_cf = intersect(cropList_cf, combineCrops_sources) ;
+        if any(strcmp(cropList_cf, combineCrops_dest))
+            if ~isempty(sources_in_cf)
+                error(['If destination crop is in calibration factor list, ', ...
+                    'then no source crop may be.'])
+            end
+            needs_burnin = false ;
+        elseif length(sources_in_cf) ~= length(combineCrops_sources)
+            error(['If destination crop is not in calibration factor list, ', ...
+                'then all sources must be (%d/%d found)'], ...
+                length(sources_in_cf), length(combineCrops_sources))
+        else
+            needs_burnin = true ;
+        end
     end
     
     % Change target and destination names, if needed.
@@ -223,7 +231,7 @@ for t = 1:Ncombines
 end
 
 % Sort new calibration factors list
-if ~isempty(cf_values)
+if ~isempty(cf_table_in)
     [~, ~, IB] = intersect(cropList_out, cropList_cf, 'stable') ;
     cropList_cf = cropList_cf(IB) ;
     cf_values = cf_values(IB) ;
