@@ -57,53 +57,32 @@ for t = 1:Ncombines
     combineCrops_sources_orig = combineCrops_sources ;
     combineCrops_dest_orig = combineCrops_dest ;
     
-    % If combination not needed, then skip
-    C = intersect(cropList_data, combineCrops_sources) ;
+    % Do we need to burn in calibration factors?
+    needs_burnin = ~any(strcmp(cropList_cf, combineCrops_dest)) ;
     
     % Change target and destination names, if needed.
-    needs_burnin = false ;
+    C = intersect(cropList_data, combineCrops_sources) ;
     if length(C) ~= length(combineCrops_sources)
-        if strcmp(combineCrops_dest, 'CerealsC3')
-            if ~isempty(C)
-                error('How did you find %d wheats?', length(C))
-            end
-            % (Initially looked for CerealsC3s and CerealsC3w, as in
-            % LPJ-GUESS, but other models use spring_wheat and winter_wheat.)
-            combineCrops_sources2 = {'spring_wheat', 'winter_wheat'} ;
-            C2 = intersect(cropList_data, combineCrops_sources2) ;
-            if length(C2) ~= length(combineCrops_sources2)
-                st = dbstack ;
-                error('%s for %s: Error finding combineCrops_sources in S: Expected %d, found %d', ...
-                    st.name, combineCrops_dest, length(combineCrops_sources), length(C))
-            end
-            combineCrops_sources = combineCrops_sources2 ;
-            combineCrops_dest = 'max_wheat' ;
-            combineCrops_this.destCrop = combineCrops_dest ;
-            combineCrops_this.sourceCrops_cf = combineCrops_sources ;
-        else
-            needs_burnin = true ;
+        % First look for LPJ-GUESS-style crop names
+        try
+            I_data = e2p_translate_crops_lpj2out(...
+                cropList_data, combineCrops_sources) ;
             
-            % First look for LPJ-GUESS-style crop names
-            try
-                I_data = e2p_translate_crops_lpj2out(...
-                    cropList_data, combineCrops_sources) ;
-                
             % Failing that, look for GGCMI-style crop names
-            catch ME1
-                try
-                    I_data = e2p_translate_crops_agm2out(...
-                        cropList_data, combineCrops_sources) ;
-                catch ME2
-                    error(['%s: Error finding combineCrops_sources in cropList_cf: ' ...
-                        'Expected %d, found %d. Unable to find substitute crops, experiencing ' ...
-                        'the following errors:\n\n%s\n\n%s'], ...
-                        combineCrops_dest, length(combineCrops_sources), length(C), ...
-                        ME1.message, ME2.message)
-                end
+        catch ME1
+            try
+                I_data = e2p_translate_crops_agm2out(...
+                    cropList_data, combineCrops_sources) ;
+            catch ME2
+                error(['%s: Error finding combineCrops_sources in cropList_cf: ' ...
+                    'Expected %d, found %d. Unable to find substitute crops, experiencing ' ...
+                    'the following errors:\n\n%s\n\n%s'], ...
+                    combineCrops_dest, length(combineCrops_sources), length(C), ...
+                    ME1.message, ME2.message)
             end
-            combineCrops_sources = cropList_data(I_data) ;
-            combineCrops_this.sourceCrops_cf = combineCrops_sources ;
         end
+        combineCrops_sources = cropList_data(I_data) ;
+        combineCrops_this.sourceCrops_cf = combineCrops_sources ;
     end
     
     if verbose == 1
