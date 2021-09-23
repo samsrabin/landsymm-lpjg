@@ -137,7 +137,7 @@ end; clear c
 cropList_in = {'spring_wheat', 'winter_wheat', 'maize', 'soy', 'rice'} ;
 
 % The crops present in the calibration factors
-cropList_mid = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
+cropList_cf = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
     'OilNfix', 'OilOther', 'Sugarbeet', 'Sugarcane', 'FruitAndVeg'} ;
 
 % The crops present in the outputs of this code
@@ -146,19 +146,19 @@ cropList_out = {'CerealsC3', 'CerealsC4', 'Rice', 'Pulses', 'StarchyRoots', ...
 
 % Sanity checks for combineCrops
 if isempty(combineCrops)
-    if ~isequal(shiftdim(sort(cropList_mid)), shiftdim(sort(cropList_out)))
-        error('If cropList_mid and cropList_out aren''t the same, you must specify a transformation key using combineCrops')
+    if ~isequal(shiftdim(sort(cropList_cf)), shiftdim(sort(cropList_out)))
+        error('If cropList_cf and cropList_out aren''t the same, you must specify a transformation key using combineCrops')
     end
 else
     
-    % Make sure "source" types in combineCrops are in cropList_mid
+    % Make sure "source" types in combineCrops are in cropList_cf
     % OR the destination type is
     for c = 1:size(combineCrops, 1)
         thisDest = combineCrops{c,1} ;
         theseSources = combineCrops{c,2} ;
-        D = setdiff(theseSources, cropList_mid) ;
-        if ~isempty(D) && ~any(strcmp(cropList_mid, thisDest))
-            error('Neither %s nor all of its sources were found in cropList_mid')
+        D = setdiff(theseSources, cropList_cf) ;
+        if ~isempty(D) && ~any(strcmp(cropList_cf, thisDest))
+            error('Neither %s nor all of its sources were found in cropList_cf')
         end
     end; clear c D thisDest theseSources IA
     
@@ -175,8 +175,8 @@ Ncrops_in = length(cropList_in) ;
 Ncrops_out = length(cropList_out) ;
 
 % Get output file header and other cropList-derived vars
-cropIrrList_mid = ...
-    process_cropLists(cropList_mid, irrList_out, ...
+cropIrrList_cf = ...
+    process_cropLists(cropList_cf, irrList_out, ...
     Nlist_out, Nlist_emu, Nlist_lpj) ;
 [cropIrrList_out, header_out, format_out, ...
     varNames_out, varNames_out_allN, varNames_out_overlapN] = ...

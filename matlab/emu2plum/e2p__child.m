@@ -74,7 +74,7 @@ for g = 1:length(gcm_list)
             varNames_lpj0_basei, cropList_lpj0_basei, ...
             Nlist_lpj0_char, ~] = ...
             e2p_get_names({}, data_fu_lpj0_yield.varNames) ;
-        cropList_mid_basei = cropIrrList_mid ;
+        cropList_cf_basei = cropIrrList_cf ;
         cropList_out_basei = cropIrrList_out ;
         gridlist.list_to_map = data_fu_lpj0_yield.list2map ;
         gridlist.lonlats = data_fu_lpj0_yield.lonlats ;
@@ -130,12 +130,12 @@ for g = 1:length(gcm_list)
         data_fu_lpj1_irrig.varNames = varNames_lpj1 ;
                 
         % Get LPJ-GUESS calibration factors
-        cf_lpj = e2p_get_CFs(cropList_mid, 'LPJ-GUESS', cfDir, combineCrops, true) ;
+        cf_lpj = e2p_get_CFs(cropList_cf, 'LPJ-GUESS', cfDir, combineCrops, true) ;
         
         % Split crops up to match calibration factor list; combine as
         % necessary to match PLUM-expected list, burning in calibration
         % factors of combined crops.
-        if ~any(strcmp(cropList_mid, 'CerealsC3'))
+        if ~any(strcmp(cropList_cf, 'CerealsC3'))
             error('This version assumes calibration factor for combined spring/winter CerealsC3')
         end
         disp('Splitting and combining...')
@@ -183,7 +183,7 @@ for g = 1:length(gcm_list)
             diary('on')
             
             % Get this emulator's calibration factors
-            cf_emu0 = e2p_get_CFs(cropList_mid, ggcm, cfDir, combineCrops, true) ;
+            cf_emu0 = e2p_get_CFs(cropList_cf, ggcm, cfDir, combineCrops, true) ;
             
             for w = 1:length(whichfile_list)
                 which_file = whichfile_list{w} ;
