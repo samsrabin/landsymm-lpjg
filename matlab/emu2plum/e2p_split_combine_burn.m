@@ -57,27 +57,26 @@ for t = 1:Ncombines
     % Get info about this transformation
     combineCrops_this = combineCrops_in(t) ;
     combineCrops_sources = combineCrops_this.sourceCrops_cf ;
+    Nsources = length(combineCrops_sources) ;
     combineCrops_dest = combineCrops_this.destCrop ;
     combineCrops_sources_orig = combineCrops_sources ;
     combineCrops_dest_orig = combineCrops_dest ;
     
-    % Do we need to burn in calibration factors?
-    if isempty(cf_table_in)
-        needs_burnin = false ;
-    else
+    % Check calibration factor list against sources and destination
+    if ~isempty(cf_table_in)
         sources_in_cf = intersect(cropList_cf, combineCrops_sources) ;
         if any(strcmp(cropList_cf, combineCrops_dest))
+            dest_has_cf = true ;
             if ~isempty(sources_in_cf)
                 error(['If destination crop is in calibration factor list, ', ...
                     'then no source crop may be.'])
             end
-            needs_burnin = false ;
         elseif length(sources_in_cf) ~= length(combineCrops_sources)
             error(['If destination crop is not in calibration factor list, ', ...
                 'then all sources must be (%d/%d found)'], ...
                 length(sources_in_cf), length(combineCrops_sources))
         else
-            needs_burnin = true ;
+            dest_has_cf = false ;
         end
     end
     
@@ -107,7 +106,7 @@ for t = 1:Ncombines
     end
     
     if verbose == 1
-        print_msg(combineCrops_dest, combineCrops_sources, needs_burnin)
+        print_msg(combineCrops_dest, combineCrops_sources, dest_has_cf)
     end
     
     % Get variable names of all instances of sourceA
@@ -136,8 +135,33 @@ for t = 1:Ncombines
             print_msg(varNames{i_thisM}, varNames(i_theseABetc), needs_burnin)
         end
         
+        % Burn in calibration factor(s)
+        data_theseVars = data_in(:,i_theseABetc,:) ;
+        if dest_has_cf
+            cf = cf_values(strcmp(cropList_cf, combineCrops_dest)) ;
+            if length(cf) ~= 1
+                error('Expected to find 1 calibration factor for %s; found %d', ...
+                    combineCrops_dest, length(cf))
+            end
+            data_with_cf = data_theseVars * cf ;
+        else
+            [~,~,IB] = intersect(combineCrops_sources_orig, cropList_cf, 'stable') ;
+            if length(IB) ~= Nsources
+                error('Expected to find %d calibration factors for %s; found %d', ...
+                    Nsources, combineCrops_dest, length(IB))
+            end
+            cf = transpose(shiftdim(cf_values(IB))) ;
+            if size(cf, 1) ~= 1
+                error('cf needs to be 1xN here')
+            end
+            size_for_repmat = size(data_theseVars) ;
+            size_for_repmat(2) = 1 ;
+            cf_xvt = repmat(cf, size_for_repmat) ;
+            data_with_cf = data_theseVars .* cf_xvt ;
+        end
+        
         % Get maxima
-        [M, I] = max(data_in(:,i_theseABetc,:), [], 2) ;
+        [M, I] = max(data_with_cf, [], 2) ;
         I(isnan(M)) = NaN ;
         which_is_max(:,w,:) = I ;
         max_is_zero(:,w,:) = M==0 ;
@@ -186,44 +210,15 @@ for t = 1:Ncombines
     combineCrops_this.varNames_sourceA = varNames_sourceA ;
     combineCrops_out(t) = combineCrops_this ;
     
-    % "Burn in" calibration factors?
-    if needs_burnin
-        
-        if length(cropList_cf) ~= length(cf_values)
-            error('Length mismatch between cropList_cf and cf_values')
+    % Account for burned-in calibration factor(s)
+    if dest_has_cf
+        I_cf = find(strcmp(cropList_cf, combineCrops_dest)) ;
+        if length(I_cf) ~= 1
+            error('Expected to find 1 calibration factor for %s; found %d', ...
+                combineCrops_dest, length(I_cf))
         end
-            
-        % Multiply outputs by calibration factors
-        for w = 1:NsourceA
-            
-            % Get index of target variable
-            thisA = varNames_sourceA{w} ;
-            [~, i_thisM_burning, varNames_burning] = ...
-                e2p_combineCropInds(thisA, varNames, combineCrops_this) ;
-            if ~isequal(varNames, varNames_burning)
-                error('varNames should not have changed just now...')
-            end
-        
-            data_out_x1t = data_out(:,i_thisM_burning,:) ;
-            for s = 1:length(i_theseABetc)
-                thisSource_cf = combineCrops_sources_orig{s} ;
-                thisCF = cf_values(strcmp(cropList_cf, thisSource_cf)) ;
-                if length(thisCF) ~= 1
-                    error('Error finding thisCF for %s: expected 1, found %d', ...
-                        thisSource_cf, length(thisCF))
-                end
-                thisIsMax = which_is_max(:,w,:) == s ;
-                data_out_x1t(thisIsMax) = data_out_x1t(thisIsMax) * thisCF ;
-            end
-            data_out(:,i_thisM_burning,:) = data_out_x1t ;
-            
-            check_noeffect_preexisting( ...
-                data_in, varNames_orig, ...
-                data_out, varNames)
-            
-        end
-        
-        % Combine calibration factors
+        cf_values(I_cf) = 1 ;
+    else
         [~,IA] = intersect(cropList_cf, combineCrops_sources_orig) ;
         cf_values(IA) = [] ;
         cropList_cf(IA) = [] ;
@@ -260,12 +255,14 @@ S.garr_xvt = data_out ;
 end
 
 
-function print_msg(thisDest, theseSources, needs_burnin)
+function print_msg(thisDest, theseSources, dest_has_cf)
 
 dispStr = sprintf('%s <- max(%s)', ...
     thisDest, strjoin(theseSources, ', ')) ;
-if needs_burnin
-    dispStr = [dispStr '; burning in calib. factors'] ;
+if dest_has_cf
+    dispStr = [dispStr '; burning in dest. calib. factor'] ;
+else
+    dispStr = [dispStr '; burning in source calib. factors'] ;
 end
 
 disp(dispStr)
