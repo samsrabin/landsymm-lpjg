@@ -9,6 +9,7 @@ figure_visibility = 'on' ; % 'off' or 'on'. Determines whether figures are shown
 figure_extension = 'png' ; % fig or png
 save_excl_figs = true ;
 save_interp_figs = true ;
+save_combineCrops_figs = true ;
 save_out_figs = true ;
 which_out_figs = {'max'} ; % {'max', 'first', 'first0', '4th', '4th0'}
 save_txt_files_emu = true ;
@@ -21,15 +22,16 @@ overwrite_existing_figs = false ;
 %  outCrop: Output crop
 %  sourceCrops_cf = Input crop types, as named in the calibration factor set
 combineCrops_tmp = { ...
-    'CerealsC3', {'CerealsC3s', 'CerealsC3w'}, [], {} ;
-    'Oilcrops',  {'OilNfix', 'OilOther'}, [], {} ;
-    'Sugar',     {'Sugarbeet', 'Sugarcane'}, [], {} ;
+    'CerealsC3', {'CerealsC3s', 'CerealsC3w'}, [], [], {} ;
+    'Oilcrops',  {'OilNfix', 'OilOther'}, [], [], {} ;
+    'Sugar',     {'Sugarbeet', 'Sugarcane'}, [], [], {} ;
     } ;
 combineCrops = struct( ...
     'destCrop', combineCrops_tmp(:,1), ...
     'sourceCrops_cf', combineCrops_tmp(:,2), ...
     'whichmax_xvt', combineCrops_tmp(:,3), ...
-    'varNames_sourceA', combineCrops_tmp(:,4)) ;
+    'maxzero_xvt', combineCrops_tmp(:,4), ...
+    'varNames_sourceA', combineCrops_tmp(:,5)) ;
 clear combineCrops_tmp
 
 % Other behaviors

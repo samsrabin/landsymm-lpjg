@@ -122,6 +122,7 @@ for t = 1:Ncombines
     tmp_size = size(data_in) ;
     tmp_size(2) = NsourceA ;
     which_is_max = nan(tmp_size) ;
+    max_is_zero = false(tmp_size) ;
     
     for w = 1:NsourceA
         
@@ -139,6 +140,7 @@ for t = 1:Ncombines
         [M, I] = max(data_in(:,i_theseABetc,:), [], 2) ;
         I(isnan(M)) = NaN ;
         which_is_max(:,w,:) = I ;
+        max_is_zero(:,w,:) = M==0 ;
         data_out(:,i_thisM,:) = M ;
         
         check_noeffect_preexisting( ...
@@ -180,6 +182,7 @@ for t = 1:Ncombines
     
     % Save results to combineCrops_out
     combineCrops_this.whichmax_xvt = which_is_max ;
+    combineCrops_this.maxzero_xvt = max_is_zero ;
     combineCrops_this.varNames_sourceA = varNames_sourceA ;
     combineCrops_out(t) = combineCrops_this ;
     

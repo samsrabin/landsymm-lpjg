@@ -39,6 +39,7 @@ for g = 1:length(gcm_list)
         outDir_excl_figs_inCrops = sprintf('%s/excl_figs_GGCMIcrops', outDir) ;
         outDir_excl_figs_outCrops = sprintf('%s/excl_figs_PLUMcrops', outDir) ;
         outDir_interp_figs = sprintf('%s/interp_figs', outDir) ;
+        outDir_combineCrops_figs = sprintf('%s/combineCrops_figs', outDir) ;
         outDir_yield_figs = sprintf('%s/yield_figs', outDir) ;
         outDir_irrig_figs = sprintf('%s/irrig_figs', outDir) ;
         
@@ -142,6 +143,12 @@ for g = 1:length(gcm_list)
         out_file = sprintf('%s/combineCrops_lpj.mat', topDir_lpj) ;
         save_combineCrops(combineCrops_lpj, 'yield', out_file)
         data_fu_lpj2_irrig = e2p_apply_max(data_fu_lpj1_irrig, out_file) ;
+        if save_combineCrops_figs
+            e2p_save_combineCrops_figs(combineCrops_lpj, gridlist, ...
+                'LPJ-GUESS', figure_visibility, ...
+                figure_extension, outDir_combineCrops_figs, ...
+                overwrite_existing_figs, renderer)
+        end
         
         % Rename variables to match desired outputs
         data_fu_lpj2_yield = rename_and_rearrange(data_fu_lpj2_yield, ...
@@ -623,6 +630,12 @@ for g = 1:length(gcm_list)
                         % For yield, save result combineCrops
                         save_combineCrops(combineCrops_emu3, which_file, ...
                             emu_combineCrops_file)
+                        if save_combineCrops_figs
+                            e2p_save_combineCrops_figs(combineCrops_emu3, gridlist, ...
+                                ggcm, figure_visibility, ...
+                                figure_extension, outDir_combineCrops_figs, ...
+                                overwrite_existing_figs, renderer)
+                        end
                     elseif strcmp(which_file, 'gsirrigation')
                         [data_fu_emu3, excl_vecs_emu3] = e2p_apply_max( ...
                             data_fu_emu2, emu_combineCrops_file, ...
