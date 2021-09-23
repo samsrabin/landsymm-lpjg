@@ -23,7 +23,7 @@ end
 %%% Loop through specified combinations %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for t = 1:size(combineCrops, 1)
+for t = 1:length(combineCrops)
     
     % Get info about this transformation
     combineCrops_row = combineCrops(t,:) ;
