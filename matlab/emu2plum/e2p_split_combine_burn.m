@@ -63,7 +63,9 @@ for t = 1:Ncombines
     combineCrops_dest_orig = combineCrops_dest ;
     
     % Check calibration factor list against sources and destination
-    if ~isempty(cf_table_in)
+    if isempty(cf_table_in)
+        dest_has_cf = [] ;
+    else
         sources_in_cf = intersect(cropList_cf, combineCrops_sources) ;
         if any(strcmp(cropList_cf, combineCrops_dest))
             dest_has_cf = true ;
@@ -259,10 +261,12 @@ function print_msg(thisDest, theseSources, dest_has_cf)
 
 dispStr = sprintf('%s <- max(%s)', ...
     thisDest, strjoin(theseSources, ', ')) ;
-if dest_has_cf
-    dispStr = [dispStr '; burning in dest. calib. factor'] ;
-else
-    dispStr = [dispStr '; burning in source calib. factors'] ;
+if ~isempty(dest_has_cf)
+    if dest_has_cf
+        dispStr = [dispStr '; burning in dest. calib. factor'] ;
+    else
+        dispStr = [dispStr '; burning in source calib. factors'] ;
+    end
 end
 
 disp(dispStr)

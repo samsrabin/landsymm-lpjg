@@ -12,6 +12,7 @@ end
 do_max = any(strcmp(which_out_figs, 'max')) ;
 do_first = strcmp(which_out_figs, 'first') ;
 do_4th = strcmp(which_out_figs, '4th') ;
+cropList_emuA = unique(getbasename(data_fu_emuA.varNames)) ;
 
 this_colormap = 'parula' ;
 % this_colormap = 'jet' ;
@@ -21,20 +22,6 @@ if strcmp(which_file, 'yield')
     data_fu_lpj.garr_xvt = 10 * data_fu_lpj.garr_xvt ;
     data_fu_emuA.garr_xvt = 10 * data_fu_emuA.garr_xvt ;
     data_fu_emuB.garr_xvt = 10 * data_fu_emuB.garr_xvt ;
-end
-
-% Get max_wheat(i) for emuA, if needed
-cropList_emuA = unique(getbasename(data_fu_emuA.varNames)) ;
-if ~any(strcmp(cropList_emuA, 'max_wheat'))
-    % First, make a dummy combineCrops
-    combineCrops.destCrop = 'max_wheat' ;
-    combineCrops.sourceCrops_cf = {'spring_wheat', 'winter_wheat'} ;
-    combineCrops.whichmax_xvt = [] ;
-    combineCrops.maxzero_xvt = [] ;
-    combineCrops.varNames_sourceA = {} ;
-    data_fu_emuA = e2p_split_combine_burn(data_fu_emuA, combineCrops, ...
-        [cropList_emuA {'max_wheat'}], []) ;
-    cropList_emuA = unique(getbasename(data_fu_emuA.varNames)) ;
 end
 
 % Get arrays for "max" figures
