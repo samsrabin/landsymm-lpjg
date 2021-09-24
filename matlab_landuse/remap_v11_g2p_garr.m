@@ -651,7 +651,7 @@ for f = 1:length(gridlist_files)
 end
 
 
-stop
+
 disp('Saving LU...')
 % check_existing_lu(thisVer, out_file_lu, allVer_names, allVer_ignore_types) ;
 lpjgu_matlab_saveTable(out_lu_header_cell, out_lu, out_file_lu,...
