@@ -6,11 +6,12 @@ ggcm_list = {'LPJ-GUESS', 'GEPIC', 'EPIC-TAMU', 'pDSSAT'} ;
 
 % topDir = ['/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/' ...
 %     'A1_v2.5_UKESM1-0-LL_ssp126_20210528_ph2bl_intpinfs_rmolend_fake1k'] ;
-topDir = ['/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/' ...
-    'A1_v2.5_UKESM1-0-LL_ssp126_20210531_ph2bl_intpinfs_rmolend_fake1k'] ;
+% topDir = ['/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/' ...
+%     'A1_v2.5_UKESM1-0-LL_ssp126_20210531_ph2bl_intpinfs_rmolend_fake1k'] ;
 % topDir = ['/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/' ...
 %     'h'] ;
-remapVer = '12_g2p' ;
+% remapVer = '12_g2p' ;
+topDir = '/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/A1_v2.5_UKESM1-0-LL_ssp126_20210923_ph2bl_intpinfs_rmolend_fake1k' ;
 
 
 %% Setup
@@ -19,24 +20,6 @@ Nggcm = length(ggcm_list) ;
 
 irrList = {'', 'i'} ;
 Nirr = length(irrList) ;
-
-% Land use files
-LUdir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s', ...
-        remapVer) ;
-filename_landuse = sprintf( ...
-    '%s/LU.remapv%s.txt', ...
-    LUdir, remapVer);
-filename_cropfrac = sprintf( ...
-    '%s/cropfracs.remapv%s.txt', ...
-    LUdir, remapVer);
-if any(strcmp(remapVer, {'12_g2p', '13_g2p'}))
-    % Stripped-down crop list used for running. Complete crop list needed
-    % for calibration.
-    tmp = sprintf('v%s', strrep(remapVer, '_g2p', '')) ;
-    filename_cropfrac = strrep(filename_cropfrac, ...
-        tmp, 'v11') ;
-    clear tmp
-end
 
 % Cell area (convert from km2 to ha)
 cell_area_YXqd = transpose(ncread( ...
@@ -63,11 +46,19 @@ if ~exist(outDir, 'dir')
     mkdir(outDir)
 end
 
-% Calibration factors
-% Should really save these into the MAT files
-topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
-cfDir = sprintf('%s/emulation/calibration_factors/calibration_factors_20210526', ...
-    topdir_db) ;
+% Import calibration factors
+calib_factors = cell(1, Nggcm) ;
+for g = 1:Nggcm
+    thisGGCM = ggcm_list{g} ;
+    thisDir = dir(sprintf('%s/*%s*', topDir, thisGGCM)) ;
+    if length(thisDir) ~= 1
+        error('Expected to find 1 match for %s; found %d', ...
+            thisGGCM, length(thisDir))
+    end
+    thisDir = sprintf('%s/%s', topDir, thisDir.name) ;
+    cf_file = sprintf('%s/calib_factors.csv', thisDir) ;
+    calib_factors{g} = readtable(cf_file) ;
+end
 
 
 %% Import yields
@@ -75,10 +66,10 @@ disp('Importing simulated and emulated yields...')
 
 % LPJ-GUESS
 matfile = sprintf('%s/sim_LPJ-GUESS/future_yield.mat', topDir) ;
-load(matfile, 'data_fu_lpj') ;
-garr_xvt = data_fu_lpj.garr_xvt ;
-data_fu = rmfield(data_fu_lpj, 'garr_xvt') ;
-clear data_fu_lpj
+load(matfile, 'data_fu_lpj2') ;
+garr_xvt = data_fu_lpj2.garr_xvt ;
+data_fu = rmfield(data_fu_lpj2, 'garr_xvt') ;
+clear data_fu_lpj2
 data_fu.garr_xvtg = nan([size(garr_xvt) Nggcm]) ;
 data_fu.garr_xvtg(:,:,:,1) = garr_xvt ;
 clear garr_xvt
@@ -86,17 +77,17 @@ clear garr_xvt
 for g = 2:Nggcm
     thisGGCM = ggcm_list{g} ;
     matfile = sprintf('%s/emu_%s/future_yield.mat', topDir, thisGGCM) ;
-    load(matfile, 'data_fu_out') ;
+    load(matfile, 'data_fu_emu3') ;
     
     % Sanity checks
-    if ~isequal(data_fu.list2map, data_fu_out.list2map)
+    if ~isequal(data_fu.list2map, data_fu_emu3.list2map)
         error('list2map mismatch')
-    elseif ~isequal(data_fu.varNames, data_fu_out.varNames)
+    elseif ~isequal(data_fu.varNames, data_fu_emu3.varNames)
         error('varNames mismatch')
     end
     
-    data_fu.garr_xvtg(:,:,:,g) = data_fu_out.garr_xvt ;
-    clear data_fu_out
+    data_fu.garr_xvtg(:,:,:,g) = data_fu_emu3.garr_xvt ;
+    clear data_fu_emu3
 end
 
 % Sort cropIrrN list
@@ -111,6 +102,15 @@ cropIrrList = unique(getbasenamei(data_fu.varNames)) ;
 N_list = unique(getN_num(data_fu.varNames)) ;
 Nn = length(N_list) ;
 
+% Get calibration factor array
+cfs_cg = nan(Ncrops, Nggcm) ;
+for g = 1:Nggcm
+    T_cf = calib_factors{g} ;
+    [~, ~, IB] = intersect(cropList, T_cf.Crop, 'stable') ;
+    cfs_cg(:,g) = T_cf.calibration_factor(IB) ;
+    clear T_cf
+end
+
 % Embed timestep lists
 data_fu.ts1_list = ts1_list ;
 data_fu.tsN_list = tsN_list ;
@@ -121,7 +121,21 @@ disp('Done.')
 %% Import land use
 disp('Importing land use...')
 
-% Land uses
+% Determine which maps should be used
+if isequal(shiftdim(sort(cropList)), shiftdim(sort({'CerealsC3', 'CerealsC4', ...
+        'FruitAndVeg', 'Oilcrops', 'Pulses', 'Rice', 'StarchyRoots', ...
+        'Sugar'})))
+    LUdir = '/Users/Shared/PLUM/input/remaps_v8c' ;
+else
+    disp(cropList)
+    error('Unknown LU directory for this cropList')
+end
+
+% Get file paths
+filename_landuse = get_luinput_filepath(LUdir, 'LU') ;
+filename_cropfrac = get_luinput_filepath(LUdir, 'cropfracs') ;
+
+% Import land uses
 thisYear = 2015 ;
 LU = lpjgu_matlab_read2geoArray(filename_landuse) ;
 garr_xv = LU.garr_xvy(:,:,LU.yearList==thisYear) ;
@@ -129,24 +143,26 @@ LU = rmfield(LU, {'garr_xvy', 'yearList'}) ;
 LU.garr_xv = garr_xv ;
 clear garr_xv
 
-% Crop fractions (already only 1 year)
+% Import crop fractions (already only 1 year)
 cropfracs = lpjgu_matlab_read2geoArray(filename_cropfrac) ;
 toRemove = contains(cropfracs.varNames, {'ExtraCrop', 'Miscanthus'}) ;
 cropfracs.garr_xv(:,toRemove) = [] ;
 cropfracs.varNames(toRemove) = [] ;
 
-% Combine wheats
-c3_x = ...
-    cropfracs.garr_xv(:,strcmp(cropfracs.varNames, 'CerealsC3s')) ...
-    + cropfracs.garr_xv(:,strcmp(cropfracs.varNames, 'CerealsC3w')) ;
-c3i_x = ...
-    cropfracs.garr_xv(:,strcmp(cropfracs.varNames, 'CerealsC3si')) ...
-    + cropfracs.garr_xv(:,strcmp(cropfracs.varNames, 'CerealsC3wi')) ;
-toRemove = contains(cropfracs.varNames, 'CerealsC3') ;
-cropfracs.garr_xv(:,toRemove) = [] ;
-cropfracs.varNames(toRemove) = [] ;
-cropfracs.garr_xv = cat(2, cropfracs.garr_xv, c3_x, c3i_x) ;
-cropfracs.varNames = [cropfracs.varNames {'CerealsC3', 'CerealsC3i'}] ;
+% Combine wheats, if needed
+if any(strcmp(cropfracs.varNames, 'CerealsC3s'))
+    c3_x = ...
+        cropfracs.garr_xv(:,strcmp(cropfracs.varNames, 'CerealsC3s')) ...
+        + cropfracs.garr_xv(:,strcmp(cropfracs.varNames, 'CerealsC3w')) ;
+    c3i_x = ...
+        cropfracs.garr_xv(:,strcmp(cropfracs.varNames, 'CerealsC3si')) ...
+        + cropfracs.garr_xv(:,strcmp(cropfracs.varNames, 'CerealsC3wi')) ;
+    toRemove = contains(cropfracs.varNames, 'CerealsC3') ;
+    cropfracs.garr_xv(:,toRemove) = [] ;
+    cropfracs.varNames(toRemove) = [] ;
+    cropfracs.garr_xv = cat(2, cropfracs.garr_xv, c3_x, c3i_x) ;
+    cropfracs.varNames = [cropfracs.varNames {'CerealsC3', 'CerealsC3i'}] ;
+end
 
 % Consistency check
 if ~isequal(cropList, unique(getbasename(cropfracs.varNames)))
@@ -183,18 +199,18 @@ lineWidth = 1.25 ;
 thisCO = colororder ;
 
 make_figure(cropareas, data_fu, t, ggcm_list, cropList, irrList, ...
-    thisPos, fontSize, lineWidth, thisCO, cfDir)
+    thisPos, fontSize, lineWidth, thisCO, cfs_cg)
 export_fig(sprintf('%s/fertyield_%d-%d.png', ...
     outDir, data_fu.ts1_list(t), data_fu.tsN_list(t)), '-r200')
 close
- 
+
 for g = 1:Nggcm
     thisGGCM = ggcm_list{g} ;
     fprintf('%s...\n', thisGGCM)
     data_fu_tmp = data_fu ;
     data_fu_tmp.garr_xvtg = data_fu.garr_xvtg(:,:,:,g) ;
     make_figure(cropareas, data_fu_tmp, t, ggcm_list(g), cropList, irrList, ...
-        thisPos, fontSize, lineWidth, thisCO(g,:), cfDir)
+        thisPos, fontSize, lineWidth, thisCO(g,:), cfs_cg)
     export_fig(sprintf('%s/fertyield_%d-%d_%s.png', ...
         outDir, data_fu.ts1_list(t), data_fu.tsN_list(t), ...
         thisGGCM), '-r200')
@@ -206,7 +222,7 @@ disp('Done!')
 %% FUNCTIONS
 
 function make_figure(cropareas, data_fu, t, ggcm_list, cropList, irrList, ...
-    thisPos, fontSize, lineWidth, thisCO, cfDir)
+    thisPos, fontSize, lineWidth, thisCO, cfs_cg)
 
 Nggcm = length(ggcm_list) ;
 Ncrops = length(cropList) ;
@@ -219,13 +235,6 @@ theLegend = theLegend(:) ;
 
 figure('Color', 'w', 'Position', thisPos)
 tiledlayout('flow')
-
-% Get calibration factors
-cfs_cg = nan(Ncrops, Nggcm) ;
-for g = 1:Nggcm
-    thisGGCM = ggcm_list{g} ;
-    cfs_cg(:,g) = e2p_get_CFs(cropList, thisGGCM, cfDir, false) ;
-end
 
 for cc = 1:Ncrops+1
     c = min(cc,Ncrops) ;
@@ -392,5 +401,14 @@ else
     
 end
 
+
+end
+
+
+function filepath = get_luinput_filepath(LUdir, file_prefix)
+
+filelist = dir(sprintf('%s/%s.*.txt*', LUdir, file_prefix)) ;
+filepath = sprintf('%s/%s', ...
+    LUdir, regexprep(filelist(1).name, '.txt.*', '.txt'));
 
 end
