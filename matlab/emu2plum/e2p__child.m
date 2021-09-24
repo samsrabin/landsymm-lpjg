@@ -140,6 +140,7 @@ for g = 1:length(gcm_list)
         [data_fu_lpj2_yield, combineCrops_lpj, ~, cf_lpj] = ...
             e2p_split_combine_burn(data_fu_lpj1_yield, ...
             combineCrops, cropList_out, cf_lpj) ;
+        save_cf_csv(cf_lpj, outDir_lpj)
         out_file = sprintf('%s/combineCrops_lpj.mat', topDir_lpj) ;
         save_combineCrops(combineCrops_lpj, 'yield', out_file)
         data_fu_lpj2_irrig = e2p_apply_max(data_fu_lpj1_irrig, out_file) ;
@@ -627,6 +628,7 @@ for g = 1:length(gcm_list)
                             e2p_split_combine_burn(data_fu_emu2, ...
                             combineCrops, cropList_out, cf_emu0, ...
                             excl_vecs_emu0) ;
+                        save_cf_csv(cf_emu3, outDir_ggcm)
                         % For yield, save result combineCrops
                         save_combineCrops(combineCrops_emu3, which_file, ...
                             emu_combineCrops_file)
@@ -933,3 +935,10 @@ e2p_check_correct_zeros(S.garr_xvt, ...
 
 end
 
+
+function save_cf_csv(cf_table, outDir_thisGGCM)
+
+writetable(cf_table, ...
+    sprintf('%s/calib_factors.csv', outDir_thisGGCM))
+
+end
