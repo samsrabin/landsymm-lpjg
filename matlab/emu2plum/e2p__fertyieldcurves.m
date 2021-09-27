@@ -16,6 +16,14 @@ topDir = '/Volumes/Reacher/GGCMI/AgMIP.output/CMIP_emulated_work/A1_v2.5_UKESM1-
 
 %% Setup
 
+if ~strcmp(ggcm_list{1}, 'LPJ-GUESS')
+    warning('Code relies on ggcm_list{1} being LPJ-GUESS; setting this.')
+    if any(strcmp(ggcm_list, 'LPJ-GUESS'))
+        ggcm_list(strcmp(ggcm_list, 'LPJ-GUESS')) = [] ;
+    end
+    ggcm_list = [{'LPJ-GUESS'} ggcm_list] ;
+end
+
 Nggcm = length(ggcm_list) ;
 
 irrList = {'', 'i'} ;
@@ -117,13 +125,12 @@ data_fu.tsN_list = tsN_list ;
 
 disp('Done.')
 
-%% What is the maximum yield seen?
-
-[M, I] = max(data_fu.garr_xvtg(:)) ;
-[x, v, t, g] = ind2sub(size(data_fu.garr_xvtg), I) ;
-fprintf('%s %s %d-%d: %g t/ha\n', ...
-    ggcm_list{g}, data_fu.varNames{v}, ts1_list(t), tsN_list(t), ...
-    M*10)
+% % What is the maximum yield seen?
+% [M, I] = max(data_fu.garr_xvtg(:)) ;
+% [x, v, t, g] = ind2sub(size(data_fu.garr_xvtg), I) ;
+% fprintf('%s %s %d-%d: %g t/ha\n', ...
+%     ggcm_list{g}, data_fu.varNames{v}, ts1_list(t), tsN_list(t), ...
+%     M*10)
 
 
 %% Import land use
