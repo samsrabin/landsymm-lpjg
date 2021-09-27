@@ -200,11 +200,9 @@ clear cropfracs LU
 disp('Done.')
 
 
-%% Make curves: Just Nth time period, all crops in one figure, area-wtd
+%% Make curves: Each time period, all crops in one figure, area-wtd
 warning off export_fig:exportgraphics
 
-% Which time period?
-t = 2 ;
 % Figure options
 thisPos = figurePos ;
 fontSize = 12 ;
@@ -215,30 +213,35 @@ thisCO = colororder ;
 
 output_units = {'prod', 'yield'} ;
 
-for u = 1:length(output_units)
+for t = 1:Ntpers
     
-    prod_or_yield = output_units{u} ;
-
-    make_figure_areaweighted(cropareas, data_fu, t, ggcm_list, cropList, irrList, ...
-        thisPos, fontSize, lineWidth, thisCO, cfs_cg, prod_or_yield)
-    export_fig(sprintf('%s/fertyield_%s_%d-%d.png', ...
-        outDir, prod_or_yield, data_fu.ts1_list(t), data_fu.tsN_list(t)), ...
-        '-r200')
-    close
-
-%     for g = 1:Nggcm
-%         thisGGCM = ggcm_list{g} ;
-%         fprintf('%s...\n', thisGGCM)
-%         data_fu_tmp = data_fu ;
-%         data_fu_tmp.garr_xvtg = data_fu.garr_xvtg(:,:,:,g) ;
-%         make_figure_areaweighted(cropareas, data_fu_tmp, t, ggcm_list(g), cropList, irrList, ...
-%             thisPos, fontSize, lineWidth, thisCO(g,:), cfs_cg, prod_or_yield)
-%         export_fig(sprintf('%s/fertyield_%s_%d-%d_%s.png', ...
-%             outDir, prod_or_yield, data_fu.ts1_list(t), data_fu.tsN_list(t), ...
-%             thisGGCM), '-r200')
-%         close
-%     end
+    for u = 1:length(output_units)
+        
+        prod_or_yield = output_units{u} ;
+        
+        make_figure_areaweighted(cropareas, data_fu, t, ggcm_list, cropList, irrList, ...
+            thisPos, fontSize, lineWidth, thisCO, cfs_cg, prod_or_yield)
+        export_fig(sprintf('%s/fertyield_%s_%d-%d.png', ...
+            outDir, prod_or_yield, data_fu.ts1_list(t), data_fu.tsN_list(t)), ...
+            '-r200')
+        close
+        
+%         for g = 1:Nggcm
+%             thisGGCM = ggcm_list{g} ;
+%             fprintf('%s...\n', thisGGCM)
+%             data_fu_tmp = data_fu ;
+%             data_fu_tmp.garr_xvtg = data_fu.garr_xvtg(:,:,:,g) ;
+%             make_figure_areaweighted(cropareas, data_fu_tmp, t, ggcm_list(g), cropList, irrList, ...
+%                 thisPos, fontSize, lineWidth, thisCO(g,:), cfs_cg, prod_or_yield)
+%             export_fig(sprintf('%s/fertyield_%s_%d-%d_%s.png', ...
+%                 outDir, prod_or_yield, data_fu.ts1_list(t), data_fu.tsN_list(t), ...
+%                 thisGGCM), '-r200')
+%             close
+%         end
+    end
+    
 end
+
 disp('Done!')
 
 
@@ -247,9 +250,6 @@ warning off export_fig:exportgraphics
 
 % What percentile of yield?
 this_prctile = 100 ;
-% Which time period?
-% t = 2 ;
-t = 8 ;
 % Figure options
 thisPos = figurePos ;
 fontSize = 12 ;
