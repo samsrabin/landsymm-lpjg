@@ -64,8 +64,13 @@ for c = 1:Ncrops
             delta_60_ratio_x1t(delta_60_lpj_x1t==0) = 1 ;
             
             % Adjust deltas, assuming that there's no way increasing N from
-            % 200 to 100 should *decrease* yield or irrigation requirement
+            % 200 to 100 should *decrease* yield or irrigation
+            % requirement...
             delta_x1t = max(1, delta_200_lpjg_x1t .* delta_60_ratio_x1t) ;
+            
+            % ... unless that was actually modeled in LPJ-GUESS
+            delta_x1t(delta_200_lpjg_x1t < 1) = ...
+                delta_200_lpjg_x1t(delta_200_lpjg_x1t < 1) ;
             
             % Handle cells with infinite emulated N60-N200 where N200 was
             % too high to be ignored
