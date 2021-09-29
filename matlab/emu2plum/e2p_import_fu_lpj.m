@@ -18,6 +18,13 @@ test_yNs = (baseline_yN+future_ts):future_ts:future_yN ;
 test_Nyears = zeros(size(test_y1s)) ;
 Ntpers = length(test_y1s) ;
 
+% Set up variable lists, if needed
+if strcmp(which_file, 'anpp')
+    varList = {'C3G', 'C4G'} ;
+elseif strcmp(which_file, 'tot_runoff')
+    varList = {'Surf'} ;
+end
+
 % Future: Import
 while y1 < future_yN
     ii = ii + 1 ;
@@ -54,6 +61,35 @@ while y1 < future_yN
         tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
             'target', gridlist_target) ;
     end
+    
+    % Sanity check
+    if max(max(tmp.garr_xv)) == 0
+        error('LPJ-GUESS %s data (for %d-%d) is all zeros on import', ...
+            which_file, y1, yN)
+    end
+    
+    % Trim unneeded variables
+    if any(strcmp({'yield', 'gsirrigation'}, which_file))
+        tmp = e2p_trim_unneeded(tmp) ;
+    else
+        if ~exist('varList', 'var')
+            error('For which_file %s, you must define varList', which_file)
+        end
+        [~, IA] = intersect(tmp.varNames, varList) ;
+        if length(IA) ~= length(varList)
+            error('Expected to find %d matches in varList; found %d', ...
+                length(varList), length(IA))
+        end
+        tmp.garr_xv = tmp.garr_xv(:,IA) ;
+        tmp.varNames = tmp.varNames(IA) ;
+    end
+    
+    % Sanity check
+    if max(max(tmp.garr_xv)) == 0
+        error('LPJ-GUESS %s data (for %d-%d) is all zeros after trimming unneeded variables', ...
+            which_file, y1, yN)
+    end
+    
     if ii==1
         data_fu_lpj.garr_xvt = zeros([size(tmp.garr_xv) Ntpers]) ;
         data_fu_lpj.lonlats = tmp.lonlats ;
@@ -85,38 +121,6 @@ end
 % Check that each time step included 
 if any(test_Nyears ~= future_ts)
     error('At least one time step did not include %d years'' worth of data', future_ts)
-end
-
-% Sanity check
-if max(max(max(data_fu_lpj.garr_xvt))) == 0
-    error('LPJ-GUESS %s data is all zeros on import', ...
-        which_file)
-end
-
-% Trim unneeded variables
-if any(strcmp({'yield', 'gsirrigation'}, which_file))
-    data_fu_lpj = e2p_trim_unneeded(data_fu_lpj) ;
-else
-    if strcmp(which_file, 'anpp')
-        cols2keep = {'C3G', 'C4G'} ;
-    elseif strcmp(which_file, 'tot_runoff')
-        cols2keep = {'Surf'} ;
-    else
-        error('which_file %s not recognized', which_file)
-    end
-    [~, IA] = intersect(data_fu_lpj.varNames, cols2keep) ;
-    if length(IA) ~= length(cols2keep)
-        error('Expected to find %d matches in cols2keep; found %d', ...
-            length(cols2keep), length(IA))
-    end
-    data_fu_lpj.garr_xvt = data_fu_lpj.garr_xvt(:,IA,:) ;
-    data_fu_lpj.varNames = data_fu_lpj.varNames(IA) ;
-end
-
-% Sanity check
-if max(max(max(data_fu_lpj.garr_xvt))) == 0
-    error('LPJ-GUESS %s data is all zeros after trimming unneeded variables', ...
-        which_file)
 end
 
 
