@@ -88,7 +88,24 @@ if any(test_Nyears ~= future_ts)
 end
 
 % Trim unneeded variables
-data_fu_lpj = e2p_trim_unneeded(data_fu_lpj) ;
+if any(strcmp({'yield', 'gsirrigation'}, which_file))
+    data_fu_lpj = e2p_trim_unneeded(data_fu_lpj) ;
+else
+    if strcmp(which_file, 'anpp')
+        cols2keep = {'C3G', 'C4G'} ;
+    elseif strcmp(which_file, 'tot_runoff')
+        cols2keep = {'Surf'} ;
+    else
+        error('which_file %s not recognized', which_file)
+    end
+    [~, IA] = intersect(data_fu_lpj.varNames, cols2keep) ;
+    if length(IA) ~= length(cols2keep)
+        error('Expected to find %d matches in cols2keep; found %d', ...
+            length(cols2keep), length(IA))
+    end
+    data_fu_lpj.garr_xvt = data_fu_lpj.garr_xvt(:,IA,:) ;
+    data_fu_lpj.varNames = data_fu_lpj.varNames(IA) ;
+end
 
 
 end
