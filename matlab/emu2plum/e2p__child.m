@@ -129,6 +129,19 @@ for g = 1:length(gcm_list)
         data_fu_lpj1_yield.varNames = varNames_lpj1 ;
         data_fu_lpj1_irrig = data_fu_lpj0_irrig;
         data_fu_lpj1_irrig.varNames = varNames_lpj1 ;
+        
+        if save_txt_files_lpjg
+            disp('Importing LPJ-GUESS ANPP...')
+            data_fu_lpj_anpp = e2p_import_fu_lpj(...
+                future_y1-1, future_ts, future_yN_lpj, ...
+                topDir_lpj, 'anpp', gridlist_target) ;
+            out_header_cell_anpp = [{'Lon', 'Lat'} data_fu_lpj_anpp.varNames] ;
+            disp('Importing LPJ-GUESS runoff...')
+            data_fu_lpj_runoff = e2p_import_fu_lpj(...
+                future_y1-1, future_ts, future_yN_lpj, ...
+                topDir_lpj, 'tot_runoff', gridlist_target) ;
+            out_header_cell_runoff = [{'Lon', 'Lat'} data_fu_lpj_runoff.varNames] ;
+        end
                 
         % Get LPJ-GUESS calibration factors
         cf_lpj = e2p_get_CFs(cropList_cf, 'LPJ-GUESS', cfDir, combineCrops, true) ;
@@ -747,22 +760,11 @@ for g = 1:length(gcm_list)
                 data_fu_emu3 = trim_unneeded_N200(data_fu_emu3, which_file) ;
                 if save_txt_files_emu || save_txt_files_lpjg
                     
-                    % Import ANPP and runoff, if needed
+                    % Will we be saving LPJ-GUESS ANPP and runoff?
                     save_anpp_runoff = save_txt_files_lpjg ...
                         & strcmp(ggcm, ggcm_list{1}) ...
                         & strcmp(which_file, 'yield') ;
-                    if save_anpp_runoff
-                        disp('Importing LPJ-GUESS ANPP and runoff...')
-                        data_fu_lpj_anpp = e2p_import_fu_lpj(...
-                            future_y1-1, future_ts, future_yN_lpj, ...
-                            topDir_lpj, 'anpp', gridlist_target) ;
-                        data_fu_lpj_runoff = e2p_import_fu_lpj(...
-                            future_y1-1, future_ts, future_yN_lpj, ...
-                            topDir_lpj, 'tot_runoff', gridlist_target) ;
-                        out_header_cell_anpp = [{'Lon', 'Lat'} data_fu_lpj_anpp.varNames] ;
-                        out_header_cell_runoff = [{'Lon', 'Lat'} data_fu_lpj_runoff.varNames] ;
-                    end
-                    %%
+                    
                     disp('    Saving txt files for PLUM...')
                     out_header_cell = [{'Lon', 'Lat'} data_fu_emu3.varNames] ;
                     for t = 1:Ntpers
