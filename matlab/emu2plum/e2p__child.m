@@ -136,11 +136,13 @@ for g = 1:length(gcm_list)
                 future_y1-1, future_ts, future_yN_lpj, ...
                 topDir_lpj, 'anpp', gridlist_target) ;
             out_header_cell_anpp = [{'Lon', 'Lat'} data_fu_lpj_anpp.varNames] ;
+            lpj_anpp_precision = get_precision(data_fu_lpj_anpp.garr_xvt) ;
             disp('Importing LPJ-GUESS runoff...')
             data_fu_lpj_runoff = e2p_import_fu_lpj(...
                 future_y1-1, future_ts, future_yN_lpj, ...
                 topDir_lpj, 'tot_runoff', gridlist_target) ;
             out_header_cell_runoff = [{'Lon', 'Lat'} data_fu_lpj_runoff.varNames] ;
+            lpj_runoff_precision = get_precision(data_fu_lpj_runoff.garr_xvt) ;
         end
                 
         % Get LPJ-GUESS calibration factors
@@ -785,11 +787,11 @@ for g = 1:length(gcm_list)
                                 fprintf('    %d/%d lpj ANPP', t, Ntpers)
                                 e2p_save(outDir_lpj, y1, yN, out_header_cell_anpp, ...
                                     data_fu_lpj2.lonlats, data_fu_lpj_anpp.garr_xvt(:,:,t), ...
-                                    'anpp', false)
+                                    'anpp', overwrite_existing_txt, lpj_anpp_precision)
                                 fprintf('    %d/%d lpj runoff', t, Ntpers)
                                 e2p_save(outDir_lpj, y1, yN, out_header_cell_runoff, ...
                                     data_fu_lpj2.lonlats, data_fu_lpj_runoff.garr_xvt(:,:,t), ...
-                                    'tot_runoff', false)
+                                    'tot_runoff', overwrite_existing_txt, lpj_runoff_precision)
                             end
                         end
                         if save_txt_files_emu
@@ -942,5 +944,18 @@ function save_cf_csv(cf_table, outDir_thisGGCM)
 
 writetable(cf_table, ...
     sprintf('%s/calib_factors.csv', outDir_thisGGCM))
+
+end
+
+
+function precision = get_precision(A)
+
+precision = 1 ;
+while max(abs(minmax_ssr(A - round(A, precision)))) > 1e-12
+    precision = precision + 1 ;
+    if precision == 11
+        error('Possible problem finding precision')
+    end
+end
 
 end

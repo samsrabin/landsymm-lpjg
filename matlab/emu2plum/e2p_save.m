@@ -1,10 +1,17 @@
 function e2p_save(outDir, y1, yN, out_header_cell, lonlats, garr_xv, which_file, ...
-    overwrite)
+    overwrite, varargin)
 
 outPrec = 6 ;
 outWidth = 1 ;
 delimiter = ' ' ;
 fancy = false ;
+
+if ~isempty(varargin)
+    outPrec = varargin{1} ;
+    if length(varargin) > 1
+        error('varargin takes at most one optional argument (outPrec)')
+    end
+end
 
 outDir_thisT = sprintf('%s/%d-%d', outDir, y1, yN) ;
 if ~exist(outDir_thisT, 'dir')
