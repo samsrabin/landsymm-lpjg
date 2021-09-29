@@ -87,6 +87,12 @@ if any(test_Nyears ~= future_ts)
     error('At least one time step did not include %d years'' worth of data', future_ts)
 end
 
+% Sanity check
+if max(max(max(data_fu_lpj.garr_xvt))) == 0
+    error('LPJ-GUESS %s data is all zeros on import', ...
+        which_file)
+end
+
 % Trim unneeded variables
 if any(strcmp({'yield', 'gsirrigation'}, which_file))
     data_fu_lpj = e2p_trim_unneeded(data_fu_lpj) ;
@@ -105,6 +111,12 @@ else
     end
     data_fu_lpj.garr_xvt = data_fu_lpj.garr_xvt(:,IA,:) ;
     data_fu_lpj.varNames = data_fu_lpj.varNames(IA) ;
+end
+
+% Sanity check
+if max(max(max(data_fu_lpj.garr_xvt))) == 0
+    error('LPJ-GUESS %s data is all zeros after trimming unneeded variables', ...
+        which_file)
 end
 
 
