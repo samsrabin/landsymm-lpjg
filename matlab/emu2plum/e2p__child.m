@@ -63,6 +63,7 @@ for g = 1:length(gcm_list)
         outdirs = dir(sprintf('%s/outForPLUM*', tmp)) ;
         topDir_lpj = sprintf('%s/%s', ...
             outdirs(end).folder, outdirs(end).name) ;
+        fprintf('topDir_lpj: %s\n', topDir_lpj)
         clear outdirs tmp
         disp('Importing LPJ-GUESS yield...')
         which_file = 'yield' ;
@@ -129,7 +130,6 @@ for g = 1:length(gcm_list)
         data_fu_lpj1_yield.varNames = varNames_lpj1 ;
         data_fu_lpj1_irrig = data_fu_lpj0_irrig;
         data_fu_lpj1_irrig.varNames = varNames_lpj1 ;
-        
         if save_txt_files_lpjg
             disp('Importing LPJ-GUESS ANPP...')
             data_fu_lpj_anpp = e2p_import_fu_lpj(...
@@ -951,7 +951,7 @@ end
 function precision = get_precision(A)
 
 precision = 1 ;
-while max(abs(minmax_ssr(A - round(A, precision)))) > 1e-12
+while max(abs(minmax_ssr(A - round(A, precision)))) > 1e-11
     precision = precision + 1 ;
     if precision == 11
         error('Possible problem finding precision')
