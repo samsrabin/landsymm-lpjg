@@ -1,6 +1,6 @@
 function data_fu_lpj = e2p_import_fu_lpj( ...
     baseline_yN, future_ts, future_yN, topDir_lpj, which_file, ...
-    varargin)
+    ssp, varargin)
 
 gridlist_target = [] ;
 if ~isempty(varargin)
@@ -30,16 +30,8 @@ while y1 < future_yN
     ii = ii + 1 ;
     
     % Get this directory
-    [thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, future_yN, which_file) ;
-%     fprintf('%d-%d\n', y1, yN) ;
-    thisDir_path = sprintf('%s/%s', thisDir.folder, thisDir.name) ;
-    subdirs = dir([thisDir_path '/out*']) ;
-    if ~isempty(subdirs)
-        thisDir = sprintf('%s/%s', subdirs(end).folder, subdirs(end).name) ;
-    else
-        thisDir = sprintf('%s/%s', thisDir.folder, thisDir.name) ;
-    end
-    clear subdirs
+    [thisDir, yN] = do_get_thisDir(topDir_lpj, y1, future_yN, ...
+        which_file, ssp) ;
     
     % Which time period are we dealing with?
     tper_i = 0 ;
@@ -55,13 +47,30 @@ while y1 < future_yN
 %     fprintf('tper_i %d\n', tper_i)
     
     filename = sprintf('%s/%s.out', thisDir, which_file) ;
-    if isempty(gridlist_target)
-        tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false) ;
-    else
-        tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
-            'target', gridlist_target) ;
+    try
+        if isempty(gridlist_target)
+            tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false) ;
+        else
+            tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
+                'target', gridlist_target) ;
+        end
+    catch ME
+        if strcmp(ME.identifier, 'lpjgu_matlab_readTable:fileNotFound')
+            [thisDir, yN] = do_get_thisDir(topDir_lpj, y1, future_yN, ...
+                which_file, 'hist') ;
+            filename = sprintf('%s/%s.out', thisDir, which_file) ;
+            if isempty(gridlist_target)
+                tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false) ;
+            else
+                tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
+                    'target', gridlist_target) ;
+            end
+        else
+            rethrow(ME)
+        end
     end
-    
+
+
     % Sanity check
     if max(max(tmp.garr_xv)) == 0
         error('LPJ-GUESS %s data (for %d-%d) is all zeros on import', ...
@@ -123,5 +132,22 @@ if any(test_Nyears ~= future_ts)
     error('At least one time step did not include %d years'' worth of data', future_ts)
 end
 
+
+end
+
+
+function [thisDir, yN] = do_get_thisDir(topDir_lpj, y1, future_yN, ...
+    which_file, ssp)
+
+[thisDir, yN] = e2p_get_thisDir(topDir_lpj, y1, future_yN, ...
+    which_file, ssp) ;
+% fprintf('%d-%d\n', y1, yN) ;
+thisDir_path = sprintf('%s/%s', thisDir.folder, thisDir.name) ;
+subdirs = dir([thisDir_path '/out*']) ;
+if ~isempty(subdirs)
+    thisDir = sprintf('%s/%s', subdirs(end).folder, subdirs(end).name) ;
+else
+    thisDir = sprintf('%s/%s', thisDir.folder, thisDir.name) ;
+end
 
 end

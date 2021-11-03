@@ -1,7 +1,8 @@
-function [thisDir, yN] = e2p_get_thisDir(topDir, y1, end_yN, which_file)
+function [thisDir, yN] = e2p_get_thisDir(topDir, y1, end_yN, ...
+    which_file, ssp)
 
 % Get this directory
-thisDir_name = sprintf('%s/*%d-*', topDir, y1) ;
+thisDir_name = sprintf('%s/%s_%d-*', topDir, ssp, y1) ;
 thisDir = dir(thisDir_name) ;
 
 % If multiple found, eliminate any that don't have a which_file* file

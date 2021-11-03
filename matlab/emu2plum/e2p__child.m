@@ -53,28 +53,28 @@ for g = 1:length(gcm_list)
                 warning('topDir_lpj (%s) not found; using latest directory instead', ...
                     topDir_lpj)
             end
-        if strcmp(which_system, 'mymac')
-            tmp = sprintf('/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/%s_actual_2015soc_default/outputs', ...
-                gcm_prefix) ;
-        elseif strcmp(which_system, 'keal')
-            tmp = sprintf('/pd/data/lpj/sam/ggcmi2plum/lpj-guess_runs/remap12_2016/%s_actual_2015soc_default/outputs', ...
-                gcm_prefix) ;
-        else
-            error('Error parsing which_system "%s" for topDir_lpj', which_system)
-        end
-        if ~exist(tmp, 'dir')
-            error('%s not found', tmp)
-        end
-        outdirs = dir(sprintf('%s/outForPLUM*', tmp)) ;
-        topDir_lpj = sprintf('%s/%s', ...
-            outdirs(end).folder, outdirs(end).name) ;
+            if strcmp(which_system, 'mymac')
+                tmp = sprintf('/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/%s_actual_2015soc_default/outputs', ...
+                    gcm_prefix) ;
+            elseif strcmp(which_system, 'keal')
+                tmp = sprintf('/pd/data/lpj/sam/ggcmi2plum/lpj-guess_runs/remap12_2016/%s_actual_2015soc_default/outputs', ...
+                    gcm_prefix) ;
+            else
+                error('Error parsing which_system "%s" for topDir_lpj', which_system)
+            end
+            if ~exist(tmp, 'dir')
+                error('%s not found', tmp)
+            end
+            outdirs = dir(sprintf('%s/outForPLUM*', tmp)) ;
+            topDir_lpj = sprintf('%s/%s', ...
+                outdirs(end).folder, outdirs(end).name) ;
         end
         fprintf('topDir_lpj: %s\n', topDir_lpj)
         clear outdirs tmp
         disp('Importing LPJ-GUESS yield...')
         which_file = 'yield' ;
         data_fu_lpj0_yield = e2p_import_fu_lpj(future_y1-1, future_ts, future_yN_lpj, topDir_lpj, ...
-            which_file) ;
+            which_file, ssp) ;
         e2p_check_correct_zeros(data_fu_lpj0_yield.garr_xvt, ...
             which_file, data_fu_lpj0_yield.varNames, ...
             'Future', @getbasenamei)
@@ -93,7 +93,7 @@ for g = 1:length(gcm_list)
         disp('Importing LPJ-GUESS irrigation...')
         which_file = 'gsirrigation' ;
         data_fu_lpj0_irrig = e2p_import_fu_lpj(future_y1-1, future_ts, future_yN_lpj, topDir_lpj, ...
-            which_file, gridlist_target) ;
+            which_file, ssp, gridlist_target) ;
         e2p_check_correct_zeros(data_fu_lpj0_irrig.garr_xvt, ...
             which_file, data_fu_lpj0_irrig.varNames, ...
             'Future', @getbasenamei)
@@ -140,18 +140,19 @@ for g = 1:length(gcm_list)
             disp('Importing LPJ-GUESS ANPP...')
             data_fu_lpj_anpp = e2p_import_fu_lpj(...
                 future_y1-1, future_ts, future_yN_lpj, ...
-                topDir_lpj, 'anpp', gridlist_target) ;
+                topDir_lpj, 'anpp', ssp, gridlist_target) ;
             out_header_cell_anpp = [{'Lon', 'Lat'} data_fu_lpj_anpp.varNames] ;
             lpj_anpp_precision = get_precision(data_fu_lpj_anpp.garr_xvt) ;
+            
             disp('Importing LPJ-GUESS runoff...')
             data_fu_lpj_runoff = e2p_import_fu_lpj(...
                 future_y1-1, future_ts, future_yN_lpj, ...
-                topDir_lpj, 'tot_runoff', gridlist_target) ;
+                topDir_lpj, 'tot_runoff', ssp, gridlist_target) ;
             out_header_cell_runoff = [{'Lon', 'Lat'} data_fu_lpj_runoff.varNames] ;
             lpj_runoff_precision = get_precision(data_fu_lpj_runoff.garr_xvt) ;
         end
                 
-        % Get LPJ-GUESS calibration factors
+        %% Get LPJ-GUESS calibration factors
         cf_lpj = e2p_get_CFs(cropList_cf, 'LPJ-GUESS', cfDir, combineCrops, true) ;
         
         % Split crops up to match calibration factor list; combine as
@@ -162,7 +163,7 @@ for g = 1:length(gcm_list)
             e2p_split_combine_burn(data_fu_lpj1_yield, ...
             combineCrops, cropList_out, cf_lpj) ;
         save_cf_csv(cf_lpj, outDir_lpj)
-        out_file = sprintf('%s/combineCrops_lpj.mat', topDir_lpj) ;
+        out_file = sprintf('%s/combineCrops_lpj_%s.mat', topDir_lpj, ssp) ;
         save_combineCrops(combineCrops_lpj, 'yield', out_file)
         data_fu_lpj2_irrig = e2p_apply_max(data_fu_lpj1_irrig, out_file) ;
         if save_combineCrops_figs
