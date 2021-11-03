@@ -48,6 +48,11 @@ for g = 1:length(gcm_list)
         end
         
         % Import LPJ-GUESS yield and irrigation
+        if ~exist('topDir_lpj', 'var') || ~exist(topDir_lpj, 'dir')
+            if ~exist(topDir_lpj, 'dir')
+                warning('topDir_lpj (%s) not found; using latest directory instead', ...
+                    topDir_lpj)
+            end
         if strcmp(which_system, 'mymac')
             tmp = sprintf('/Volumes/Reacher/G2P/outputs_LPJG/remap12_2016/%s_actual_2015soc_default/outputs', ...
                 gcm_prefix) ;
@@ -63,6 +68,7 @@ for g = 1:length(gcm_list)
         outdirs = dir(sprintf('%s/outForPLUM*', tmp)) ;
         topDir_lpj = sprintf('%s/%s', ...
             outdirs(end).folder, outdirs(end).name) ;
+        end
         fprintf('topDir_lpj: %s\n', topDir_lpj)
         clear outdirs tmp
         disp('Importing LPJ-GUESS yield...')
