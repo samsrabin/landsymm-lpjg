@@ -2,7 +2,7 @@ function data_fu_lpj = e2p_import_fu_lpj( ...
     baseline_yN, future_ts, future_yN, topDir_lpj, which_file, ...
     ssp, varargin)
 
-gridlist_target = [] ;
+gridlist_target = {} ;
 if ~isempty(varargin)
     gridlist_target = varargin{1} ;
     if length(varargin) > 1
@@ -48,23 +48,15 @@ while y1 < future_yN
     
     filename = sprintf('%s/%s.out', thisDir, which_file) ;
     try
-        if isempty(gridlist_target)
-            tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false) ;
-        else
-            tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
-                'target', gridlist_target) ;
-        end
+        tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
+            'target', gridlist_target) ;
     catch ME
         if strcmp(ME.identifier, 'lpjgu_matlab_readTable:fileNotFound')
             [thisDir, yN] = do_get_thisDir(topDir_lpj, y1, future_yN, ...
                 which_file, 'hist') ;
             filename = sprintf('%s/%s.out', thisDir, which_file) ;
-            if isempty(gridlist_target)
-                tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false) ;
-            else
-                tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
-                    'target', gridlist_target) ;
-            end
+            tmp = lpjgu_matlab_read2geoArray(filename, 'verboseIfNoMat', false, ...
+                'target', gridlist_target) ;
         else
             rethrow(ME)
         end
