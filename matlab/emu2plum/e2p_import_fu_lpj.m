@@ -20,9 +20,9 @@ Ntpers = length(test_y1s) ;
 
 % Set up variable lists, if needed
 if strcmp(which_file, 'anpp')
-    varList = {'C3G', 'C4G'} ;
+    varList = {'C3G_pas', 'C4G_pas'} ;
 elseif strcmp(which_file, 'tot_runoff')
-    varList = {'Surf'} ;
+    varList = {'Surf', 'Drain', 'Base', 'Total'} ;
 end
 
 % Future: Import
