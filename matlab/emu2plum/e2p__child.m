@@ -49,7 +49,7 @@ for g = 1:length(gcm_list)
         
         % Import LPJ-GUESS yield and irrigation
         if ~exist('topDir_lpj', 'var') || ~exist(topDir_lpj, 'dir')
-            if ~exist(topDir_lpj, 'dir')
+            if exist('topDir_lpj', 'var') && ~exist(topDir_lpj, 'dir')
                 warning('topDir_lpj (%s) not found; using latest directory instead', ...
                     topDir_lpj)
             end
