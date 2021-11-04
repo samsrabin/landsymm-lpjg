@@ -66,6 +66,9 @@ for g = 1:length(gcm_list)
                 error('%s not found', tmp)
             end
             outdirs = dir(sprintf('%s/outForPLUM*', tmp)) ;
+            outdirs = outdirs([outdirs.isdir]);
+            [~,idx] = sort([outdirs.datenum]);
+            outdirs = outdirs(idx) ;
             topDir_lpj = sprintf('%s/%s', ...
                 outdirs(end).folder, outdirs(end).name) ;
         end
