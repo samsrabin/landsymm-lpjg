@@ -144,6 +144,9 @@ for g = 1:length(gcm_list)
             data_fu_lpj_anpp = e2p_import_fu_lpj(...
                 future_y1-1, future_ts, future_yN_lpj, ...
                 topDir_lpj, 'anpp', ssp, gridlist_target) ;
+            if ~isequal(data_fu_lpj_anpp.varNames, {'C3G_pas', 'C4G_pas'})
+                error('data_fu_lpj_anpp.varNames does not match expected list')
+            end
             out_header_cell_anpp = [{'Lon', 'Lat'} data_fu_lpj_anpp.varNames] ;
             lpj_anpp_precision = get_precision(data_fu_lpj_anpp.garr_xvt) ;
             
@@ -151,10 +154,13 @@ for g = 1:length(gcm_list)
             data_fu_lpj_runoff = e2p_import_fu_lpj(...
                 future_y1-1, future_ts, future_yN_lpj, ...
                 topDir_lpj, 'tot_runoff', ssp, gridlist_target) ;
+            if ~isequal(data_fu_lpj_runoff.varNames, {'Base', 'Drain', 'Surf', 'Total'})
+                error('data_fu_lpj_runoff.varNames does not match expected list')
+            end
             out_header_cell_runoff = [{'Lon', 'Lat'} data_fu_lpj_runoff.varNames] ;
             lpj_runoff_precision = get_precision(data_fu_lpj_runoff.garr_xvt) ;
         end
-                
+                        
         %% Get LPJ-GUESS calibration factors
         cf_lpj = e2p_get_CFs(cropList_cf, 'LPJ-GUESS', cfDir, combineCrops, true) ;
         
