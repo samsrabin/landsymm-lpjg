@@ -11,7 +11,7 @@ list_lu = {'NATURAL', 'CROPLAND', 'PASTURE', 'FOREST'} ;
 list_forest = {'forC'} ;
 
 % When is the year for which we want the first outputs from the experimental stands?
-y0_expt_list = 1850:20:2090 ;
+y1_expt_list = 1850:20:2090 ;
 
 % Which land use versions are we using?
 remapVer = '10_g2p' ; % CerealsC3, CerealsC4, Rice, OilNfix, OilOther, 
@@ -34,9 +34,6 @@ fancy = false ;
 if ~exist(dir_out, 'dir')
     mkdir(dir_out)
 end
-
-% Takes one year of pasture, then another for establishment to actually happen
-y0_past_list = y0_expt_list - 2 ;
 
 
 %% Get ISIMIP3 historical land use
@@ -150,31 +147,54 @@ disp('Done.')
 
 %% Process
 
-y0_past_list_desc = sort(y0_past_list,'descend') ;
-for y0_past = y0_past_list_desc
+y1_expt_list_desc = sort(y1_expt_list,'descend') ;
+for y1_expt = y1_expt_list_desc
 
-    fprintf('Processing %dpast... ', y0_past+1)
+    y0_expt = y1_expt - 1 ; % Because establishment happens at END of first year
+    y1_past = y0_expt - 1 ;
+
+    fprintf('Processing %dpast... ', y1_past)
 
     % Trim any unneeded years
-    lu_out.garr_xvy(:,:,lu_out.yearList >= y0_past) = [] ;
-    lu_out.yearList(lu_out.yearList >= y0_past) = [] ;
+    lu_out.garr_xvy(:,:,lu_out.yearList >= y1_past) = [] ;
+    lu_out.yearList(lu_out.yearList >= y1_past) = [] ;
     Nyears = length(lu_out.yearList) ;
-    if length(lu_out.yearList) ~= size(lu_out.garr_xvy, 3); error('Nyear mismatch'); end
+    if length(lu_out.yearList) > length(unique(lu_out.yearList))
+        error('Non-unique value(s) in lu_out.yearList')
+    end
+
+    % Add extra year at beginning, if needed
+    if Nyears == 0
+        if ~isempty(lu_out.garr_xvy)
+            error('Nyears==0 but lu_out.garr_xvy not empty somehow')
+        elseif ~isempty(lu_out.yearList)
+            error('Nyears==0 but lu_out.yearList not empty somehow')
+        end
+        tmp_xv = zeros(size(lu_out.garr_xvy, 1:2)) ;
+        tmp_xv(:,strcmp(lu_out.varNames, 'NATURAL')) = 1 ;
+        lu_out.garr_xvy = cat(3, lu_out.garr_xvy, tmp_xv) ;
+        clear tmp_xv
+        lu_out.yearList = y1_past - 1 ;
+        Nyears = length(lu_out.yearList) ;
+        if length(lu_out.yearList) > length(unique(lu_out.yearList))
+            error('Non-unique value(s) in lu_out.yearList after adding to beginning')
+        end
+    end
 
     % Add extra year, if needed
-    if max(lu_out.yearList) < y0_past
+    if max(lu_out.yearList) < y1_past-1
         lu_out.garr_xvy = cat(3, lu_out.garr_xvy, lu_out.garr_xvy(:,:,end)) ;
-        lu_out.yearList(Nyears+1) = y0_past ;
+        lu_out.yearList(Nyears+1) = y1_past - 1 ;
         Nyears = Nyears + 1 ;
         if length(lu_out.yearList) ~= size(lu_out.garr_xvy, 3); error('Nyear mismatch'); end
+        if length(lu_out.yearList) > length(unique(lu_out.yearList))
+            error('Non-unique value(s) in lu_out.yearList after adding to end')
+        end
     end
     
     % Add 1 year of pasture, then all LUs
     if Nyears > 0
-        lu_out.yearList(end+1) = lu_out.yearList(end) + 1 ;
-        x=1;
-    else
-        lu_out.yearList(1) = y0_past ;
+        lu_out.yearList(end+1) = y1_past ;
     end
     Nyears = length(lu_out) ;
     lu_out.garr_xvy(:,:,end+1) = 0 ;
@@ -182,7 +202,7 @@ for y0_past = y0_past_list_desc
     Nlu_out = length(list_lu) ;
     Nforest = length(list_forest) ;
     thisDenom = Nlu_out - 1 + Nforest ;
-    lu_out.yearList(end+1) = lu_out.yearList(end) + 1 ;
+    lu_out.yearList(end+1) = y0_expt ;
     lu_out.garr_xvy(:,:,end+1) = 1 / thisDenom ;
     lu_out.garr_xvy(:,strcmp(lu_out.varNames,'FOREST'),end) = ...
         Nforest / thisDenom ;
@@ -195,9 +215,12 @@ for y0_past = y0_past_list_desc
     if any(any(abs(sum_to_1_test) > 1e-6))
         error('Land use fractions do not sum to 1 (max abs. deviation %g)', max(max(abs(sum_to_1_test))))
     end
+    if length(lu_out.yearList) > length(unique(lu_out.yearList))
+        error('Non-unique value(s) in lu_out.yearList')
+    end
     
     % Save cropfrac if this is the first time through the loop
-    if y0_past == y0_past_list_desc(1)
+    if y1_expt == y1_expt_list_desc(1)
 
         cf_out_header = [{'Lon', 'Lat'}, cf_out.varNames] ;
         file_cf_out = sprintf('%s/remap%s_someCrop_cropfrac.txt', ...
@@ -216,7 +239,7 @@ for y0_past = y0_past_list_desc
     
     % Save land use
     file_lu_out = sprintf('%s/remap%s_someCrop_%dpast_%dall_LU.txt', ...
-        dir_out, strrep(remapVer, '_', ''), y0_past, y0_past+1) ;
+        dir_out, strrep(remapVer, '_', ''), y1_past, y0_expt) ;
     lu_out_header = [{'Lon', 'Lat', 'Year'}, lu_out.varNames] ;
     fprintf('Saving LU... ')
     lpjgu_matlab_saveTable(lu_out_header, lu_out, file_lu_out, ...
