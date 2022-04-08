@@ -110,12 +110,12 @@ errMsg = '' ;
 print_errMsg = true ;
 
 if noteWhenDiff
-    if ~isequal(t1, t2)
+    if ~isequaln(t1, t2)
         cols1 = t1.Properties.VariableNames ;
         cols2 = t2.Properties.VariableNames ;
         if length(cols1) ~= length(cols2)
             errMsg = sprintf('Different # columns (%d vs %d)', length(cols1), length(cols2)) ;
-        elseif ~isequal(cols1, cols2)
+        elseif ~isequaln(cols1, cols2)
             if any(strcmp(cols1, 'HarvSlowC')) && any(strcmp(cols2, 'PLUMwoodC'))
                 t1.Properties.VariableNames(strcmp(cols1, 'HarvSlowC')) = {'PLUMwoodC'} ;
                 errMsg = check_tables_identical(t1, t2, thisFile) ;
@@ -130,7 +130,7 @@ if noteWhenDiff
             fprintf('%s do not match: %s\n', thisFile, errMsg)
         end
     end
-elseif isequal(t1, t2)
+elseif isequaln(t1, t2)
     errMsg = fprintf('%s are unexpectedly equal\n', thisFile) ;
 end
 
