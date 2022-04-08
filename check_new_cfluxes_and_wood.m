@@ -50,6 +50,8 @@ if ~isempty(unclassifiedFiles)
     disp(unclassifiedFiles')
 end
 
+files_NOTidentical = setdiff(outFilenames1, files_identical) ;
+
 
 %% Check that various files are identical
 
@@ -57,80 +59,22 @@ end
 nrows = 3 ;
 stop_after_first_file = false ;
 
-for f = 1:length(files_identical)
-    thisFile = files_identical{f} ;
-    t1 = lpjgu_matlab_readTable(sprintf('%s/%s', testDir1, thisFile), ...
-        'dont_save_MAT', true, 'do_save_MAT', false, 'verboseIfNoMat', false) ;
-    t2 = lpjgu_matlab_readTable(sprintf('%s/%s', testDir2, thisFile), ...
-        'dont_save_MAT', true, 'do_save_MAT', false, 'verboseIfNoMat', false) ;
-    errMsg = check_tables_identical(t1, t2, thisFile) ;
-    if stop_after_first_file && ~strcmp(errMsg, '')
-        break
-    end
-    if strcmp(errMsg, 'Other')
-        differences = table2array(t1) ~= table2array(t2) ;
-
-        % Find mismatched columns
-        badCols = find(any(differences, 1)) ;
-        if isempty(badCols)
-            error('???')
-        end
-
-        % Find mismatched rows
-        badRows = find(all(differences(:,badCols), 2)) ;
-        if isempty(badRows)
-            disp('No rows found where all badCols are bad; falling back to rows where only some are')
-            badRows = any(differences, 2) ;
-        end
-
-        % Display
-        bad1 = t1(badRows,:) ;
-        bad2 = t2(badRows,:) ;
-        fprintf('Showing only %d bad rows:\n', nrows')
-        disp('  Before:')
-        disp(head(bad1, nrows))
-        disp('  After:')
-        disp(head(bad2, nrows))
-
-    elseif ~strcmp(errMsg, '')
-        stop
-    end
-end
+check_tables_identical_loop(true, files_identical, testDir1, testDir2, stop_after_first_file, nrows);
 
 fprintf('\nDone checking: Files that should be identical are.\n')
 
 
+%% Check that various files are NOT identical
+
+% Optionally stop after first different file
+stop_after_first_file = false ;
+
+check_tables_identical_loop(false, files_NOTidentical, testDir1, testDir2, stop_after_first_file, 0);
+
+fprintf('\nDone checking: Files that should NOT be identical aren''t.\n')
+
 
 %% FUNCTIONS
-
-function [errMsg, t1, t2] = check_tables_identical(t1, t2, thisFile)
-
-errMsg = '' ;
-print_errMsg = true ;
-
-if ~isequal(t1, t2)
-    cols1 = t1.Properties.VariableNames ;
-    cols2 = t2.Properties.VariableNames ;
-    if length(cols1) ~= length(cols2)
-        errMsg = sprintf('Different # columns (%d vs %d)', length(cols1), length(cols2)) ;
-    elseif ~isequal(cols1, cols2)
-        if any(strcmp(cols1, 'HarvSlowC')) && any(strcmp(cols2, 'PLUMwoodC'))
-            t1.Properties.VariableNames(strcmp(cols1, 'HarvSlowC')) = {'PLUMwoodC'} ;
-            errMsg = check_tables_identical(t1, t2, thisFile) ;
-            print_errMsg = false ; % To avoid duplication when recursing
-        else
-            errMsg = 'Same # columns but different names' ;
-        end
-    else
-        errMsg = 'Other' ;
-    end
-    if ~strcmp(errMsg, '') && print_errMsg
-        fprintf('%s do not match: %s\n', thisFile, errMsg)
-    end
-end
-
-end
-
 
 function [outFiles, outFilenames] = get_outFiles(whichDir)
 pattern = sprintf('%s/*out', whichDir) ;
@@ -154,6 +98,84 @@ if ~isempty(diffFilenames_inAnotB)
                 fprintf('Found in after but not before: %s\n', thisFile)
             end
             ok = false ;
+        end
+    end
+end
+end
+
+
+function [errMsg, t1, t2] = check_tables_identical(t1, t2, thisFile, noteWhenDiff)
+
+errMsg = '' ;
+print_errMsg = true ;
+
+if noteWhenDiff
+    if ~isequal(t1, t2)
+        cols1 = t1.Properties.VariableNames ;
+        cols2 = t2.Properties.VariableNames ;
+        if length(cols1) ~= length(cols2)
+            errMsg = sprintf('Different # columns (%d vs %d)', length(cols1), length(cols2)) ;
+        elseif ~isequal(cols1, cols2)
+            if any(strcmp(cols1, 'HarvSlowC')) && any(strcmp(cols2, 'PLUMwoodC'))
+                t1.Properties.VariableNames(strcmp(cols1, 'HarvSlowC')) = {'PLUMwoodC'} ;
+                errMsg = check_tables_identical(t1, t2, thisFile) ;
+                print_errMsg = false ; % To avoid duplication when recursing
+            else
+                errMsg = 'Same # columns but different names' ;
+            end
+        else
+            errMsg = 'Other' ;
+        end
+        if ~strcmp(errMsg, '') && print_errMsg
+            fprintf('%s do not match: %s\n', thisFile, errMsg)
+        end
+    end
+elseif isequal(t1, t2)
+    errMsg = fprintf('%s are unexpectedly equal\n', thisFile) ;
+end
+
+end
+
+
+function check_tables_identical_loop(noteWhenDiff, fileList, testDir1, testDir2, stop_after_first_file, nrows)
+for f = 1:length(fileList)
+    thisFile = fileList{f} ;
+    t1 = lpjgu_matlab_readTable(sprintf('%s/%s', testDir1, thisFile), ...
+        'dont_save_MAT', true, 'do_save_MAT', false, 'verboseIfNoMat', false) ;
+    t2 = lpjgu_matlab_readTable(sprintf('%s/%s', testDir2, thisFile), ...
+        'dont_save_MAT', true, 'do_save_MAT', false, 'verboseIfNoMat', false) ;
+    errMsg = check_tables_identical(t1, t2, thisFile, noteWhenDiff) ;
+    if stop_after_first_file && ~strcmp(errMsg, '')
+        break
+    end
+    if noteWhenDiff
+        if strcmp(errMsg, 'Other')
+            differences = table2array(t1) ~= table2array(t2) ;
+            
+            % Find mismatched columns
+            badCols = find(any(differences, 1)) ;
+            if isempty(badCols)
+                error('???')
+            end
+            
+            % Find mismatched rows
+            badRows = find(all(differences(:,badCols), 2)) ;
+            if isempty(badRows)
+                disp('No rows found where all badCols are bad; falling back to rows where only some are')
+                badRows = any(differences, 2) ;
+            end
+            
+            % Display
+            bad1 = t1(badRows,:) ;
+            bad2 = t2(badRows,:) ;
+            fprintf('Showing only %d bad rows:\n', nrows')
+            disp('  Before:')
+            disp(head(bad1, nrows))
+            disp('  After:')
+            disp(head(bad2, nrows))
+    
+        elseif ~strcmp(errMsg, '')
+            stop
         end
     end
 end
