@@ -18,6 +18,9 @@ remapVer = '10_g2p' ; % CerealsC3, CerealsC4, Rice, OilNfix, OilOther,
                       % StarchyRoots, Pulses, Sugarbeet, Sugarcane, 
                       % FruitAndVeg
 
+% No historical land use?
+use_historical_lu = true ;
+
 dir_out = sprintf('/Users/Shared/LandSyMM/inputs/LU_20220209/%s', remapVer) ;
 
 % Output behaviors/settings
@@ -56,16 +59,25 @@ file_cf = sprintf('%s/cropfracs.remapv%s.txt', ...
 
 % Read input files
 lu_in = lpjgu_matlab_read2geoArray(file_lu) ;
-cf_in = lpjgu_matlab_read2geoArray(file_cf) ;
 Ncells = length(lu_in.list2map) ;
 Nyears = length(lu_in.yearList) ;
-
-% Check
-if ~isequal(cf_in.lonlats, lu_in.lonlats)
-    error('Need to align gridlists of land use and cropfrac files')
-end
-if isfield(cf_in, 'yearList')
-    error('This code relies on crop fractions not varying over time')
+if use_historical_lu
+    cf_in = lpjgu_matlab_read2geoArray(file_cf) ;
+    
+    % Check
+    if ~isequal(cf_in.lonlats, lu_in.lonlats)
+        error('Need to align gridlists of land use and cropfrac files')
+    end
+    if isfield(cf_in, 'yearList')
+        error('This code relies on crop fractions not varying over time')
+    end
+else
+    lu_in = unneeded_LU_to_ntrl(lu_in, list_lu, NaN) ;
+    lu_in = add_zeros_for_missing_LUs(list_lu, lu_in) ;
+    % Make Ncells*Nlu*0 (empty) array that will be added to in next step
+    lu_in.garr_xvy = nan(Ncells, length(list_lu), 0) ;
+    lu_in.yearList = [] ;
+    Nyears = 0 ;
 end
 
 disp('Done.')
@@ -74,72 +86,59 @@ disp('Done.')
 %% Set up output structures
 disp('Setting up output structures...')
 
-lu_out = lu_in ;
-cf_out = cf_in ;
+if use_historical_lu
+    lu_out = lu_in ;
+    cf_out = cf_in ;
 
-% Ensure sum of LU fractions to 1
-lu_sums_x1y = sum(lu_out.garr_xvy,2) ;
-if any(any(abs(lu_sums_x1y - 1) > 10^-outPrec))
-    lu_out.garr_xvy = lu_out.garr_xvy ...
-        ./ repmat(lu_sums_x1y, [1 size(lu_out.garr_xvy, 2) 1]) ;
-    sum_to_1_test = sum(lu_out.garr_xvy,2) - 1 ;
-    if any(any(abs(sum_to_1_test) > 10^-outPrec))
-        error('Land use fractions do not sum to 1 (max abs. deviation %g) even after trying to fix', max(max(abs(sum_to_1_test))))
-    end
-end
-
-% Move any unneeded LU types into NATURAL
-[~, I] = setdiff(lu_out.varNames, list_lu) ;
-if ~isempty(I)
-    sum_to_1_test = sum(lu_out.garr_xvy,2) - 1 ;
-    if any(any(abs(sum_to_1_test) > 10^-outPrec))
-        error('Land use fractions do not sum to 1 (max abs. deviation %g) before moving unneeded LU types into NATURAL', max(max(abs(sum_to_1_test))))
-    end
-    lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'NATURAL'),:) = ...
-        lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'NATURAL'),:) ...
-        + sum(lu_out.garr_xvy(:,I,:), 2) ;
-    lu_out.garr_xvy(:,I,:) = [] ;
-    lu_out.varNames(I) = [] ;
-end
-
-% Trim any unneeded crop types
-is_unneeded = nansum(cf_out.garr_xv, 1) == 0 ;
-if any(is_unneeded)
-    cf_out.garr_xv(:,is_unneeded) = [] ;
-    cf_out.varNames(is_unneeded) = [] ;
-end
-
-% Ensure that every cell has at least some crop
-minCrop = 10^-outPrec ;
-noCrop_x1y = lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'CROPLAND'),:) < minCrop ;
-never_cropped = all(noCrop_x1y, 3) ;
-cf_out.garr_xv(never_cropped,:) = 0 ;
-cf_out.garr_xv(never_cropped, strcmp(cf_out.varNames, 'CerealsC3')) = 1 ;
-if any(noCrop_x1y(:))
-    if any(any(abs(sum_to_1_test) > 10^-outPrec))
-        error('Land use fractions do not sum to 1 (max abs. deviation %g) before ensuring that every cell has at least some crop', max(max(abs(sum_to_1_test))))
-    end
-    lu_out = donate_land_to_crop(lu_out, noCrop_x1y, 'PASTURE', minCrop, verbose) ;
-    noCrop_x1y = lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'CROPLAND'),:) < minCrop ;
-    if any(noCrop_x1y(:))
-        lu_out = donate_land_to_crop(lu_out, noCrop_x1y, 'NATURAL', minCrop, verbose) ;
-        noCrop_x1y = lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'CROPLAND'),:) < minCrop ;
-        if any(noCrop_x1y(:))
-            error('There are still %d cell-years with no cropland', length(find(noCrop_x1y)))
+    % Ensure sum of LU fractions to 1
+    lu_sums_x1y = sum(lu_out.garr_xvy,2) ;
+    if any(any(abs(lu_sums_x1y - 1) > 10^-outPrec))
+        lu_out.garr_xvy = lu_out.garr_xvy ...
+            ./ repmat(lu_sums_x1y, [1 size(lu_out.garr_xvy, 2) 1]) ;
+        sum_to_1_test = sum(lu_out.garr_xvy,2) - 1 ;
+        if any(any(abs(sum_to_1_test) > 10^-outPrec))
+            error('Land use fractions do not sum to 1 (max abs. deviation %g) even after trying to fix', max(max(abs(sum_to_1_test))))
         end
     end
-end
-sum_to_1_test = sum(lu_out.garr_xvy,2) - 1 ;
-if any(any(abs(sum_to_1_test) > 10^-outPrec))
-    error('Land use fractions do not sum to 1 (max abs. deviation %g)', max(max(abs(sum_to_1_test))))
-end
+    
+    % Move any unneeded LU types into NATURAL
+    lu_out = unneeded_LU_to_ntrl(lu_out, list_lu, outPrec) ;
 
-% Add zeros for missing LUs
-missing_LUs = setdiff(list_lu, lu_out.varNames) ;
-if ~isempty(missing_LUs)
-    lu_out.garr_xvy = cat(2, lu_out.garr_xvy, ...
-        zeros(Ncells, length(missing_LUs), Nyears)) ;
-    lu_out.varNames = [lu_out.varNames missing_LUs] ;
+    % Trim any unneeded crop types
+    is_unneeded = nansum(cf_out.garr_xv, 1) == 0 ;
+    if any(is_unneeded)
+        cf_out.garr_xv(:,is_unneeded) = [] ;
+        cf_out.varNames(is_unneeded) = [] ;
+    end
+    
+    % Ensure that every cell has at least some crop
+    minCrop = 10^-outPrec ;
+    noCrop_x1y = lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'CROPLAND'),:) < minCrop ;
+    never_cropped = all(noCrop_x1y, 3) ;
+    cf_out.garr_xv(never_cropped,:) = 0 ;
+    cf_out.garr_xv(never_cropped, strcmp(cf_out.varNames, 'CerealsC3')) = 1 ;
+    if any(noCrop_x1y(:))
+        if any(any(abs(sum_to_1_test) > 10^-outPrec))
+            error('Land use fractions do not sum to 1 (max abs. deviation %g) before ensuring that every cell has at least some crop', max(max(abs(sum_to_1_test))))
+        end
+        lu_out = donate_land_to_crop(lu_out, noCrop_x1y, 'PASTURE', minCrop, verbose) ;
+        noCrop_x1y = lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'CROPLAND'),:) < minCrop ;
+        if any(noCrop_x1y(:))
+            lu_out = donate_land_to_crop(lu_out, noCrop_x1y, 'NATURAL', minCrop, verbose) ;
+            noCrop_x1y = lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'CROPLAND'),:) < minCrop ;
+            if any(noCrop_x1y(:))
+                error('There are still %d cell-years with no cropland', length(find(noCrop_x1y)))
+            end
+        end
+    end
+    sum_to_1_test = sum(lu_out.garr_xvy,2) - 1 ;
+    if any(any(abs(sum_to_1_test) > 10^-outPrec))
+        error('Land use fractions do not sum to 1 (max abs. deviation %g)', max(max(abs(sum_to_1_test))))
+    end
+    
+    % Add zeros for missing LUs
+    lu_out = add_zeros_for_missing_LUs(list_lu, lu_out) ;
+
 end
 
 disp('Done.')
@@ -155,12 +154,16 @@ for y1_expt = y1_expt_list_desc
 
     fprintf('Processing %dpast... ', y1_past)
 
-    % Trim any unneeded years
-    lu_out.garr_xvy(:,:,lu_out.yearList >= y1_past) = [] ;
-    lu_out.yearList(lu_out.yearList >= y1_past) = [] ;
-    Nyears = length(lu_out.yearList) ;
-    if length(lu_out.yearList) > length(unique(lu_out.yearList))
-        error('Non-unique value(s) in lu_out.yearList')
+    if use_historical_lu
+        % Trim any unneeded years
+        lu_out.garr_xvy(:,:,lu_out.yearList >= y1_past) = [] ;
+        lu_out.yearList(lu_out.yearList >= y1_past) = [] ;
+        Nyears = length(lu_out.yearList) ;
+        if length(lu_out.yearList) > length(unique(lu_out.yearList))
+            error('Non-unique value(s) in lu_out.yearList')
+        end
+    else
+        lu_out = lu_in ;
     end
 
     % Add extra year at beginning, if needed
@@ -218,9 +221,9 @@ for y1_expt = y1_expt_list_desc
     if length(lu_out.yearList) > length(unique(lu_out.yearList))
         error('Non-unique value(s) in lu_out.yearList')
     end
-    
+
     % Save cropfrac if this is the first time through the loop
-    if y1_expt == y1_expt_list_desc(1)
+    if exist('cf_out', 'var') && y1_expt == y1_expt_list_desc(1)
 
         cf_out_header = [{'Lon', 'Lat'}, cf_out.varNames] ;
         file_cf_out = sprintf('%s/remap%s_someCrop_cropfrac.txt', ...
@@ -238,8 +241,13 @@ for y1_expt = y1_expt_list_desc
     end % if first year in loop (saving cropfrac)
     
     % Save land use
-    file_lu_out = sprintf('%s/remap%s_someCrop_%dpast_%dall_LU.txt', ...
-        dir_out, strrep(remapVer, '_', ''), y1_past, y0_expt) ;
+    if use_historical_lu
+        basename_prefix = sprintf('remap%s_someCrop_', strrep(remapVer, '_', '')) ;
+    else
+        basename_prefix = '../' ;
+    end
+    file_lu_out = sprintf('%s/%s%dpast_%dall_LU.txt', ...
+        dir_out, basename_prefix, y1_past, y0_expt) ;
     lu_out_header = [{'Lon', 'Lat', 'Year'}, lu_out.varNames] ;
     fprintf('Saving LU... ')
     lpjgu_matlab_saveTable(lu_out_header, lu_out, file_lu_out, ...
@@ -257,6 +265,40 @@ disp('All done!')
 
 
 %% FUNCTIONS
+
+function S = unneeded_LU_to_ntrl(S, list_lu, outPrec)
+
+[~, I] = setdiff(S.varNames, list_lu) ;
+if ~isempty(I)
+    sum_to_1_test = sum(S.garr_xvy,2) - 1 ;
+    if ~isnan(outPrec) && any(any(abs(sum_to_1_test) > 10^-outPrec))
+        error('Land use fractions do not sum to 1 (max abs. deviation %g) before moving unneeded LU types into NATURAL', max(max(abs(sum_to_1_test))))
+    end
+    S.garr_xvy(:,strcmp(S.varNames, 'NATURAL'),:) = ...
+        S.garr_xvy(:,strcmp(S.varNames, 'NATURAL'),:) ...
+        + sum(S.garr_xvy(:,I,:), 2) ;
+    S.garr_xvy(:,I,:) = [] ;
+    S.varNames(I) = [] ;
+end
+
+end
+
+
+function S = add_zeros_for_missing_LUs(list_lu, S)
+
+Ncells = length(S.list2map) ;
+Nyears = length(S.yearList) ;
+
+missing_LUs = setdiff(list_lu, S.varNames) ;
+if ~isempty(missing_LUs)
+    if ~isempty(S.garr_xvy)
+        S.garr_xvy = cat(2, S.garr_xvy, ...
+            zeros(Ncells, length(missing_LUs), Nyears)) ;
+    end
+    S.varNames = [S.varNames missing_LUs] ;
+end
+
+end
 
 function lu = donate_land_to_crop(lu, noCrop_x1y, donor, minCrop, verbose)
 
@@ -333,3 +375,4 @@ if isfield(S, 'yearList')
 end
 
 end
+
