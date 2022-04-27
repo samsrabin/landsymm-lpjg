@@ -71,65 +71,22 @@ for L = 1:Nlu
 end
 
 
-%% Scatter plot for a bounding box: cmass_wood vs plutW
+%% Scatter plot for a bounding box, same-year same-LU
 
 thisYr = estYr + 44 ;
+thisLU = 'ntrl' ;
 
 % Country bounding boxes: https://gist.github.com/graydon/11198540
 % bbox = [] ; % Use all cells
 bbox = [5.98865807458, 47.3024876979, 15.0169958839, 54.983104153] ; bbox_name = 'Germany' ;
 
-y = find(plutW.yearList == thisYr) ;
-if length(y) ~= 1
-    error('Expected to find 1 match of %d in plutW.yearList; found %d', thisYr, length(y))
-end
+xdata = get_scatter_data(cmass_wood, bbox, thisYr, thisLU) ; xlab = 'cmass wood' ;
 
-xdata = extract_bbox(cmass_wood, bbox) ;
-bbox_lonlats = xdata.lonlats ;
-v = find(strcmp(cmass_wood.varNames, 'ntrl')) ;
-if length(v) ~= 1
-    error('Expected to find 1 match of ntrl in cmass_wood.varNames; found %d', length(v))
-end
-xdata = xdata.garr_xvy(:,v,y) ;
+ydata = get_scatter_data(plutW, bbox, thisYr, thisLU, LUlist, 'to_forC') ; ylab = 'PLUT wood to-forC'  ;
+% ydata = get_scatter_data(cmass_wood_potharv, bbox, thisYr, thisLU) ; ylab = 'cmass wood potharv' ;
 
-ydata = extract_bbox(plutW, bbox) ;
-v = find(strcmp(plutW.varNames, 'to_forC')) ;
-if length(v) ~= 1
-    error('Expected to find 1 match of to_forC in plutW.varNames; found %d', length(v))
-end
-L = find(strcmp(LUlist, 'ntrl')) ;
-if length(L) ~= 1
-    error('Expected to find 1 match of ntrl in LUlist; found %d', length(L))
-end
-ydata = ydata.garr_xvyL(:,v,y, L) ;
 
-% ydata = extract_bbox(cmass_wood_potharv, bbox) ;
-% v = find(strcmp(cmass_wood_potharv.varNames, 'ntrl')) ;
-% if length(v) ~= 1
-%     error('Expected to find 1 match of ntrl in cmass_wood_potharv.varNames; found %d', length(v))
-% end
-% ydata = ydata.garr_xvy(:,v,y) ;
-
-figure('Color', 'w') ;
-plot(xdata, ydata, '.')
-axis equal
-hold on
-if min(get(gca, 'XLim')) < 0
-    set(gca, 'XLim', [0, max(get(gca, 'XLim'))])
-    set(gca, 'YLim', [0, max(get(gca, 'YLim'))])
-end
-if min(get(gca, 'YLim')) < 0
-    set(gca, 'YLim', [0, max(get(gca, 'YLim'))])
-    set(gca, 'XLim', [0, max(get(gca, 'XLim'))])
-end
-min11 = min(min(get(gca, 'XLim')), min(get(gca, 'YLim'))) ;
-max11 = max(max(get(gca, 'XLim')), max(get(gca, 'YLim'))) ;
-plot([min11, max11], [min11, max11], '--k')
-hold off
-title(sprintf('%s: ntrl %d', bbox_name, thisYr))
-xlabel('cmass wood')
-ylabel('cmass wood potharv')
-set(gca, 'FontSize', 14)
+make_scatter_plot(xdata, ydata, bbox_name, thisYr, thisLU, xlab, ylab) ;
 
 
 %% Save bbox_lonlats as gridlist
@@ -139,6 +96,43 @@ save_file(bbox_lonlats(:,1), bbox_lonlats(:,2), file_out) ;
 
 
 %% FUNCTIONS
+
+function sdata = get_scatter_data(S, bbox, thisYr, thisLU, varargin)
+
+if isfield(S, 'garr_xvyL')
+    LUlist = varargin{1} ;
+    toLU = varargin{2} ;
+elseif ~isempty(varargin)
+    warning('Ignoring optional arguments because S does not have garr_xvyL')
+end
+
+y = find(S.yearList == thisYr) ;
+if length(y) ~= 1
+    error('Expected to find 1 match of %d in S.yearList; found %d', thisYr, length(y))
+end
+
+sdata = extract_bbox(S, bbox) ;
+
+if isfield(S, 'garr_xvyL')
+    v = find(strcmp(S.varNames, toLU)) ;
+    if length(v) ~= 1
+        error('Expected to find 1 match of toLU (%s) in S.varNames; found %d', toLU, length(v))
+    end
+    L = find(strcmp(LUlist, thisLU)) ;
+    if length(L) ~= 1
+        error('Expected to find 1 match of thisLU (%s) in LUlist; found %d', thisLU, length(L))
+    end
+    sdata = sdata.garr_xvyL(:,v,y,L) ;
+else
+    v = find(strcmp(S.varNames, thisLU)) ;
+    if length(v) ~= 1
+        error('Expected to find 1 match of thisLU (%s) in S.varNames; found %d', thisLU, length(v))
+    end
+    sdata = sdata.garr_xvy(:,v,y) ;
+end
+
+end
+
 
 function make_map(ny, nx, n, S, thisLU, L, y, title_var, fontSize, bbox, spacing)
 
@@ -235,4 +229,27 @@ for L = 1:Nlu
     clear tmp
 end
 
+end
+
+function make_scatter_plot(xdata, ydata, bbox_name, thisYr, thisLU, xlab, ylab)
+figure('Color', 'w') ;
+plot(xdata, ydata, '.')
+axis equal
+hold on
+if min(get(gca, 'XLim')) < 0
+    set(gca, 'XLim', [0, max(get(gca, 'XLim'))])
+    set(gca, 'YLim', [0, max(get(gca, 'YLim'))])
+end
+if min(get(gca, 'YLim')) < 0
+    set(gca, 'YLim', [0, max(get(gca, 'YLim'))])
+    set(gca, 'XLim', [0, max(get(gca, 'XLim'))])
+end
+min11 = min(min(get(gca, 'XLim')), min(get(gca, 'YLim'))) ;
+max11 = max(max(get(gca, 'XLim')), max(get(gca, 'YLim'))) ;
+plot([min11, max11], [min11, max11], '--k')
+hold off
+title(sprintf('%s: %s %d', bbox_name, thisLU, thisYr))
+xlabel(xlab)
+ylabel(ylab)
+set(gca, 'FontSize', 14)
 end
