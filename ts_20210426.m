@@ -53,18 +53,18 @@ figure('Color', 'w', 'Position', thisPos) ;
 
 for L = 1:Nlu
     thisLU = LUlist{L} ;
+    
+    x = 1 ;
+    make_map(ny, nx, (L-1)*nx+x, plutW, thisLU, L, thisYr, 'plutW', fontSize, bbox, spacing)
+%     make_map(ny, nx, (L-1)*nx+x, cmass_wood, thisLU, L, y, 'cmass wood', fontSize, bbox, spacing)
 
-    y = find(plutW.yearList == thisYr) ;
-    if length(y) ~= 1
-        error('Expected to find 1 match of %d in plutW.yearList; found %d', thisYr, length(y))
-    end
+    x = 2 ;
+%     make_map(ny, nx, (L-1)*nx+x, ctree, thisLU, L, thisYr, 'ctree', fontSize, bbox, spacing)
+    make_map(ny, nx, (L-1)*nx+x, cmass_wood, thisLU, L, thisYr, 'cmass wood', fontSize, bbox, spacing)
 
-    make_map(ny, nx, (L-1)*nx+1, plutW, thisLU, L, y, 'plutW', fontSize, bbox, spacing)
-
-    make_map(ny, nx, (L-1)*nx+2, ctree, thisLU, L, y, 'ctree', fontSize, bbox, spacing)
-
-%     make_map(ny, nx, (L-1)*nx+3, cmass_wood, thisLU, L, y, 'cmass wood', fontSize, bbox, spacing)
-    make_map(ny, nx, (L-1)*nx+3, cmass_wood_potharv, thisLU, L, y, 'cmass wood potharv', fontSize, bbox, spacing)
+    x = 3 ;
+%     make_map(ny, nx, (L-1)*nx+x, cmass_wood, thisLU, L, thisYr, 'cmass wood', fontSize, bbox, spacing)
+    make_map(ny, nx, (L-1)*nx+x, cmass_wood_potharv, thisLU, L, thisYr, 'cmass wood potharv', fontSize, bbox, spacing)
 
     sgtitle(bbox_name, 'FontSize', fontSize+4, 'FontWeight', 'bold')
 
@@ -134,9 +134,14 @@ end
 end
 
 
-function make_map(ny, nx, n, S, thisLU, L, y, title_var, fontSize, bbox, spacing)
+function make_map(ny, nx, n, S, thisLU, L, thisYr, title_var, fontSize, bbox, spacing)
 
 subplot_tight(ny, nx, n, spacing) ;
+
+y = find(S.yearList == thisYr) ;
+if length(y) ~= 1
+    error('Expected to find 1 match of %d in S.yearList; found %d', thisYr, length(y))
+end
 
 if isfield(S, 'garr_xvy')
     v = find(strcmp(S.varNames, thisLU)) ;
