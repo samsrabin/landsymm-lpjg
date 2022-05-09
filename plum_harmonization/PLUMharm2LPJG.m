@@ -2,6 +2,13 @@
 %%% Convert harmonized PLUM outputs into files for LPJ-GUESS %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% For Daniel
+force_ssr_mac = true ;
+ssrmac_paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
+ssrmac_plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+ssrmac_inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
+cd('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') % Where you've downloaded SSP3.v12.s1
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input directories and settings specific thereto %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -13,14 +20,14 @@ dirList = {...
 %               'SSP4.v10.s1.harm' ;
 %               'SSP5.v10.s1.harm' ;
 %               'SSP1.v12.s1.harm' ;
-%               'SSP3.v12.s1.harm' ;
+              'SSP3.v12.s1.harm' ;
 %               'SSP4.v12.s1.harm' ;
 %               'SSP5.v12.s1.harm' ;
-    'SSP1/s1.harm' ;
-    'SSP2/s1.harm' ;
-    'SSP3/s1.harm' ;
-    'SSP4/s1.harm' ;
-    'SSP5/s1.harm' ;
+%     'SSP1/s1.harm' ;
+%     'SSP2/s1.harm' ;
+%     'SSP3/s1.harm' ;
+%     'SSP4/s1.harm' ;
+%     'SSP5/s1.harm' ;
               } ;
 base_year = 2010 ;
 y1 = 2011 ;
@@ -43,8 +50,9 @@ yStep = 1 ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Trying to avoid new crop spinup time; will repeat first PLUMout 
-% year over y1_pre:(y1-1)
-y1_pre = 2006 ;
+% year over y1_pre:(y1-1). Set to y1 to skip.
+% y1_pre = 2006 ;
+y1_pre = y1 ;
 
 % Make it so that each gridcell always has at least some tiny amount of
 % every crop? Needed to avoid weird first few years after a cell gets its
@@ -61,17 +69,22 @@ do_gzip = true ;
 
 %% Setup
 
-% Determine which system you're on and set up.
-thisSystem = get_system_name() ;
+% Determine which system you're on and set up
+if force_ssr_mac
+    thisSystem = 'ssr_mac' ;
+else
+    thisSystem = get_system_name() ;
+end
 if strcmp(thisSystem, 'ssr_mac')
-    addpath(genpath('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work')) ;
-    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization' ;
+    paper02_repo_path = ssrmac_paper02_repo_path ;
+    plumharm_repo_path = ssrmac_plumharm_repo_path ;
 elseif strcmp(thisSystem, 'ssr_keal')
-    addpath(genpath('/pd/data/lpj/sam/paper02-matlab-work')) ;
+    paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
     plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
 else
     error('thisSystem not recognized: %s', thisSystem)
 end
+addpath(genpath(paper02_repo_path))
 addpath(genpath(plumharm_repo_path))
 
 cf_kgNha_kgNm2 = 1e-4 ;

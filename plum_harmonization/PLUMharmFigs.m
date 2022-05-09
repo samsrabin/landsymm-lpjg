@@ -2,43 +2,57 @@
 %%% Testing harmonized PLUM land use trajectory %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% PLUM_version = 'v12.s1' ;
-% dirList = strcat({...
-%            'SSP1' ;
-%            'SSP3' ;
-%            'SSP4' ;
-%            'SSP5';
-%             }, ['.' PLUM_version]) ;
-% yearList_harm = 2011:2100 ;
-% fruitveg_sugar_2oil = false ;
-% runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
-% % baseline_ver = 1 ;
-% % baseline_ver = 2 ;   % Based on remap_v6
-%  baseline_ver = 3 ;   % Based on remap_v6p7
+% For Daniel
+force_ssr_mac = true ;
+ssrmac_paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
+ssrmac_plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+ssrmac_inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
+cd('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') % Where you've downloaded SSP3.v12.s1
+dirList = {'SSP3'} ;
+runList_legend = {'SSP3-60'} ;
 
-% dirList = {...
-%     'halfearth/HEoct/baseline/s1';
-%     'halfearth/HEoct/halfearth/s1';
-%     } ;
-% yearList_harm = 2011:2060 ;
-% fruitveg_sugar_2oil = true ;
-% runList_legend = {'baseline', 'halfearth'} ;
-% legend_ts = [{'LUH2'} runList_legend] ;
-% baseline_ver = 4 ;   % Based on remap_v8b2oil
-
-PLUM_version = 'v13.s1' ;
-dirList = {...
-    'SSP1/s1' ;
-    'SSP2/s1' ;
-    'SSP3/s1' ;
-    'SSP4/s1' ;
-    'SSP5/s1' ;
-    } ;
+PLUM_version = 'v12.s1' ;
+if ~exist('dirList', 'var')
+    dirList = strcat({...
+               'SSP1' ;
+               'SSP3' ;
+               'SSP4' ;
+               'SSP5';
+                }, ['.' PLUM_version]) ;
+    runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
+else
+    dirList = strcat(dirList, ['.' PLUM_version]) ;
+end
 yearList_harm = 2011:2100 ;
 fruitveg_sugar_2oil = false ;
-runList_legend = strrep(dirList, '/s1', '')' ;
-legend_ts = [{'LUH2'} runList_legend] ;
-baseline_ver = 4 ;   % Based on remap_v8b2oil
+
+% baseline_ver = 1 ;
+% baseline_ver = 2 ;   % Based on remap_v6
+ baseline_ver = 3 ;   % Based on remap_v6p7
+
+% % % dirList = {...
+% % %     'halfearth/HEoct/baseline/s1';
+% % %     'halfearth/HEoct/halfearth/s1';
+% % %     } ;
+% % % yearList_harm = 2011:2060 ;
+% % % fruitveg_sugar_2oil = true ;
+% % % runList_legend = {'baseline', 'halfearth'} ;
+% % % legend_ts = [{'LUH2'} runList_legend] ;
+% % % baseline_ver = 4 ;   % Based on remap_v8b2oil
+
+% % % PLUM_version = 'v13.s1' ;
+% % % dirList = {...
+% % %     'SSP1/s1' ;
+% % %     'SSP2/s1' ;
+% % %     'SSP3/s1' ;
+% % %     'SSP4/s1' ;
+% % %     'SSP5/s1' ;
+% % %     } ;
+% % % yearList_harm = 2011:2100 ;
+% % % fruitveg_sugar_2oil = false ;
+% % % runList_legend = strrep(dirList, '/s1', '')' ;
+% % % legend_ts = [{'LUH2'} runList_legend] ;
+% % % baseline_ver = 4 ;   % Based on remap_v8b2oil
 
 % Use combined-crop version?
 combineCrops = false ;
@@ -54,11 +68,15 @@ norm2extra = 0.177 ;
 
 %% Setup
 
-% Determine which system you're on and set up.
-thisSystem = get_system_name() ;
+% Determine which system you're on and set up
+if force_ssr_mac
+    thisSystem = 'ssr_mac' ;
+else
+    thisSystem = get_system_name() ;
+end
 if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+    paper02_repo_path = ssrmac_paper02_repo_path ;
+    plumharm_repo_path = ssrmac_plumharm_repo_path ;
 elseif strcmp(thisSystem, 'ssr_keal')
     paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
     plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
@@ -124,18 +142,18 @@ lines_overlay = shaperead(sprintf('%s/input_data/continents_from_countries.shp',
 
 % y1_list = 2011 ;
 % yN_list= 2012 ;
-% y1_list = 2010 ;
-% yN_list= yearList_harm(end) ;
+y1_list = 2010 ;
+yN_list= yearList_harm(end) ;
 % y1_list = 2011:1:2099 ;
 % yN_list = 2012:1:2100 ;
 % y1_list = 2011:5:2099 ;
 % yN_list = 2015:5:2100 ;
-yN_list = 2020:20:yearList_harm(end) ;
-y1_list = 2010*ones(size(yN_list)) ;
+% yN_list = 2020:20:yearList_harm(end) ;
+% y1_list = 2010*ones(size(yN_list)) ;
 
 if any(Nruns == [4 5])
     thisPos_RxW = [1    33   770   772] ;
-elseif Nruns==2
+elseif Nruns<=2
     thisPos_RxW = [1   308   770   497] ;
 else
     error('Set thisPos_RxW for Nruns = %d', Nruns)
@@ -532,10 +550,11 @@ end
 
 %% Map deltas for orig and harm
 
-tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
+% tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
+tmp_lu_list = {'NATURAL'} ;
 
 % Options %%%%%%%%%
-do_save = true ;
+do_save = false ;
 fontSize = 14 ;
 % spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
 spacing = 0 ;
@@ -545,7 +564,7 @@ textY_2 = 20/360 ;
 shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 nx = 2 ;
 ny = length(dirList) ;
-as_frac_land = false ;
+as_frac_land = true ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 units_total = 'Mkm^2' ;
 do_caps = false ;

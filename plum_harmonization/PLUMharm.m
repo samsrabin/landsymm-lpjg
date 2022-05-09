@@ -2,12 +2,19 @@
 %%% LUH1-style harmonization for PLUM outputs, at cropType level %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% For Daniel
+force_ssr_mac = true ;
+ssrmac_paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
+ssrmac_plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+ssrmac_inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
+cd('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') % Where you've downloaded SSP3.v12.s1
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input directories and settings specific thereto %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%% Typical runs (2010-2100), v1-3
-% dirList = {...
+% Typical runs (2010-2100), v1-3
+dirList = {...
 %                   'SSP1.v10.s1' ;
 %                   'SSP3.v10.s1' ;
 %                   'SSP4.v10.s1' ;
@@ -19,53 +26,60 @@
 %                   'SSP1.v11.s1test' ;
 %                   'ssp11/SSP5/s3' ;
 %                   'SSP1.v12.s1' ;
-%                   'SSP3.v12.s1' ;
+                  'SSP3.v12.s1' ;
 %                   'SSP4.v12.s1' ;
 %                   'SSP5.v12.s1' ;
-%                   } ;
-% base_year = 2010 ;
-% year1 = 2011 ;
-% yearN = 2100 ;
-% fruitveg_sugar_2oil = false ;
-% % baseline_ver = 1 ;
-% % baseline_ver = 2 ;   % Based on remap_v6
-% baseline_ver = 3 ;   % Based on remap_v6p7
+                  } ;
+base_year = 2010 ; % The last year of LUH2 data to use. Must be included in PLUM outputs.
+year1 = 2011 ;     % The first year of the "future" period
+yearN = 2100 ;     % The last year of the "future" period
+% baseline_ver = 1 ;
+% baseline_ver = 2 ;   % Crop list based on remap_v6
+baseline_ver = 3 ;   % Crop list based on remap_v6p7
+fruitveg_sugar_2oil = false ; % Not used for crop lists for baseline_ver 1-3
 
-%%% Typical runs (2010-2100), v4
-dirList = {...
-%    'SSP1/s1' ;
-%    'SSP2/s1' ;
-    'SSP3/s1' ;
-    'SSP4/s1' ;
-    'SSP5/s1' ;
-    } ;
-base_year = 2010 ;
-year1 = 2011 ;
-yearN = 2100 ;
-fruitveg_sugar_2oil = false ;
-baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
-
-%%% Half-Earth runs (2010-2060)
-% dirList = {...
-%                   'halfearth/HEoct/baseline/s1';
-%                   'halfearth/HEoct/halfearth/s1';
-%                   } ;
-% base_year = 2010 ;
-% year1 = 2011 ;
-% yearN = 2060 ;
-% fruitveg_sugar_2oil = false ;
-% baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
+% % % %%% Typical runs (2010-2100), v4
+% % % dirList = {...
+% % % %    'SSP1/s1' ;
+% % % %    'SSP2/s1' ;
+% % %     'SSP3/s1' ;
+% % %     'SSP4/s1' ;
+% % %     'SSP5/s1' ;
+% % %     } ;
+% % % base_year = 2010 ;
+% % % year1 = 2011 ;
+% % % yearN = 2100 ;
+% % % fruitveg_sugar_2oil = false ;
+% % % baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
+% % 
+% % %%% Half-Earth runs (2010-2060)
+% % % dirList = {...
+% % %                   'halfearth/HEoct/baseline/s1';
+% % %                   'halfearth/HEoct/halfearth/s1';
+% % %                   } ;
+% % % base_year = 2010 ;
+% % % year1 = 2011 ;
+% % % yearN = 2060 ;
+% % % fruitveg_sugar_2oil = false ;
+% % % baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% General behavior options %
+% Output options %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Save?
+% What output files should be saved?
+% All you really need are the half-degree .mat files, because those serve
+% as inputs for subsequent processing scripts.
 save_halfDeg_mat = true ;
 save_2deg_mat = false ;
 save_halfDeg_txt = false ;
 save_2deg_txt = false ;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Debugging options %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Debugging outputs?
 debug_areas = false ;
@@ -92,10 +106,14 @@ combineCrops = false ;
 warning('on','all')
 
 % Determine which system you're on and set up
-thisSystem = get_system_name() ;
+if force_ssr_mac
+    thisSystem = 'ssr_mac' ;
+else
+    thisSystem = get_system_name() ;
+end
 if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+    paper02_repo_path = ssrmac_paper02_repo_path ;
+    plumharm_repo_path = ssrmac_plumharm_repo_path ;
 elseif strcmp(thisSystem, 'ssr_keal')
     paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
     plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;

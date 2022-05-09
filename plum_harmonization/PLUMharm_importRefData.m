@@ -31,7 +31,7 @@ elseif baseline_ver == 2
     inpaint_method = 4 ;
 elseif baseline_ver == 3
     if strcmp(thisSystem, 'ssr_mac')
-        inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
+        inDir_remap6 = ssrmac_inDir_remap6 ;
     else
         error('Specify inDir_remap6 for thisSystem: %s', thisSystem)
     end
