@@ -77,7 +77,7 @@ if exist(file_in_dtl,'file') || exist([file_in_dtl '.gz'],'file')
         % If there is irrigation or fertilization present on SetAside, remove
         % it!
         if ~any(strcmp(PLUMcrops,'setaside'))
-            error('\nsetaside not present??? %s', file_in_dtl)
+            error('\nsetaside not present %s', file_in_dtl)
         end
         tmpN = S_nfert.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
         tmpI = S_irrig.maps_YXv(:,:,strcmp(PLUMcrops,'setaside')) ;
@@ -101,7 +101,7 @@ else
         file_in_irrig = strrep(file_in_lcf,'LandCoverFract','Irrig') ;
         S_irrig = lpjgu_matlab_readTable_then2map(file_in_irrig,'verboseIfNoMat',false,'force_mat_save',true) ;
         if ~any(strcmp(PLUMcrops,'setaside'))
-            error('\nsetaside not present??? %s', file_in_cropfrac)
+            error('\nsetaside not present, probably because you''re not using LandUse.txt (which wasn''t found): %s', file_in_cropfrac)
         end
     end
 end
