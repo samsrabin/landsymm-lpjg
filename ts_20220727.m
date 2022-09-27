@@ -16,13 +16,13 @@ thisDir = '/Users/Shared/landsymm_forestry/uc_work/landsymm/runs-forestonly/runs
 % thisConv = 1e-12 ;
 % thisUnit_map = 'kgC m^{-2}' ;
 % thisConv_map = 1 ;
-% 
-% thisFile = 'cmass_sts.out.gz' ;
-% thisTitle = 'Live biomass' ;
-% thisUnit = 'kgC m^{-2}' ;
-% thisUnit_map = 'PgC' ;
-% thisConv = 1e6*1e-12 ;
-% thisConv_map = 1 ;
+
+thisFile = 'cmass_sts.out.gz' ;
+thisTitle = 'Live biomass' ;
+thisUnit = 'PgC' ;
+thisConv = 1e-12 ;
+thisUnit_map = 'kgC m^{-2}' ;
+thisConv_map = 1 ;
 
 % thisFile = 'lai_natural.out.gz' ;
 % thisTitle = 'Woody LAI' ;
@@ -31,12 +31,12 @@ thisDir = '/Users/Shared/landsymm_forestry/uc_work/landsymm/runs-forestonly/runs
 % thisConv = 1 ;
 % thisConv_map = 1 ;
 
-thisFile = 'anpp_natural.out.gz' ;
-thisTitle = 'Woody NPP' ;
-thisUnit = 'PgC yr^{-1}' ;
-thisUnit_map = 'kgC m^{-2} yr^{-1}' ;
-thisConv = 1e-12 ;
-thisConv_map = 1 ;
+% thisFile = 'anpp_natural.out.gz' ;
+% thisTitle = 'Woody NPP' ;
+% thisUnit = 'PgC yr^{-1}' ;
+% thisUnit_map = 'kgC m^{-2} yr^{-1}' ;
+% thisConv = 1e-12 ;
+% thisConv_map = 1 ;
 
 data = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile)) ;
 
@@ -52,7 +52,7 @@ clear land_area_YXqd
 land_area_YX = land_area_YX * 1e6 ;
 
 if any(strcmp(data.varNames, 'ntrl'))
-    garr_xvy = data.garr_xvy(:,strcmp(data.varNames, 'ntrl'),:) ;
+    data.garr_xvy = data.garr_xvy(:,strcmp(data.varNames, 'ntrl'),:) ;
     data.varNames = data.varNames(strcmp(data.varNames, 'ntrl')) ;
 else
     [~, IA] = intersect(data.varNames, ...
