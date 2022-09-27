@@ -10,12 +10,12 @@ thisDir = '/Users/Shared/landsymm_forestry/uc_work/landsymm/runs-forestonly/runs
 
 % Make figure with time series and map
 
-thisFile = 'cmass_wood_sts.out.gz' ;
-thisTitle = 'Woody biomass' ;
-thisUnit = 'kgC m^{-2}' ;
-thisUnit_map = 'PgC' ;
-thisConv = 1e6*1e-12 ;
-thisConv_map = 1 ;
+% thisFile = 'cmass_wood_sts.out.gz' ;
+% thisTitle = 'Woody biomass' ;
+% thisUnit = 'PgC' ;
+% thisConv = 1e-12 ;
+% thisUnit_map = 'kgC m^{-2}' ;
+% thisConv_map = 1 ;
 % 
 % thisFile = 'cmass_sts.out.gz' ;
 % thisTitle = 'Live biomass' ;
@@ -31,12 +31,12 @@ thisConv_map = 1 ;
 % thisConv = 1 ;
 % thisConv_map = 1 ;
 
-% thisFile = 'anpp_natural.out.gz' ;
-% thisTitle = 'Woody NPP' ;
-% thisUnit = 'MgC yr^{-1}' ;
-% thisUnit_map = 'kgC m^{-2} yr^{-1}' ;
-% thisConv = 1e-6 ;
-% thisConv_map = 1 ;
+thisFile = 'anpp_natural.out.gz' ;
+thisTitle = 'Woody NPP' ;
+thisUnit = 'PgC yr^{-1}' ;
+thisUnit_map = 'kgC m^{-2} yr^{-1}' ;
+thisConv = 1e-12 ;
+thisConv_map = 1 ;
 
 data = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile)) ;
 
@@ -44,9 +44,12 @@ data = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile)) ;
 landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 % Use gridcell area instead of land area
 land_area_YXqd = transpose(ncread(landarea_file,'carea')) ;
+% Coarsen to half-degree
 addpath '/Users/Shared/PLUM/crop_calib_code'
 land_area_YX = aggregate_land_area(land_area_YXqd,0.5,0.5) ;
 clear land_area_YXqd
+% Convert to m2
+land_area_YX = land_area_YX * 1e6 ;
 
 if any(strcmp(data.varNames, 'ntrl'))
     garr_xvy = data.garr_xvy(:,strcmp(data.varNames, 'ntrl'),:) ;
