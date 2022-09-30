@@ -8,10 +8,12 @@
 % evenly among all stands.
 
 list_lu = {'NATURAL', 'CROPLAND', 'PASTURE', 'FOREST'} ;
+% list_lu = {'NATURAL', 'PASTURE'} ;
 list_forest = {'forC'} ;
 
 % When is the year for which we want the first outputs from the experimental stands?
 y1_expt_list = 1850:20:2090 ;
+% y1_expt_list = 1850 ;
 
 % Which land use versions are we using?
 remapVer = '10_g2p' ; % CerealsC3, CerealsC4, Rice, OilNfix, OilOther, 
@@ -22,6 +24,7 @@ remapVer = '10_g2p' ; % CerealsC3, CerealsC4, Rice, OilNfix, OilOther,
 use_historical_lu = true ;
 
 dir_out = sprintf('/Users/Shared/LandSyMM/inputs/LU_20220209/%s', remapVer) ;
+% dir_out = sprintf('/Users/Shared/LandSyMM/inputs/LU_20220928_justNtrlPast/%s', remapVer) ;
 
 % Output behaviors/settings
 outPrec = 6 ;
@@ -36,6 +39,12 @@ fancy = false ;
 % Create output directory, if needed
 if ~exist(dir_out, 'dir')
     mkdir(dir_out)
+end
+
+if any(strcmp(list_lu, 'FOREST'))
+    Nforest = length(list_forest) ;
+else
+    Nforest = 0 ;
 end
 
 
@@ -230,12 +239,15 @@ for y1_expt = y1_expt_list_desc
     lu_out.garr_xvy(:,:,end+1) = 0 ;
     lu_out.garr_xvy(:,strcmp(lu_out.varNames,'PASTURE'),end) = 1 ;
     Nlu_out = length(list_lu) ;
-    Nforest = length(list_forest) ;
-    thisDenom = Nlu_out - 1 + Nforest ;
     lu_out.yearList(end+1) = y0_expt ;
-    lu_out.garr_xvy(:,:,end+1) = 1 / thisDenom ;
-    lu_out.garr_xvy(:,strcmp(lu_out.varNames,'FOREST'),end) = ...
-        Nforest / thisDenom ;
+    if Nforest > 0
+        thisDenom = Nlu_out - 1 + Nforest ;
+        lu_out.garr_xvy(:,:,end+1) = 1 / thisDenom ;
+        lu_out.garr_xvy(:,strcmp(lu_out.varNames,'FOREST'),end) = ...
+            Nforest / thisDenom ;
+    else
+        lu_out.garr_xvy(:,:,end+1) = 1 / Nlu_out ;
+    end
 
     % Sanity checks
     if ~isequal(sort(list_lu), sort(lu_out.varNames))
