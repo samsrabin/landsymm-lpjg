@@ -111,12 +111,13 @@ if use_historical_lu
         cf_out.varNames(is_unneeded) = [] ;
     end
     
-    % Ensure that every cell has at least some crop
+    % Ensure that every cell has at least some CerealsC3
     minCrop = 10^-outPrec ;
     noCrop_x1y = lu_out.garr_xvy(:,strcmp(lu_out.varNames, 'CROPLAND'),:) < minCrop ;
     never_cropped = all(noCrop_x1y, 3) ;
     cf_out.garr_xv(never_cropped,:) = 0 ;
-    cf_out.garr_xv(never_cropped, strcmp(cf_out.varNames, 'CerealsC3')) = 1 ;
+    i_CerealsC3 = find(strcmp(cf_out.varNames, 'CerealsC3')) ;
+    cf_out.garr_xv(never_cropped, i_CerealsC3) = 1 ;
     if any(noCrop_x1y(:))
         if any(any(abs(sum_to_1_test) > 10^-outPrec))
             error('Land use fractions do not sum to 1 (max abs. deviation %g) before ensuring that every cell has at least some crop', max(max(abs(sum_to_1_test))))
@@ -135,6 +136,32 @@ if use_historical_lu
     if any(any(abs(sum_to_1_test) > 10^-outPrec))
         error('Land use fractions do not sum to 1 (max abs. deviation %g)', max(max(abs(sum_to_1_test))))
     end
+    needsCerealsC3 = cf_out.garr_xv(:, strcmp(cf_out.varNames, 'CerealsC3')) == 0 ;
+    if any(needsCerealsC3)
+        maxCropArea = max(cf_out.garr_xv, [], 2) ;
+        for c = 1:length(cf_out.varNames)
+            thisCrop = cf_out.varNames{c} ;
+            if strcmp(thisCrop, 'CerealsC3')
+                continue
+            end
+            thisIsMax = cf_out.garr_xv(:,c) == maxCropArea ;
+            if ~any(thisIsMax & needsCerealsC3)
+                continue
+            end
+            cf_out.garr_xv(thisIsMax & needsCerealsC3, i_CerealsC3) = minCrop ;
+            cf_out.garr_xv(thisIsMax & needsCerealsC3, c) = ...
+                cf_out.garr_xv(thisIsMax & needsCerealsC3, c) - minCrop ;
+
+            needsCerealsC3 = cf_out.garr_xv(:, strcmp(cf_out.varNames, 'CerealsC3')) == 0 ;
+            if ~any(needsCerealsC3)
+                break
+            end
+        end
+    end
+    if any(needsCerealsC3)
+        error('Some cell(s) still missing CerealsC3?')
+    end
+
     
     % Add zeros for missing LUs
     lu_out = add_zeros_for_missing_LUs(list_lu, lu_out) ;
