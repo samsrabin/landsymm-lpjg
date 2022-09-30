@@ -5,8 +5,13 @@
 
 % topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014/output-2022-04-15-182232' ;
 % topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany/output-2022-04-26-233030' ;
-% topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc/output-2022-04-27-002417' ;
-topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc_oldprodpart/output-2022-04-27-004851' ;
+% % topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc/output-2022-04-27-002417' ;
+% topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc/output-2022-04-29-002917' ;
+topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc/output-2022-04-30-020741' ;
+% topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc_oldprodpart/output-2022-04-27-004851' ;
+% topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc_nodist/output-2022-04-28-003731' ;
+% topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc_100patch/output-2022-04-28-011523' ;
+% topDir = '/Users/Shared/landsymm_forestry/1970past/1850-2014_germany_nohistluc_nodistFor/output-2022-04-28-014114' ;
 estYr = 1970 ;
 
 LUlist = {'forC', 'ntrl'} ;
@@ -33,6 +38,19 @@ cmass_wood = lpjgu_matlab_read2geoArray(sprintf('%s/cmass_wood_sts.out', topDir)
 % cmass_wood_potharv
 cmass_wood_potharv = lpjgu_matlab_read2geoArray(sprintf('%s/cmass_wood_potharv_sts.out', topDir)) ;
 
+% burned area
+try
+    ba = lpjgu_matlab_read2geoArray(sprintf('%s/ba_sts.out', topDir)) ;
+catch ME
+    warning(ME.identifier, 'Burned area not imported: %s', ME.message)
+end
+
+% disturbance
+try
+    dist = lpjgu_matlab_read2geoArray(sprintf('%s/dist_sts.out', topDir)) ;
+catch ME
+    warning(ME.identifier, 'Disturbed area not imported: %s', ME.message)
+end
 disp('Done importing.')
 
 
@@ -69,6 +87,58 @@ for L = 1:Nlu
     sgtitle(bbox_name, 'FontSize', fontSize+4, 'FontWeight', 'bold')
 
 end
+
+
+%% Time series for low-biomass cells
+
+lowThresh = 0.1 ; % Are "low" if <= this
+thisYr = estYr + 44 ;
+biomass = cmass_wood ; biomassVar = 'cmass wood' ; biomass_units = 'kgC m^{-2}' ;
+% S = cmass_wood ; thisVar = 'cmass wood' ; units = 'kgC m^{-2}'
+% S = ba ; thisVar = 'burned area' ; units = 'frac. of stand' ;
+S = dist ; thisVar = 'disturbed area' ; units = 'frac. of stand' ;
+thisLU = 'ntrl' ;
+thisPos = [86   549   928   420] ;
+
+% Country bounding boxes: https://gist.github.com/graydon/11198540
+bbox = [] ; % Use all cells
+% bbox = [5.98865807458, 47.3024876979, 15.0169958839, 54.983104153] ; bbox_name = 'Germany' ;
+
+% Grid data
+L = find(strcmp(thisLU, 'ntrl')) ;
+[thisMap, xlims, ylims] = get_thisMap(biomass, thisLU, thisYr, L, bbox) ;
+
+% Grid lon/lat
+lonlims = -180.25 + 0.5*xlims ;
+latlims = -90.25 + 0.5*ylims ;
+lonvec = lonlims(1):0.5:lonlims(2) ;
+latvec = transpose(latlims(1):0.5:latlims(2)) ;
+Nlon = length(lonvec) ;
+Nlat = length(latvec) ;
+lons_yx = repmat(lonvec, [Nlat 1]) ;
+lats_yx = repmat(latvec, [1 Nlon]) ;
+
+% Extract lon/lat of low-biomass cells
+I_map = find(thisMap <= 0.1) ;
+low_lons = lons_yx(I_map) ;
+low_lats = lats_yx(I_map) ;
+I = nan(size(low_lons)) ;
+for x = 1:length(low_lons)
+    thisLon = low_lons(x) ;
+    thisLat = low_lats(x) ;
+%     fprintf('lon %g, lat %g\n', thisLon, thisLat)
+    I(x) = find(S.lonlats(:,1)==thisLon & S.lonlats(:,2)==thisLat) ;
+end
+
+figure('Color', 'w', 'Position', thisPos) ;
+[~, ~, ~, this_xy] = get_thisMap(S, thisLU, thisYr, L, bbox) ;
+plot(S.yearList, this_xy(I,:))
+xlabel('Year')
+ylabel(units)
+title(strrep(sprintf('%s %s, cells w/ %s %d value <= %g %s', thisLU, thisVar, biomassVar, thisYr, lowThresh, biomass_units), '_', '\_'))
+set(gca, 'FontSize', 14)
+
+
 
 
 %% Scatter plot for a bounding box, same-year same-LU
@@ -133,10 +203,7 @@ end
 
 end
 
-
-function make_map(ny, nx, n, S, thisLU, L, thisYr, title_var, fontSize, bbox, spacing)
-
-subplot_tight(ny, nx, n, spacing) ;
+function [thisMap, xlims, ylims, this_xy] = get_thisMap(S, thisLU, thisYr, L, bbox)
 
 y = find(S.yearList == thisYr) ;
 if length(y) ~= 1
@@ -145,15 +212,26 @@ end
 
 if isfield(S, 'garr_xvy')
     v = find(strcmp(S.varNames, thisLU)) ;
-    thisMap = lpjgu_vector2map(S.garr_xvy(:,v,y), [360 720], S.list2map) ;
+    this_xy = squeeze(S.garr_xvy(:,v,:)) ;
 else
     v = find(strcmp(S.varNames, 'to_forC')) ;
     if length(v) ~= 1
         error('Expected to find 1 match of to_forC in S.varNames; found %d', length(v))
     end
-    thisMap = lpjgu_vector2map(S.garr_xvyL(:,v,y,L), [360 720], S.list2map) ;
+    this_xy = squeeze(S.garr_xvyL(:,v,:,L)) ;
 end
-thisMap = crop_to_bbox(thisMap, bbox) ;
+thisVec = this_xy(:,y) ;
+thisMap = lpjgu_vector2map(thisVec, [360 720], S.list2map) ;
+[thisMap, xlims, ylims] = crop_to_bbox(thisMap, bbox) ;
+
+end
+
+
+function make_map(ny, nx, n, S, thisLU, L, thisYr, title_var, fontSize, bbox, spacing)
+
+subplot_tight(ny, nx, n, spacing) ;
+
+thisMap = get_thisMap(S, thisLU, thisYr, L, bbox);
 
 pcolor(thisMap); shading flat; axis equal tight
 colorbar
@@ -163,12 +241,15 @@ set(gca, 'FontSize', fontSize)
 end
 
 
-function thisMap = crop_to_bbox(thisMap, bbox)
+function [thisMap, xlims, ylims] = crop_to_bbox(thisMap, bbox)
 
 lon_to_x = @(x) (x+180)*2 ;
 lat_to_y = @(x) (x+90)*2 ;
 
-if ~isempty(bbox)
+if isempty(bbox)
+    xlims = [1 size(thisMap, 2)] ;
+    ylims = [1 size(thisMap, 1)] ;
+else
     xlims = [max(1,floor(lon_to_x(bbox(1)))-1) min(720,ceil(lon_to_x(bbox(3)))+1)] ;
     ylims = [max(1,floor(lat_to_y(bbox(2)))-1) min(360,ceil(lat_to_y(bbox(4)))+1)] ;
     thisMap = thisMap(ylims(1):ylims(2),xlims(1):xlims(2)) ;
@@ -258,3 +339,4 @@ xlabel(xlab)
 ylabel(ylab)
 set(gca, 'FontSize', 14)
 end
+
