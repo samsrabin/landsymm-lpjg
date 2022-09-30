@@ -1,6 +1,7 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Re-map area/fert data to PLUM crops, and generate extra LU file %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Like remap_v10_g2p_garr.m, but expand gridlist to match climate mask %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sam Rabin, 2022-09-30
 
 %%%%% Sam Rabin, 2021-02-05
 % See previous notes for remap_v9_g2p, with the following changes:
@@ -15,8 +16,8 @@ thisVer = 'WithFruitVeg_sepSugar_sepOil' ;
 
 force_all_rainfed = false ;
 
-remapVer = '10_g2p' ;
-out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/',remapVer) ;
+remapVer = '10_g2p_isimipclimMask' ;
+out_dir = sprintf('/Users/Shared/LandSyMM/inputs/LU/remaps_v%s/',remapVer) ;
 
 
 %% Setup
@@ -58,13 +59,6 @@ if min(yearList_out) < min(yearList_luh2_mgmts) || max(yearList_out) > max(yearL
     error('yearList_out must be entirely contained within yearList_luh2_mgmts!')
 end
 
-% Get output gridlist
-file_gridlist = '/Volumes/Reacher/G2P/inputs/gridlist/gridlist_62892.runAEclimOK.txt' ;
-fprintf('initial gridlist: %s\n', file_gridlist) ;
-gridlist = lpjgu_matlab_read2geoArray(file_gridlist, ...
-    'verboseIfNoMat',true) ;
-Ncells = length(gridlist.list2map) ;
-
 % Get info for reading input files
 [~,yearIs_luh2_states,~] = intersect(yearList_luh2_states,yearList_out) ;
 starts_luh2_states = [1 1 min(yearIs_luh2_states)] ;
@@ -100,6 +94,26 @@ warning('Should work out specification of mapping with check for duplicates on L
 warning('on','all')
 
 
+%% Get climate mask and gridlist
+
+climate_file = '/Users/Shared/GGCMI/AgMIP.input/phase3/ISIMIP3/climate_land_only/climate3b/historical/UKESM1-0-LL-lpjg/ukesm1-0-ll_r1i1p1f2_w5e5_historical_pr_global_daily_1850_2014.nc4' ;
+fprintf('Reading land mask from first timestep of %s', climate_file)
+tmp = ncread(climate_file, 'pr', [1 1 1], [Inf Inf 1]) ;
+tmp = flip(transpose(tmp), 1) ;
+climate_ok_YX = ~isnan(tmp) ;
+shademap(climate_ok_YX)
+disp('Done reading climate file.')
+
+% Save to gridlist
+file_gridlist = sprintf('%sgridlist.remapv%s.txt', out_dir, remapVer) ;
+lpjgu_saveMap2gridlist(climate_ok_YX, file_gridlist)
+
+% Read gridlist in expected format
+gridlist = lpjgu_matlab_read2geoArray(file_gridlist, ...
+    'verboseIfNoMat', true, 'force_mat_save', false, 'force_mat_nosave', true) ;
+Ncells = length(gridlist.list2map) ;
+
+
 %% Import land uses
 
 disp('Importing land uses...')
@@ -108,11 +122,9 @@ fprintf('  file_luh2_states: %s\n', file_luh2_states) ;
 % Import cell area (km2); aggregate to half-degree
 file_luh2_etc = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 fprintf('file_luh2_etc: %s\n', file_luh2_etc) ;
-carea_XY = ncread(file_luh2_etc,'carea') ;
-carea_YX = flipud(transpose(carea_XY)) ;
-carea_YX = coarsen_res(carea_YX,0.25,0.5) ;
-carea = rmfield(gridlist, 'mask_YX') ;
-carea.garr_x = carea_YX(gridlist.mask_YX) ;
+larea = import_staticData(file_luh2_etc, 'icwtr', gridlist) ;
+larea.garr_x = 1 - larea.garr_x ;
+carea = import_staticData(file_luh2_etc, 'carea', gridlist) ;
 carea_XYy = repmat(carea_XY,[1 1 Nyears_out]) ;
 carea_hd_XY = coarsen_res(carea_XY,0.25,0.5) ;
 carea_hd_XYy = repmat(carea_hd_XY,[1 1 Nyears_out]) ;
@@ -161,9 +173,10 @@ v = strcmp(list_LU_out,'BARREN') ;
 out_lu.garr_xvy(:,v,:) = out_lu.garr_xvy(:,v,:) ...
     + repmat(icwtr_hd_x,[1 1 Nyears_out]) ;
 
-% Mask cells with no vegetated land
+% Mask cells with no vegetated land according to LU dataset
 bad_x = out_lu.garr_xvy(:,4,1)==1 ;
 if any(bad_x)
+    error('Decide how you want to handle masking of cells with no vegetated land.')
     fprintf('Removing %d cells with no vegetated land...\n', length(find(bad_x))) ;
     out_lu.garr_xvy(bad_x,:,:) = [] ;
     out_lu.list2map(bad_x) = [] ;
@@ -189,6 +202,10 @@ clear lu_out_x1y
 
 disp('Done.')
 
+%%
+tmp_x = any(any(isnan(out_lu.garr_xvy), 3), 2) ;
+% tmp_x = any(any(isnan(out_lu.garr_xvy), 3), 2) & larea.garr_x>0 ;
+shademap(lpjgu_vector2map(tmp_x, [360 720], gridlist.list2map));
 
 %% Import crop fractions and process crop types
 
@@ -313,8 +330,8 @@ for c = 1:Ncrops_out
     list_crops_out_asNfert{c} = thisCrop_in ;
 end
 
-out_nfert.varNames = list_crops_out ;
-out_nfert.garr_xv = nan([Ncells Ncrops_out]) ;
+mid_nfert.varNames = list_crops_out ;
+mid_nfert.garr_xv = nan([Ncells Ncrops_out]) ;
 list_cropsCombined_nfert_in = unique(list_crops_out_asNfert) ;
 for c = 1:length(list_cropsCombined_nfert_in)
     thisCrop_in = list_cropsCombined_nfert_in{c} ;
@@ -322,56 +339,47 @@ for c = 1:length(list_cropsCombined_nfert_in)
         nfert_dir, thisCrop_in) ;
     in_YX = flipud(transpose(ncread(thisFile, 'Napprate'))) ;
 
-    % Trim gridlist if missing from fertilizer data
+    % Note climate cells missing from fertilizer
     isbad_x = isnan(in_YX(gridlist.list2map)) ;
     if any(isbad_x)
         I_bad = find(isbad_x) ;
-        warning('Removing %d cells that are NaN in %s fertilizer', ...
+        warning('%d climate cells are missing from fertilizer for %s', ...
             length(I_bad), thisCrop_in)
-        out_lu.garr_xvy(I_bad,:,:) = [] ;
-        out_lu.list2map(I_bad) = [] ;
-        out_lu.lonlats(I_bad,:) = [] ;
-        croparea_in.garr_xv(I_bad,:) = [] ;
-        out_nfert.garr_xv(I_bad,:) = [] ;
-        gridlist.mask_YX(gridlist.list2map(I_bad)) = false ;
-        gridlist.list2map(I_bad) = [] ;
-        gridlist.lonlats(I_bad,:) = [] ;
-        Ncells = length(gridlist.list2map) ;
     end
 
     v = find(strcmp(list_crops_out_asNfert, thisCrop_in)) ;
-    out_nfert.garr_xv(:,v) = repmat(in_YX(gridlist.list2map), [1 length(v)]) ;
+    mid_nfert.garr_xv(:,v) = repmat(in_YX(gridlist.list2map), [1 length(v)]) ;
 end
-out_nfert.list2map = gridlist.list2map ;
-out_nfert.lonlats = gridlist.lonlats ;
+mid_nfert.list2map = gridlist.list2map ;
+mid_nfert.lonlats = gridlist.lonlats ;
 
 % Get indices of irrigated crops (for troubleshooting)
 ir_inds = [] ;
-for c = 1:length(out_nfert.varNames)
-    thisCrop = out_nfert.varNames{c} ;
+for c = 1:length(mid_nfert.varNames)
+    thisCrop = mid_nfert.varNames{c} ;
     thisCropI = [thisCrop 'i'] ;
-    ir_inds = [ir_inds find(strcmp(out_nfert.varNames,thisCropI))] ;
+    ir_inds = [ir_inds find(strcmp(mid_nfert.varNames,thisCropI))] ;
 end
 Nirr = length(ir_inds) ;
-isIr = false(size(out_nfert.varNames)) ;
+isIr = false(size(mid_nfert.varNames)) ;
 isIr(ir_inds) = true ;
 isRf = ~isIr ;
 rf_inds = find(isRf) ;
 
 % Make sure that rainfed and irrigated fertilization is equal
 for i = rf_inds
-    thisCrop = out_nfert.varNames{i} ;
+    thisCrop = mid_nfert.varNames{i} ;
     thisCropI = [thisCrop 'i'] ;
-    if any(strcmp(out_nfert.varNames,thisCropI))
-        j = find(strcmp(out_nfert.varNames,thisCropI)) ;
-        tmpRF = out_nfert.garr_xv(:,i) ;
-        tmpIR = out_nfert.garr_xv(:,j) ;
+    if any(strcmp(mid_nfert.varNames,thisCropI))
+        j = find(strcmp(mid_nfert.varNames,thisCropI)) ;
+        tmpRF = mid_nfert.garr_xv(:,i) ;
+        tmpIR = mid_nfert.garr_xv(:,j) ;
         tmpRF(isnan(tmpRF)) = -1 ;
         tmpIR(isnan(tmpIR)) = -1 ;
         nbad = length(find(tmpRF ~= tmpIR)) ;
         if nbad>0
             error('%s (%d,%d):\t %d\n', ...
-                pad(thisCrop,max(cellfun(@length,out_nfert.varNames))), ...
+                pad(thisCrop,max(cellfun(@length,mid_nfert.varNames))), ...
                 i,j,nbad)
         end
         clear tmpRF tmpIR
@@ -383,10 +391,7 @@ end
 disp('Rainfed and irrigated fertilization is equal.')
 
 % Convert from kg/ha to kg/m2
-out_nfert.garr_xv = out_nfert.garr_xv * 1e-4 ;
-
-% Fill NaNs with zero
-out_nfert.garr_xv(isnan(out_nfert.garr_xv)) = 0 ;
+mid_nfert.garr_xv = mid_nfert.garr_xv * 1e-4 ;
 
 disp('Done.')
 
@@ -424,14 +429,14 @@ Ncrops_out = length(list_crops_out) ;
 % Get fractions
 cropfrac_mid.garr_xv = croparea_mid.garr_xv ./ repmat(sum(croparea_mid.garr_xv,2),[1 Ncrops_out]) ;
 
-% Interpolate
-%%% Need to do this because the LUH2 crop fraction can sometimes be
-%%% positive even where MIRCA has no crop information. The alternative
-%%% would be to set LUH2 crop fraction to zero there. Probably doesn't make
-%%% a huge difference either way, because LUH2 crop area is usually small.
-out_cropfrac.varNames = list_crops_out ;
-out_cropfrac.list2map = gridlist.list2map ;
-out_cropfrac.lonlats = gridlist.lonlats ;
+disp('Done.')
+
+
+%% Interpolate land use inputs to climate mask
+
+disp('Interpolating to match climate mask...')
+
+out_cropfrac.varNames = cropfrac_mid ;
 out_cropfrac.garr_xv = nan(Ncells,Ncrops_out) ;
 % For checking how much this increases global area of each crop relative to
 % what it would have been if, instead of interpolating, we set LUH2 crop
@@ -702,6 +707,17 @@ end
 % Where there is no area, set mgmt to NaN
 out_array(outArea_array==0) = NaN ;
 
+
+end
+
+
+function S = import_staticData(file_luh2_etc, varName, gridlist)
+
+map_XY = ncread(file_luh2_etc, varName) ;
+map_YX = flipud(transpose(map_XY)) ;
+map_YX = coarsen_res(map_YX,0.25,0.5) ;
+S = rmfield(gridlist, 'mask_YX') ;
+S.garr_x = map_YX(gridlist.mask_YX) ;
 
 end
 
