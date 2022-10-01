@@ -16,7 +16,7 @@ thisVer = 'WithFruitVeg_sepSugar_sepOil' ;
 
 force_all_rainfed = false ;
 
-remapVer = '10_g2p_isimipclimMask' ;
+remapVer = '10_old_57824_gL' ;
 out_dir = sprintf('/Users/Shared/LandSyMM/inputs/LU/remaps_v%s/',remapVer) ;
 
 
