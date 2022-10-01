@@ -16,15 +16,17 @@ y1_expt_list = 1850:20:2090 ;
 % y1_expt_list = 1850 ;
 
 % Which land use versions are we using?
-remapVer = '10_g2p' ; % CerealsC3, CerealsC4, Rice, OilNfix, OilOther, 
-                      % StarchyRoots, Pulses, Sugarbeet, Sugarcane, 
-                      % FruitAndVeg
+% remapVer = '10_g2p' ; % CerealsC3, CerealsC4, Rice, OilNfix, OilOther, 
+%                       % StarchyRoots, Pulses, Sugarbeet, Sugarcane, 
+%                       % FruitAndVeg
+remapVer = '10_old_62892_gL' ; % As above, but interpolating everything to 62892 gridlist
 
 % No historical land use?
 use_historical_lu = true ;
 
-dir_out = sprintf('/Users/Shared/LandSyMM/inputs/LU_20220209/%s', remapVer) ;
+% dir_out = sprintf('/Users/Shared/LandSyMM/inputs/LU_20220209/%s', remapVer) ;
 % dir_out = sprintf('/Users/Shared/LandSyMM/inputs/LU_20220928_justNtrlPast/%s', remapVer) ;
+dir_out = sprintf('/Users/Shared/LandSyMM/inputs/LU/remaps_v%s', remapVer) ;
 
 % Output behaviors/settings
 outPrec = 6 ;
@@ -57,6 +59,8 @@ verbose = false ;
 if contains(remapVer, '_g2p')
     LUdir = sprintf('/Users/Shared/G2P/inputs/LU/remaps_v%s', ...
         remapVer) ;
+elseif contains(dir_out, 'remaps')
+    LUdir = dir_out ;
 else
     LUdir = sprintf('/Users/Shared/PLUM/input/remaps_v%s', ...
         remapVer) ;
@@ -90,6 +94,16 @@ else
 end
 
 disp('Done.')
+
+if any(any(any(isnan(lu_in.garr_xvy))))
+    error('NaN in lu_in')
+elseif any(any(any(lu_in.garr_xvy < 0)))
+    error('Negative in lu_in')
+elseif any(any(isnan(cf_in.garr_xv)))
+    error('NaN in cf_in')
+elseif any(any(cf_in.garr_xv < 0))
+    error('Negative in cf_in')    
+end
 
 
 %% Set up output structures
@@ -175,6 +189,16 @@ if use_historical_lu
     % Add zeros for missing LUs
     lu_out = add_zeros_for_missing_LUs(list_lu, lu_out) ;
 
+end
+
+if any(any(any(isnan(lu_out.garr_xvy))))
+    error('NaN in lu_out')
+elseif any(any(any(lu_out.garr_xvy < 0)))
+    error('Negative in lu_out')
+elseif any(any(isnan(cf_out.garr_xv)))
+    error('NaN in cf_out')
+elseif any(any(cf_out.garr_xv < 0))
+    error('Negative in cf_out')    
 end
 
 disp('Done.')
