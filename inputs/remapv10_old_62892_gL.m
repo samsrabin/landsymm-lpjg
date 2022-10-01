@@ -16,7 +16,7 @@ thisVer = 'WithFruitVeg_sepSugar_sepOil' ;
 
 force_all_rainfed = false ;
 
-remapVer = '10_old_57824_gL' ;
+remapVer = '10_old_62892_gL' ;
 out_dir = sprintf('/Users/Shared/LandSyMM/inputs/LU/remaps_v%s/',remapVer) ;
 
 
@@ -96,9 +96,9 @@ warning('on','all')
 
 %% Get gridlist
 
-file_gridlist = '/Users/Shared/LandSyMM/inputs/gridlists/gridlist_57824_2019runs.txt' ;
+file_gridlist = '/Users/Shared/LandSyMM/inputs/gridlists/gridlist_62892.runAEclimOK.txt' ;
 gridlist = lpjgu_matlab_read2geoArray(file_gridlist, ...
-    'verboseIfNoMat', true, 'force_mat_save', false, 'force_mat_nosave', true) ;
+    'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
 Ncells = length(gridlist.list2map) ;
 
 
@@ -413,31 +413,50 @@ list_crops_out = [list_crops_out {'ExtraCrop'}]  ;
 Ncrops_out = length(list_crops_out) ;
 
 % Get fractions
-cropfrac_mid.garr_xv = croparea_mid.garr_xv ./ repmat(sum(croparea_mid.garr_xv,2),[1 Ncrops_out]) ;
+mid_cropfrac.garr_xv = croparea_mid.garr_xv ./ repmat(sum(croparea_mid.garr_xv,2),[1 Ncrops_out]) ;
+mid_cropfrac.varNames = list_crops_out ;
+mid_cropfrac.list2map = gridlist.list2map ;
+mid_cropfrac.lonlats = gridlist.lonlats ;
 
 disp('Done.')
 
 
-%% Interpolate land use inputs to climate mask
+%% Interpolate land use inputs to gridlist
 
-disp('Interpolating to match climate mask...')
+disp('Interpolating to match gridlist...')
 
-out_cropfrac.varNames = cropfrac_mid ;
+% Make figures illustrating what will be interpolated
+isbad_YX = map_missing(out_lu.garr_xvy, gridlist, 'LU') ;
+if any(isbad_YX(:))
+    error('You also need to interpolate land use')
+end
+map_missing(mid_cropfrac.garr_xv, gridlist, 'cropfrac') ;
+map_missing(mid_nfert.garr_xv, gridlist, 'nfert') ;
+
+%% Set up output structures
+out_cropfrac = mid_cropfrac ;
 out_cropfrac.garr_xv = nan(Ncells,Ncrops_out) ;
-% For checking how much this increases global area of each crop relative to
+out_nfert = mid_nfert ;
+out_nfert.garr_xv = nan(Ncells,Ncrops_out) ;
+
+% For checking how much this increases global area/nfert of each crop relative to
 % what it would have been if, instead of interpolating, we set LUH2 crop
-% area to zero.
+% area/nfert to zero.
 test_y1 = 1995 ;
 test_yN = 2005 ;
+% km2
 test_croparea_x = mean(out_lu.garr_xvy(:, strcmp(out_lu.varNames, 'CROPLAND'), ...
     yearList_out>=test_y1 & yearList_out<=test_yN),3) ...
     .* carea_YX(gridlist.list2map) ;
+
+% Interpolate
 for c = 1:Ncrops_out
     thisCrop = list_crops_out{c} ;
     fprintf('Interpolating %s (%d of %d)...\n',thisCrop, c, Ncrops_out)
-    tmp0_YX = lpjgu_xz_to_YXz(cropfrac_mid.garr_xv(:,c), size(gridlist.mask_YX), gridlist.list2map) ;
+
+    % cropfrac
+    tmp0_YX = lpjgu_xz_to_YXz(mid_cropfrac.garr_xv(:,c), size(gridlist.mask_YX), gridlist.list2map) ;
     tmp1_YX = inpaint_nans(tmp0_YX, inpaint_method) ;
-    
     tmp0_YX(isnan(tmp0_YX)) = 0 ;
     area0 = sum(test_croparea_x .* tmp0_YX(gridlist.list2map)) ;
     area1 = sum(test_croparea_x .* tmp1_YX(gridlist.list2map)) ;
@@ -450,6 +469,31 @@ for c = 1:Ncrops_out
         error('NaN remaining in out_cropfrac.garr_xv(:,c)!')
     end
     clear tmp*
+
+    % nfert
+    c2 = find(strcmp(mid_nfert.varNames, thisCrop)) ;
+    if length(c2) == 1
+        tmp0_YX = lpjgu_xz_to_YXz(mid_nfert.garr_xv(:,c2), size(gridlist.mask_YX), gridlist.list2map) ;
+        tmp1_YX = inpaint_nans(tmp0_YX, inpaint_method) ;
+        tmp0_YX(isnan(tmp0_YX)) = 0 ;
+        % convert kg/m2 to t/km2 to t
+        nfert0 = nansum(test_croparea_x*1e6 .* out_cropfrac.garr_xv(:,c2) .* tmp0_YX(gridlist.list2map)*1e-3) ;
+        nfert1 = sum(test_croparea_x*1e6 .* out_cropfrac.garr_xv(:,c2) .* tmp1_YX(gridlist.list2map)*1e-3) ;
+        nfertDiff = nfert1 - nfert0 ; 
+        nfertDiff_pct = nfertDiff / nfert0 * 100 ;
+        fprintf('    Nfert increased %0.2f%% (%0.1g t)\n', ...
+            nfertDiff_pct, nfertDiff) ;
+        out_nfert.garr_xv(:,c2) = tmp1_YX(gridlist.list2map) ;
+        if any(isnan(out_nfert.garr_xv(:,c2)))
+            error('NaN remaining in out_nfert.garr_xv(:,c2)!')
+        end
+        clear tmp*
+    elseif isempty(c2)
+        fprintf('    No Nfert for %s\n', thisCrop)
+    else
+        error('%d matches found in varNames for %s', length(c2), thisCrop)
+    end
+        
 end
 
 % % % disp('Interpolating include_frac...')
@@ -461,10 +505,10 @@ if any(out_cropfrac.garr_xv(:)<0)
     warning('Setting negative members of out_cropfrac.garr_xv to zero.')
     out_cropfrac.garr_xv(out_cropfrac.garr_xv<0) = 0 ;
 end
-% % % if any(map_include_frac_interpd_YX(:)<0)
-% % %     warning('Setting negative members of map_include_frac_interpd_YX to zero.')
-% % %     map_include_frac_interpd_YX(map_include_frac_interpd_YX<0) = 0 ;
-% % % end
+if any(out_nfert.garr_xv(:)<0)
+    warning('Setting negative members of out_nfert.garr_xv to zero.')
+    out_nfert.garr_xv(out_nfert.garr_xv<0) = 0 ;
+end
 
 % Normalize cropfrac to 1, if needed
 tmp = sum(out_cropfrac.garr_xv,2) ;
@@ -697,13 +741,16 @@ out_array(outArea_array==0) = NaN ;
 end
 
 
-function S = import_staticData(file_luh2_etc, varName, gridlist)
+function isbad_YX = map_missing(garr, gridlist, thisTitle)
 
-map_XY = ncread(file_luh2_etc, varName) ;
-map_YX = flipud(transpose(map_XY)) ;
-map_YX = coarsen_res(map_YX,0.25,0.5) ;
-S = rmfield(gridlist, 'mask_YX') ;
-S.garr_x = map_YX(gridlist.mask_YX) ;
+isbad_x = isnan(garr) ;
+while length(find(size(isbad_x)>1)) > 1
+    isbad_x = squeeze(any(isbad_x, 2)) ;
+end
+
+isbad_YX = lpjgu_vector2map(isbad_x, size(gridlist.mask_YX), gridlist.list2map) ;
+shademap(isbad_YX) ;
+title(thisTitle)
 
 end
 
