@@ -433,10 +433,10 @@ end
 map_missing(mid_cropfrac.garr_xv, gridlist, 'cropfrac') ;
 map_missing(mid_nfert.garr_xv, gridlist, 'nfert') ;
 
-%% Set up output structures
+% Set up output structures
 out_cropfrac = mid_cropfrac ;
 out_cropfrac.garr_xv = nan(Ncells,Ncrops_out) ;
-out_nfert = mid_nfert ;
+out_nfert = mid_cropfrac ;
 out_nfert.garr_xv = nan(Ncells,Ncrops_out) ;
 
 % For checking how much this increases global area/nfert of each crop relative to
@@ -471,9 +471,16 @@ for c = 1:Ncrops_out
     clear tmp*
 
     % nfert
-    c2 = find(strcmp(mid_nfert.varNames, thisCrop)) ;
+    c2 = find(strcmp(out_nfert.varNames, thisCrop)) ;
     if length(c2) == 1
-        tmp0_YX = lpjgu_xz_to_YXz(mid_nfert.garr_xv(:,c2), size(gridlist.mask_YX), gridlist.list2map) ;
+        c3 = find(strcmp(mid_nfert.varNames, thisCrop)) ;
+        if length(c3) == 1
+            tmp0_YX = lpjgu_xz_to_YXz(mid_nfert.garr_xv(:,c3), size(gridlist.mask_YX), gridlist.list2map) ;
+        elseif isempty(c3)
+            tmp0_YX = zeros(size(gridlist.mask_YX)) ;
+        else
+            error('%d matches found in mid_nfert.varNames for %s', length(c2), thisCrop)
+        end
         tmp1_YX = inpaint_nans(tmp0_YX, inpaint_method) ;
         tmp0_YX(isnan(tmp0_YX)) = 0 ;
         % convert kg/m2 to t/km2 to t
@@ -488,10 +495,8 @@ for c = 1:Ncrops_out
             error('NaN remaining in out_nfert.garr_xv(:,c2)!')
         end
         clear tmp*
-    elseif isempty(c2)
-        fprintf('    No Nfert for %s\n', thisCrop)
     else
-        error('%d matches found in varNames for %s', length(c2), thisCrop)
+        error('%d matches found in out_nfert.varNames for %s', length(c2), thisCrop)
     end
         
 end
@@ -523,7 +528,19 @@ disp('Done.')
 
 %% Set up for save
 
-% Get headers
+% Check
+if any(any(isnan(out_cropfrac.garr_xv)))
+    error('NaN in out_cropfrac')
+elseif any(any(out_cropfrac.garr_xv < 0))
+    error('Negative out_cropfrac')
+elseif any(any(isnan(out_nfert.garr_xv)))
+    error('NaN in out_nfert')
+elseif any(any(out_nfert.garr_xv < 0))
+    error('Negative out_nfert')
+end
+
+
+%% Get headers
 out_lu_header_cell = [ ...
     {'Lon', 'Lat', 'Year'}, ...
     out_lu.varNames] ;
