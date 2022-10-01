@@ -122,9 +122,11 @@ fprintf('  file_luh2_states: %s\n', file_luh2_states) ;
 % Import cell area (km2); aggregate to half-degree
 file_luh2_etc = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 fprintf('file_luh2_etc: %s\n', file_luh2_etc) ;
-larea = import_staticData(file_luh2_etc, 'icwtr', gridlist) ;
-larea.garr_x = 1 - larea.garr_x ;
-carea = import_staticData(file_luh2_etc, 'carea', gridlist) ;
+carea_XY = ncread(file_luh2_etc,'carea') ;
+carea_YX = flipud(transpose(carea_XY)) ;
+carea_YX = coarsen_res(carea_YX,0.25,0.5) ;
+carea = rmfield(gridlist, 'mask_YX') ;
+carea.garr_x = carea_YX(gridlist.mask_YX) ;
 carea_XYy = repmat(carea_XY,[1 1 Nyears_out]) ;
 carea_hd_XY = coarsen_res(carea_XY,0.25,0.5) ;
 carea_hd_XYy = repmat(carea_hd_XY,[1 1 Nyears_out]) ;
@@ -202,10 +204,6 @@ clear lu_out_x1y
 
 disp('Done.')
 
-%%
-tmp_x = any(any(isnan(out_lu.garr_xvy), 3), 2) ;
-% tmp_x = any(any(isnan(out_lu.garr_xvy), 3), 2) & larea.garr_x>0 ;
-shademap(lpjgu_vector2map(tmp_x, [360 720], gridlist.list2map));
 
 %% Import crop fractions and process crop types
 
