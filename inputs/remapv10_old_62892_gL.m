@@ -102,6 +102,19 @@ gridlist = lpjgu_matlab_read2geoArray(file_gridlist, ...
 Ncells = length(gridlist.list2map) ;
 
 
+%% Get climate gridlist, just to see what's missing from it
+
+climate_gridlist = lpjgu_matlab_read2geoArray('/Users/Shared/LandSyMM/inputs/LU/remaps_v10_g2p_isimipclimMask/gridlist.remapv10_g2p_isimipclimMask.txt', ...
+    'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
+
+shademap(gridlist.mask_YX & ~climate_gridlist.mask_YX) ;
+title(sprintf('%d gridcells missing from climate', length(find(gridlist.mask_YX & ~climate_gridlist.mask_YX))))
+
+[C, IA] = setdiff(gridlist.list2map, climate_gridlist.list2map) ;
+missing_lonlats = gridlist.lonlats(IA, :) ;
+writematrix(missing_lonlats, sprintf('%smissing_climate.csv', out_dir))
+
+
 %% Import land uses
 
 disp('Importing land uses...')
