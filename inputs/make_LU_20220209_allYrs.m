@@ -244,10 +244,21 @@ for y1_expt = y1_expt_list_desc
         end
     end
 
+    % Fill with 2015 value from 2016 through (y1_past-2)
+    if y1_past - 2 > lu_out.yearList(end)
+        yearList_fill = ((lu_out.yearList(end)+1):(y1_past - 2))' ;
+        lu_out.yearList = cat(1, lu_out.yearList, yearList_fill) ;
+        lu_out.garr_xvy = cat(3, lu_out.garr_xvy, repmat(lu_out.garr_xvy(:,:,end), [1 1 length(yearList_fill)])) ;
+        if length(lu_out.yearList) ~= size(lu_out.garr_xvy, 3); error('Nyear mismatch'); end
+        if length(lu_out.yearList) > length(unique(lu_out.yearList))
+            error('Non-unique value(s) in lu_out.yearList after adding to end')
+        end
+    end
+
     % Add extra year, if needed
     if max(lu_out.yearList) < y1_past-1
         lu_out.garr_xvy = cat(3, lu_out.garr_xvy, lu_out.garr_xvy(:,:,end)) ;
-        lu_out.yearList(Nyears+1) = y1_past - 1 ;
+        lu_out.yearList(end+1) = y1_past - 1 ;
         Nyears = Nyears + 1 ;
         if length(lu_out.yearList) ~= size(lu_out.garr_xvy, 3); error('Nyear mismatch'); end
         if length(lu_out.yearList) > length(unique(lu_out.yearList))
