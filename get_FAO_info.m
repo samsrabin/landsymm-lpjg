@@ -485,6 +485,20 @@ elseif calib_ver==23
         %    Sugar cane
         %    Sugar non-centrifugal
     FAO_to_FAO_key2{getFi('FruitAndVeg')}    = {'Fruits - Excluding Wine','Vegetables'} ;
+elseif calib_ver==24
+%     error('Do this')
+    listCrops_fa2o = {'Wheat','Maize','Soybean','Rice'} ;
+    getFi = @(x)find(strcmp(listCrops_fa2o,x)) ;
+    % Get item names for PRODUCTION: CROPS dataset
+    FAO_to_FAO_key1{getFi('Wheat')}          = {'Wheat'} ;
+    FAO_to_FAO_key1{getFi('Maize')}          = {'Maize'} ;
+    FAO_to_FAO_key1{getFi('Rice')}           = {'Rice paddy'} ;
+    FAO_to_FAO_key1{getFi('Soybeans')}       = {'Soybeans'} ;
+    % Get item names for COMMODITY BALANCE: CROPS PRIMARY EQUIVALENT dataset
+    FAO_to_FAO_key2{getFi('Wheat')}          = {'Wheat and products'} ;
+    FAO_to_FAO_key2{getFi('Maize')}          = {'Maize and products'} ;
+    FAO_to_FAO_key2{getFi('Rice')}           = {'Rice (Paddy Equivalent)'} ;
+    FAO_to_FAO_key2{getFi('Soybeans')}       = {'Soyabeans'} ;
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
