@@ -1,5 +1,7 @@
 function land_area_YX_out = aggregate_land_area(land_area_YX_in,xres_out,yres_out)
 
+land_area_YX_in = double(land_area_YX_in) ;
+
 % Get info first
 xres_in = 360 / size(land_area_YX_in,2) ;
 yres_in = 180 / size(land_area_YX_in,1) ;
