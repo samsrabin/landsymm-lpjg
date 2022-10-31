@@ -25,11 +25,9 @@ if need_countries
         combine_subChinas, combine_subChinas_map, combine_serbmont] ...
         = get_FAOread_options(calib_ver) ;
     % Import country map and key
-    if ~exist(filename_countriesMap, 'file')
-        error('filename_countriesMap not found: %s', filename_countriesMap)
-    end
-    
-    if strcmp(filename_countriesMap,'country_boundaries62892.noNeg99.extrapd.asc')
+    if any(strcmp(filename_countriesMap, ...
+            {'country_boundaries62892.noNeg99.extrapd.asc', ...
+            'country_boundaries_f09_g17.noNeg99.extrapd.asc'}))
         PLUM_countries = true ;
     else
         PLUM_countries = false ;
@@ -53,7 +51,9 @@ else
 end
 
 % Import land area (km2)
-if calib_ver==17 % Put your calib_ver here if you want it to use MCD12C1-derived land area.
+if contains(filename_countriesMap, 'f09_g17')
+    error('Set up a land area file for f09_g17 resolution')
+elseif calib_ver==17 % Put your calib_ver here if you want it to use MCD12C1-derived land area.
     if xres ~= yres
         error('To use this land area map, xres must == yres.')
     end

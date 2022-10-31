@@ -105,6 +105,7 @@ drop_northpole = true ;
 drop_southpole = true ;
 lons_centered_on_180 = true ;
 in_prec = 5 ; % Actually 6, but rounding errors (?)
+filename_countriesMap = 'country_boundaries_f09_g17.noNeg99.extrapd.asc' ;
 
 
 %% Other options and setup
@@ -127,10 +128,15 @@ if ~exist('oilcrops_proxy_fruitveg_sugar', 'var')
 end
 
 % Country map file
-if strcmp(verName_calib, 'ani_test')
-    filename_countriesMap = 'ne_10m_admin_0_countries_ssrIDs_0.25deg.tif' ;
-else
-    filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
+if ~exist('filename_countriesMap', 'var')
+    if strcmp(verName_calib, 'ani_test')
+        filename_countriesMap = 'ne_10m_admin_0_countries_ssrIDs_0.25deg.tif' ;
+    else
+        filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
+    end
+end
+if ~exist('filename_countriesMap', 'file')
+    error('filename_countriesMap not found: %s', filename_countriesMap)
 end
 
 % Years for calibration
