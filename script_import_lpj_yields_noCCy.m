@@ -6,6 +6,8 @@ if strcmp(verName_calib,'stijn_20180119')
         error('When doing stijn_20180119, you must use calib_ver=11.')
     end
     listCrops_lpj_comb = {'TeWW','TeSW','TeCo','TrRi','TrSo','GlyM','FaBe'} ;
+elseif calib_ver < 0
+    error('calib_ver %d invalid', calib_ver)
 elseif calib_ver == 11
     error('calib_ver 11 only works with stijn_20180119.')
 elseif calib_ver == 12 || calib_ver == 15 || calib_ver == 16 || calib_ver == 18
@@ -193,7 +195,8 @@ if exist('filename_guess_yield', 'var')
     yieldCrops = get_cropsCombined(yield_lpj.varNames) ;
     missingCrops = setdiff(listCrops_lpj_comb, yieldCrops) ;
     if ~isempty(missingCrops)
-        error('Crop(s) missing from yield output!')
+        error('Crop(s) missing from yield output!\nMissing\n    %s\nfrom\n   %s', ...
+            strjoin(missingCrops, ', '), strjoin(yieldCrops, ', '))
     end
     
 elseif exist('dirname_emuBL_yields', 'var')
@@ -555,8 +558,10 @@ if ~any(strcmp(listCrops_lpj_comb, 'Miscanthus'))
 end
 
 % Make sure cropfrac_lpj and yield_lpj contain the same variables
-if ~isempty(setxor(cropfrac_lpj.varNames, yield_lpj.varNames))
-    error('Crops differ between cropfrac_lpj and yield_lpj')
+[C,IA,IB] = setxor(cropfrac_lpj.varNames, yield_lpj.varNames) ;
+if ~isempty(C)
+    error('Crops differ between cropfrac_lpj and yield_lpj.\nMissing from yield_lpj:\n    %s\nMissing from cropfrac_lpj:\n    %s', ...
+        strjoin(cropfrac_lpj.varNames(IA), ', '), strjoin(yield_lpj.varNames(IB), ', '))
 end
 
 % Rearrange cropfrac_lpj so that variables are in the same order as
