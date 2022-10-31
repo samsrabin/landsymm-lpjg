@@ -56,12 +56,12 @@
 % filename_guess_cropfrac = '/Users/Shared/jianyong_calib.20190128/crop_fractions_fromMIRCA_PLUM_1yr_midpoint_Stijn.txt' ;
 % calib_ver = 21 ;   % The version of mapping FAO to PLUM crop types
 
-% 2019-02-18
-verName_calib = 'remap5e' ;   % calib_ver = 18
-filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5e.1901-2005/output-2019-02-18-122738/yield.out.gz' ;
-filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
-filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
-calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
+% % 2019-02-18
+% verName_calib = 'remap5e' ;   % calib_ver = 18
+% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5e.1901-2005/output-2019-02-18-122738/yield.out.gz' ;
+% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
+% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
+% calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
 
 % % 2019-02-19
 % verName_calib = 'remap8a' ;   % calib_ver = 19
@@ -94,8 +94,33 @@ calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
 % filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8c/cropfracs.remapv8c.txt' ;
 % calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
 
+% 2022-10-30
+verName_calib = 'remap10_sai-landsymm' ;   % calib_ver = 18
+filename_guess_yield = '/Users/Shared/SAI-LandSyMM/output/remap10/calibration/output-2022-10-31-024406/yield_st.out.gz' ;
+filename_guess_landuse = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17/LU.remapv10_f09_g17.17249.txt' ;
+filename_guess_cropfrac = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17/cropfracs.remapv10_f09_g17.17249.txt' ;
+calib_ver = 23 ;   % The version of mapping FAO to PLUM crop types
+remapVer = '10' ;
+drop_northpole = true ;
+drop_southpole = true ;
+lons_centered_on_180 = true ;
+in_prec = 5 ; % Actually 6, but rounding errors (?)
+
 
 %% Other options and setup
+
+if ~exist('drop_northpole', 'var')
+    drop_northpole = false ;
+end
+if ~exist('drop_southpole', 'var')
+    drop_southpole = false ;
+end
+if ~exist('lons_centered_on_180', 'var')
+    lons_centered_on_180 = false ;
+end
+if ~exist('in_prec', 'var')
+    in_prec = 2 ;
+end
 
 if ~exist('oilcrops_proxy_fruitveg_sugar', 'var')
     oilcrops_proxy_fruitveg_sugar = false ;
