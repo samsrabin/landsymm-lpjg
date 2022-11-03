@@ -2,7 +2,7 @@
 %%% Make version with some of all crops %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-inDir = '/Volumes/Reacher/G2P/inputs/LU/remaps_v13_g2p' ;
+inDir = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17' ;
 remove_miscanthus = true ;
 notSomeOfAllIrrig = false ;
 firstSomeOfAllYear = -Inf ;
@@ -21,14 +21,16 @@ clear tmp
 % % % inFile_cf = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.txt' ;
 % % % outFile_lu = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.someOfEachCrop.txt' ;
 % % % outFile_cf = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.someOfEachCrop.txt' ;
-inFile_lu = sprintf('%s/LU.remap%s.txt', inDir, thisVer) ;
-if ~exist(inFile_lu, 'file')
-    error('inFile_lu not found: %s', inFile_lu)
-end
-inFile_cf = sprintf('%s/cropfracs.remap%s.txt', inDir, thisVer) ;
-if ~exist(inFile_cf, 'file')
-    error('inFile_cf not found: %s', inFile_cf)
-end
+% inFile_lu = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17/LU.remapv10_f09_g17.17249.txt' ;
+% inFile_cf = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17/cropfracs.remapv10_f09_g17.17249.txt' ;
+ inFile_lu = sprintf('%s/LU.remap%s.txt', inDir, thisVer) ;
+ if ~exist(inFile_lu, 'file')
+     error('inFile_lu not found: %s', inFile_lu)
+ end
+ inFile_cf = sprintf('%s/cropfracs.remap%s.txt', inDir, thisVer) ;
+ if ~exist(inFile_cf, 'file')
+     error('inFile_cf not found: %s', inFile_cf)
+ end
 
 % Get output files
 outFile_lu = get_outFile(inFile_lu, firstSomeOfAllYear) ;
@@ -128,7 +130,8 @@ if mincropfrac>0
     Ncrops = length(IA) ;
     cf_tmp = cf_out(incl_years_cf,IA) ;
     if any(sum(cf_tmp,2)==0)
-        error('This code assumes that no cell has sum(cropfracs)==0')
+        all_zero = sum(cf_tmp,2)==0 ;
+        cf_tmp(all_zero,:) = 1/size(cf_tmp, 2) ;
     end
     cf_tmp = cf_tmp ./ repmat(sum(cf_tmp,2),[1 size(cf_tmp,2)]) ;
     
