@@ -27,13 +27,18 @@ if need_countries
     % Import country map and key
     if any(strcmp(filename_countriesMap, ...
             {'country_boundaries62892.noNeg99.extrapd.asc', ...
-            'country_boundaries_f09_g17.noNeg99.extrapd.asc'}))
+            'country_boundaries_f09_g17.asc'}))
         PLUM_countries = true ;
     else
         PLUM_countries = false ;
     end
     if PLUM_countries
-        countries_YX = flipud(dlmread(filename_countriesMap,'',6,0)) ;
+        if contains(filename_countriesMap, 'f09_g17')
+            NheaderLines = 7 ;
+        else
+            NheaderLines = 6 ;
+        end
+        countries_YX = flipud(dlmread(filename_countriesMap,'',NheaderLines,0)) ;
         countries_YX(countries_YX<=0) = NaN ;
         countries_key = readtable('country_boundaries_codes4.csv') ;
     else
