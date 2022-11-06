@@ -57,7 +57,9 @@ end
 
 % Import land area (km2)
 if contains(filename_countriesMap, 'f09_g17')
-    error('Set up a land area file for f09_g17 resolution')
+    landarea_file = '/Users/Shared/CESM_work/CropEvalData_ssr/landuse.timeseries_0.9x1.25_hist_78pfts_CMIP6_simyr1850-2015_c170824.nc4' ;
+    land_area_YX = transpose(ncread(landarea_file, 'AREA')) ;
+    land_area_YX = land_area_YX(2:end-1,:) ;
 elseif calib_ver==17 % Put your calib_ver here if you want it to use MCD12C1-derived land area.
     if xres ~= yres
         error('To use this land area map, xres must == yres.')
