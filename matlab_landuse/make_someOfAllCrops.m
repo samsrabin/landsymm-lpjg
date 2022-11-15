@@ -17,20 +17,8 @@ thisVer = strrep(tmp{end}, 'remaps_', '') ;
 clear tmp
 
 % Get input files
-% % % inFile_lu = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.txt' ;
-% % % inFile_cf = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.txt' ;
-% % % outFile_lu = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.someOfEachCrop.txt' ;
-% % % outFile_cf = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.someOfEachCrop.txt' ;
-% inFile_lu = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17/LU.remapv10_f09_g17.17249.txt' ;
-% inFile_cf = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17/cropfracs.remapv10_f09_g17.17249.txt' ;
- inFile_lu = sprintf('%s/LU.remap%s.txt', inDir, thisVer) ;
- if ~exist(inFile_lu, 'file')
-     error('inFile_lu not found: %s', inFile_lu)
- end
- inFile_cf = sprintf('%s/cropfracs.remap%s.txt', inDir, thisVer) ;
- if ~exist(inFile_cf, 'file')
-     error('inFile_cf not found: %s', inFile_cf)
- end
+inFile_lu = find_input_file(sprintf('%s/LU.remap%s*.txt*', inDir, thisVer)) ;
+inFile_cf = find_input_file(sprintf('%s/cropfracs.remap%s*.txt*', inDir, thisVer)) ;
 
 % Get output files
 outFile_lu = get_outFile(inFile_lu, firstSomeOfAllYear) ;
@@ -239,7 +227,8 @@ lpjgu_matlab_saveTable(cf_in_header, cf_out, outFile_cf,...
 
 function outFile = get_outFile(inFile, firstSomeOfAllYear)
 
-outFile = strrep(inFile, '.txt', '.someOfEachCrop.txt') ;
+outFile = strrep(strrep(inFile, '.gz', ''), '.mat', '') ;
+outFile = strrep(outFile, '.txt', '.someOfEachCrop.txt') ;
 
 if firstSomeOfAllYear > -Inf
     outFile = strrep(inFile, '.txt', ...
@@ -267,5 +256,30 @@ header_cell = [header_cell(1:2) {'Year'} header_cell(3:end)] ;
 
 end
 
+
+function inFile = find_input_file(inPattern)
+
+filelist = dir(inPattern) ;
+
+if isempty(filelist)
+    error('No file found matching pattern %s', inFile_lu)
+end
+
+if length(filelist) > 1
+    basenames = cell(length(filelist), 1) ;
+    for f = 1:length(filelist)
+        basenames{f} = strrep(strrep(strrep(strrep(filelist(f).name, '.txt', ''), '.gz', ''), '.mat', ''), '.garr', '') ;
+    end
+    basename = unique(basenames) ;
+    if length(basename) > 1
+        basename
+        error('Multiple matches found for %s', inPattern)
+    end
+    filelist = filelist(1) ;
+end
+
+inFile = sprintf('%s/%s', filelist(1).folder, filelist(1).name) ;
+
+end
 
 
