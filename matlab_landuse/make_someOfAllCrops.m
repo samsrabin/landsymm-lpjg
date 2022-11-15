@@ -2,11 +2,25 @@
 %%% Make version with some of all crops %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-inDir = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17' ;
+inDir = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10v2_f09_g17' ;
 remove_miscanthus = true ;
 notSomeOfAllIrrig = false ;
 firstSomeOfAllYear = -Inf ;
 % firstSomeOfAllYear = 1995 ;
+
+if contains(inDir, 'f09_g17')
+    drop_northpole = true ;
+    drop_southpole = true ;
+    lons_centered_on_180 = true ;
+    outPrec_lonlat = 13 ;
+else
+    drop_northpole = false ;
+    drop_southpole = false ;
+    lons_centered_on_180 = false ;
+    outPrec_lonlat = 2 ;
+end
+lon_orient = 'center' ;
+lat_orient = 'center' ;
 
 
 %% Setup
@@ -54,16 +68,28 @@ cf_in_header = cf_in.Properties.VariableNames ;
 
 % Land area (km2)
 disp('Importing land area...')
-luMap_in = lpjgu_matlab_readTable_then2map(inFile_lu,'force_mat_save',true) ;
-list2map = luMap_in.list_to_map ;
-clear luMap_in
-landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
-gcel_area_YXqd = transpose(ncread(landarea_file,'carea')) ;
-land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
-landArea_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
-tmp = landArea_YXqd(:,1:2:1440) + landArea_YXqd(:,2:2:1440) ;
-landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
-clear *_YXqd
+if contains(inFile_lu, 'f09_g17')
+    landarea_file = '/Users/Shared/CESM_work/CropEvalData_ssr/landuse.timeseries_0.9x1.25_hist_78pfts_CMIP6_simyr1850-2015_c170824.nc4' ;
+    landArea_YX = transpose(ncread(landarea_file, 'AREA')) ;
+    landArea_YX = landArea_YX(2:end-1,:) ;
+    tmp = lpjgu_matlab_read2geoArray(inFile_cf, ...
+        'lon_orient', lon_orient, 'lat_orient', lat_orient, ...
+        'drop_northpole', drop_northpole, 'drop_southpole', drop_southpole, ...
+        'lons_centered_on_180', lons_centered_on_180) ;
+    list2map = tmp.list2map ;
+    clear tmp
+else
+    luMap_in = lpjgu_matlab_readTable_then2map(inFile_lu,'force_mat_save',true) ;
+    list2map = luMap_in.list_to_map ;
+    clear luMap_in
+    landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
+    gcel_area_YXqd = transpose(ncread(landarea_file,'carea')) ;
+    land_frac_YXqd = 1 - flipud(transpose(ncread(landarea_file,'icwtr'))) ;
+    landArea_YXqd = gcel_area_YXqd .* land_frac_YXqd ;
+    tmp = landArea_YXqd(:,1:2:1440) + landArea_YXqd(:,2:2:1440) ;
+    landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
+    clear *_YXqd
+end
 %%%%% Get as vectors
 landArea_x = landArea_YX(list2map) ;
 Nyears = length(unique(lu_in.Year)) ;
@@ -209,6 +235,7 @@ overwrite = true ;
 disp('Saving LU...')
 lpjgu_matlab_saveTable(lu_in_header, lu_out, outFile_lu,...
     'outPrec', outPrec, ...
+    'outPrec_lonlat', outPrec_lonlat, ...
     'outWidth', outWidth, ...
     'delimiter', delimiter, ...
     'overwrite', overwrite, ...
@@ -217,6 +244,7 @@ lpjgu_matlab_saveTable(lu_in_header, lu_out, outFile_lu,...
 disp('Saving cropfrac...')
 lpjgu_matlab_saveTable(cf_in_header, cf_out, outFile_cf,...
     'outPrec', outPrec, ...
+    'outPrec_lonlat', outPrec_lonlat, ...
     'outWidth', outWidth, ...
     'delimiter', delimiter, ...
     'overwrite', overwrite, ...
