@@ -4,3 +4,4 @@ LUts*.sh
 do_postprocess.sh
 *.swp
 *.mat
+*.asv
