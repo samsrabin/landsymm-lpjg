@@ -20,6 +20,8 @@ filename_cropfrac = '/Users/Shared/PLUM/input/remaps_v6p7/cropfracs.remapv6p7.tx
 %%%%% General settings %%%%%
 
 filename_staticData_quarterdeg = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+xres = 0.5 ; % Longitude resolution (degrees)
+yres = 0.5 ; % Latitude resolution (degrees)
 
 
 %% Setup
@@ -29,6 +31,11 @@ outDir = sprintf('%s/figs', inDir) ;
 if ~exist(outDir, 'dir')
     mkdir(outDir)
 end
+
+% Map info
+lons = (-180+xres/2):xres:(180-xres/2) ;
+lats = (-90+yres/2):yres:(90-yres/2) ;
+mapSize = [180/yres 360/xres] ;
 
 
 %% Import
@@ -54,7 +61,7 @@ crop_frac = harmonize_yearLists(S, crop_frac) ;
 % Import cell area
 disp('Importing cell area...')
 cell_area_YXqd = transpose(ncread(filename_staticData_quarterdeg, 'carea')) ;
-cell_area_YX = aggregate_cell_area(cell_area_YXqd, 0.5, 0.5) ;
+cell_area_YX = aggregate_cell_area(cell_area_YXqd, xres, yres) ;
 % Convert km2 to m2
 cell_area_YX = cell_area_YX * 1e6 ;
 % Vectorize
@@ -188,8 +195,168 @@ for c = 1:length(cropList)
     title(thisTitle)
     
     % Save figure
-    outFile = sprintf('%s/%s.pdf', outDir, thisTitle) ;
+    outFile = sprintf('%s/Timeseries %s.pdf', outDir, thisTitle) ;
     export_fig(outFile, '-r300')
+    close
+end
+disp('Done.')
+
+
+%% Make maps for each crop stand type
+%%%%%%%%%%%%%%%%%%
+% Which year(s) to include?
+incl_years = 1995:2005 ;
+
+% Plot per-area values (e.g., yield in tons/ha)? If not, will plot totals
+% (e.g., production in Mt).
+perarea = true ;
+
+% Other options
+figure_window_position = [1 41 1728 960] ; % From get(gcf, 'Position')
+fontSize = 14 ;
+lineWidth = 2 ;
+subplot_spacing = [0.075 0.05] ; % vertical, horizontal
+%%%%%%%%%%%%%%%%%%
+
+% Process units
+if perarea
+    if contains(thisFile, 'yield')
+        units = 'tons dry matter ha^{-1}' ;
+        conversion_factor = 10 ; % From kg/m2
+        titleName = 'yield' ;
+    elseif contains(thisFile, 'gsirrig')
+        units = 'mm' ;
+        conversion_factor = 1 ; % Native LPJ-GUESS output unit
+        titleName = 'average irrigation' ;
+    else
+        error('What units etc. should be used for %s per-area?', thisFile)
+    end
+else
+    if contains(thisFile, 'yield')
+        units = 'Mt DM' ;
+        conversion_factor = 1e-9 ; % From kg
+        titleName = 'production' ;
+    elseif contains(thisFile, 'gsirrig')
+        units = 'km^3' ;
+        conversion_factor = 1e-12 ; % From mm*m2
+        titleName = 'irrigation volume' ;
+    else
+        error('What units etc. should be used for %s totals?', thisFile)
+    end
+end
+
+% Get crop list
+is_irrigated = @(x) strcmp(x(end), 'i') ;
+cropList = crop_frac.varNames(~cellfun(is_irrigated, crop_frac.varNames)) ;
+
+% Get included years
+if ~isfield(S, 'yearList')
+    error('Need to code handling for S with no year dimension')
+end
+[C, ~, Iyears] = intersect(incl_years, S.yearList, 'stable') ;
+if ~isequal(C(:), incl_years(:))
+    error('Year list mismatch')
+end
+y1 = min(incl_years) ;
+yN = max(incl_years) ;
+
+fprintf('Mapping %d-%d:\n', y1, yN)
+for c = 1:length(cropList)
+
+    % Find stands of this crop
+    thisCrop_rf = cropList{c} ;
+    fprintf('    %s...\n', thisCrop_rf)
+    thisCrop_ir = [thisCrop_rf 'i'] ;
+    [theseVars, ~, IB] = intersect({thisCrop_rf, thisCrop_ir}, S.varNames, 'stable') ;
+    if isempty(theseVars)
+        error('No %s stands found in LPJ-GUESS output')
+    end
+
+    % Get LPJ-GUESS output data
+    perarea_xvy = S.garr_xvy(:,IB,:) ;
+
+    % Get crop areas
+    [C, ~, IB] = intersect(theseVars, crop_area.varNames, 'stable') ;
+    if ~isequal(C, theseVars)
+        error('Some crop(s) in LPJ-GUESS output data not found in crop area input')
+    end
+    area_xvy = crop_area.garr_xvy(:,IB,:) ;
+
+    % Get totals
+    totals_xvy = perarea_xvy .* area_xvy ;
+    totals_xvy(:,end+1,:) = sum(totals_xvy, 2) ; %#ok<SAGROW> 
+    theseVars{end+1} = 'Combined' ; %#ok<SAGROW>
+
+    % Get mean over selected years
+    data_xv = mean(totals_xvy(:,:,Iyears), 3) ;
+
+    % Get areas
+    area_xvy(:,end+1,:) = sum(area_xvy, 2) ; %#ok<UNRCH,SAGROW> 
+    area_xv = mean(area_xvy(:,:,Iyears), 3) ;
+    
+    % Convert back to per-area value, if needed
+    if perarea
+        data_xv = data_xv ./ area_xv ;
+        data_xv(area_xv == 0) = NaN ;
+    end
+
+    % Get legend
+    thisLegend = theseVars ;
+    if any(strcmp(thisLegend, thisCrop_rf))
+        thisLegend{strcmp(thisLegend, thisCrop_rf)} = 'Rainfed' ;
+    end
+    if any(strcmp(thisLegend, thisCrop_ir))
+        thisLegend{strcmp(thisLegend, thisCrop_ir)} = 'Irrigated' ;
+    end
+
+    % Plot
+    figure('Color', 'w', 'Position', figure_window_position)
+    data_xv = data_xv * conversion_factor ;
+    new_caxis = [nanmin(data_xv(:)) nanmax(data_xv(:))] ;
+    for v = 1:length(theseVars)
+        thisVar = thisLegend{v} ;
+        switch thisVar
+            case 'Rainfed'
+                lineStyle = '--r' ;
+                nx = 2 ;
+                p = 1 ;
+            case 'Irrigated'
+                lineStyle = ':b' ;
+                nx = 2 ;
+                p = 2 ;
+            case 'Combined' 
+                lineStyle = '-k' ;
+                nx = 1 ;
+                p = 2 ;
+            otherwise
+                error('%s not recognized for lineStyle', thisVar)
+        end
+        map_YX = lpjgu_vector2map(data_xv(:,v), mapSize, S.list2map) ;
+        area_YX = lpjgu_vector2map(area_xv(:,v), mapSize, S.list2map) ;
+        map_YX(area_YX == 0) = NaN ;
+        subplot_tight(2, nx, p, subplot_spacing)
+
+        worldmap('World')
+        load coastlines
+        plotm(coastlat,coastlon, 'k')
+        pcolorm(lats, -179.75:0.5:179.75, map_YX)
+        framem('FLineWidth', 0.5)
+        mlabel off; plabel off
+
+        if ~isequal(new_caxis, [0 0]) && ~isequaln(new_caxis, [NaN NaN])
+            caxis(new_caxis)
+        end
+        hcb = colorbar ;
+        xlabel(hcb, units)
+        set(gca, 'FontSize', fontSize)
+        title(thisLegend{v})
+    end
+    thisTitle = sprintf('%s global %s %d-%d', thisCrop_rf, titleName, y1, yN) ;
+    hsgt = sgtitle(thisTitle, 'FontSize', fontSize*1.25, 'FontWeight', 'bold') ;
+    
+    % Save figure
+    outFile = sprintf('%s/Map %s.png', outDir, thisTitle) ;
+    export_fig(outFile, '-r150')
     close
 end
 disp('Done.')
