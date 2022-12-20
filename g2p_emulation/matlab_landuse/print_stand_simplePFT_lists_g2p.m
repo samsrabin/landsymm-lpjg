@@ -4,10 +4,10 @@
 
 % Version for crop mappings
 % thisVer = 'WithFruitVegSugar_b' ; remapVer = '7b' ;
-% thisVer = 'WithFruitVeg_sepSugar_sepOil' ; remapVer = '10_g2p' ;
+thisVer = 'WithFruitVeg_sepSugar_sepOil' ; remapVer = '10_g2p' ;
 % thisVer = 'WithFruitVeg_sepSugar_sepOil_sepC3' ; remapVer = '11_g2p' ;
 % thisVer = 'ggcmi5' ; remapVer = '12_g2p' ;
-thisVer = 'ggcmi5_preBNF' ; remapVer = '13_g2p' ;
+% thisVer = 'ggcmi5_preBNF' ; remapVer = '13_g2p' ;
 
 include_cropphencol = true ;
 
@@ -17,7 +17,7 @@ include_cropphencol = true ;
 cd '/Users/sam/Documents/git_repos/g2p_emulation/matlab_landuse'
 addpath(genpath(pwd))
 
-out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/',remapVer) ;
+out_dir = sprintf('/Users/Shared/G2P/inputs/LU/remaps_v%s/',remapVer) ;
 if ~exist(out_dir,'dir')
     mkdir(out_dir) ;
 end
