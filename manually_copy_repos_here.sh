@@ -21,8 +21,8 @@ tmpDir=/Users/sam/Downloads/tmp
 # 	old_repo=${old_repos[i]}
 # 	old_branch=${old_branches[i]}
 
-old_repo=/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work
-old_branch=master
+old_repo=/Users/Shared/PLUM/crop_calib_code
+old_branch=sai-landsymm-needs
 
 	echo old_repo $old_repo branch $old_branch
 		
