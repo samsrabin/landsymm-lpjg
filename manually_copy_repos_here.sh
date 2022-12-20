@@ -21,8 +21,8 @@ tmpDir=/Users/sam/Downloads/tmp
 # 	old_repo=${old_repos[i]}
 # 	old_branch=${old_branches[i]}
 
-old_repo=/Users/sam/Documents/git_repos/g2p_emulation
-old_branch=split_combine_burnin
+old_repo=/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work
+old_branch=master
 
 	echo old_repo $old_repo branch $old_branch
 		
@@ -45,8 +45,6 @@ old_branch=split_combine_burnin
 	if [[ -d ${old_repo_name} ]]; then
 		rm -rf ${old_repo_name}
 	fi
-# 	mkdir ${old_repo_name}
-# 	cd ${old_repo_name}
 	
 	# Pull files from the old repo
 	git remote add ${old_repo_name} ${old_repo_new_copy}
