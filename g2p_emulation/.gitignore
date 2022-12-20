@@ -1,0 +1,17 @@
+climate/
+crop/
+*.err
+*.out
+*.swp
+*.gz
+plum
+fits*
+*outputs*/
+climate
+__pycache__
+.idea
+*.nc
+*.Rhistory
+*.pptx
+*.zip
+*.asv

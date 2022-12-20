@@ -21,8 +21,8 @@ tmpDir=/Users/sam/Downloads/tmp
 # 	old_repo=${old_repos[i]}
 # 	old_branch=${old_branches[i]}
 
-old_repo=/Users/sam/Documents/git_repos/Carbon_forestry_MATLAB
-old_branch=main
+old_repo=/Users/sam/Documents/git_repos/g2p_emulation
+old_branch=split_combine_burnin
 
 	echo old_repo $old_repo branch $old_branch
 		
