@@ -54,8 +54,7 @@ else
     error('thisSystem not recognized: %s', thisSystem)
 end
 
-addpath(genpath(paper02_repo_path))
-addpath(genpath(plumharm_repo_path))
+addpath(genpath(landsymm_lpjg_path()))
 
 
 %% Import

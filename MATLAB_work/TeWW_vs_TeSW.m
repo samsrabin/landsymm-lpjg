@@ -15,8 +15,7 @@ outPrec_mgmtInputs = 6 ;
 
 %% Setup
 
-cd '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work'
-addpath(genpath(pwd))
+addpath(genpath(landsymm_lpjg_path()))
 
 inDir = find_PLUM2LPJG_run(inDir) ;
 

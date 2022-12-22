@@ -31,7 +31,7 @@ Nyears = length(yearList) ;
 cell_area_YXqd = transpose(ncread( ...
     '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc', ...
     'carea')) ;
-addpath(genpath('/Users/Shared/PLUM/crop_calib_code'))
+addpath(genpath(landsymm_lpjg_path()))
 cell_area_YX = aggregate_land_area(cell_area_YXqd,0.5,0.5) ;
 cell_area_x = cell_area_YX(plutW_from_forC.list2map) ;
 clear cell_area_YX*

@@ -1,0 +1,11 @@
+# Colors used in figures in a New York Times article about drought
+# http://www.nytimes.com/interactive/2014/upshot/mapping-the-spread-of-drought-across-the-us.html
+#
+# COLOR_MODEL = RGB
+0.0   0 151  92  1.0   0 151  92
+1.0 113 185 117  2.0 113 185 117
+2.0 192 217 150  3.0 192 217 150
+3.0 255 252 193  4.0 255 252 193
+4.0 252 195 119  5.0 252 195 119
+5.0 249 130  63  6.0 249 130  63
+6.0 238  40  32  7.0 238  40  32

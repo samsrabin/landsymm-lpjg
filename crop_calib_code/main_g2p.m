@@ -126,8 +126,7 @@ if ~exist(dir_outfigs, 'dir')
 end
 
 % Add code files to path (just for this session)
-addpath(genpath(dir_code))
-addpath(genpath('/Users/sam/Documents/git_repos/g2p_emulation/matlab/emu2plum'))
+addpath(genpath(landsymm_lpjg_path()))
 
 regression_type = 'slope-only' ;
 

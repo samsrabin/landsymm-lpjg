@@ -25,7 +25,7 @@ if ~exist(outDir,'dir')
     mkdir(outDir) ;
 end
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 % Get LUH2 land area (m2)
 landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;

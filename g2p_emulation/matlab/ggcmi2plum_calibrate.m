@@ -42,7 +42,7 @@ dir_outfigs = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/calib
 dir_outtables = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
 
 % Add code files to path (just for this session)
-addpath(genpath(dir_code))
+addpath(genpath(landsymm_lpjg_path()))
 
 is_ggcmi = true ;
 need_countries = false ;

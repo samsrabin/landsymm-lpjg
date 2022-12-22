@@ -47,12 +47,7 @@ test_cropfracs_20170108 = false ;
 
 outDir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper04_Sam_ESintxns/test_outs/' ;
 
-thisDir = addslashifneeded('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work') ;
-if ~exist(thisDir,'dir')
-    error('thisDir does not exist')
-end
-cd(thisDir) ;
-addpath(genpath(pwd))
+addpath(genpath(landsymm_lpjg_path()))
 
 is_baseline_list = false(length(inDir_list),1) ;
 for d = 1:length(inDir_list)

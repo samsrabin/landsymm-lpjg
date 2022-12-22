@@ -70,7 +70,7 @@ Nlu = length(LUlist) ;
 cropList = {'CerealsC3','CerealsC4','Rice','Oilcrops','Pulses','StarchyRoots','ExtraCrop'} ;
 Ncrops = length(cropList) ;
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
 

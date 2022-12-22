@@ -27,7 +27,7 @@ Nyears = length(yearList) ;
 LUlist = {'CROPLAND','NATURAL','PASTURE','BARREN'} ;
 Nlu = length(LUlist) ;
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 landarea_file = '/Users/Shared/PLUM/crop_calib_data/other/staticData_quarterdeg.nc' ;
 

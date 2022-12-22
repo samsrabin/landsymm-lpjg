@@ -111,7 +111,6 @@ end ; clear r
 stdLegend = ['Baseline',runList] ;
 
 addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
-addpath(genpath('~/Documents/Dropbox/Dissertation/MATLAB work'))
 
 
 %% Import

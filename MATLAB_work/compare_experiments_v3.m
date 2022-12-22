@@ -30,7 +30,6 @@ end
 
 % Set up path
 addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
-addpath(genpath('~/Documents/Dropbox/Dissertation/MATLAB work'))
 
 % Build runList
 runList = {'SSP1 (R45)','SSP3 (R60)','SSP4 (R60)','SSP5 (R85)'} ;

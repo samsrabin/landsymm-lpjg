@@ -25,7 +25,7 @@ warning('on','all')
 
 disp('Importing...')
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 % Land use
 lu_in = lpjgu_matlab_readTable_then2map('/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt');%,...
@@ -227,18 +227,18 @@ for c = 1:length(luh2_to_import)
     fprintf('area... ') ;
     luh2_carea_YXy = ncread(luh2_file_states,thisVar,starts,counts) ;
     luh2_carea_YXy = luh2_carea_YXy .* carea_YXy ;
-    luh2_carea_YXyc(:,:,:,c) = flip(permute(PLUMharm_aggregate(luh2_carea_YXy,0.25,0.5),[2 1 3]),1) ;
+    luh2_carea_YXyc(:,:,:,c) = flip(permute(aggregate(luh2_carea_YXy,0.25,0.5),[2 1 3]),1) ;
     
     fprintf('nfert... ') ;
     thisVar = ['fertl_' luh2_to_import{c}] ;
     tmp = ncread(luh2_file_management,thisVar,starts,counts) ;
-    luh2_nfert_YXyc(:,:,:,c) = flip(permute(PLUMharm_aggregate_mgmt(tmp,luh2_carea_YXy,0.25,0.5),[2 1 3]),1) ;
+    luh2_nfert_YXyc(:,:,:,c) = flip(permute(aggregate_mgmt(tmp,luh2_carea_YXy,0.25,0.5),[2 1 3]),1) ;
     clear tmp
     
     fprintf('irrig... ') ;
     thisVar = ['irrig_' luh2_to_import{c}] ;
     tmp = ncread(luh2_file_management,thisVar,starts,counts) ;
-    luh2_irrig_YXyc(:,:,:,c) = flip(permute(PLUMharm_aggregate_mgmt(tmp,luh2_carea_YXy,0.25,0.5),[2 1 3]),1) ;
+    luh2_irrig_YXyc(:,:,:,c) = flip(permute(aggregate_mgmt(tmp,luh2_carea_YXy,0.25,0.5),[2 1 3]),1) ;
     clear tmp
     
     clear luh2_carea_YXy

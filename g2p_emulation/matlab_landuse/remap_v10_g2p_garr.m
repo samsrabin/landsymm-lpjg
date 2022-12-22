@@ -40,9 +40,7 @@ fprintf('thisVer: %s\n', thisVer)
 fprintf('remapVer: %s\n', remapVer)
 fprintf('force_all_rainfed: %d\n', force_all_rainfed)
 
-cd '/Users/sam/Documents/git_repos/g2p_emulation/matlab_landuse'
-addpath(genpath(pwd))
-addpath(genpath('/Users/sam/Documents/git_repos/g2p_emulation/matlab'))
+addpath(genpath(landsymm_lpjg_path()))
 
 Nyears_out = length(yearList_out) ;
 

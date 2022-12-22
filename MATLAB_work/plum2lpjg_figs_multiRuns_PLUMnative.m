@@ -21,7 +21,6 @@ if strcmp(thisVer,'20180424agmip7') || strcmp(thisVer,'20180424agmip7_asPLUMout2
 end
 
 addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
-addpath(genpath('~/Documents/Dropbox/Dissertation/MATLAB work'))
 
 trimFirstFuture = 0 ;
 if strcmp(thisVer,'20180424agmip7')

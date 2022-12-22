@@ -39,20 +39,10 @@ do_save.fpc             = false ;
 
 % Determine which system you're on and set up.
 thisSystem = get_system_name() ;
-if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
-elseif strcmp(thisSystem, 'ssr_keal')
-    paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
-    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
-elseif strcmp(thisSystem, 'ssr_uc2')
-    paper02_repo_path = '/home/kit/imk-ifu/lr8247/paper02-matlab-work' ;
-    plumharm_repo_path = '/home/kit/imk-ifu/lr8247/plum_harmonization' ;
-else
-    error('thisSystem not recognized: %s', thisSystem)
+if ~any(strcmp(thisSystem, {'ssr_mac', 'ssr_keal', 'ssr_uc2'}))
+    error('thisSystem not recognized: %s (is thisSystem needed anymore?)', thisSystem)
 end
-addpath(genpath(paper02_repo_path))
-addpath(genpath(plumharm_repo_path))
+addpath(genpath(landsymm_lpjg_path()))
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

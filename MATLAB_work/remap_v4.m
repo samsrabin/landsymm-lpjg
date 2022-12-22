@@ -43,7 +43,7 @@ out_dir = '/Users/Shared/PLUM/input/remaps_v4/' ;
 
 disp('Importing...')
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 % Get pasture NPP file
 pastureNPPdir = find_PLUM2LPJG_run(pastureNPPdir) ;

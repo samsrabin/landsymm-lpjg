@@ -7,6 +7,7 @@ __pycache__
 *.mat
 *.nc
 *.out
+*.png
 *.pptx
 *.Rhistory
 *.swp

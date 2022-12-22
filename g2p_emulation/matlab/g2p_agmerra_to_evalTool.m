@@ -8,9 +8,6 @@ dirList = { ...
     'calibration_Ks3_Oilcrops_ownDates_TeSWfert_TeSo/output-2021-05-04-172908' ;
     } ;
 
-% Setup
-addpath(genpath('/Users/Shared/GGCMI/inputs/phase3/ISIMIP3/_MATLAB_ISIMIP3'))
-
 % For evaluation tool
 runInfo.phase = 'EV' ;
 runInfo.climate_forcing = 'AgMERRA' ;

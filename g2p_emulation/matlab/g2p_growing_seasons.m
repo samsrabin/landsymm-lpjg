@@ -11,7 +11,7 @@ remapVer = '13_g2p' ; thisVer = 'ggcmi5_preBNF' ;
 
 %% Setup
 
-addpath(genpath('/Users/sam/Documents/git_repos/g2p_emulation'))
+addpath(genpath(landsymm_lpjg_path()))
 
 % Get crop list
 cropList_lpjg = get_remapv2_keys(thisVer) ;

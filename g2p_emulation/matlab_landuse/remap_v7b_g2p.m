@@ -27,8 +27,7 @@ out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s_g2p/',remapVer) ;
 
 %% Part 0: Setup
 
-cd '/Users/sam/Documents/git_repos/g2p_emulation/matlab_landuse'
-addpath(genpath(pwd))
+addpath(genpath(landsymm_lpjg_path()))
 
 Nyears_out = length(yearList_out) ;
 

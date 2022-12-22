@@ -25,7 +25,7 @@ PLUMsetAside_frac = 0.103 ;
 inpaint_method = 4 ;
 force_all_rainfed = false ;
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 % Land use
 lu_in = lpjgu_matlab_readTable_then2map('/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt');%,...
@@ -175,8 +175,8 @@ for c = 1:NcropsCombined_out
         tmp_carea_YX = netcdf_read_selectYears(...
             luh2_file_states, 'c3per', 2000-850) ...
             .* flip(permute(ncread(luh2_file_etc,'carea'),[2 1]),1) ;
-        tmp_nfert_YX = PLUMharm_aggregate_mgmt(tmp_nfert_YX, tmp_carea_YX, 0.25, 0.5) ;
-        tmp_carea_YX = PLUMharm_aggregate(tmp_carea_YX, 0.25, 0.5) ;
+        tmp_nfert_YX = aggregate_mgmt(tmp_nfert_YX, tmp_carea_YX, 0.25, 0.5) ;
+        tmp_carea_YX = aggregate(tmp_carea_YX, 0.25, 0.5) ;
         tmp_nfert_YX(tmp_carea_YX==0) = NaN ;
         nfert_in.maps_YXv(:,:,end+1) = tmp_nfert_YX ;
         nfert_in.varNames{end+1} = thisCrop_out ;

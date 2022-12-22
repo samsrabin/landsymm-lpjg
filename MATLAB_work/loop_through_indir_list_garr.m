@@ -3,9 +3,7 @@
 test_cropfracs_20170108 = false ;
 
 onMac = strcmp(thisSystem, 'ssr_mac') ;
-if ~onMac
-    addpath(genpath('~/lpj-guess-crop-calibration/')) ;
-end
+addpath(genpath(landsymm_lpjg_path()))
 gridlist_file = sprintf('%s/%s', paper02_repo_path, gridlist_file) ;
 biomes_map_file = sprintf('%s/input_data/wwf_terr_ecos_UnpackClip.halfDeg.tif', paper02_repo_path)  ;
 biomes_key_file = sprintf('%s/input_data/wwf_terr_ecos.codes.csv', paper02_repo_path)  ;

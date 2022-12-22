@@ -36,12 +36,7 @@ outDir = '/Volumes/WDMPP_Storage/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_PLUM6
 
 %% Setup
 
-thisDir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work' ;
-if ~exist(thisDir,'dir')
-    error('thisDir does not exist')
-end
-cd(thisDir) ;
-addpath(genpath(pwd))
+addpath(genpath(landsymm_lpjg_path()))
 
 % Get directories
 inDir_1_full = find_PLUM2LPJG_run(inDir_1) ;

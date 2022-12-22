@@ -19,7 +19,7 @@ thisVer = '20180214' ;
 force_all_rainfed = false ;
 out_dir = '/Users/Shared/PLUM/input/remaps_v5c/' ;
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 % Land use
 lu_in = lpjgu_matlab_readTable_then2map('/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt');%,...

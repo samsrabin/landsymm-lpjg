@@ -140,15 +140,14 @@ end
 year1 = 1995 ;
 yearN = 2005 ;
 
-% Paths to calibration code and data
-dir_code = '/Users/Shared/PLUM/crop_calib_code/' ;
+% Paths to calibration data
 dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
 
 % Path to figure output directory
 dir_outfigs = '/Users/Shared/PLUM/crop_calibration_for_PLUM/figures/' ;
 
 % Add code files to path (just for this session)
-addpath(genpath(dir_code))
+addpath(genpath(landsymm_lpjg_path()))
 
 % Do slope-only regression
 regression_type = 'slope-only' ;

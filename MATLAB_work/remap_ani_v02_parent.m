@@ -7,6 +7,6 @@ gridname = 'gridlist_Sudan_Atbara_BlueNile_5min_6137' ;
 
 %%
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 remap_ani_v02_child(gridname)

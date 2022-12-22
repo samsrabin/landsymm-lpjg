@@ -60,7 +60,7 @@ list_cropsCombined_frac_in = strrep(list_cropsCombined_frac_in,'Soybeans','Soybe
 
 disp('Importing ancillary data...')
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 
 % Import HYDE land area
 inDir_hyde = '/Users/sam/Geodata/HYDE_3.2.1_lu' ;

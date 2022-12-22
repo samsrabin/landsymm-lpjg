@@ -60,8 +60,6 @@ luh2_nfertTot_YXyv = luh2_nfert_YXyv .* (1e2*luh2_croparea_YXyv) ;
 
 %% Import MIRCA data
 
-addpath(genpath('/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MATLAB work'))
-
 % Set up for area import
 cd '/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn'
 list_crops_MIRCA = {'Wheat' ; 'Maize' ; 'Rice' ; 'Barley' ; 'Rye' ;

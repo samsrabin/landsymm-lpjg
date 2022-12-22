@@ -21,7 +21,7 @@ out_dir = '/Users/Shared/PLUM/input/remaps_v6p3/' ;
 
 %% Part 0: Setup
 
-addpath(genpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work')) ;
+addpath(genpath(landsymm_lpjg_path()))
 Nyears_out = length(yearList_out) ;
 
 % LUH2 input files and years they contain
@@ -82,7 +82,7 @@ disp('Importing land uses...')
 file_luh2_etc = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 carea_XY = ncread(file_luh2_etc,'carea') ;
 carea_XYy = repmat(carea_XY,[1 1 Nyears_out]) ;
-carea_hd_XY = PLUMharm_aggregate(carea_XY,0.25,0.5) ;
+carea_hd_XY = aggregate(carea_XY,0.25,0.5) ;
 carea_hd_XYy = repmat(carea_hd_XY,[1 1 Nyears_out]) ;
 
 % Land use
@@ -94,7 +94,7 @@ for v = 1:Nlu_in
     i = strcmp(list_LU_out,thisLU_out) ;
     lu_in_XYy = ncread(file_luh2_states,thisLU_in,starts_luh2_states,counts_luh2_states) ;
     lu_in_XYy(isnan(lu_in_XYy)) = 0 ;
-    lu_out_XYy = PLUMharm_aggregate(lu_in_XYy.*carea_XYy,0.25,0.5)./carea_hd_XYy ;
+    lu_out_XYy = aggregate(lu_in_XYy.*carea_XYy,0.25,0.5)./carea_hd_XYy ;
     if any(any(any(lu_out_XYy-1 > 1e-6)))
         error('Some element(s) of lu_out_XYy > 1!')
     end
@@ -114,7 +114,7 @@ icwtr_XY = ncread(file_luh2_etc,'icwtr') ;
 icwtr_XY(icwtr_XY==1) = 0 ;
 i = strcmp(list_LU_out,'BARREN') ;
 lu_out_XYyv(:,:,:,i) = lu_out_XYyv(:,:,:,i) ...
-    + repmat(PLUMharm_aggregate(icwtr_XY.*carea_XY,0.25,0.5)./carea_hd_XY,[1 1 Nyears_out]) ;
+    + repmat(aggregate(icwtr_XY.*carea_XY,0.25,0.5)./carea_hd_XY,[1 1 Nyears_out]) ;
 
 % Shift to correct orientation
 out_lu.varNames = list_LU_out ;
@@ -359,7 +359,7 @@ for c = 1:length(luh2_to_import)
     fprintf('area... ') ;
     luh2_carea_XYy = ncread(file_luh2_states,thisVar,starts_luh2_states,counts_luh2_states) ;
     luh2_carea_XYy = luh2_carea_XYy .* carea_XYy ;
-    luh2_carea_XYyc(:,:,:,c) = PLUMharm_aggregate(luh2_carea_XYy,0.25,0.5) ;
+    luh2_carea_XYyc(:,:,:,c) = aggregate(luh2_carea_XYy,0.25,0.5) ;
     
     fprintf('nfert... ') ;
     thisVar = ['fertl_' luh2_to_import{c}] ;
@@ -368,13 +368,13 @@ for c = 1:length(luh2_to_import)
     % total N applied without considering setAside area, and we're assuming
     % setAside area gets no N application.
     luh2_nfert_XYyc(:,:,:,c) = ...
-        (1/(1-PLUMsetAside_frac)) * PLUMharm_aggregate_mgmt(tmp,luh2_carea_XYy,0.25,0.5) ;
+        (1/(1-PLUMsetAside_frac)) * aggregate_mgmt(tmp,luh2_carea_XYy,0.25,0.5) ;
     clear tmp
     
     fprintf('irrig... ') ;
     thisVar = ['irrig_' luh2_to_import{c}] ;
     tmp = ncread(file_luh2_mgmts,thisVar,starts_luh2_mgmts,counts_luh2_mgmts) ;
-    luh2_irrig_XYyc(:,:,:,c) = PLUMharm_aggregate_mgmt(tmp,luh2_carea_XYy,0.25,0.5) ;
+    luh2_irrig_XYyc(:,:,:,c) = aggregate_mgmt(tmp,luh2_carea_XYy,0.25,0.5) ;
     clear tmp
     
     fprintf('\n') ;

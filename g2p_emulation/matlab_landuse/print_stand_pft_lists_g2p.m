@@ -12,8 +12,7 @@ include_cropphencol = true ;
 
 %% Set up
 
-cd '/Users/sam/Documents/git_repos/g2p_emulation/matlab_landuse'
-addpath(genpath(pwd))
+addpath(genpath(landsymm_lpjg_path()))
 
 out_dir = sprintf('/Volumes/Reacher/G2P/inputs/LU/remaps_v%s/',remapVer) ;
 if ~exist(out_dir,'dir')

@@ -115,12 +115,7 @@ Ncrops = 4 ;
 
 %% Setup
 
-thisDir = addslashifneeded('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work') ;
-if ~exist(thisDir,'dir')
-    error('thisDir does not exist')
-end
-cd(thisDir) ;
-addpath(genpath(pwd))
+addpath(genpath(landsymm_lpjg_path()))
 
 is_baseline_list = false(length(inDir_list),1) ;
 for d = 1:length(inDir_list)

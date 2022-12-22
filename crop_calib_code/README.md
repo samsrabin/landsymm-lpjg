@@ -55,7 +55,7 @@ dir_outfigs = '/Users/Shared/PLUM/crop_calibration_for_PLUM/figures/' ;
 %% Do it
 
 % Add code files to path (just for this session)
-addpath(genpath(dir_code))
+addpath(genpath(landsymm_lpjg_path()))
 
 crop_calibration
 

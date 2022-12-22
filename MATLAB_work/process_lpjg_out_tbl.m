@@ -17,8 +17,7 @@ else
     error('Specify LUfile and cropfile for this inDir!')
 end
 
-cd '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work'
-addpath(genpath(pwd))
+addpath(genpath(landsymm_lpjg_path()))
 
 
 %% Import

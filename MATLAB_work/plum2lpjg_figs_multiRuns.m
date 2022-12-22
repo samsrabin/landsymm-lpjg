@@ -23,7 +23,6 @@ rebase = false ;
 %% Setup
 
 addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
-addpath(genpath('~/Documents/Dropbox/Dissertation/MATLAB work'))
 
 trimFirstFuture = 0 ;
 if strcmp(thisVer,'20171129')
