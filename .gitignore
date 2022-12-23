@@ -6,6 +6,7 @@ __pycache__
 *.log
 *.mat
 *.nc
+*options.m
 *.out
 *.png
 *.pptx

@@ -1,18 +1,47 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Combine Oilcrops and combine Sugars %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SSR 2022-12-22
+% - Picks a "winner" of the constituent crops at each timestep in each
+%   gridcell. For now, it does this based on which has a higher yield
+%   (after applying calibration factors) at the lowest N fertilization
+%   level, rainfed. One could imagine picking a winner at EACH
+%   fertilizer x irrigation level instead, but I'm not sure if that
+%   would make things tricky for PLUM's curve fitting. Probably worth
+%   a try.
+% - Burns in calibration factors for output Oilcrops and Sugar so that PLUM
+%   doesn't have to worry about them. PLUM should thus assume calibration
+%   factors of 1 for these crops.
 
-% topDir = '/Users/Shared/SAI-LandSyMM/output/remap10/2022-11-05.halfdeg.20221111' ;
-% outDir_top = '/Users/Shared/SAI-LandSyMM/output/remap10/2022-11-05.halfdeg.maxOilSug.20221114' ;
+addpath(genpath(landsymm_lpjg_path()))
 
-% topDir = '/Users/Shared/SAI-LandSyMM/output/remap10/2022-11-23.halfdeg' ;
-% outDir_top = '/Users/Shared/SAI-LandSyMM/output/remap10/2022-11-23.halfdeg.maxOilSug' ;
+% get_max_oilsug_paths.m must be somewhere on your path.
+% There, specify the following variables:
+%    topDir: Path to "outForPLUM" directory.
+%    combinations: Info about what crops to combine and how. Cell array with rows like
+%                      'Combinedcrop', {'Subcrop1', 'Subcrop2'}, [calib_factor1 calib_factor2]
+%                  E.g.: combinations = ...
+%                         {'Sugar',    {'Sugarbeet', 'Sugarcane'}, [10.676 8.777] ;
+%                          'Oilcrops', {'OilNfix', 'OilOther'},    [0.448 0.508]} ;
+%    Nlevels: Text versions of the fertilization levels.
+%             E.g.: Nlevels = {'0', '0060', '0200', '1000'} ;
+%    irrigs: Text versions of the suffixes used to indicate irrigation type.
+%            E.g.: irrigs = {'', 'i'} ;
+%    OUTPUT FILES
+%    outPrec: Precision of data in output files. 
+%             E.g.: outPrec = 3 ;
+%    outPrec_lonlat: Precision of lon/lat values in output files.
+%                    E.g., outPrec_lonlat = 2 ;
+%    outWidth: I don't really remember, but I had it set as 1.
+%    delimiter: The column delimiter in output files.
+%               E.g.: delimiter = ' ' ;
+%    overwrite: Whether to overwrite existing output files.
+%               E.g., overwrite = false ;
+%    fancy: Determines the type of saving that happens. I had this set to false.
+%    do_gzip: Whether to zip up output files or leave them as plain text files.
+%             E.g.: do_gzip = true ;
 
-% topDir = '/Users/Shared/SAI-LandSyMM/output/remap10/outForPLUM-2022-11-30-090159.halfdeg' ;
-% outDir_top = '/Users/Shared/SAI-LandSyMM/output/remap10/outForPLUM-2022-11-30-090159.halfdeg.maxOilSug' ;
-
-topDir = '/Users/Shared/SAI-LandSyMM/output/remap10/outForPLUM-2022-12-02-221655.halfdeg' ;
-outDir_top = '/Users/Shared/SAI-LandSyMM/output/remap10/outForPLUM-2022-12-02-221655.halfdeg.maxOilSug' ;
+get_max_oilsug_options
 
 
 %% Setup
@@ -20,30 +49,15 @@ outDir_top = '/Users/Shared/SAI-LandSyMM/output/remap10/outForPLUM-2022-12-02-22
 cd(topDir)
 dirList = dir('.') ;
 
-file_gridlist_out = '/Users/Shared/LandSyMM/inputs/gridlists/gridlist_62892.runAEclimOK.txt' ;
-gridlist_out = lpjgu_matlab_read2geoArray(file_gridlist_out, ...
-    'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
-
-combinations = {'Sugar', {'Sugarbeet', 'Sugarcane'}, [10.676 8.777] ;
-                'Oilcrops', {'OilNfix', 'OilOther'}, [0.448 0.508]} ;
-Nlevels = {'0', '0060', '0200', '1000'} ;
-irrigs = {'', 'i'} ;
-
 other_files = {'done', 'runinfo_pot.tar', 'runinfo_act.tar', 'anpp.out', 'tot_runoff.out'} ;
 
+% Get directories
+topDir = strip(topDir, 'right', filesep) ;
+outDir_top = [topDir '.maxOilSugTEST'] ;
 if ~exist(outDir_top, 'dir')
     mkdir(outDir_top) ;
 end
-
-%%% Options %%%%%%%%%%%%%
-outPrec = 3 ;
-outPrec_lonlat = 2 ;
-outWidth = 1 ;
-delimiter = ' ' ;
-overwrite = false ;
-fancy = false ;
-do_gzip = true ;
-%%%%%%%%%%%%%%%%%%%%%%%%%
+fprintf('Saving to %s\n', outDir_top)
 
 
 %% Process
@@ -54,8 +68,8 @@ for d = 1:length(dirList)
         continue
     end
     
-    thisFile_yield = sprintf('%s/%s/yield.out', topDir, thisDir) ;
-    thisFile_irrig = sprintf('%s/%s/gsirrigation.out', topDir, thisDir) ;
+    thisFile_yield = fullfile(topDir, thisDir, 'yield.out') ;
+    thisFile_irrig = fullfile(topDir, thisDir, 'gsirrigation.out') ;
 
     if isempty(dir(sprintf('%s*', thisFile_yield)))
         fprintf('Skipping %s (thisFile_yield not found)\n', thisDir)
@@ -87,7 +101,19 @@ for d = 1:length(dirList)
 
     % Copy extra files
     for x = 1:length(other_files)
-        thisOtherFile = sprintf('%s/%s/%s*', topDir, thisDir, other_files{x}) ;
+        thisOtherFile = fullfile(topDir, thisDir, other_files{x}) ;
+        if ~exist(thisOtherFile, 'file')
+            thisOtherFile2 = dir([thisOtherFile '*']) ;
+            if isempty(thisOtherFile2)
+                error('No file found matching %s', thisOtherFile2)
+            elseif length(thisOtherFile2) > 1
+                error('%s does not exist, and\n%d files found matching %s', ...
+                    thisOtherFile, length(thisOtherFile2), thisOtherFile2)
+            end
+            thisOtherFile2 = fullfile(thisOtherFile2.folder, thisOtherFile2.name) ;
+            warning('%s does not exist;\nusing %s instead', thisOtherFile, thisOtherFile2)
+            thisOtherFile = thisOtherFile2 ;
+        end
         copyfile(thisOtherFile, outDir)
     end
 
