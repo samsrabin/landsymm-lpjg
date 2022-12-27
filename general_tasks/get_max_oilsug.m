@@ -9,9 +9,10 @@
 %   fertilizer x irrigation level instead, but I'm not sure if that
 %   would make things tricky for PLUM's curve fitting. Probably worth
 %   a try.
-% - Burns in calibration factors for output Oilcrops and Sugar so that PLUM
+% - "Burns in" calibration factors for output Oilcrops and Sugar so that PLUM
 %   doesn't have to worry about them. PLUM should thus assume calibration
 %   factors of 1 for these crops.
+% - The output directory, outDir_top, is what you'll be sending to PLUM.
 
 addpath(genpath(landsymm_lpjg_path()))
 
@@ -32,7 +33,9 @@ addpath(genpath(landsymm_lpjg_path()))
 %             E.g.: outPrec = 3 ;
 %    outPrec_lonlat: Precision of lon/lat values in output files.
 %                    E.g., outPrec_lonlat = 2 ;
-%    outWidth: I don't really remember, but I had it set as 1.
+%    outWidth: I don't really remember, but I had it set as 1. I think this
+%              is just the width of each column in the outputs, but it
+%              should just expand as needed.
 %    delimiter: The column delimiter in output files.
 %               E.g.: delimiter = ' ' ;
 %    overwrite: Whether to overwrite existing output files.
