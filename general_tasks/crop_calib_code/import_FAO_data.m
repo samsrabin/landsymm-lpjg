@@ -2,7 +2,7 @@ function [fao, fao1, fao2, twofiles, ...
     listCountries_map_present_all, ...
     is_tropical, is_xtratrop] = import_FAO_data(...
     calib_ver, year1, yearN, ...
-    need_countries, varargin)
+    need_countries, dir_data, varargin)
 
 warning('OFF', 'MATLAB:table:ModifiedAndSavedVarnames')
 
@@ -78,21 +78,21 @@ else
         twofiles = true ;
     elseif calib_ver==9 || calib_ver==10 || (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20) || calib_ver==23
         disp('Reading FAO data from TXT file 1...')
-        fao1 = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOStat-Dec2015_fromPeterAl/Production_Crops_E_All_Data_Norm.csv') ;
+        fao1 = readtable(fullfile(dir_data, 'fao', 'FAOStat-Dec2015_fromPeterAl', 'Production_Crops_E_All_Data_Norm.csv')) ;
         extraneous_columns = {'CountryCode', 'ItemCode', 'ElementCode', ...
             'Unit', 'Flag', 'YearCode'} ;
         fao1(:, contains(fao1.Properties.VariableNames, extraneous_columns)) = [] ;
         fao1 = fao1(:,[1 3 2 4 5]) ;
         fao1.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
         disp('Reading FAO data from TXT file 2...')
-        fao2 = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOStat-Dec2015_fromPeterAl/CommodityBalances_Crops_E_All_Data_Norm.csv') ;
+        fao2 = readtable(fullfile(dir_data, 'fao', 'FAOStat-Dec2015_fromPeterAl', 'CommodityBalances_Crops_E_All_Data_Norm.csv')) ;
         fao2(:, contains(fao2.Properties.VariableNames, extraneous_columns)) = [] ;
         fao2 = fao2(:,[1 3 2 4 5]) ;
         fao2.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
         twofiles = true ;
     elseif calib_ver==21
         disp('Reading FAO data from TXT file...')
-        fao = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOStat-Dec2015_fromPeterAl/Production_Crops_E_All_Data_Norm.csv') ;
+        fao = readtable(fullfile(dir_data, 'fao', 'FAOStat-Dec2015_fromPeterAl', 'Production_Crops_E_All_Data_Norm.csv')) ;
         extraneous_columns = {'CountryCode', 'ItemCode', 'ElementCode', ...
             'Unit', 'Flag', 'YearCode'} ;
         fao(:, contains(fao.Properties.VariableNames, extraneous_columns)) = [] ;
@@ -101,7 +101,7 @@ else
         twofiles = false ;
     elseif calib_ver==22
         disp('Reading FAO data from TXT file...')
-        fao = readtable('/Users/Shared/PLUM/crop_calib_data/fao/FAOSTAT_data_10-19-2020_forGGCMI3.csv') ;
+        fao = readtable(fullfile(dir_data, 'fao', 'FAOSTAT_data_10-19-2020_forGGCMI3.csv')) ;
         extraneous_columns = {'DomainCode', 'Domain', 'AreaCode', ...
             'ElementCode', 'ItemCode', 'YearCode', 'Unit', ...
             'Flag', 'FlagDescription'} ;

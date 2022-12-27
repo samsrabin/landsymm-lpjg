@@ -1,12 +1,12 @@
-% Make sure directory names end with a slash
-if ~strcmp(dir_code(end),'/')
-    dir_code = [dir_code '/'] ;
+% Make sure directory names end with filesep
+if ~strcmp(dir_code(end), filesep)
+    dir_code = [dir_code filesep] ;
 end
-if ~strcmp(dir_data(end),'/')
-    dir_data = [dir_data '/'] ;
+if ~strcmp(dir_data(end), filesep)
+    dir_data = [dir_data filesep] ;
 end
-if exist('dir_outfigs', 'var') && ~strcmp(dir_outfigs(end),'/')
-    dir_outfigs = [dir_outfigs '/'] ;
+if exist('dir_outfigs', 'var') && ~strcmp(dir_outfigs(end), filesep)
+    dir_outfigs = [dir_outfigs filesep] ;
 end
 
 do_temp_vs_trop = false ;

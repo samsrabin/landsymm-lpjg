@@ -221,14 +221,14 @@ elseif exist('dirname_emuBL_yields', 'var')
     for c = 1:length(cropList_ggcmi)
         thisCrop = cropList_ggcmi{c} ;
         thisCrop_short = e2p_get_thisCrop_short(thisCrop) ;
-        thisPattern = sprintf('%s/*%s*', ...
-            dirname_emuBL_yields, thisCrop) ;
+        thisPattern = sprintf('%s%s*%s*', ...
+            dirname_emuBL_yields, filesep, thisCrop) ;
         filelist = dir(thisPattern) ;
         if length(filelist) ~= 1
             error('Error finding emulated outputs for %s: expected 1, found %d', ...
                 thisCrop, length(filelist))
         end
-        thisFile = sprintf('%s/%s', filelist.folder, filelist.name) ;
+        thisFile = fullfile(filelist.folder, filelist.name) ;
         clear filelist
         for ii = 1:Nirr_ggcmi
             v = (c-1)*Nirr_ggcmi+ii ;
