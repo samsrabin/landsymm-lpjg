@@ -27,7 +27,7 @@ addpath(genpath(landsymm_lpjg_path()))
 %             E.g.: Nlevels = {'0', '0060', '0200', '1000'} ;
 %    irrigs: Text versions of the suffixes used to indicate irrigation type.
 %            E.g.: irrigs = {'', 'i'} ;
-%    OUTPUT FILES
+%  OUTPUT FILES
 %    outPrec: Precision of data in output files. 
 %             E.g.: outPrec = 3 ;
 %    outPrec_lonlat: Precision of lon/lat values in output files.
@@ -40,6 +40,9 @@ addpath(genpath(landsymm_lpjg_path()))
 %    fancy: Determines the type of saving that happens. I had this set to false.
 %    do_gzip: Whether to zip up output files or leave them as plain text files.
 %             E.g.: do_gzip = true ;
+% OPTIONAL:
+%    outDir_top: Directory where the outputs will go. If not provided, uses
+%                [topDir '.maxOilSug']
 
 get_max_oilsug_options
 
@@ -53,7 +56,9 @@ other_files = {'done', 'runinfo_pot.tar', 'runinfo_act.tar', 'anpp.out', 'tot_ru
 
 % Get directories
 topDir = strip(topDir, 'right', filesep) ;
-outDir_top = [topDir '.maxOilSugTEST'] ;
+if ~exist('outDir_top', 'var')
+    outDir_top = [topDir '.maxOilSug'] ;
+end
 if ~exist(outDir_top, 'dir')
     mkdir(outDir_top) ;
 end
