@@ -35,10 +35,10 @@ elseif calib_ver==21
     fao_filename_trimmed = 'Production_Crops_E_All_Data_(Normalized).csv' ;
 elseif calib_ver==22
     fao_filename_trimmed = 'FAOSTAT_data_10-19-2020_forGGCMI3.csv' ;
-else
+elseif calib_ver ~= 24
     error(['calib_ver not recognized: ' num2str(calib_ver)])
 end
-if ~exist(fao_filename_trimmed,'file')
+if exist('fao_filename_trimmed', 'var') && ~exist(fao_filename_trimmed,'file')
     twofiles = false ;
     disp('Reading FAO data from CSV...')
     fao = readtable('FAOSTAT_20160928.csv') ;
@@ -108,6 +108,17 @@ else
         fao(:, contains(fao.Properties.VariableNames, extraneous_columns)) = [] ;
 %         fao = fao(:,[1 3 2 4 5]) ;
         fao.Properties.VariableNames = {'AreaName','ElementName','ItemName','Year','Value'} ;
+        twofiles = false ;
+    elseif calib_ver==24
+                disp('Reading FAO data from TXT file...')
+        fao = readtable(fullfile(dir_data, 'fao', 'FAOStat-Jul2022', 'Production_Crops_Livestock_E_All_Data_Norm.csv')) ;
+        extraneous_elements = {'Laying', 'Milk Animals', 'Prod Popultn', 'Producing Animals/Slaughtered', 'Stocks', 'Yield/Carcass Weight'} ;
+        fao(contains(fao.Element, extraneous_elements), :) = [] ;
+        extraneous_columns = {'DomainCode', 'Domain', 'AreaCode', ...
+            'ElementCode', 'ItemCode', 'YearCode', 'Unit', ...
+            'Flag', 'FlagDescription'} ;
+        fao(:, contains(fao.Properties.VariableNames, extraneous_columns)) = [] ;
+        fao.Properties.VariableNames = {'AreaName','ItemName','ElementName','Year','Value'} ;
         twofiles = false ;
     else
         error(['calib_ver not recognized: ' num2str(calib_ver)])
@@ -275,8 +286,13 @@ end
 
 if combine_subChinas
     if ~twofiles
-        %             fao = fao(~cellstrfind(fao.AreaName,'China,',true,true),:) ;
-        fao = fao(~contains(fao.AreaName,'China,'),:) ;
+        if calib_ver <= 23
+            fao = fao(~contains(fao.AreaName,'China,'),:) ;
+        elseif calib_ver == 24
+            fao = fao(~contains(fao.AreaName, {'Hong Kong', 'Macao', 'Taiwan'}),:) ;
+        else
+            error('How to handle combine_subChinas when twofiles false and calib_ver %d?', calib_ver)
+        end
     else
         if calib_ver==5
             % For PRODUCTION data, get rid of sub-Chinas

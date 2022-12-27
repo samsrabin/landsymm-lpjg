@@ -21,7 +21,7 @@ script_setup_cropCalibration
 
 if calib_ver<=4
     script_import_lpj_yields
-elseif calib_ver>=5 && calib_ver<=23
+elseif calib_ver>=5 && calib_ver<=24
     script_import_lpj_yields_noCCy
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
@@ -150,7 +150,7 @@ fig_font_size = 16 ;
 % Miscanthus file
 if calib_ver==11 || calib_ver==17 || is_ggcmi || calib_ver==21
     miscanthus_file = '' ;
-elseif calib_ver<=16 || (calib_ver>=18 && calib_ver<=20) || calib_ver==23
+elseif calib_ver<=16 || (calib_ver>=18 && calib_ver<=20) || any(calib_ver == [23 24])
     warning('Using horrible Miscanthus kludge from miscanthus_calibration_kludge.m!')
     miscanthus_file = 'Miscanthus_yields_for_plot.mat' ;
 else
@@ -274,7 +274,7 @@ if calib_ver==11 || calib_ver==21
         eval(['yield_lpj_4cal_Cyc(:,:,c) = yield_lpj_4cal_tmp.' thisCrop '_Cy ;']) ;
     end
     clear yield_lpj_4cal_tmp
-elseif (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20) || calib_ver==23
+elseif (calib_ver>=12 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20) || any(calib_ver == [23 24])
     listCrops_4cal = listCrops_lpj_comb ;
     Ncrops_4cal = length(listCrops_4cal) ;
     for c = 1:Ncrops_4cal
@@ -396,7 +396,7 @@ elseif calib_ver==19 || calib_ver==20
     elseif calib_ver==20
         FA2_to_PLUM_key{getPi2('FruitAndVeg')}    = {'FruitAndVeg'} ;
     end
-elseif calib_ver==23
+elseif any(calib_ver == [23 24])
     FA2_to_PLUM_key = {} ;
 else
     error(['calib_ver not recognized: ' num2str(calib_ver)])
@@ -406,7 +406,7 @@ end
 if calib_ver==11 || calib_ver==17 || calib_ver==21
     ignore_lpj_Cc = countries2ignore(croparea_lpj_4cal_Ccy) ;
     ignore_fa2_Cc = countries2ignore(croparea_fa2_4cal_Ccy) ;
-elseif (calib_ver>=1 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20) || calib_ver==23
+elseif (calib_ver>=1 && calib_ver<=16) || (calib_ver>=18 && calib_ver<=20) || any(calib_ver == [23 24])
     ignore_lpj_Cc = false(size(croparea_lpj_4cal_Ccy,1),size(croparea_lpj_4cal_Ccy,2)) ;
     ignore_fa2_Cc = false(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,2)) ;
 else
@@ -435,7 +435,7 @@ if isempty(regWeight_basedOn)
 else
     if calib_ver==11 || calib_ver==21
         error('Add code to do weights when ignoring countries.')
-    elseif ~(calib_ver>=1 || calib_ver<=20) || calib_ver==23
+    elseif ~(calib_ver>=1 || calib_ver<=20) || any(calib_ver == [23 24])
         error(['calib_ver (' num2str(calib_ver) ') not recognized! In "Get weights for regression"'])
     end
     weights_fa2_4cal_Cyc = nan(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,3),size(croparea_fa2_4cal_Ccy,2)) ;

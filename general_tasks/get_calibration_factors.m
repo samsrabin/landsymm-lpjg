@@ -31,9 +31,9 @@
 %                              of general land use fractions.
 %                              E.g.: filename_guess_cropfrac = '/Users/Shared/LandSyMM/inputs/LU/remaps_v10_old_62892_gL/cropfracs.remapv10_old_62892_gL.txt' ;
 %     calib_ver: The version of mapping FAO to PLUM crop types. Also sets some other 
-%                settings in crop calibration scripts. Mappings are defined in
-%                get_FAO_info.m.
-%                E.g.: calib_ver = 23 ;
+%                settings in crop calibration scripts, including FAO files  to use. 
+%                Mappings and files are defined in get_FAO_info.m.
+%                E.g.: calib_ver = 24 ;
 %     remapVer: Used for setting the list of LPJ-GUESS output crops being calibrated.
 %               See top of script_import_lpj_yields_noCCy.m for where this is used.
 %               E.g.: remapVer = '10' ;

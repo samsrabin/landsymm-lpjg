@@ -53,7 +53,7 @@ end
 [listCrops_fa2o, ...
     listCrops_fa2i, listCrops_fa2i1, listCrops_fa2i2, ...
     FAO_to_FAO_key, FAO_to_FAO_key1, FAO_to_FAO_key2] = ...
-    get_FAO_info(calib_ver, twofiles) ;
+    get_FAO_info(calib_ver) ;
 Ncrops_fa2o = length(listCrops_fa2o) ;
 
 % Get item names
@@ -130,7 +130,7 @@ if ~indiv_years
     yield_fa2_Ccy = nanmean(yield_fa2_Ccy,3) ;
 end
 
-if calib_ver_used == 23
+if any(calib_ver_used == [23 24])
     if ~isempty(setxor(listCrops_fa2o, listCrops_lpj_comb))
         error('listCrops mismatch prevents rearranging')
     end
@@ -142,7 +142,7 @@ if calib_ver_used == 23
     if ~isequal(listCrops_fa2o, listCrops_lpj_comb)
         error('listCrops mismatch even after rearranging???')
     end
-elseif calib_ver_used > 23
+elseif calib_ver_used > 24
     error('calib_ver_used %d not recognized', calib_ver_used)
 end
 

@@ -12,7 +12,7 @@ if calib_ver==17 % Put calib_ver==XX here if you want to use a mask
         gl = lpjgu_matlab_readTable_then2map(filename_guess_gridlist) ;
     end
     countries_YX(~gl.mask_YX) = NaN ;
-elseif calib_ver<=16 || (calib_ver>=18 && calib_ver<=23)
+elseif calib_ver<=16 || (calib_ver>=18 && calib_ver<=24)
     if exist('filename_guess_gridlist','var')
         warning(['filename_guess_gridlist ignored for calib_ver ' num2str(calib_ver) '.'])
     end
@@ -53,7 +53,7 @@ if false % Put calib_ver==XX here if you want to try and fix this
             error('How did that masking not work???')
         end
     end
-elseif calib_ver<=23
+elseif calib_ver<=24
     if any(inGlNotCtries_YX(:))
         warning([num2str(length(find(inGlNotCtries_YX))) ' cells in LPJ-GUESS output but not countries map! These will be ignored in calibration. To view: figure;pcolor(inGlNotCtries_YX);shading flat'])
     end
@@ -99,6 +99,24 @@ if ~PLUM_countries
             = {country_name_adj{c,2}} ;
     end
     clear country_name_adj
+elseif calib_ver == 24
+    country_name_adj = {...
+        'Swaziland', 'Eswatini' ;
+        'The former Yugoslav Republic of Macedonia', 'North Macedonia' ;
+        'China', 'China mainland' ;
+        } ;
+    for c = 1:size(country_name_adj,1)
+        is_rename_country = strcmp(countries_key.Country,country_name_adj{c,1}) ;
+        if sum(is_rename_country) ~= 1
+            error('Expected 1 member of countries_key.Country to match %s; got %d', ...
+                country_name_adj{c,1}, sum(is_rename_country))
+        end
+        countries_key.Country(is_rename_country) ...
+            = {country_name_adj{c,2}} ;
+    end
+    clear country_name_adj
+elseif calib_ver > 24
+    error('PLUM_countries with calib_ver %d: Do country names need to be adjusted?')
 end ; clear c
 
 % Merge names in countries table, if not using PLUM countries
@@ -140,31 +158,45 @@ end
 
 % Merge sub-Chinas, if doing so
 if combine_subChinas_map
+    if calib_ver <= 23
+        china_name = 'China' ;
+    elseif calib_ver == 24
+        china_name = 'China mainland' ;
+    else
+        error('What name to use for China in calib_ver %d?', calib_ver)
+    end
+    china_code = countries_key.numCode(strcmp(countries_key.Country, china_name)) ;
+    if length(china_code) ~= 1
+        error('Expected 1 member of countries_key.Country matching %s; found %d', china_name, length(china_code))
+    end
+
     % Taiwan
     if PLUM_countries
         taiwan_code = 158 ;
     else
-        taiwan_code = countries_key.numCode(strcmp(countries_key.Country,'Taiwan')) ;
+        taiwan_code = countries_key.numCode(contains(countries_key.Country,'Taiwan')) ;
     end
-    countries_YX(countries_YX==taiwan_code) = countries_key.numCode(strcmp(countries_key.Country,'China')) ;
-    countries_key(strcmp(countries_key.Country,'Taiwan'),:) = [] ;
+    if length(taiwan_code) ~= 1
+        error('Expected 1 member of countries_key.Country containing Taiwan; found %d', length(taiwan_code))
+    end
+    countries_YX(countries_YX==taiwan_code) = china_code ;
+    countries_key(contains(countries_key.Country,'Taiwan'),:) = [] ;
     clear taiwan_code
     
     % Hong Kong
-    hk_code = countries_key.numCode(strcmp(countries_key.Country,'Hong Kong')) ;
+    hk_code = countries_key.numCode(contains(countries_key.Country,'Hong Kong')) ;
     if ~isempty(hk_code)
-        countries_YX(countries_YX==hk_code) = ...
-            countries_key.numCode(strcmp(countries_key.Country,'China')) ;
-        countries_key(strcmp(countries_key.Country,'Hong Kong'),:) = [] ;
+        countries_YX(countries_YX==hk_code) = china_code ;
+        countries_key(contains(countries_key.Country,'Hong Kong'),:) = [] ;
     end
     clear hk_code
     
     % Macau
-    macau_code = countries_key.numCode(strcmp(countries_key.Country,'Macau')) ;
+    is_macau = contains(countries_key.Country,{'Macau', 'Macao'}) ;
+    macau_code = countries_key.numCode(is_macau) ;
     if ~isempty(macau_code)
-        countries_YX(countries_YX==macau_code) = ...
-            countries_key.numCode(strcmp(countries_key.Country,'China')) ;
-        countries_key(strcmp(countries_key.Country,'Macau'),:) = [] ;
+        countries_YX(countries_YX==macau_code) = china_code ;
+        countries_key(is_macau,:) = [] ;
     end
     clear macau_code
 end

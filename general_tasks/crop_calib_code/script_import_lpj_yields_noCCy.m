@@ -16,7 +16,7 @@ elseif calib_ver == 19
     listCrops_lpj_comb = ...
         {'CerealsC3','CerealsC4','Rice','Oilcrops',...
         'StarchyRoots','Pulses','Sugar','DateCitGrape'} ;
-elseif calib_ver == 20 || calib_ver == 23
+elseif any(calib_ver == [20 23 24])
     if ~exist('remapVer', 'var')
         remapVer = '8b' ;
     end
@@ -297,11 +297,7 @@ end
 clear remove
 
 % Start dealing with sugar and oilcrops, if needed
-try
-    listCrops_fa2o_tmp = get_FAO_info(calib_ver, false) ;
-catch ME
-    listCrops_fa2o_tmp = get_FAO_info(calib_ver, true) ;
-end
+listCrops_fa2o_tmp = get_FAO_info(calib_ver) ;
 % Sugar
 supercrop = 'Sugar' ;
 combine_sugars = any(contains(listCrops_lpj_comb, ...
