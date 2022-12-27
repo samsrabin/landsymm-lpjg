@@ -1,114 +1,47 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Master file for crop calibration %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SSR 2022-12-27
+% - Given outputs from an LPJ-GUESS run, a way to map LPJ-GUESS/PLUM crop types to FAO
+%   crop types, and some other info, this will generate a figure with the "calibration
+%   factors" that PLUM will multiply the LPJ-GUESS outputs by.
 
-%% Information about this calibration run
+% get_calibration_factors_options.m must be somewhere on your path.
+% There, specify the following variables:
+%     year1, yearN: The first and last years, respectively, to be used for calibration.
+%                   Applies to both LPJ-GUESS outputs and FAO data.
+%                   E.g.: year1 = 1995; yearN = 2005;
+%     dir_data: The path to the directory containing various general files needed by the
+%               calibration scripts. 
+%               E.g.: dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
+%     dir_outfigs: The path to the directory where you want the output figure to go.
+%                  E.g.: dir_outfigs = '/Users/Shared/PLUM/crop_calibration_for_PLUM/figures/' ;
+%     verName_calib: Mostly just used for naming files output by calibration scripts.
+%                    Can also be used to set version-specific processing options.
+%                    E.g.: verName_calib = 'recal_2022-12' ;
+%     filename_guess_yield: The LPJ-GUESS output yields you'll be calibrating with. Always 
+%                           use yield_st.out if it's present.
+%                           E.g.: filename_guess_yield = '/Users/Shared/PLUM/recalibration_2022-12/remap10_yp/calibration/output-2022-12-20-150542/yield_st.out.gz' ;
+%     filename_guess_landuse: The land use file to be used for area-weighted averaging in
+%                             calibration. This is usually the same as what was used in
+%                             the actual runs, but doesn't need to be. It just needs to
+%                             have columns for all the crops in the LPJ-GUESS output.
+%                             E.g.: filename_guess_landuse = '/Users/Shared/LandSyMM/inputs/LU/remaps_v10_old_62892_gL/LU.remapv10_old_62892_gL.txt' ;
+%     filename_guess_cropfrac: As filename_guess_landuse, but for crop fractions instead
+%                              of general land use fractions.
+%                              E.g.: filename_guess_cropfrac = '/Users/Shared/LandSyMM/inputs/LU/remaps_v10_old_62892_gL/cropfracs.remapv10_old_62892_gL.txt' ;
+%     calib_ver: The version of mapping FAO to PLUM crop types. Also sets some other 
+%                settings in crop calibration scripts. Mappings are defined in
+%                get_FAO_info.m.
+%                E.g.: calib_ver = 23 ;
+%     remapVer: Used for setting the list of LPJ-GUESS output crops being calibrated.
+%               See top of script_import_lpj_yields_noCCy.m for where this is used.
+%               E.g.: remapVer = '10' ;
 
-% % 2018-02-16
-% verName_calib = 'remap2_PLUM6xtra' ;   % calib_ver = 16
-% % filename_guess_yield = '/Volumes/WDMPP_Storage/PLUM/trunk_runs_external/calib.remap2.PLUM6xtra.1901-2005/output-2018-02-16-131139/yield.out.gz' ;
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap2.PLUM6xtra.1901-2005/output-2018-02-16-131139/yield.out.gz' ;
-% filename_guess_landuse = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v2/LU_xtraCROPtoPAST.remapv2.20180214.m0.txt' ;
-% filename_guess_cropfrac = '/project/fh1-project-lpjgpi/lr8247/PLUM/input/remaps_v2/cropfracs.remapv2.20180214.m0.txt' ;
-% calib_ver = 16 ;
-
-% % Ani testing
-% verName_calib = 'ani_test' ;
-% filename_guess_yield = '/Users/Shared/ani_testing/yield.out' ;
-% filename_guess_landuse = '/Users/Shared/ani_testing/lu_1850_2016_hyde32_maxlncr_brazil_0p25_856.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/ani_testing/crop_fractions_MIRCA_aggregated_4CNcrops_fromSam_0p25degRes.txt' ;
-% calib_ver = 17 ;
-
-% % 2018-10-07
-% verName_calib = 'remap5_PLUM6xtra' ;   % calib_ver = 16
-% % filename_guess_yield = '/Volumes/WDMPP_Storage/PLUM/trunk_runs_external/calib.remap2.PLUM6xtra.1901-2005/output-2018-02-16-131139/yield.out.gz' ;
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5.PLUM6xtra.1901-2005/output-2018-10-05-024345/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5/LU.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt.gz' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5/cropfracs.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt.gz' ;
-% calib_ver = 16 ;
-
-% % 2018-12-07
-% verName_calib = 'remap5_PLUM6xtra_gcArea' ;   % calib_ver = 18
-% % filename_guess_yield = '/Volumes/WDMPP_Storage/PLUM/trunk_runs_external/calib.remap2.PLUM6xtra.1901-2005/output-2018-02-16-131139/yield.out.gz' ;
-% filename_guess_yield = '/Volumes/WDMPP_Storage/Shared/PLUM/trunk_runs/calib.remap5.PLUM6xtra.1901-2005/output-2018-10-05-024345/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5/LU.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt.gz' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5/cropfracs.remapv5.20180214.ecFertIrr0.setaside0103.m4.txt.gz' ;
-% calib_ver = 18 ;
-
-% % 2019-02-07
-% verName_calib = 'remap5d' ;   % calib_ver = 18
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5d.PLUM6xtra.1901-2005/output-2019-02-07-042215/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5d/LU.remapv5d.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5d/cropfracs.remapv5d.20180214.ecFertIrr0.setaside0103.m4.txt' ;
-% calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
-
-% % Jianyong 2019-01-28 with N-fixing
-% verName_calib = 'jianyong_20190128_Nfix' ;   % calib_ver = 18
-% filename_guess_yield = '/Users/Shared/jianyong_calib.20190128/yield_Nfix.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/jianyong_calib.20190128/lu_1850_2017_hyde321_maxlncr_halfdeg.txt.gz' ;
-% filename_guess_cropfrac = '/Users/Shared/jianyong_calib.20190128/crop_fractions_fromMIRCA_PLUM_1yr_midpoint_Stijn.txt' ;
-% calib_ver = 21 ;   % The version of mapping FAO to PLUM crop types
-
-% % Jianyong 2019-01-28 without N-fixing
-% verName_calib = 'jianyong_20190128_noNfix' ;   % calib_ver = 18
-% filename_guess_yield = '/Users/Shared/jianyong_calib.20190128/yield_No_Nfix.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/jianyong_calib.20190128/lu_1850_2017_hyde321_maxlncr_halfdeg.txt.gz' ;
-% filename_guess_cropfrac = '/Users/Shared/jianyong_calib.20190128/crop_fractions_fromMIRCA_PLUM_1yr_midpoint_Stijn.txt' ;
-% calib_ver = 21 ;   % The version of mapping FAO to PLUM crop types
-
-% % 2019-02-18
-% verName_calib = 'remap5e' ;   % calib_ver = 18
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5e.1901-2005/output-2019-02-18-122738/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v5e/LU.remapv5e.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v5e/cropfracs.remapv5e.txt' ;
-% calib_ver = 18 ;   % The version of mapping FAO to PLUM crop types
-
-% % 2019-02-19
-% verName_calib = 'remap8a' ;   % calib_ver = 19
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap8a.1901-2005/output-2019-02-18-112224/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8a/LU.remapv8a.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8a/cropfracs.remapv8a.txt' ;
-% calib_ver = 19 ;   % The version of mapping FAO to PLUM crop types
-
-% % 2019-02-20
-% verName_calib = 'remap8b' ;   % calib_ver = 20
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap8b.1901-2005/output-2019-02-18-102028/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.txt' ;
-% calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
-
-% % 2021-02-18
-% % Use Oilcrops as a proxy for FruitVeg and Sugar
-% verName_calib = 'remap8b_oilProxy' ;
-% % filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5e.1901-2005/output-2019-02-18-122738/yield.out.gz' ;
-% filename_guess_yield = '/Users/Shared/PLUM/trunk_runs/calib.remap5d.PLUM6xtra.1901-2005/output-2019-02-07-042215/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8b/LU.remapv8b.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8b/cropfracs.remapv8b.txt' ;
-% calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
-% oilcrops_proxy_fruitveg_sugar = true ;
-
-% % 2021-03-31
-% verName_calib = 'remap8c' ;   % calib_ver = 20
-% filename_guess_yield = '/Users/Shared/PLUM/ssp13/calib.remap8c.1901-2005/output-2021-03-26-215749/yield.out.gz' ;
-% filename_guess_landuse = '/Users/Shared/PLUM/input/remaps_v8c/LU.remapv8c.txt' ;
-% filename_guess_cropfrac = '/Users/Shared/PLUM/input/remaps_v8c/cropfracs.remapv8c.txt' ;
-% calib_ver = 20 ;   % The version of mapping FAO to PLUM crop types
-
-% 2022-10-30
-verName_calib = 'remap10_sai-landsymm' ;   % calib_ver = 18
-filename_guess_yield = '/Users/Shared/SAI-LandSyMM/output/remap10/calibration/output-2022-10-31-024406/yield_st.out.gz' ;
-filename_guess_landuse = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17/LU.remapv10_f09_g17.17249.txt' ;
-filename_guess_cropfrac = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10_f09_g17/cropfracs.remapv10_f09_g17.17249.txt' ;
-calib_ver = 23 ;   % The version of mapping FAO to PLUM crop types
-remapVer = '10' ;
-drop_northpole = true ;
-drop_southpole = true ;
-lons_centered_on_180 = true ;
-in_prec = 5 ; % Actually 6, but rounding errors (?)
-filename_countriesMap = 'country_boundaries_f09_g17.asc' ;
+get_calibration_factors_options
 
 
-%% Other options and setup
+%% Setup
 
 if ~exist('drop_northpole', 'var')
     drop_northpole = false ;
@@ -136,20 +69,10 @@ if ~exist('filename_countriesMap', 'var')
     end
 end
 
-% Years for calibration
-year1 = 1995 ;
-yearN = 2005 ;
-
-% Paths to calibration data
-dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
-
-% Path to figure output directory
-dir_outfigs = '/Users/Shared/PLUM/crop_calibration_for_PLUM/figures/' ;
-
 % Add code files to path (just for this session)
 addpath(genpath(landsymm_lpjg_path()))
 
-% Do slope-only regression
+% Do slope-only regression. There's another option but it should NOT be used.
 regression_type = 'slope-only' ;
 
 % Set up figure and diary files
@@ -165,9 +88,8 @@ crop_calibration
 
 %% Save figure
 
+fprintf('Saving figure to %s...\n', out_figure)
 export_fig(out_figure,'-r300')
-
-
-%% Do Miscanthus calibration kludge
-
+close
+disp('Done.')
 
