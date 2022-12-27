@@ -15,7 +15,7 @@
 
 addpath(genpath(landsymm_lpjg_path()))
 
-% get_max_oilsug_paths.m must be somewhere on your path.
+% get_max_oilsug_options.m must be somewhere on your path.
 % There, specify the following variables:
 %    topDir: Path to "outForPLUM" directory.
 %    combinations: Info about what crops to combine and how. Cell array with rows like
