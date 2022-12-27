@@ -1,7 +1,4 @@
 % Make sure directory names end with filesep
-if ~strcmp(dir_code(end), filesep)
-    dir_code = [dir_code filesep] ;
-end
 if ~strcmp(dir_data(end), filesep)
     dir_data = [dir_data filesep] ;
 end
