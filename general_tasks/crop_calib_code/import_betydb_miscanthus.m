@@ -76,12 +76,15 @@ end
 warning('off', 'MATLAB:table:ModifiedAndSavedVarnames')
 betydb_data = readtable(fullfile(dir_data, 'other', 'betydb_grass_yields2.csv')) ;
 
+% Include only rows with known irrigation in period of interest
+betydb_data = betydb_data( ...
+    betydb_data.year >= year1 ...
+    & betydb_data.year <= yearN ...
+    & ~strcmp(betydb_data.irrig, 'NA'),:) ;
+
 % Extract some info
 betydb_yields = betydb_data.mean_yield ;
-betydb_irrBool = false(size(betydb_yields)) ;
-betydb_irrBool(strcmp(betydb_data.irrig,'TRUE')) = true ;
-warning('Assuming that %d Miscanthus sites with irrig "NA" are rainfed', ...
-    length(find(strcmp(betydb_data.irrig,'NA'))))
+betydb_irrBool = strcmp(betydb_data.irrig, 'TRUE') ;
 
 % Aggregate Miscanthus yields to LPJ-GUESS gridcell means
 yield_map_RF = nan(Nlats,Nlons) ;
