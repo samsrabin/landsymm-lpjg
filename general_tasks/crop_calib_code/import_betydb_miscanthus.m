@@ -3,6 +3,8 @@ function miscanthus_x_os = import_betydb_miscanthus(dir_data, yield_lpj, year1, 
 %    - Cols: observed (from betyDB), simulated (not actually Miscanthus, but some proxy)
 %    - Rows: each one gridcell, rainfed or irrigated
 % This breaks with the usual calibration factor method of aggregating to country level.
+% This also breaks with the usual method of each year being its own point---means across
+% all of year1–yearN are calculated here.
 
 fprintf('Getting Miscanthus yields for %d-%d...\n', year1, yearN)
 

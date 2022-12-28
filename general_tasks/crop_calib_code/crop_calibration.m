@@ -150,12 +150,18 @@ reg_line_width = 3 ;
 fig_font_size = 16 ;
 
 % Miscanthus file
-if calib_ver==11 || calib_ver==17 || is_ggcmi || calib_ver==21
-    miscanthus_file = '' ;
-elseif calib_ver<=16 || (calib_ver>=18 && calib_ver<=20) || any(calib_ver == [23 24])
+miscanthus_file = '' ;
+miscanthus_x_os_touse = [] ;
+if calib_ver<=16 || (calib_ver>=18 && calib_ver<=20) || calib_ver == 23
+    % Use some other LPJ-GUESS run's Miscanthus-equivalent yields and some mysterious
+    % subset of the betyDB data
     warning('Using horrible Miscanthus kludge from miscanthus_calibration_kludge.m!')
     miscanthus_file = 'Miscanthus_yields_for_plot.mat' ;
-else
+elseif calib_ver == 24
+    % Use this LPJ-GUESS run's Miscanthus-equivalent yields and a knowable subset of the
+    % betyDB data
+    miscanthus_x_os_touse = miscanthus_x_os ;
+elseif ~(calib_ver==11 || calib_ver==17 || is_ggcmi || calib_ver==21)
     error(['calib_ver ' num2str(calib_ver) ' not recognized in "Miscanthus file"'])
 end
 
@@ -557,8 +563,8 @@ disp('ALL POINTS')
                                'max_prctile',max_prctile,...
                                'reg_line_width',reg_line_width,...
                                'fig_font_size',fig_font_size,...
-                               ...'miscanthus_file',miscanthus_file,...
-                               'miscanthus_x_os',miscanthus_x_os,...
+                               'miscanthus_file',miscanthus_file,...
+                               'miscanthus_x_os',miscanthus_x_os_touse,...
                                'slope_symbol',slope_symbol,...
                                'marker_size',25,...
                                'separate_figs',false, ...

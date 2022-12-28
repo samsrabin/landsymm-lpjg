@@ -1,10 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Master file for crop calibration %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SSR 2022-12-27
+% SSR 2022-12-28
 % - Given outputs from an LPJ-GUESS run, a way to map LPJ-GUESS/PLUM crop types to FAO
 %   crop types, and some other info, this will generate a figure with the "calibration
 %   factors" that PLUM will multiply the LPJ-GUESS outputs by.
+% - Calculates Miscanthus calibration factors, but doesn't use current LPJ-GUESS outputs
+%   if calib_ver < 24.
 
 % get_calibration_factors_options.m must be somewhere on your path.
 % There, specify the following variables:
