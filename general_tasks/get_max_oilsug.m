@@ -119,7 +119,9 @@ for d = 1:length(dirList)
                     thisOtherFile, length(thisOtherFile2), thisOtherFile2)
             end
             thisOtherFile2 = fullfile(thisOtherFile2.folder, thisOtherFile2.name) ;
-            warning('%s does not exist;\nusing %s instead', thisOtherFile, thisOtherFile2)
+            if ~strcmp([thisOtherFile '.gz'], thisOtherFile2)
+                warning('%s does not exist;\nusing %s instead', thisOtherFile, thisOtherFile2)
+            end
             thisOtherFile = thisOtherFile2 ;
         end
         copyfile(thisOtherFile, outDir)
