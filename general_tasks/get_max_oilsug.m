@@ -158,6 +158,11 @@ for d = 1:length(dirList)
                 thisCrop_main = get_thisCrop(mainCrop) ;
                 thisCrop_sub = cellfun(get_thisCrop, subCrops, 'UniformOutput', false) ;
                 [~, ~, I_sub] = intersect(thisCrop_sub, S_yield.varNames, 'stable') ;
+                if length(I_sub) ~= length(thisCrop_sub)
+                    tmp = sprintf('%s ', thisCrop_sub{:}) ;
+                    error('Found %d matches for %d items (%s)', ...
+                        length(I_sub), length(thisCrop_sub), tmp)
+                end
                 yield_sub_xv = S_yield.garr_xv(:,I_sub) ;
                 irrig_sub_xv = S_irrig.garr_xv(:,I_sub) ;
 
