@@ -29,6 +29,7 @@ addParameter(p,'avg_over_yrs',false,@islogical) ;
 addParameter(p,'reg_line_width',3,@isnumeric) ;
 addParameter(p,'fig_font_size',14,@isnumeric) ;
 addParameter(p,'miscanthus_file','',@ischar) ;
+addParameter(p,'miscanthus_x_os',[],@isnumeric) ;
 addParameter(p,'slope_symbol','',@ischar) ;
 addParameter(p,'marker_size',10,@isscalar) ;
 addParameter(p,'separate_figs',false,@islogical) ;
@@ -43,9 +44,17 @@ parse(p,yield_in_obs_Cyc,yield_in_sim_Cyc,...
 pr = p.Results ;
 do_wtd_reg = ~isempty(pr.weights_regr_Cyc) ;
 do_wtd_plot = strcmp('scatter_style','size_weighted') ;
-do_miscanthus = ~isempty(pr.miscanthus_file) ;
+
+% Handle Miscanthus inputs
+do_miscanthus = ~isempty(pr.miscanthus_file) || ~isempty(pr.miscanthus_x_os) ;
 if do_miscanthus && (do_wtd_reg || do_wtd_plot)
     error('No way programmed to do weighting for Miscanthus data/plot!')
+end
+if ~isempty(pr.miscanthus_file) && ~isempty(pr.miscanthus_x_os)
+    error('Specify only one of miscanthus_file and miscanthus_x_os')
+end
+if ~isempty(pr.miscanthus_x_os) && size(pr.miscanthus_x_os, 2) ~= 2
+    error('Expected 2 columns in miscanthus_x_os; got %d', size(pr.miscanthus_x_os, 2))
 end
 
 Ncrops_plot = length(listCrops_plot) ;
@@ -99,11 +108,20 @@ for c_plot = 1:Ncrops_plot
     if pr.separate_figs
         figure('Color','w') ;
     end
-    if do_miscanthus && c_plot==Ncrops_plot
-        miscanthus_data = load(pr.miscanthus_file) ;
-        tmpO = miscanthus_data.yields_obs ;
-        tmpS = miscanthus_data.yields_mod ;
+    is_miscanthus = do_miscanthus && c_plot==Ncrops_plot ;
+    if is_miscanthus
+        if ~isempty(pr.miscanthus_file)
+            miscanthus_data = load(pr.miscanthus_file) ;
+            tmpO = miscanthus_data.yields_obs ;
+            tmpS = miscanthus_data.yields_mod ;
+        elseif ~isempty(pr.miscanthus_x_os)
+            tmpO = pr.miscanthus_x_os(:,1) ;
+            tmpS = pr.miscanthus_x_os(:,2) ;
+        else
+            error('Not using miscanthus_file OR miscanthus_x_os??')
+        end
         thisCrop_plot = 'Miscanthus' ;
+        disp('thisCrop = Miscanthus')
     else
         thisCrop_plot = listCrops_plot{c_plot} ;
         if isempty(plot2data_key)
@@ -148,75 +166,78 @@ for c_plot = 1:Ncrops_plot
             end
         end
         tmpS = yield_in_sim_Cyc(includeThese,:,c_data) ;
-        if do_wtd_reg
+    end
+
+    if do_wtd_reg && ~is_miscanthus
 %             tmpW = weights_regr_Cyc(:,:,c_plot) ;
 %             tmpWp = weights_plot_Cyc(:,:,c_plot) ;
-            tmpW = weights_regr_Cyc(includeThese,:,c_plot) ;
-            tmpWp = weights_plot_Cyc(includeThese,:,c_plot) ;
-        else
-            tmpW = [] ;
-            tmpWp = [] ;
-        end
+        tmpW = weights_regr_Cyc(includeThese,:,c_plot) ;
+        tmpWp = weights_plot_Cyc(includeThese,:,c_plot) ;
+    else
+        tmpW = [] ;
+        tmpWp = [] ;
+    end
 
-        if pr.avg_over_yrs
-            tmpO = nanmean(tmpO,2) ;
-            tmpS = nanmean(tmpS,2) ;
-            if do_wtd_reg
-                tmpW = nanmean(tmpW,2) ;
-                tmpWp = nanmean(tmpWp,2) ;
-            end
-        end
-
+    if pr.avg_over_yrs && ~is_miscanthus
+        tmpO = nanmean(tmpO,2) ;
+        tmpS = nanmean(tmpS,2) ;
         if do_wtd_reg
-            bad = isnan(tmpO) | isnan(tmpS) | isnan(tmpW) | tmpO>prctile(tmpO(:),pr.max_prctile) | isoutlier(tmpO(:),'quartiles','ThresholdFactor',pr.outlier_thresh) ;
-        else
+            tmpW = nanmean(tmpW,2) ;
+            tmpWp = nanmean(tmpWp,2) ;
+        end
+    end
+
+    if do_wtd_reg && ~is_miscanthus
+        bad = isnan(tmpO) | isnan(tmpS) | isnan(tmpW) | tmpO>prctile(tmpO(:),pr.max_prctile) | isoutlier(tmpO(:),'quartiles','ThresholdFactor',pr.outlier_thresh) ;
+    else
 %             bad = isnan(tmpO) | isnan(tmpS) | tmpO>prctile(tmpO(:),pr.max_prctile) ;
-            cond1 = isnan(tmpO) ;
-            cond2 = isnan(tmpS) ;
-            cond3 = tmpO>prctile(tmpO(:),pr.max_prctile) ;
-            outliersO = get_outliers(tmpO, cond1, cond2, cond3, pr) ;
-            outliersS = get_outliers(tmpS, cond1, cond2, cond3, pr) ;
-            bad = cond1 | cond2 | cond3 | outliersO.cond4 | outliersS.cond4 ;
-        end
-        if ~any(find(~bad))
+        cond1 = isnan(tmpO) ;
+        cond2 = isnan(tmpS) ;
+        cond3 = tmpO>prctile(tmpO(:),pr.max_prctile) ;
+        outliersO = get_outliers(tmpO, cond1, cond2, cond3, pr) ;
+        outliersS = get_outliers(tmpS, cond1, cond2, cond3, pr) ;
+        bad = cond1 | cond2 | cond3 | outliersO.cond4 | outliersS.cond4 ;
+    end
+    if ~any(find(~bad))
 %             error('No cells found!')
-            if all(cond2)
-                warning(['No data found for ' thisCrop_plot '! Skipping.'])
-                continue
-            end
+        if all(cond2)
+            warning(['No data found for ' thisCrop_plot '! Skipping.'])
+            continue
         end
-        if any(isinf(tmpO))
-            error('any(isinf(tmpO))')
-        end
-        
-        
-        % Troubleshooting
-        if ~do_wtd_reg
-            disp('EXCLUDING:')
+    end
+    if any(isinf(tmpO))
+        error('any(isinf(tmpO))')
+    end
+    
+    
+    % Troubleshooting
+    if ~do_wtd_reg || is_miscanthus
+        disp('EXCLUDING:')
+        if ~is_miscanthus
             disp(['   NaN in obs and sim: ' num2str(length(find(cond1 & cond2)))])
             disp(['   NaN in obs not sim: ' num2str(length(find(cond1 & ~cond2)))])
             disp(['   NaN in sim not obs: ' num2str(length(find(~cond1 & cond2)))])
-            disp(['   Low percentile (obs). :     ' num2str(length(find(cond3)))])
-            if ~isinf(pr.outlier_thresh)
-                fprintf('   Outliers (ThresholdFactor: %.9g):\n', pr.outlier_thresh)
-                fprintf('      Obs: %d\n', length(find(outliersO.cond4)))
-                if any(outliersO.cond4(:))
-                    print_outlier_info(outliersO)
-                end
-                fprintf('      Sim: %d\n', length(find(outliersS.cond4)))
-                if any(outliersS.cond4(:))
-                    print_outlier_info(outliersS)
-                end
+        end
+        disp(['   Low percentile (obs). :     ' num2str(length(find(cond3)))])
+        if ~isinf(pr.outlier_thresh)
+            fprintf('   Outliers (ThresholdFactor: %.9g):\n', pr.outlier_thresh)
+            fprintf('      Obs: %d\n', length(find(outliersO.cond4)))
+            if any(outliersO.cond4(:))
+                print_outlier_info(outliersO)
+            end
+            fprintf('      Sim: %d\n', length(find(outliersS.cond4)))
+            if any(outliersS.cond4(:))
+                print_outlier_info(outliersS)
             end
         end
-        
-        tmpO = tmpO(~bad) ;
-        tmpS = tmpS(~bad) ;
-        disp(['N = ' num2str(length(tmpS))])
-        if do_wtd_reg
-            tmpW = tmpW(~bad) ;
-            tmpWp = tmpWp(~bad) ;
-        end
+    end
+    
+    tmpO = tmpO(~bad) ;
+    tmpS = tmpS(~bad) ;
+    disp(['N = ' num2str(length(tmpS))])
+    if do_wtd_reg && ~is_miscanthus
+        tmpW = tmpW(~bad) ;
+        tmpWp = tmpWp(~bad) ;
     end
     
 %     TF = isoutlier(tmpO(:),'quartiles','ThresholdFactor',4) ;
@@ -233,12 +254,12 @@ for c_plot = 1:Ncrops_plot
         [calib_factors_u, calib_factors_w, ...
             regLine_u_y, regLine_w_y, legend_arg2] = doReg_slopeOnly( ...
             calib_factors_u, calib_factors_w, c_plot, tmpS, tmpO, tmpW, ...
-            pr, do_wtd_reg, regLine_u_x) ;
+            pr, do_wtd_reg && ~is_miscanthus, regLine_u_x) ;
     elseif strcmp(pr.regression_type, 'full linear but 0->0')
         [calib_factors_u, calib_factors_w, ...
             regLine_u_y, regLine_w_y, legend_arg2] = doReg_linBut00( ...
             calib_factors_u, calib_factors_w, c_plot, tmpS, tmpO, tmpW, ...
-            do_wtd_reg, regLine_u_x) ;
+            do_wtd_reg && ~is_miscanthus, regLine_u_x) ;
     else
         error('regression_type ''%s'' not recognized', pr.regression_type)
     end
@@ -264,7 +285,7 @@ for c_plot = 1:Ncrops_plot
     plot([min(newlims) max(newlims)],[min(newlims) max(newlims)],'--k')
     % Plot regression lines
     regLine_u = plot(regLine_u_x,regLine_u_y,'-m','LineWidth',pr.reg_line_width) ;
-    if do_wtd_reg
+    if do_wtd_reg && ~is_miscanthus
         regLine_w = plot(regLine_u_x,regLine_w_y,'-c','LineWidth',pr.reg_line_width) ;
     end
     hold off
@@ -279,7 +300,7 @@ for c_plot = 1:Ncrops_plot
     set(gca,'FontSize',pr.fig_font_size)
     
     % Legend
-    if do_wtd_reg
+    if do_wtd_reg && ~is_miscanthus
         hl = legend([regLine_u,regLine_w], legend_arg2, 'Location','north') ;
     else
         hl = legend(regLine_u, legend_arg2, 'Location','north') ;
