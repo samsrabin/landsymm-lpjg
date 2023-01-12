@@ -16,7 +16,7 @@ Most of these scripts and functions were originally written to work on my laptop
 
 ## Produce some diagnostic figures for crop outputs
 
-Makes area-weighted global timeseries as well as time-averaged maps for crop variables like yield, irrigation (`gsirrigation.out`), etc.
+Use `crop_diagnostics.m` to make area-weighted global timeseries as well as time-averaged maps for crop variables like yield, irrigation (`gsirrigation.out`), etc.
 
 ![eg_crop_diagnostics_maps](other/images/eg_crop_diagnostics_ts.png)
 
