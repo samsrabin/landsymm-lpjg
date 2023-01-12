@@ -8,7 +8,7 @@ __pycache__
 *.nc
 *options.m
 *.out
-*.png
+other/map_with_SHPoverlay_v2/**/*.png
 *.pptx
 *.Rhistory
 *.swp

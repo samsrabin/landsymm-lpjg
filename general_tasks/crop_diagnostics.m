@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SSR 2023-01-12
 % - Makes area-weighted global timeseries as well as time-averaged maps.
-% - 
+% - For irrigation, use the file saved from file_gsirr (or file_gsirr_st, if present).
 
 addpath(genpath(landsymm_lpjg_path()))
 
@@ -13,7 +13,7 @@ addpath(genpath(landsymm_lpjg_path()))
 % SETTINGS RELATED TO LPJ-GUESS RUN
 %    inDir: Directory containing the LPJ-GUESS outputs.
 %    thisFile: File we'll be importing. If *_st.out is present, use that instead of *.out.
-%              E.g.: thisFile = 'gsirrigation.out' ;
+%              E.g.: thisFile = 'yield.out' ;
 %    filename_guess_landuse: The land use file to be used for area-weighted averaging in
 %                            calibration. This is usually the same as what was used in
 %                            the actual runs, but doesn't need to be. It just needs to
