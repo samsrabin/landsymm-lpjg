@@ -1,33 +1,39 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Make some diagnostic LandSyMM-ag figures %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Make some diagnostic LPJ-GUESS crop figures %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SSR 2023-01-12
+% - Makes area-weighted global timeseries as well as time-averaged maps.
+% - 
 
-%%%%% Settings for individual crop runs %%%%%
+addpath(genpath(landsymm_lpjg_path()))
 
-% Directory from which we'll be importing
-inDir = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p7/output-2019-02-18-120851' ;
+% crop_diagnostic_options.m must be somewhere on your path.
+% There, specify the following variables:
+%  SETTINGS RELATED TO LPJ-GUESS RUN
+%    inDir: Directory containing the LPJ-GUESS outputs.
+%    thisFile: File we'll be importing. If *_st.out is present, use that instead of *.out.
+%              E.g.: thisFile = 'gsirrigation.out' ;
+%    filename_guess_landuse: The land use file to be used for area-weighted averaging in
+%                            calibration. This is usually the same as what was used in
+%                            the actual runs, but doesn't need to be. It just needs to
+%                            have columns for all the crops in the LPJ-GUESS output.
+%                            E.g.: filename_guess_landuse = '/Users/Shared/LandSyMM/inputs/LU/remaps_v10_old_62892_gL/LU.remapv10_old_62892_gL.txt' ;
+%    filename_guess_cropfrac: As filename_guess_landuse, but for crop fractions instead
+%                             of general land use fractions.
+%                             E.g.: filename_guess_cropfrac = '/Users/Shared/LandSyMM/inputs/LU/remaps_v10_old_62892_gL/cropfracs.remapv10_old_62892_gL.txt' ;
+%    xres and yres: The longitude and latitude resolution.
+%                   E.g.: xres = 0.5; yres = 0.5;
+%  OTHER SETTINGS
+%    filename_staticData_quarterdeg: Path to staticData_quarterdeg.nc.
 
-% File we'll be importing
-%   - If *_st.out present, use that instead of *.out
-% thisFile = 'yield.out' ;
-thisFile = 'gsirrigation.out' ;
-
-% Land use info
-filename_landuse = '/Users/Shared/PLUM/input/remaps_v6p7/LU.remapv6p7.txt' ;
-filename_cropfrac = '/Users/Shared/PLUM/input/remaps_v6p7/cropfracs.remapv6p7.txt' ;
-
-
-%%%%% General settings %%%%%
-
-filename_staticData_quarterdeg = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
-xres = 0.5 ; % Longitude resolution (degrees)
-yres = 0.5 ; % Latitude resolution (degrees)
+crop_diagnostics_options
 
 
 %% Setup
 
 % Output directory
-outDir = sprintf('%s/figs', inDir) ;
+outDir = fullfile(inDir, 'figs') ;
+fprintf('Saving figures to %s\n', outDir)
 if ~exist(outDir, 'dir')
     mkdir(outDir)
 end
@@ -46,13 +52,13 @@ S = lpjgu_matlab_read2geoArray(sprintf('%s/%s', inDir, thisFile)) ;
 
 % Import land use and crop fractions, ensuring match to LPJ-GUESS gridlist
 disp('Importing land use fractions...')
-lu_frac = lpjgu_matlab_read2geoArray(filename_landuse) ;
+lu_frac = lpjgu_matlab_read2geoArray(filename_guess_landuse) ;
 if ~isequal(S.list2map, lu_frac.list2map)
     lu_frac = harmonize_gridlists(S, lu_frac) ;
 end
 lu_frac = harmonize_yearLists(S, lu_frac) ;
 disp('Importing crop fractions...')
-crop_frac = lpjgu_matlab_read2geoArray(filename_cropfrac) ;
+crop_frac = lpjgu_matlab_read2geoArray(filename_guess_cropfrac) ;
 if ~isequal(S.list2map, crop_frac.list2map)
     crop_frac = harmonize_gridlists(S, crop_frac) ;
 end
@@ -195,7 +201,7 @@ for c = 1:length(cropList)
     title(thisTitle)
     
     % Save figure
-    outFile = sprintf('%s/Timeseries %s.pdf', outDir, thisTitle) ;
+    outFile = fullfile(outDir, ['Timeseries ' thisTitle, '.pdf']) ;
     export_fig(outFile, '-r300')
     close
 end
@@ -355,7 +361,7 @@ for c = 1:length(cropList)
     hsgt = sgtitle(thisTitle, 'FontSize', fontSize*1.25, 'FontWeight', 'bold') ;
     
     % Save figure
-    outFile = sprintf('%s/Map %s.png', outDir, thisTitle) ;
+    outFile = fullfile(outDir, ['Map ' thisTitle '.png']) ;
     export_fig(outFile, '-r150')
     close
 end
