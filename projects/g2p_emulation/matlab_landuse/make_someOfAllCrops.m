@@ -293,10 +293,16 @@ if isempty(filelist)
     error('No file found matching pattern %s', inFile_lu)
 end
 
+suffixes_to_remove = {'.txt', '.gz', '.mat', '.garr', '.maps', '.map.bin'} ;
+
 if length(filelist) > 1
     basenames = cell(length(filelist), 1) ;
     for f = 1:length(filelist)
-        basenames{f} = strrep(strrep(strrep(strrep(filelist(f).name, '.txt', ''), '.gz', ''), '.mat', ''), '.garr', '') ;
+        basenames{f} = filelist(f).name ;
+        for s = 1:length(suffixes_to_remove)
+            thisSuffix = suffixes_to_remove{s} ;
+            basenames{f} = strrep(basenames{f}, thisSuffix, '') ;
+        end
     end
     basename = unique(basenames) ;
     if length(basename) > 1
