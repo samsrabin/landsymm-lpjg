@@ -25,9 +25,6 @@ addpath(genpath(landsymm_lpjg_path()))
 %    xres and yres: The longitude and latitude resolution.
 %                   E.g.: xres = 0.5; yres = 0.5;
 %
-% OTHER INPUT FILES
-%    filename_staticData_quarterdeg: Path to staticData_quarterdeg.nc.
-%
 % SETTINGS FOR TIMESERIES FIGURES
 % These are all fields in the timeseries_opts structure.
 %    perarea: Plot per-area values (e.g., yield in tons/ha)? If not, will plot totals
@@ -72,6 +69,8 @@ end
 map_opts.lons = (-180+xres/2):xres:(180-xres/2) ;
 map_opts.lats = (-90+yres/2):yres:(90-yres/2) ;
 map_opts.mapSize = [180/yres 360/xres] ;
+
+filename_staticData_quarterdeg = fullfile(landsymm_lpjg_path(), 'data', 'staticData_quarterdeg.nc') ;
 
 
 %% Import

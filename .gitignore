@@ -5,7 +5,7 @@ __pycache__
 *.gz
 *.log
 *.mat
-*.nc
+other/**/*.nc
 *options.m
 *.out
 other/map_with_SHPoverlay_v2/**/*.png
