@@ -154,12 +154,16 @@ disp('Done importing.')
 
 
 %% Plot area-weighted global time series for each crop stand type
+% If you've specified two LPJ-GUESS output directories, you can change S to S(1) or S(2)
+% to make figures for just one of them.
 
 crop_diagnostics_options
 make_timeseries(S, crop_area, crop_frac, outDir, thisFile, timeseries_opts)
 
 
 %% Make maps for each crop stand type
+% If you've specified two LPJ-GUESS output directories, you can change S to S(1) or S(2)
+% to make figures for just one of them.
 
 crop_diagnostics_options
 make_maps(S, crop_area, crop_frac, outDir, thisFile, map_opts)
