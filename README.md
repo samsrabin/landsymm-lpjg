@@ -24,6 +24,8 @@ Use `crop_diagnostics.m` to make area-weighted global timeseries as well as time
 
 
 
+![eg_crop_diagnostics_maps_diff](data/images/eg_crop_diagnostics_maps_diff.png)
+
 ## Generate calibration factors
 
 (This isn't something you'll have to do often, but it will come up.) LPJ-GUESS doesn't simulate every kind of crop that PLUM wants. To translate our crop types into PLUM's crop types, we use *calibration factors*. These are values that PLUM multiplies the LPJ-GUESS yields by to get an adjusted yield estimate. To generate calibration factors, we perform a simple LPJ-GUESS run with historical CO2, reanalysis climate (I've been using ISIMIP3a GSWP5-W5E5), and historical land use. We then point `get_calibration_factors.m` at the outputs; that script has more details and instructions on its use.
