@@ -212,7 +212,7 @@ if opts.perarea
         units = 'tons dry matter ha^{-1}' ;
         conversion_factor = 10 ; % From kg/m2
         titleName = 'yield' ;
-    elseif contains(thisFile, 'gsirrig')
+    elseif contains(thisFile, 'gsirr')
         units = 'mm' ;
         conversion_factor = 1 ; % Native LPJ-GUESS output unit
         titleName = 'average irrigation' ;
@@ -224,7 +224,7 @@ else
         units = 'Mt DM' ;
         conversion_factor = 1e-9 ; % From kg
         titleName = 'production' ;
-    elseif contains(thisFile, 'gsirrig')
+    elseif contains(thisFile, 'gsirr')
         units = 'km^3' ;
         conversion_factor = 1e-12 ; % From mm*m2
         titleName = 'irrigation volume' ;
@@ -332,7 +332,7 @@ if opts.perarea
         units = 'tons dry matter ha^{-1}' ;
         conversion_factor = 10 ; % From kg/m2
         titleName = 'yield' ;
-    elseif contains(thisFile, 'gsirrig')
+    elseif contains(thisFile, 'gsirr')
         units = 'mm' ;
         conversion_factor = 1 ; % Native LPJ-GUESS output unit
         titleName = 'average irrigation' ;
@@ -344,7 +344,7 @@ else
         units = 'Mt DM' ;
         conversion_factor = 1e-9 ; % From kg
         titleName = 'production' ;
-    elseif contains(thisFile, 'gsirrig')
+    elseif contains(thisFile, 'gsirr')
         units = 'km^3' ;
         conversion_factor = 1e-12 ; % From mm*m2
         titleName = 'irrigation volume' ;
