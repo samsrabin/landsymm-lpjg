@@ -4,6 +4,7 @@
 % SSR 2023-01-12
 % - Makes area-weighted global timeseries as well as time-averaged maps.
 % - For irrigation, use the file saved from file_gsirr (or file_gsirr_st, if present).
+% - Specify two input directories to make figures of run2 minus run1.
 
 addpath(genpath(landsymm_lpjg_path()))
 
@@ -11,7 +12,15 @@ addpath(genpath(landsymm_lpjg_path()))
 % There, specify the following variables:
 %
 % SETTINGS RELATED TO LPJ-GUESS RUN
-%    inDir: Directory containing the LPJ-GUESS outputs.
+%    inDir: Directory(ies) containing the LPJ-GUESS outputs. Specifying one directory
+%           (character vector of directory path) will produce figures for that run.
+%             E.g.: inDir = '/path/to/lpj-guess_outputs_v1' ;
+%           Specifying two directories will produce figures showing the difference between
+%           the two runs (run2 minus run1). Use a cell array of char.
+%             E.g.: inDir = {'/path/to/lpj-guess_outputs_v1';
+%                            '/path/to/lpj-guess_outputs_v2'} ;
+%    outDir: Directory where figures will be saved. Optional unless providing more than
+%            one inDir. If not provided, outDir will be a new subdir figs/ of inDir.
 %    thisFile: File we'll be importing. If *_st.out is present, use that instead of *.out.
 %              E.g.: thisFile = 'yield.out' ;
 %    filename_guess_landuse: The land use file to be used for area-weighted averaging in
@@ -58,8 +67,22 @@ crop_diagnostics_options
 
 %% Setup
 
+% Ensure inDir is a cell array of strings
+if ~iscellstr(inDir) %#ok<ISCLSTR> 
+    inDir = {inDir} ;
+end
+% Check number of directories specified
+if length(inDir) > 2
+    error('Specify at most 2 LPJ-GUESS output directories')
+end
+
 % Output directory
-outDir = fullfile(inDir, 'figs') ;
+if ~exist('outDir', 'var')
+    if length(inDir) > 1
+        error('When providing >1 LPJ-GUESS output directory, you must specify outDir (place for figures to go).')
+    end
+    outDir = fullfile(inDir{1}, 'figs') ;
+end
 fprintf('Saving figures to %s\n', outDir)
 if ~exist(outDir, 'dir')
     mkdir(outDir)
@@ -77,21 +100,41 @@ filename_staticData_quarterdeg = fullfile(landsymm_lpjg_path(), 'data', 'staticD
 
 % Import LPJ-GUESS output
 fprintf('Importing %s...\n', thisFile)
-S = lpjgu_matlab_read2geoArray(sprintf('%s/%s', inDir, thisFile)) ;
+for d = 1:length(inDir)
+    thisDir = inDir{d} ;
+    if d == 1
+        S = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile)) ;
+        fieldname_list = fieldnames(S) ;
+    else
+        S(d) = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile)) ;
+
+        % Ensure that all metadata matches first run
+        for f = 1:length(fieldname_list)
+            thisField = fieldname_list{f} ;
+            if contains(thisField, 'garr_')
+                % Ignore the actual data
+                continue
+            end
+            if ~isequaln(S(1).(thisField), S(d).(thisField))
+                error('Mismatch in %s', thisField)
+            end
+        end
+    end
+end
 
 % Import land use and crop fractions, ensuring match to LPJ-GUESS gridlist
 disp('Importing land use fractions...')
 lu_frac = lpjgu_matlab_read2geoArray(filename_guess_landuse) ;
-if ~isequal(S.list2map, lu_frac.list2map)
-    lu_frac = harmonize_gridlists(S, lu_frac) ;
+if ~isequal(S(1).list2map, lu_frac.list2map)
+    lu_frac = harmonize_gridlists(S(1), lu_frac) ;
 end
-lu_frac = harmonize_yearLists(S, lu_frac) ;
+lu_frac = harmonize_yearLists(S(1), lu_frac) ;
 disp('Importing crop fractions...')
 crop_frac = lpjgu_matlab_read2geoArray(filename_guess_cropfrac) ;
-if ~isequal(S.list2map, crop_frac.list2map)
-    crop_frac = harmonize_gridlists(S, crop_frac) ;
+if ~isequal(S(1).list2map, crop_frac.list2map)
+    crop_frac = harmonize_gridlists(S(1), crop_frac) ;
 end
-crop_frac = harmonize_yearLists(S, crop_frac) ;
+crop_frac = harmonize_yearLists(S(1), crop_frac) ;
 
 % Import cell area
 disp('Importing cell area...')
@@ -100,7 +143,7 @@ cell_area_YX = aggregate_cell_area(cell_area_YXqd, xres, yres) ;
 % Convert km2 to m2
 cell_area_YX = cell_area_YX * 1e6 ;
 % Vectorize
-cell_area_x = cell_area_YX(S.list2map) ;
+cell_area_x = cell_area_YX(S(1).list2map) ;
 
 % Get land use and crop area
 disp('Getting land use areas...')
@@ -233,6 +276,24 @@ else
     end
 end
 
+% Are we comparing two runs?
+comparing_runs = length(S) == 2 ;
+if comparing_runs
+    % Take difference
+    Sdiff = S(1) ;
+    if isfield(Sdiff, 'garr_xvy')
+        Sdiff.garr_xvy = S(2).garr_xvy - S(1).garr_xvy ;
+    elseif isfield(Sdiff, 'garr_xv')
+        Sdiff.garr_xv = S(2).garr_xv - S(1).garr_xv ;
+    end
+    clear S
+    S = Sdiff ;
+    clear Sdiff
+
+    % Append to title
+    titleName = [titleName ', run2-run1'] ;
+end
+
 % Get crop list
 is_irrigated = @(x) strcmp(x(end), 'i') ;
 cropList = crop_frac.varNames(~cellfun(is_irrigated, crop_frac.varNames)) ;
@@ -353,6 +414,24 @@ else
     end
 end
 
+% Are we comparing two runs?
+comparing_runs = length(S) == 2 ;
+if comparing_runs
+    % Take difference
+    Sdiff = S(1) ;
+    if isfield(Sdiff, 'garr_xvy')
+        Sdiff.garr_xvy = S(2).garr_xvy - S(1).garr_xvy ;
+    elseif isfield(Sdiff, 'garr_xv')
+        Sdiff.garr_xv = S(2).garr_xv - S(1).garr_xv ;
+    end
+    clear S
+    S = Sdiff ;
+    clear Sdiff
+
+    % Append to title
+    titleName = [titleName ', run2-run1'] ;
+end
+
 % Get crop list
 is_irrigated = @(x) strcmp(x(end), 'i') ;
 cropList = crop_frac.varNames(~cellfun(is_irrigated, crop_frac.varNames)) ;
@@ -417,10 +496,18 @@ for c = 1:length(cropList)
         thisLegend{strcmp(thisLegend, thisCrop_ir)} = 'Irrigated' ;
     end
 
+    % Get color axis and colormap
+    if comparing_runs
+        new_caxis = [-1 1]*nanmax(abs(data_xv(:))) ;
+        this_colormap = brewermap(64, 'RdBu_ssr') ;
+    else
+        new_caxis = [nanmin(data_xv(:)) nanmax(data_xv(:))] ;
+        this_colormap = 'parula' ;
+    end
+
     % Plot
     figure('Color', 'w', 'Position', opts.figure_window_position)
     data_xv = data_xv * conversion_factor ;
-    new_caxis = [nanmin(data_xv(:)) nanmax(data_xv(:))] ;
     for v = 1:length(theseVars)
         thisVar = thisLegend{v} ;
         switch thisVar
@@ -451,6 +538,7 @@ for c = 1:length(cropList)
         if ~isequal(new_caxis, [0 0]) && ~isequaln(new_caxis, [NaN NaN])
             caxis(new_caxis)
         end
+        colormap(gca, this_colormap)
         hcb = colorbar ;
         xlabel(hcb, units)
         set(gca, 'FontSize', opts.fontSize)
