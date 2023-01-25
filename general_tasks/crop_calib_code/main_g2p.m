@@ -31,6 +31,9 @@ ctrymapVer = 1 ;
 % Compare individual years? Or take mean over period?
 indiv_years = false ;
 
+% Only doing this for g2p runs!
+do_remove_area_dueto_NaNsim = true ;
+
 
 %% Other options and setup
 

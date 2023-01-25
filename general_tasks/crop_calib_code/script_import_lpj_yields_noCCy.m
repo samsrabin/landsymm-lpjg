@@ -626,11 +626,11 @@ end
 tmp_croparea_YXvy = cropfrac_lpj.maps_YXvy .* repmat(land_area_YX, ...
     [1 1 size(cropfrac_lpj.maps_YXvy,3) size(cropfrac_lpj.maps_YXvy,4)]) ;
 % NaN in simulation, but 0 crop area anyway
-if find(isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy==0, 1)
+if do_remove_area_dueto_NaNsim && find(isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy==0, 1)
     yield_lpj.maps_YXvy(isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy==0) = 0 ;
 end
 % NaN in simulation but there is some crop area
-removed_area_dueto_NaNsim = find( ...
+removed_area_dueto_NaNsim = do_remove_area_dueto_NaNsim && find( ...
     isnan(yield_lpj.maps_YXvy) & tmp_croparea_YXvy>0, 1) ;
 if removed_area_dueto_NaNsim
     croparea_lpj_removed = rmfield(cropfrac_lpj, 'maps_YXvy') ;
@@ -730,7 +730,9 @@ for c = 1:Ncrops_lpj_comb
             + yield_lpj.maps_YXvy(:,:,iI_yield,:) .* weights_ir_YXvy ;
     end
     clear weights_*_YXvy
-    tmp(frac_comb==0) = 0 ;
+    if removed_area_dueto_NaNsim
+        tmp(frac_comb==0) = 0 ;
+    end
     combined_YXcy_yield(:,:,c,:) = tmp ;
     clear tmp
     combined_YXcy_cropfrac(:,:,c,:) = frac_comb ;

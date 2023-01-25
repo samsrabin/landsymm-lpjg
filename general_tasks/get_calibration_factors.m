@@ -76,6 +76,10 @@ end
 % Do slope-only regression. There's another option but it should NOT be used.
 regression_type = 'slope-only' ;
 
+% SSR 2023-01-25: Setting this to true can cause pretty big differences. Previous behavior
+% (i.e., before merging in ggcmi2plum branch with commit 2b6d60e) was false.
+do_remove_area_dueto_NaNsim = false ;
+
 % Set up figure and diary files
 out_file = [verName_calib '_v' num2str(calib_ver)] ;
 out_diary = [dir_outfigs out_file '.txt'] ;
