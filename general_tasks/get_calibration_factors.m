@@ -8,6 +8,8 @@
 % - Calculates Miscanthus calibration factors, but doesn't use current LPJ-GUESS outputs
 %   if calib_ver < 24.
 
+addpath(genpath(landsymm_lpjg_path()))
+
 % get_calibration_factors_options.m must be somewhere on your path.
 % There, specify the following variables:
 %     year1, yearN: The first and last years, respectively, to be used for calibration.
@@ -70,9 +72,6 @@ if ~exist('filename_countriesMap', 'var')
         filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
     end
 end
-
-% Add code files to path (just for this session)
-addpath(genpath(landsymm_lpjg_path()))
 
 % Do slope-only regression. There's another option but it should NOT be used.
 regression_type = 'slope-only' ;
