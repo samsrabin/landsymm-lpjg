@@ -43,8 +43,8 @@ for c = 1:Ncrops_in
     % Otherwise, get FAO data for this crop.
     croparea_thisCrop = croparea_fao(strcmp(croparea_fao.ItemName,thisCrop_FAO),:) ;
     total_thisCrop = total_fao(strcmp(total_fao.ItemName,thisCrop_FAO),:) ;
-    
-    % Sanity check
+
+    % Sanity checks
     if isempty(croparea_thisCrop)
         if ignoreNoData
             warning(['isempty(croparea_thisCrop): ' thisCrop_FAO '. Skipping.'])
@@ -60,6 +60,29 @@ for c = 1:Ncrops_in
         else
             error(['isempty(total_thisCrop): ' thisCrop_FAO])
         end
+    end
+
+    % Only use country-years for which we have both area and production.
+    tmpArea = get_table_for_intersect_check(croparea_thisCrop) ;
+    tmpProd = get_table_for_intersect_check(total_thisCrop) ;
+    [~, Iarea, Iprod] = intersect(tmpArea, tmpProd, 'rows') ;
+    if isempty(Iarea)
+        if ignoreNoData
+            warning(['No country-years have both area and production records for ' thisCrop_FAO '. Skipping.'])
+            continue
+        else
+            error(['No country-years have both area and production records for ' thisCrop_FAO])
+        end
+    end
+    if length(Iarea) ~= size(croparea_thisCrop, 1)
+%         warning('%d country-years for %s dropped from FAOSTAT area because they''re not in FAOSTAT production', ...
+%             size(croparea_thisCrop, 1) - length(Iarea), thisCrop_FAO)
+        croparea_thisCrop = croparea_thisCrop(Iarea,:) ;
+    end
+    if length(Iprod) ~= size(total_thisCrop, 1)
+%         warning('%d country-years for %s dropped from FAOSTAT production because they''re not in FAOSTAT area', ...
+%             size(total_thisCrop, 1) - length(Iprod), thisCrop_FAO)
+        total_thisCrop = total_thisCrop(Iprod,:) ;
     end
     
     % Put into _Ccy table
@@ -166,9 +189,16 @@ end ; clear C   % Country loop
 end
 
 
+function T = get_table_for_intersect_check(T)
 
+colNames = {'AreaName', 'ItemName', 'Year'} ;
+[C, ~, IB] = intersect(colNames, T.Properties.VariableNames, 'stable') ;
+if ~isequal(C, colNames)
+    error('AreaName, ItemName, and Year not all found in FAO table')
+end
+T = T(:,IB) ;
 
-
+end
 
 
 
