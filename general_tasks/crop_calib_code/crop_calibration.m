@@ -59,6 +59,10 @@ faoCommBalElement = 'Production' ;
     Ncountries, listCountries_map_present, countries_YX, countries_key, ...
     faoCommBalElement, indiv_years) ;
 
+if ~isempty(find(total_fa2_Ccy>0 & croparea_fa2_Ccy==0, 1))
+    error('Some country-crop-year in FAOSTAT has positive production but zero area!')
+end
+
 
 %% (OPTIONAL) Save FAO data for 1961-2010
 

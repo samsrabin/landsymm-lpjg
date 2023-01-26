@@ -84,12 +84,26 @@ for c = 1:Ncrops_in
 %             size(total_thisCrop, 1) - length(Iprod), thisCrop_FAO)
         total_thisCrop = total_thisCrop(Iprod,:) ;
     end
+
+    % FAO data shouldn't have production where there is no area
+    is_inf_yield = find(croparea_thisCrop.Value == 0 & total_thisCrop.Value>0) ;
+    if ~isempty(is_inf_yield)
+        warning('FAOSTAT %s has %d country-years with positive production but zero area. Dropping.', ...
+            thisCrop_FAO, length(is_inf_yield))
+        croparea_thisCrop(is_inf_yield,:) = [] ;
+        total_thisCrop(is_inf_yield,:) = [] ;
+    end
     
     % Put into _Ccy table
     [croparea_fao_Ccy, total_fao_Ccy, found_in_fao_Cc] = fill_Ccy( ...
         Ncountries, listCountries_map_present, i, ...
         croparea_fao_Ccy, total_fao_Ccy, croparea_thisCrop, total_thisCrop, ...
         found_in_fao_Cc, listYears_fao, c) ;
+
+    if ~isempty(find(total_fao_Ccy>0 & croparea_fao_Ccy==0, 1))
+        error('Some country-year(s) in FAOSTAT %s has positive production but zero area!', ...
+            thisCrop_FAO)
+    end
     
     clear i *thisCrop*
 end ; clear c   % Crop loop
