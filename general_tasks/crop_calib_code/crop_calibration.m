@@ -123,35 +123,32 @@ disp('Done.')
 %% Get calibration factors via slope-only regression; also plot Miscanthus calibration
 
 % Options %%%%%%%%%
-
-% Threshold multiple of IQR above/below median to consider something an
-% outlier. To find no outliers, set to Inf. (MATLAB default is 1.5.)
-% outlier_thresh = Inf ;
-outlier_thresh = 3 ;
-
-%%% Base regression weights on FA2 total harvest or crop area? (Empty for no
-%%% weighting)
-% regWeight_basedOn = 'total' ;
-% regWeight_basedOn = 'croparea' ;
-regWeight_basedOn = '' ;
-
-% Weight point size based on regression weights?
-scatter_style = 'size_uniform' ;
-% scatter_style = 'size_weighted' ;
+if ~exist('outlier_thresh', 'var')
+    outlier_thresh = 3 ;
+end
+if ~exist('regWeight_basedOn', 'var')
+    regWeight_basedOn = '' ;
+end
+if ~exist('avg_over_yrs', 'var')
+    avg_over_yrs = false ;
+end
+if ~exist('scatter_style', 'var')
+    if isempty(regWeight_basedOn)
+        scatter_style = 'size_uniform' ;
+    else
+        scatter_style = 'size_weighted' ;
+    end
+end
+if ~exist('reg_line_width', 'var')
+    reg_line_width = 3 ;
+end
+if ~exist('fig_font_size', 'var')
+    fig_font_size = 16 ;
+end
 
 % Restrict where observed values <= Xth percentile
+% SSR 2023-01-31: UNKNOWN HOW THIS INTERACTS WITH OUTLIER_THRESH
 max_prctile = 100 ;
-% max_prctile = 90 ;
-
-% Average over years?
-avg_over_yrs = false ;
-% avg_over_yrs = true ;
-
-% Regression line width
-reg_line_width = 3 ;
-
-% Font size in figure
-fig_font_size = 16 ;
 
 % Miscanthus file
 miscanthus_file = '' ;

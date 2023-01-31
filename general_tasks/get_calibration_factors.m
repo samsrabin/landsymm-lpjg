@@ -41,6 +41,24 @@ addpath(genpath(landsymm_lpjg_path()))
 %     remapVer: Used for setting the list of LPJ-GUESS output crops being calibrated.
 %               See top of script_import_lpj_yields_noCCy.m for where this is used.
 %               E.g.: remapVer = '10' ;
+%
+% OPTIONAL: REGRESSION BEHAVIORS
+%     avg_over_yrs: Default behavior is that every year for a country is a different data
+%                   point in the regression. Set avg_over_years true to take the mean of
+%                   all years in the country instead.
+%     outlier_thresh: Threshold multiple of IQR above/below median to consider a country-
+%                     year an outlier and thus remove it from the regression. To remove no
+%                     outliers, set to Inf. Default is 3, which is double the MATLAB
+%                     default "outlier" definition (i.e., less strict).
+%     regWeight_basedOn: Perform a weighted regression based on either production
+%                        ('total') or harvested area ('croparea') from FAO. Default
+%                        (unspecified) behavior is unweighted regression.
+% OPTIONAL: FIGURE SETTINGS
+%     fig_font_size: Font size in figure. Default 16.
+%     reg_line_width: Width of best-fit line on plot. Default 3.
+%     scatter_style: Scale marker size based on regression weight ('size_weighted'; default
+%                    for weighted regression) or don't ('size_uniform'; default for
+%                    unweighted regression). See regWeight_basedOn.
 
 get_calibration_factors_options
 
