@@ -48,7 +48,7 @@ do_wtd_plot = strcmp('scatter_style','size_weighted') ;
 % Handle Miscanthus inputs
 do_miscanthus = ~isempty(pr.miscanthus_file) || ~isempty(pr.miscanthus_x_os) ;
 if do_miscanthus && (do_wtd_reg || do_wtd_plot)
-    error('No way programmed to do weighting for Miscanthus data/plot!')
+    warning('No way programmed to do weighting for Miscanthus data/plot; will do unweighted only.')
 end
 if ~isempty(pr.miscanthus_file) && ~isempty(pr.miscanthus_x_os)
     error('Specify only one of miscanthus_file and miscanthus_x_os')
@@ -188,7 +188,10 @@ for c_plot = 1:Ncrops_plot
     end
 
     if do_wtd_reg && ~is_miscanthus
-        bad = isnan(tmpO) | isnan(tmpS) | isnan(tmpW) | tmpO>prctile(tmpO(:),pr.max_prctile) | isoutlier(tmpO(:),'quartiles','ThresholdFactor',pr.outlier_thresh) ;
+        isoutlier_tmpO = isoutlier(tmpO(:), 'quartiles',...
+            'ThresholdFactor',pr.outlier_thresh) ;
+        isoutlier_tmpO = reshape(isoutlier_tmpO, size(tmpO)) ;
+        bad = isnan(tmpO) | isnan(tmpS) | isnan(tmpW) | tmpO>prctile(tmpO(:),pr.max_prctile) | isoutlier_tmpO ;
     else
 %             bad = isnan(tmpO) | isnan(tmpS) | tmpO>prctile(tmpO(:),pr.max_prctile) ;
         cond1 = isnan(tmpO) ;

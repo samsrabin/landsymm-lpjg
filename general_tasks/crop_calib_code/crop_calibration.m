@@ -444,7 +444,7 @@ if isempty(regWeight_basedOn)
 else
     if calib_ver==11 || calib_ver==21
         error('Add code to do weights when ignoring countries.')
-    elseif ~(calib_ver>=1 || calib_ver<=20) || any(calib_ver == [23 24])
+    elseif ~(calib_ver>=1 || calib_ver<=20 || any(calib_ver == [23 24]))
         error(['calib_ver (' num2str(calib_ver) ') not recognized! In "Get weights for regression"'])
     end
     weights_fa2_4cal_Cyc = nan(size(croparea_fa2_4cal_Ccy,1),size(croparea_fa2_4cal_Ccy,3),size(croparea_fa2_4cal_Ccy,2)) ;
@@ -538,7 +538,7 @@ else
 end
 tmpA = {'CerealsC3', 'CerealsC4', 'Rice', 'Oilcrops', 'StarchyRoots', 'Pulses'} ;
 tmpB = {'Wheat', 'Maize', 'Rice', 'Oilcrops', 'Starchy roots', 'Pulses'} ;
-for c = 1:length(tmp)
+for c = 1:length(tmpA)
     thisCropA = tmpA{c} ;
     thisCropB = tmpB{c} ;
     if ~any(strcmp(listCrops_4cal,thisCropA)) && any(strcmp(listCrops_fa2o,thisCropB))
