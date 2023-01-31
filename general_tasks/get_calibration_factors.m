@@ -100,8 +100,8 @@ do_remove_area_dueto_NaNsim = false ;
 
 % Set up figure and diary files
 out_file = [verName_calib '_v' num2str(calib_ver)] ;
-out_diary = [dir_outfigs out_file '.txt'] ;
-out_figure = [dir_outfigs out_file '.pdf'] ;
+out_diary = fullfile(dir_outfigs, [out_file '.txt']) ;
+out_figure = fullfile(dir_outfigs, [out_file '.pdf']) ;
 
 
 %% Do it
