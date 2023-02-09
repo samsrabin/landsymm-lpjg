@@ -274,7 +274,11 @@ for c_plot = 1:Ncrops_plot
     if strcmp(scatter_style,'size_uniform')
         plot(tmpO,tmpS,'.b','MarkerSize',pr.marker_size)
     elseif strcmp(scatter_style,'size_weighted')
-        scatter(tmpO,tmpS,1000*tmpWp,'.b')
+        thisColor = 'b' ;
+        hscatter = scatter(tmpO,tmpS,1000*tmpWp, 'filled', ...
+            'MarkerFaceColor', thisColor, ...
+            'MarkerEdgeColor', thisColor) ;
+        alpha(hscatter, 0.1)
     else
         error(['scatter_style "' scatter_style '" not recognized.'])
     end

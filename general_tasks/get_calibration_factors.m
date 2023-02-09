@@ -110,9 +110,8 @@ crop_calibration
 
 
 %% Save figure
-
 fprintf('Saving figure to %s...\n', out_figure)
-export_fig(out_figure,'-r300')
+export_fig(out_figure,'-r100')
 close
 disp('Done.')
 
