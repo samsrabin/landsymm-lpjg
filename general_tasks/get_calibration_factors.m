@@ -24,12 +24,15 @@ addpath(genpath(landsymm_lpjg_path()))
 %                    Can also be used to set version-specific processing options.
 %                    E.g.: verName_calib = 'recal_2022-12' ;
 %     filename_guess_yield: The LPJ-GUESS output yields you'll be calibrating with. Always 
-%                           use yield_st.out if it's present.
+%                           use yield_st.out if it's present. Can also be a directory, in
+%                           which case MATLAB will look for yield_st.out.gz files in the
+%                           directory tree.
 %                           E.g.: filename_guess_yield = '/Users/Shared/PLUM/recalibration_2022-12/remap10_yp/calibration/output-2022-12-20-150542/yield_st.out.gz' ;
 %     filename_guess_landuse: The land use file to be used for area-weighted averaging in
 %                             calibration. This is usually the same as what was used in
 %                             the actual runs, but doesn't need to be. It just needs to
 %                             have columns for all the crops in the LPJ-GUESS output.
+%                             Do NOT use the "some of all crops" version.
 %                             E.g.: filename_guess_landuse = '/Users/Shared/LandSyMM/inputs/LU/remaps_v10_old_62892_gL/LU.remapv10_old_62892_gL.txt' ;
 %     filename_guess_cropfrac: As filename_guess_landuse, but for crop fractions instead
 %                              of general land use fractions.

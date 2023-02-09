@@ -81,10 +81,10 @@ if exist('filename_guess_yield', 'var')
                 continue
             end
             cd(run_segments(s).name)
-            fprintf('    %s...\n', run_segments(s).name)
 
             % Find file
             output_dirs = dir() ;
+            fprintf('    %s...\n', fullfile(run_segments(s).name, output_dirs(end).name))
             cd(output_dirs(end).name)
             if ~exist('yield_st.out.gz', 'file')
                 error('%s: yield_st.out.gz not found', run_segments(s).name)
