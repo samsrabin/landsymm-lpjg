@@ -69,28 +69,115 @@ cropfrac_lpj = lpjgu_matlab_readTable_then2map(filename_guess_cropfrac,'force_ma
 % Import yield
 disp('Importing simulated yield...')
 if exist('filename_guess_yield', 'var')
-    % LPJ-GUESS style
-    if strcmp(filename_guess_yield(end-2:end),'.gz')
-        filename_guess_yield = filename_guess_yield(1:end-3) ;
+    if exist(filename_guess_yield, 'dir')
+        starting_dir = pwd ;
+        cd(filename_guess_yield)
+        run_segments = dir() ;
+        run_segments = run_segments(3:end) ;
+        clear yield_lpj
+        missing_years = listYears_fao ;
+        for s = 1:length(run_segments)
+            if ~run_segments(s).isdir
+                continue
+            end
+            cd(run_segments(s).name)
+            fprintf('    %s...\n', run_segments(s).name)
+
+            % Find file
+            output_dirs = dir() ;
+            cd(output_dirs(end).name)
+            if ~exist('yield_st.out.gz', 'file')
+                error('%s: yield_st.out.gz not found', run_segments(s).name)
+            end
+
+            % Read file
+            tmp = lpjgu_matlab_readTable_then2map('yield_st.out.gz', ...
+                'force_mat_save', true, ...
+                'lon_orient', 'center', 'lat_orient', 'center', ...
+                'drop_northpole', drop_northpole, 'drop_southpole', drop_southpole, ...
+                'lons_centered_on_180', lons_centered_on_180) ;
+            [yearList_intersect, IA] = intersect(tmp.yearList, missing_years) ;
+            if isempty(yearList_intersect)
+                warning('Contains no missing years; skipping.')
+                clear tmp
+                cd(filename_guess_yield)
+                continue
+            end
+
+            % Remove any factorial experiment stands (i.e., stands with names
+            % containing a digit, after char'ing digits we actually care about)
+            varNames_tmp = tmp.varNames ;
+            varNames_tmp = strrep(varNames_tmp, 'CerealsC3', 'CerealsCthree') ;
+            varNames_tmp = strrep(varNames_tmp, 'CerealsC4', 'CerealsCfour') ;
+            remove = ~cellfun(@isempty, regexp(varNames_tmp, '\d')) ;
+            tmp.maps_YXvy(:,:,remove,:) = [] ;
+            tmp.varNames(remove) = [] ;
+            clear varNames_tmp remove
+
+            % Save years of interest
+            if ~exist('yield_lpjg', 'var')
+                % Create struct
+                yield_lpj = rmfield(tmp, {'maps_YXvy', 'yearList'}) ;
+                yield_lpj.yearList = yearList_intersect ;
+                yield_lpj.maps_YXvy = tmp.maps_YXvy(:,:,:,IA) ;
+            else
+                % Ensure match of existing struct
+                if ~isequal(tmp.list_to_map, yield_lpj.list_to_map)
+                    error('list_to_map mismatch')
+                elseif ~isequal(tmp.lonlats, yield_lpj.lonlats)
+                    error('lonlats mismatch')
+                elseif ~isequal(tmp.lat_extent, yield_lpj.lat_extent)
+                    error('lat_extent mismatch')
+                elseif ~isequal(tmp.lat_orient, yield_lpj.lat_orient)
+                    error('lat_orient mismatch')
+                elseif ~isequal(tmp.varNames, yield_lpj.varNames)
+                    error('varNames mismatch')
+                end
+
+                % Add to existing struct
+                yield_lpj.maps_YXvy = cat(4, yield_lpj.maps_YXvy, tmp.maps_YXvy(:,:,:,IA)) ;
+                yield_lpj.yearList = sort(cat(1, yield_lpj.yearList, yearList_intersect)) ;
+            end
+            clear tmp
+            missing_years = setdiff(listYears_fao, yield_lpj.yearList) ;
+
+            % All years imported? Stop reading files.
+            if isequal(shiftdim(yield_lpj.yearList), shiftdim(listYears_fao))
+                break
+            end
+
+            cd(filename_guess_yield)
+        end
+
+        cd(starting_dir)
+        disp('Done importing simulated yield.')
+    elseif exist(filename_guess_yield, 'file')
+        if strcmp(filename_guess_yield(end-2:end),'.gz')
+            filename_guess_yield = filename_guess_yield(1:end-3) ;
+        end
+        yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield, ...
+            'force_mat_save',true, ...
+            'lon_orient', 'center', 'lat_orient', 'center', ...
+            'drop_northpole', drop_northpole, 'drop_southpole', drop_southpole, ...
+            'lons_centered_on_180', lons_centered_on_180) ;
+
+        % Remove any factorial experiment stands (i.e., stands with names
+        % containing a digit, after char'ing digits we actually care about)
+        varNames_tmp = yield_lpj.varNames ;
+        varNames_tmp = strrep(varNames_tmp, 'CerealsC3', 'CerealsCthree') ;
+        varNames_tmp = strrep(varNames_tmp, 'CerealsC4', 'CerealsCfour') ;
+        remove = ~cellfun(@isempty, regexp(varNames_tmp, '\d')) ;
+        yield_lpj.maps_YXvy(:,:,remove,:) = [] ;
+        yield_lpj.varNames(remove) = [] ;
+        clear varNames_tmp remove
+    else
+        error('filename_guess_yield not found: %s', filename_guess_yield)
     end
-    yield_lpj = lpjgu_matlab_readTable_then2map(filename_guess_yield,'force_mat_save',true, ...
-        'lon_orient', 'center', 'lat_orient', 'center', ...
-        'drop_northpole', drop_northpole, 'drop_southpole', drop_southpole, ...
-        'lons_centered_on_180', lons_centered_on_180) ;
     
+    % Check that all years were read
     if indiv_years && ~isempty(setdiff(listYears_fao, yield_lpj.yearList))
         error('yield_lpj does not contain all years in listYears_fao')
     end
-    
-    % Remove any factorial experiment stands (i.e., stands with names
-    % containing a digit, after char'ing digits we actually care about)
-    varNames_tmp = yield_lpj.varNames ;
-    varNames_tmp = strrep(varNames_tmp, 'CerealsC3', 'CerealsCthree') ;
-    varNames_tmp = strrep(varNames_tmp, 'CerealsC4', 'CerealsCfour') ;
-    remove = ~cellfun(@isempty, regexp(varNames_tmp, '\d')) ;
-    yield_lpj.maps_YXvy(:,:,remove,:) = [] ;
-    yield_lpj.varNames(remove) = [] ;
-    clear varNames_tmp remove
     
     % Deal with negative values, used to indicate that the crop was not
     % planted this year
