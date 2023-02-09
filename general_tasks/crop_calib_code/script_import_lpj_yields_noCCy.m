@@ -816,7 +816,6 @@ for c = 1:Ncrops_lpj_comb
         tmp = yield_lpj.maps_YXvy(:,:,iR_yield,:) .* weights_rf_YXvy ...
             + yield_lpj.maps_YXvy(:,:,iI_yield,:) .* weights_ir_YXvy ;
     end
-    clear weights_*_YXvy
     if removed_area_dueto_NaNsim
         tmp(frac_comb==0) = 0 ;
     end
@@ -826,8 +825,9 @@ for c = 1:Ncrops_lpj_comb
     clear frac_comb
     
     % Check whether this process set any positive yields to NaN
-    check_nanified_yield(yield_lpj.maps_YXvy(:,:,iR_yield,:), combined_YXcy_yield(:,:,c,:), thisCropR) ;
-    check_nanified_yield(yield_lpj.maps_YXvy(:,:,iI_yield,:), combined_YXcy_yield(:,:,c,:), thisCropI) ;
+    check_nanified_yield(yield_lpj.maps_YXvy(:,:,iR_yield,:), combined_YXcy_yield(:,:,c,:), thisCropR, weights_rf_YXvy) ;
+    check_nanified_yield(yield_lpj.maps_YXvy(:,:,iI_yield,:), combined_YXcy_yield(:,:,c,:), thisCropI, weights_ir_YXvy) ;
+    clear weights_*_YXvy
     
     if removed_area_dueto_NaNsim
         cropareaRemoved_lpj_YXcy_comb(:,:,c,:) = ...
@@ -1050,14 +1050,22 @@ fprintf('Using %s yield for: %s\n', thisSub, toSub_txt) ;
 end
 
 
-function check_nanified_yield(yield1, yield2, thisCrop)
+function check_nanified_yield(yield1, yield2, thisCrop, weights)
 
 isbad = yield1 > 0 & isnan(yield2) ;
 Nbad = length(find(isbad)) ;
 if Nbad > 0
-    worst = max(yield1(isbad)) ;
-    warning('%s: %d positive yields (max %0.3f) NaN-ified after combining rf+ir', ...
-        thisCrop, Nbad, worst)
+    isbad = isbad & weights > 0 ;
+    Nbad = length(find(isbad)) ;
+    if Nbad == 0
+        % Can happen when you ran LPJ-GUESS with "some of each crop" land use files, but
+        % you are correctly NOT doing the calibration with those files.
+        warning('%s had some positive yields NaN-ified after combining rf+ir, but none where calibration land use files had area')
+    else
+        worst = max(yield1(isbad)) ;
+        warning('%s: %d positive yields (max %0.3f) NaN-ified after combining rf+ir', ...
+            thisCrop, Nbad, worst)
+    end
 end
 
 end
