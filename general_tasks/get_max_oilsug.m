@@ -28,24 +28,20 @@ addpath(genpath(landsymm_lpjg_path()))
 %             E.g.: Nlevels = {'0', '0060', '0200', '1000'} ;
 %    irrigs: Text versions of the suffixes used to indicate irrigation type.
 %            E.g.: irrigs = {'', 'i'} ;
-%  OUTPUT FILES
+%  OPTIONAL: OUTPUT FILES
+%    delimiter: The column delimiter in output files.
+%               E.g.: delimiter = ' ' ;
+%    do_gzip: Whether to zip up output files or leave them as plain text files.
+%             E.g.: do_gzip = true ;
+%    outDir_top: Directory where the outputs will go. If not provided, uses
+%                [topDir '.maxOilSug']
 %    outPrec: Precision of data in output files. 
 %             E.g.: outPrec = 3 ;
 %    outPrec_lonlat: Precision of lon/lat values in output files.
 %                    E.g., outPrec_lonlat = 2 ;
-%    outWidth: I don't really remember, but I had it set as 1. I think this
-%              is just the width of each column in the outputs, but it
-%              should just expand as needed.
-%    delimiter: The column delimiter in output files.
-%               E.g.: delimiter = ' ' ;
 %    overwrite: Whether to overwrite existing output files.
 %               E.g., overwrite = false ;
-%    fancy: Determines the type of saving that happens. I had this set to false.
-%    do_gzip: Whether to zip up output files or leave them as plain text files.
-%             E.g.: do_gzip = true ;
-% OPTIONAL:
-%    outDir_top: Directory where the outputs will go. If not provided, uses
-%                [topDir '.maxOilSug']
+
 
 get_max_oilsug_options
 
@@ -56,6 +52,28 @@ cd(topDir)
 dirList = dir('.') ;
 
 other_files = {'done', 'runinfo_pot.tar', 'runinfo_act.tar', 'anpp.out', 'tot_runoff.out'} ;
+
+% Process optional settings
+if ~exist('outPrec', 'var')
+    outPrec = 3 ;
+end
+if ~exist('outPrec_lonlat', 'var')
+    outPrec_lonlat = 2 ;
+end
+if ~exist('delimiter', 'var')
+    delimiter = ' ' ;
+end
+if ~exist('overwrite', 'var')
+    overwrite = true ;
+end
+if ~exist('outPrec', 'var')
+    outPrec = 3 ;
+end
+if ~exist('do_gzip', 'var')
+    do_gzip = true ;
+end
+outWidth = 1 ;
+fancy = false ;
 
 % Get directories
 topDir = strip(topDir, 'right', filesep) ;
