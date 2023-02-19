@@ -34,6 +34,9 @@ addParameter(p,'slope_symbol','',@ischar) ;
 addParameter(p,'marker_size',10,@isscalar) ;
 addParameter(p,'separate_figs',false,@islogical) ;
 addParameter(p,'regression_type','',@ischar) ;
+addParameter(p,'dir_outFigs','',@ischar) ;
+addParameter(p,'listCountries_map_present',{},@iscellstr) ;
+addParameter(p,'yearList',[],@isnumeric) ;
 isOK_outlierThresh = @(x) numel(x)==1 & x>0 ;
 addParameter(p,'outlier_thresh',Inf,isOK_outlierThresh) ;
 parse(p,yield_in_obs_Cyc,yield_in_sim_Cyc,...
@@ -44,6 +47,33 @@ parse(p,yield_in_obs_Cyc,yield_in_sim_Cyc,...
 pr = p.Results ;
 do_wtd_reg = ~isempty(pr.weights_regr_Cyc) ;
 do_wtd_plot = strcmp('scatter_style','size_weighted') ;
+
+% Set up for output saving
+dir_outData = '' ;
+if ~isempty(pr.dir_outFigs)
+    if any(ignore_obs_Cc(:)) || any(ignore_sim_Cc(:))
+        error('How do you want to save tmpO and tmpS where you''re ignoring some from the get-go?')
+    end
+
+    dir_outData = fullfile(pr.dir_outFigs, 'scatter_data_CSVs') ;
+    if ~exist(dir_outData, 'dir')
+        mkdir(dir_outData)
+    end
+
+    if isempty(pr.listCountries_map_present)
+        error('If specifying dir_outData, you must also specify listCountries_map_present')
+    elseif length(pr.listCountries_map_present) ~= size(yield_in_obs_Cyc, 1)
+        error('Size mismatch between listCountries_map_present and yield_in_obs_Cyc')
+    end
+    countries_Cy = repmat(pr.listCountries_map_present(:), [1 size(yield_in_obs_Cyc, 2)]) ;
+
+    if isempty(pr.yearList)
+        error('If specifying dir_outData, you must also specify yearList')
+    elseif length(pr.yearList) ~= size(yield_in_obs_Cyc, 2)
+        error('Size mismatch between yearList and yield_in_obs_Cyc')
+    end
+    years_Cy = repmat(shiftdim(pr.yearList)', [length(pr.listCountries_map_present) 1]) ;
+end
 
 % Handle Miscanthus inputs
 do_miscanthus = ~isempty(pr.miscanthus_file) || ~isempty(pr.miscanthus_x_os) ;
@@ -187,26 +217,41 @@ for c_plot = 1:Ncrops_plot
         end
     end
 
+    % Trim where NaN
+    cond1 = isnan(tmpO) ;
+    cond2 = isnan(tmpS) ;
+    if all(cond2)
+        warning(['No data found for ' thisCrop_plot '! Skipping.'])
+        continue
+    end
+    bad = cond1 | cond2 ;
+    tmpO = tmpO(~bad) ;
+    tmpS = tmpS(~bad) ;
+
+    % Save data to CSV
+    if ~isempty(dir_outData)
+        country = countries_Cy(~bad) ;
+        year = years_Cy(~bad) ;
+        obs = tmpO ;
+        sim = tmpS ;
+        T = table(country, year, obs, sim) ;
+        filename = fullfile(dir_outData, [thisCrop_plot '.csv']) ;
+        writetable(T, filename)
+    end
+
+    % Trim extremes
     if do_wtd_reg && ~is_miscanthus
+        tmpW = tmpW(~bad) ;
         isoutlier_tmpO = isoutlier(tmpO(:), 'quartiles',...
             'ThresholdFactor',pr.outlier_thresh) ;
         isoutlier_tmpO = reshape(isoutlier_tmpO, size(tmpO)) ;
-        bad = isnan(tmpO) | isnan(tmpS) | isnan(tmpW) | tmpO>prctile(tmpO(:),pr.max_prctile) | isoutlier_tmpO ;
+        bad = isnan(tmpW) | tmpO>prctile(tmpO(:),pr.max_prctile) | isoutlier_tmpO ;
     else
 %             bad = isnan(tmpO) | isnan(tmpS) | tmpO>prctile(tmpO(:),pr.max_prctile) ;
-        cond1 = isnan(tmpO) ;
-        cond2 = isnan(tmpS) ;
         cond3 = tmpO>prctile(tmpO(:),pr.max_prctile) ;
-        outliersO = get_outliers(tmpO, cond1, cond2, cond3, pr) ;
-        outliersS = get_outliers(tmpS, cond1, cond2, cond3, pr) ;
-        bad = cond1 | cond2 | cond3 | outliersO.cond4 | outliersS.cond4 ;
-    end
-    if ~any(find(~bad))
-%             error('No cells found!')
-        if all(cond2)
-            warning(['No data found for ' thisCrop_plot '! Skipping.'])
-            continue
-        end
+        outliersO = get_outliers(tmpO, false(size(tmpO)), false(size(tmpO)), cond3, pr) ;
+        outliersS = get_outliers(tmpS, false(size(tmpO)), false(size(tmpO)), cond3, pr) ;
+        bad = cond3 | outliersO.cond4 | outliersS.cond4 ;
     end
     if any(isinf(tmpO))
         error('any(isinf(tmpO))')
@@ -337,6 +382,12 @@ disp(['Calibration factor, unweighted = ' num2str(calib_factors_u(c_plot))])
 if do_wtd_reg
     calib_factors_w(c_plot) = lscov(tmpS,tmpO,tmpW) ;
     disp(['Calibration factor, weighted   = ' num2str(calib_factors_w(c_plot))])
+end
+
+if calib_factors_u(c_plot) == 0
+    error('Calibration factor (unweighted) is 0!')
+elseif calib_factors_w(c_plot) == 0
+    error('Calibration factor (weighted) is 0!')
 end
 
 % Get line(s) and legend text
