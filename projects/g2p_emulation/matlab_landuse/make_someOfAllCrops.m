@@ -291,6 +291,8 @@ end
 function inFile = find_input_file(inPattern)
 
 filelist = dir(inPattern) ;
+basenames = {filelist.name} ;
+filelist(contains(basenames, '.someOfEachCrop')) = [] ;
 
 if isempty(filelist)
     error('No file found matching pattern %s', inFile_lu)
