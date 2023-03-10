@@ -2,7 +2,7 @@
 %%% Make version with some of all crops %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-inDir = '/Users/Shared/SAI-LandSyMM/input/LU/remaps_v10v2_f09_g17' ;
+inDir = '/Users/Shared/LandSyMM/inputs/LU/remaps_v10_old_62892_gL' ;
 remove_miscanthus = true ;
 notSomeOfAllIrrig = false ;
 firstSomeOfAllYear = -Inf ;
@@ -216,11 +216,14 @@ if mincropfrac>0
 end
 
 % Fake a temporal split if needed
-if ~lu_hasyears
+if ~lu_hasyears && ~isinf(firstSomeOfAllYear)
     [lu_out, lu_in_header] = fake_yearsplit(lu_in, lu_out, lu_in_header, firstSomeOfAllYear) ;
 end
-if ~cf_hasyears
+if ~cf_hasyears && ~isinf(firstSomeOfAllYear)
     [cf_out, cf_in_header] = fake_yearsplit(cf_in, cf_out, cf_in_header, firstSomeOfAllYear) ;
+    if any(isinf(cf_out(:)))
+        error('Inf')
+    end
 end
 
 
