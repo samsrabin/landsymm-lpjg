@@ -401,6 +401,10 @@ if opts.perarea
         units = 'mm' ;
         conversion_factor = 1 ; % Native LPJ-GUESS output unit
         titleName = 'average irrigation' ;
+    elseif contains(thisFile, 'anpp')
+        units = 'kgC m^{-2}' ;
+        conversion_factor = 1 ; % Native LPJ-GUESS output unit
+        titleName = 'annual NPP' ;
     else
         error('What units etc. should be used for %s per-area?', thisFile)
     end
