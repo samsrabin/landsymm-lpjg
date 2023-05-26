@@ -123,18 +123,29 @@ for d = 1:length(inDir)
 end
 
 % Import land use and crop fractions, ensuring match to LPJ-GUESS gridlist
-disp('Importing land use fractions...')
-lu_frac = lpjgu_matlab_read2geoArray(filename_guess_landuse) ;
-if ~isequal(S(1).list2map, lu_frac.list2map)
-    lu_frac = harmonize_gridlists(S(1), lu_frac) ;
+if ~isempty(filename_guess_landuse)
+    disp('Importing land use fractions...')
+    lu_frac = lpjgu_matlab_read2geoArray(filename_guess_landuse) ;
+    if ~isequal(S(1).list2map, lu_frac.list2map)
+        lu_frac = harmonize_gridlists(S(1), lu_frac) ;
+    end
+    lu_frac = harmonize_yearLists(S(1), lu_frac) ;
+    lu_frac_crop_col = squeeze(lu_area.garr_xvy(:,strcmp(lu_frac.varNames, 'CROPLAND'),:)) ;
+else
+    lu_frac = [] ;
+    lu_frac_crop_col = [] ;
 end
-lu_frac = harmonize_yearLists(S(1), lu_frac) ;
-disp('Importing crop fractions...')
-crop_frac = lpjgu_matlab_read2geoArray(filename_guess_cropfrac) ;
-if ~isequal(S(1).list2map, crop_frac.list2map)
-    crop_frac = harmonize_gridlists(S(1), crop_frac) ;
+if ~isempty(filename_guess_cropfrac)
+    disp('Importing crop fractions...')
+    crop_frac = lpjgu_matlab_read2geoArray(filename_guess_cropfrac) ;
+    if ~isequal(S(1).list2map, crop_frac.list2map)
+        crop_frac = harmonize_gridlists(S(1), crop_frac) ;
+    end
+    crop_frac = harmonize_yearLists(S(1), crop_frac) ;
+else
+    crop_frac = [] ;
+    lu_frac_crop_col = [] ;
 end
-crop_frac = harmonize_yearLists(S(1), crop_frac) ;
 
 % Import cell area
 disp('Importing cell area...')
@@ -146,9 +157,11 @@ cell_area_YX = cell_area_YX * 1e6 ;
 cell_area_x = cell_area_YX(S(1).list2map) ;
 
 % Get land use and crop area
-disp('Getting land use areas...')
+if ~isempty(filename_guess_landuse)
+    disp('Getting land use areas...')
+end
 lu_area = get_lu_area(lu_frac, cell_area_x) ;
-crop_area = get_lu_area(crop_frac, squeeze(lu_area.garr_xvy(:,strcmp(lu_frac.varNames, 'CROPLAND'),:))) ;
+crop_area = get_lu_area(crop_frac, lu_frac_crop_col) ;
 
 disp('Done importing.')
 
@@ -165,13 +178,18 @@ make_timeseries(S, crop_area, crop_frac, outDir, thisFile, timeseries_opts)
 % If you've specified two LPJ-GUESS output directories, you can change S to S(1) or S(2)
 % to make figures for just one of them.
 
-crop_diagnostics_options
+crop_diagnostics_options 
 make_maps(S, crop_area, crop_frac, outDir, thisFile, map_opts)
 
 
 %% FUNCTIONS
 
 function S = get_lu_area(S, area_x)
+
+if isempty(S)
+    S = [] ;
+    return
+end
 
 ndims_area = length(find(size(area_x) > 1)) ;
 
@@ -564,3 +582,152 @@ disp('Done.')
 
 
 end
+
+
+function make_raw_maps(S, outDir, thisFile, opts)
+
+% Process units
+if contains(thisFile, 'yield')
+    units = 'tons dry matter ha^{-1}' ;
+    conversion_factor = 10 ; % From kg/m2
+    titleName = 'yield' ;
+elseif contains(thisFile, 'gsirr')
+    units = 'mm' ;
+    conversion_factor = 1 ; % Native LPJ-GUESS output unit
+    titleName = 'average irrigation' ;
+elseif contains(thisFile, 'anpp')
+    units = 'kgC m^{-2}' ;
+    conversion_factor = 1 ; % Native LPJ-GUESS output unit
+    titleName = 'annual NPP' ;
+else
+    error('What units etc. should be used for %s per-area?', thisFile)
+end
+
+% Are we comparing two runs?
+comparing_runs = length(S) == 2 ;
+if comparing_runs
+    % Take difference
+    Sdiff = S(1) ;
+    if isfield(Sdiff, 'garr_xvy')
+        Sdiff.garr_xvy = S(2).garr_xvy - S(1).garr_xvy ;
+    elseif isfield(Sdiff, 'garr_xv')
+        Sdiff.garr_xv = S(2).garr_xv - S(1).garr_xv ;
+    end
+    clear S
+    S = Sdiff ;
+    clear Sdiff
+
+    % Append to title
+    titleName = [titleName ', run2-run1'] ;
+end
+
+% Get included years
+if ~isfield(S, 'yearList')
+    y1 = [] ;
+    yN = [] ;
+    disp('Mapping...')
+else
+    [C, ~, Iyears] = intersect(opts.incl_years, S.yearList, 'stable') ;
+    if ~isequal(C(:), opts.incl_years(:))
+        error('Year list mismatch')
+    end
+    y1 = min(opts.incl_years) ;
+    yN = max(opts.incl_years) ;
+    
+    fprintf('Mapping %d-%d:\n', y1, yN)
+end
+for c = 1:length(S.varList)
+
+    % Find stands of this crop
+    thisVar = S.varList{c} ;
+    fprintf('    %s...\n', thisVar)
+    if ~isempty(crop_frac)
+        thisCrop_ir = [thisCrop_rf 'i'] ;
+    else
+        thisCrop_ir = thisCrop_rf ;
+    end
+    IA = find(S.varNames, thisVar, 'stable') ;
+
+    % Get LPJ-GUESS output data
+    if isfield(S, 'garr_xvy')
+        data_xv = S.garr_xvy(:,IB,:) ;
+    else
+        data_xv = S.garr_xv(:,IB) ;
+    end
+
+    % Get legend
+    thisLegend = theseVars ;
+    if any(strcmp(thisLegend, thisCrop_rf))
+        thisLegend{strcmp(thisLegend, thisCrop_rf)} = 'Rainfed' ;
+    end
+    if any(strcmp(thisLegend, thisCrop_ir))
+        thisLegend{strcmp(thisLegend, thisCrop_ir)} = 'Irrigated' ;
+    end
+
+    % Get color axis and colormap
+    if comparing_runs
+        new_caxis = [-1 1]*nanmax(abs(data_xv(:))) ;
+        this_colormap = brewermap(64, 'RdBu_ssr') ;
+    else
+        new_caxis = [nanmin(data_xv(:)) nanmax(data_xv(:))] ;
+        this_colormap = 'parula' ;
+    end
+
+    % Plot
+    figure('Color', 'w', 'Position', opts.figure_window_position)
+    data_xv = data_xv * conversion_factor ;
+    for v = 1:length(theseVars)
+        thisVar = thisLegend{v} ;
+        switch thisVar
+            case 'Rainfed'
+                nx = 2 ;
+                p = 1 ;
+            case 'Irrigated'
+                nx = 2 ;
+                p = 2 ;
+            case 'Combined' 
+                nx = 1 ;
+                p = 2 ;
+            otherwise
+                error('%s not recognized for lineStyle', thisVar)
+        end
+        map_YX = lpjgu_vector2map(data_xv(:,v), opts.mapSize, S.list2map) ;
+        if exist('area_xv', 'var')
+            area_YX = lpjgu_vector2map(area_xv(:,v), opts.mapSize, S.list2map) ;
+            map_YX(area_YX == 0) = NaN ;
+        end
+        subplot_tight(2, nx, p, opts.subplot_spacing)
+
+        worldmap('World')
+        load coastlines
+        plotm(coastlat,coastlon, 'k')
+        pcolorm(opts.lats, -179.75:0.5:179.75, map_YX)
+        framem('FLineWidth', opts.lineWidth)
+        mlabel off; plabel off
+
+        if ~isequal(new_caxis, [0 0]) && ~isequaln(new_caxis, [NaN NaN])
+            caxis(new_caxis)
+        end
+        colormap(gca, this_colormap)
+        hcb = colorbar ;
+        xlabel(hcb, units)
+        set(gca, 'FontSize', opts.fontSize)
+        title(thisLegend{v})
+    end
+    if isempty(y1)
+        thisTitle = sprintf('%s global %s', thisCrop_rf, titleName) ;
+    else
+        thisTitle = sprintf('%s global %s %d-%d', thisCrop_rf, titleName, y1, yN) ;
+    end
+    hsgt = sgtitle(thisTitle, 'FontSize', opts.fontSize*1.25, 'FontWeight', 'bold') ;
+    
+    % Save figure
+    outFile = fullfile(outDir, ['Map ' thisTitle '.png']) ;
+    export_fig(outFile, '-r150')
+    close
+end
+disp('Done.')
+
+
+end
+
