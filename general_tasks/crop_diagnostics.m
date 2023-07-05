@@ -103,10 +103,12 @@ fprintf('Importing %s...\n', thisFile)
 for d = 1:length(inDir)
     thisDir = inDir{d} ;
     if d == 1
-        S = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile)) ;
+        S = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile), ...
+            'xres', xres, 'yres', yres) ;
         fieldname_list = fieldnames(S) ;
     else
-        S(d) = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile)) ;
+        S(d) = lpjgu_matlab_read2geoArray(sprintf('%s/%s', thisDir, thisFile), ...
+            'xres', xres, 'yres', yres) ;
 
         % Ensure that all metadata matches first run
         for f = 1:length(fieldname_list)
@@ -125,7 +127,8 @@ end
 % Import land use and crop fractions, ensuring match to LPJ-GUESS gridlist
 if ~isempty(filename_guess_landuse)
     disp('Importing land use fractions...')
-    lu_frac = lpjgu_matlab_read2geoArray(filename_guess_landuse) ;
+    lu_frac = lpjgu_matlab_read2geoArray(filename_guess_landuse, ...
+        'xres', xres, 'yres', yres) ;
     if ~isequal(S(1).list2map, lu_frac.list2map)
         lu_frac = harmonize_gridlists(S(1), lu_frac) ;
     end
@@ -137,7 +140,8 @@ else
 end
 if ~isempty(filename_guess_cropfrac)
     disp('Importing crop fractions...')
-    crop_frac = lpjgu_matlab_read2geoArray(filename_guess_cropfrac) ;
+    crop_frac = lpjgu_matlab_read2geoArray(filename_guess_cropfrac, ...
+        'xres', xres, 'yres', yres) ;
     if ~isequal(S(1).list2map, crop_frac.list2map)
         crop_frac = harmonize_gridlists(S(1), crop_frac) ;
     end
