@@ -906,6 +906,10 @@ PLUMorig_incr_xyr(PLUMorig_incr_xyr<0) = 0 ;
 PLUMharm_incr_xyr(PLUMharm_incr_xyr<0) = 0 ;
 PLUMorig_incr_yr = squeeze(sum(PLUMorig_incr_xyr,1)) ;
 PLUMharm_incr_yr = squeeze(sum(PLUMharm_incr_xyr,1)) ;
+if Nruns == 1
+    PLUMorig_incr_yr = transpose(PLUMorig_incr_yr) ;
+    PLUMharm_incr_yr = transpose(PLUMharm_incr_yr) ;
+end 
 harmEffect_yr = PLUMharm_incr_yr - PLUMorig_incr_yr ;
 
 x = yearList_orig(2:end) ;
