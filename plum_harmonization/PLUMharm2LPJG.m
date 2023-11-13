@@ -2,112 +2,57 @@
 %%% Convert harmonized PLUM outputs into files for LPJ-GUESS %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% For Daniel
-force_ssr_mac = true ;
-ssrmac_paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-ssrmac_plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
-ssrmac_inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
-cd('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') % Where you've downloaded SSP3.v12.s1
+addpath(genpath(plum_harmonization_path()))
+rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Input directories and settings specific thereto %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PLUMharm_options.m must be somewhere on your path.
+% See PLUMharm.m for instructions for that file.
+PLUMharm_options
 
-%%% Typical runs (2010-2100)
-dirList = {...
-%               'SSP1.v10.s1.harm' ;
-%               'SSP3.v10.s1.harm' ;
-%               'SSP4.v10.s1.harm' ;
-%               'SSP5.v10.s1.harm' ;
-%               'SSP1.v12.s1.harm' ;
-              'SSP3.v12.s1.harm' ;
-%               'SSP4.v12.s1.harm' ;
-%               'SSP5.v12.s1.harm' ;
-%     'SSP1/s1.harm' ;
-%     'SSP2/s1.harm' ;
-%     'SSP3/s1.harm' ;
-%     'SSP4/s1.harm' ;
-%     'SSP5/s1.harm' ;
-              } ;
-base_year = 2010 ;
-y1 = 2011 ;
-yN = 2100 ;
-yStep = 1 ;
-
-%%% Half-Earth runs (2010-2060)
-% dirList = {...
-%           'baseline/s1.harm';
-%           'halfearth/s1.harm';
-%           } ;
-% base_year = 2010 ; %#ok<*NASGU>
-% y1 = 2011 ;
-% yN = 2060 ;
-% yStep = 1 ;
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% General behavior options %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Trying to avoid new crop spinup time; will repeat first PLUMout 
-% year over y1_pre:(y1-1). Set to y1 to skip.
-% y1_pre = 2006 ;
-y1_pre = y1 ;
-
-% Make it so that each gridcell always has at least some tiny amount of
-% every crop? Needed to avoid weird first few years after a cell gets its
-% first area of some new crop.
-someofall = true ;
-
-% When someofall==true, this designates the order in which area donated
-% to cropland will be taken from (decreasing order of preference).
-donation_order = {'PASTURE','NATURAL','BARREN'} ;
-
-% Zip up outputs?
-do_gzip = true ;
+% In addition, PLUMharm2LPJG_options.m must be somewhere on your path.
+% There, specify the following variables:
+%     yStep: Save output files every yStep years. Recommendation: 1
+%     do_gzip: Zip up outputs? (true/false)
+%     someofall: Make it so that each gridcell always has at least some tiny amount of
+%                every crop? Needed to avoid weird first few years after a cell gets its
+%                first area of some new crop. Recommendation: true
+%     donation_order: When someofall==true, this designates the order in which area 
+%                     donated to cropland will be taken from (decreasing order of
+%                     preference). Recommendation: {'PASTURE','NATURAL','BARREN'}
+%     y1_pre: Experimental setting trying to avoid new crop spinup time; will repeat first
+%             PLUMout year over y1_pre:(year1-1). Set to year1, [], or unset to skip.
+%     save_every_pct: How many rows (% of total) should be written at once. Lower means
+%                     lower memory requirement. Recommendation: 1.
+%     verbose_write: Set to true to slightly increase verbosity of write step.
+PLUMharm2LPJG_options
 
 
 %% Setup
 
-% Determine which system you're on and set up
-if force_ssr_mac
-    thisSystem = 'ssr_mac' ;
-else
-    thisSystem = get_system_name() ;
+addpath(genpath(landsymm_lpjg_path()))
+
+if exist('thisDir', 'var')
+    if ~exist(thisDir, 'dir')
+        error('thisDir not found: %s', thisDir)
+    end
+    cd(thisDir)
 end
-if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = ssrmac_paper02_repo_path ;
-    plumharm_repo_path = ssrmac_plumharm_repo_path ;
-elseif strcmp(thisSystem, 'ssr_keal')
-    paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
-    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
-else
-    error('thisSystem not recognized: %s', thisSystem)
-end
-addpath(genpath(paper02_repo_path))
-addpath(genpath(plumharm_repo_path))
+
+dirList = strcat(dirList, '.harm') ;
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
-% Output options
-outPrec = 6 ;
 if someofall
     mincropfrac = 10^-outPrec ;
 else
     mincropfrac = 0 ;
 end
-outWidth = 1 ;
-delimiter = ' ' ;
-overwrite = true ;
-fancy = false ;
-save_every_pct = 1 ;
-verbose_write = true ;
 
 % Get year info
-yearList = shiftdim(y1:yStep:yN) ;
+yearList = shiftdim(year1:yStep:yearN) ;
 Nyears = length(yearList) ;
-if y1_pre<y1
-    yearList_xtra = y1_pre:(y1-1) ;
+if exist('y1_pre', 'var') && ~isempty(y1_pre) && y1_pre<year1
+    yearList_xtra = y1_pre:(year1-1) ;
 else
     yearList_xtra = [] ;
 end
@@ -387,6 +332,13 @@ for d = 1:length(dirList)
         file_out_nfert = strrep(file_out_nfert, '.txt', '.noMinCropFrac.txt') ;
         file_out_irrig = strrep(file_out_irrig, '.txt', '.noMinCropFrac.txt') ;
     end
+
+    % Get options
+    if overwrite
+        gzip_opts = '-f' ; %#ok<*UNRCH>
+    else
+        gzip_opts = '' ; %#ok<*UNRCH>
+    end
     
     % Save land cover
     disp('Saving land cover...')
@@ -400,7 +352,7 @@ for d = 1:length(dirList)
         'verbose', verbose_write) ;
     if do_gzip
         disp('gzipping...')
-        unix(['gzip ' file_out_LU]) ;
+        unix(sprintf('gzip %s %s', gzip_opts, file_out_LU)) ;
     end
     clear lu_out
    
@@ -416,7 +368,7 @@ for d = 1:length(dirList)
         'verbose', verbose_write) ;
     if do_gzip
         disp('gzipping...')
-        unix(['gzip ' file_out_crop]) ;
+        unix(sprintf('gzip %s %s', gzip_opts, file_out_crop)) ;
     end
     clear cf_out
     
@@ -435,7 +387,7 @@ for d = 1:length(dirList)
             'verbose', verbose_write) ;
         if do_gzip
             disp('gzipping...')
-            unix(['gzip ' file_out_nfert]) ;
+            unix(sprintf('gzip %s %s', gzip_opts, file_out_nfert)) ;
         end
     end
     clear nf_out
@@ -455,7 +407,7 @@ for d = 1:length(dirList)
             'verbose', verbose_write) ;
         if do_gzip
             disp('gzipping...')
-            unix(['gzip ' file_out_irrig]) ;
+            unix(sprintf('gzip %s %s', gzip_opts, file_out_irrig)) ;
         end
     end
     clear ir_out

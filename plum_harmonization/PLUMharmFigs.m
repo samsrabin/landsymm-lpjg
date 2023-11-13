@@ -2,12 +2,11 @@
 %%% Testing harmonized PLUM land use trajectory %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% For Daniel
-force_ssr_mac = true ;
-ssrmac_paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-ssrmac_plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
-ssrmac_inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
-cd('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') % Where you've downloaded SSP3.v12.s1
+addpath(genpath(plum_harmonization_path()))
+rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
+
+PLUMharm_options
+
 dirList = {'SSP3'} ;
 runList_legend = {'SSP3-60'} ;
 
@@ -68,23 +67,14 @@ norm2extra = 0.177 ;
 
 %% Setup
 
-% Determine which system you're on and set up
-if force_ssr_mac
-    thisSystem = 'ssr_mac' ;
-else
-    thisSystem = get_system_name() ;
+addpath(genpath(landsymm_lpjg_path()))
+
+if exist('thisDir', 'var')
+    if ~exist(thisDir, 'dir')
+        error('thisDir not found: %s', thisDir)
+    end
+    cd(thisDir)
 end
-if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = ssrmac_paper02_repo_path ;
-    plumharm_repo_path = ssrmac_plumharm_repo_path ;
-elseif strcmp(thisSystem, 'ssr_keal')
-    paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
-    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
-else
-    error('thisSystem not recognized: %s', thisSystem)
-end
-addpath(genpath(paper02_repo_path))
-addpath(genpath(plumharm_repo_path))
 
 % Before making output directory, make sure you're in the correct
 % directory to begin with.
@@ -137,8 +127,8 @@ R = georasterref('RasterSize', [360 720], ...
     'LatitudeLimits', [-90 90], ...
     'LongitudeLimits', [-180 180]) ;
 
-%lines_overlay = sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path) ;
-lines_overlay = shaperead(sprintf('%s/input_data/continents_from_countries.shp', plumharm_repo_path)) ;
+%lines_overlay = sprintf('%s/input_data/continents_from_countries.shp', plum_harmonization_path()) ;
+lines_overlay = shaperead(sprintf('%s/input_data/continents_from_countries.shp', plum_harmonization_path())) ;
 
 % y1_list = 2011 ;
 % yN_list= 2012 ;
@@ -169,15 +159,15 @@ PLUMharm_importRefData
 inpaint_method = [] ;
 
 biomeID_YX = flipud(imread( ...
-    sprintf('%s/input_data/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif', plumharm_repo_path))) ;
+    sprintf('%s/input_data/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif', plum_harmonization_path()))) ;
 biomeID_YX(biomeID_YX<0) = NaN ;
 biomeID_x = biomeID_YX(list2map) ;
 countries_YX = flipud(dlmread( ...
-    sprintf('%s/input_data/country_boundaries62892.noNeg99.extrapd.asc', plumharm_repo_path), ...
+    sprintf('%s/input_data/country_boundaries62892.noNeg99.extrapd.asc', plum_harmonization_path()), ...
     '',6,0)) ;
 countries_YX(countries_YX<=0) = NaN ;
 countries_x = countries_YX(list2map) ;
-countries_key = readtable(sprintf('%s/input_data/country_boundaries_codes4.csv', plumharm_repo_path)) ;
+countries_key = readtable(sprintf('%s/input_data/country_boundaries_codes4.csv', plum_harmonization_path())) ;
 
 
 %% Import PLUM (original + harmonized)
@@ -317,7 +307,7 @@ landArea_xv = repmat(landArea_x, [1 Nlu]) ;
 landArea_xvr = repmat(landArea_xv, [1 1 Nruns]) ;
 
 % Import food production units
-fpu_file = sprintf('%s/input_data/FPU.asc', plumharm_repo_path) ;
+fpu_file = sprintf('%s/input_data/FPU.asc', plum_harmonization_path()) ;
 fpu_YX = flipud(dlmread(fpu_file,' ',6,0)) ;
 fpu_YX(fpu_YX==-9999) = NaN ;
 fpu_x = fpu_YX(list2map) ;
@@ -796,8 +786,8 @@ list_regions = harm_focus_regions(:,5) ;
 list_superRegs = unique(harm_focus_regions(:,2)) ;
 Nregions = length(list_regions) ;
 NsuperRegs = length(list_superRegs) ;
-templatefile = sprintf('%s/input_data/harm_by_numbers.template.xlsx', plumharm_repo_path) ;
-templatefile_relLandArea = sprintf('%s/input_data/harm_by_numbers.template.relLandArea.xlsx', plumharm_repo_path) ;
+templatefile = sprintf('%s/input_data/harm_by_numbers.template.xlsx', plum_harmonization_path()) ;
+templatefile_relLandArea = sprintf('%s/input_data/harm_by_numbers.template.relLandArea.xlsx', plum_harmonization_path()) ;
 
 % Do it
 for l = 1:length(tmp_lu_list)
@@ -916,6 +906,10 @@ PLUMorig_incr_xyr(PLUMorig_incr_xyr<0) = 0 ;
 PLUMharm_incr_xyr(PLUMharm_incr_xyr<0) = 0 ;
 PLUMorig_incr_yr = squeeze(sum(PLUMorig_incr_xyr,1)) ;
 PLUMharm_incr_yr = squeeze(sum(PLUMharm_incr_xyr,1)) ;
+if Nruns == 1
+    PLUMorig_incr_yr = transpose(PLUMorig_incr_yr) ;
+    PLUMharm_incr_yr = transpose(PLUMharm_incr_yr) ;
+end 
 harmEffect_yr = PLUMharm_incr_yr - PLUMorig_incr_yr ;
 
 x = yearList_orig(2:end) ;
@@ -1228,6 +1222,9 @@ for v = 1:Nlu
         new_caxis = [-1 1]*max(max(abs(tmp_xvr(:,v,:)))) ;
     else
         new_caxis = [-1 1]*max(max(abs(tmp_xvr(:,v,:)))) ;
+    end
+    if isequal(new_caxis, [0 0])
+        new_caxis = [-1 1] ;
     end
     for r = 1:Nruns
         thisRun = runList_legend{r} ;

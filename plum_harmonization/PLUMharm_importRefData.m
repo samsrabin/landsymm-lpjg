@@ -1,8 +1,8 @@
 disp('Importing reference data...')
 
-landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plumharm_repo_path) ;
-PLUM_file_res_terr = sprintf('%s/input_data/maxcropfrac2.txt', plumharm_repo_path) ;
-PLUM_file_res_prot = sprintf('%s/input_data/protected_areas_with_points.txt', plumharm_repo_path) ;
+landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plum_harmonization_path()) ;
+PLUM_file_res_terr = sprintf('%s/input_data/maxcropfrac2.txt', plum_harmonization_path()) ;
+PLUM_file_res_prot = sprintf('%s/input_data/protected_areas_with_points.txt', plum_harmonization_path()) ;
 
 if ~exist('combineCrops', 'var')
     combineCrops = false ;
@@ -20,33 +20,19 @@ if baseline_ver == 1
     end
     inpaint_method = 0 ;
 elseif baseline_ver == 2
-    if strcmp(thisSystem, 'ssr_mac')
-        inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6/' ;
-    else
-        error('Specify inDir_remap6 for thisSystem: %s', thisSystem)
-    end
-    luh2_file = [inDir_remap6 'LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt'] ;
-    cropf_file = [inDir_remap6 'cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt'] ;
-    nfert_file = [inDir_remap6 'nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt'] ;
+    inDir_remap6 = fullfile(remaps_topDir, 'remaps_v6') ;
+    luh2_file = fullfile(inDir_remap6, 'LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
+    cropf_file = fullfile(inDir_remap6, 'cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
+    nfert_file = fullfile(inDir_remap6, 'nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
     inpaint_method = 4 ;
 elseif baseline_ver == 3
-    if strcmp(thisSystem, 'ssr_mac')
-        inDir_remap6 = ssrmac_inDir_remap6 ;
-    else
-        error('Specify inDir_remap6 for thisSystem: %s', thisSystem)
-    end
-    luh2_file = [inDir_remap6 'LU.remapv6p7.txt'] ;
-    cropf_file = [inDir_remap6 'cropfracs.remapv6p7.txt'] ;
-    nfert_file = [inDir_remap6 'nfert.remapv6p7.txt'] ;
+    inDir_remap6 = fullfile(remaps_topDir, 'remaps_v6p7') ;
+    luh2_file = fullfile(inDir_remap6, 'LU.remapv6p7.txt') ;
+    cropf_file = fullfile(inDir_remap6, 'cropfracs.remapv6p7.txt') ;
+    nfert_file = fullfile(inDir_remap6, 'nfert.remapv6p7.txt') ;
     inpaint_method = 4 ;
 elseif baseline_ver == 4
-    if strcmp(thisSystem, 'ssr_mac')
-        inDir_remap = '/Users/Shared/PLUM/input/remaps_v8c' ;
-    elseif strcmp(thisSystem, 'ssr_keal')
-        inDir_remap = '/pd/data/lpj/sam/PLUM/input/remaps_v8c' ;
-    else
-        error('Specify inDir_remap for thisSystem: %s', thisSystem)
-    end
+    inDir_remap = fullfile(remaps_topDir, 'remaps_v8c') ;
     if fruitveg_sugar_2oil
         inDir_remap = [inDir_remap '2oil'] ;
         luh2_file = sprintf('%s/LU.remapv8c2oil.txt', inDir_remap) ;
@@ -165,7 +151,7 @@ if isfield(base, 'maps_YXvy')
 end
 clear S
 
-% Get repmat 0.5º land area
+% Get repmat 0.5-degree land area
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 if ~doHarm
@@ -435,7 +421,7 @@ end
 base_vegdFrac_YX = base_vegd_YX ./ landArea_YX ;
 base_bareFrac_YX = base_bare_YX ./ landArea_YX ;
 
-% Aggregate from 0.5º to 2º
+% Aggregate from 0.5-degree to 2-degree
 base_2deg.varNames = base.varNames ;
 if ~combineCrops
     base_2deg_nfert.varNames = LPJGcrops ;

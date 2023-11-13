@@ -2,159 +2,103 @@
 %%% LUH1-style harmonization for PLUM outputs, at cropType level %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% For Daniel
-force_ssr_mac = true ;
-ssrmac_paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-ssrmac_plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
-ssrmac_inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
-cd('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') % Where you've downloaded SSP3.v12.s1
+addpath(genpath(plum_harmonization_path()))
+rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Input directories and settings specific thereto %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Typical runs (2010-2100), v1-3
-dirList = {...
-%                   'SSP1.v10.s1' ;
-%                   'SSP3.v10.s1' ;
-%                   'SSP4.v10.s1' ;
-%                   'SSP5.v10.s1' ;
-%                   'SSP1.v11.s1' ;
-%                   'SSP3.v11.s1' ;
-%                   'SSP4.v11.s1' ;
-%                   'SSP5.v11.s1' ;
-%                   'SSP1.v11.s1test' ;
-%                   'ssp11/SSP5/s3' ;
-%                   'SSP1.v12.s1' ;
-                  'SSP3.v12.s1' ;
-%                   'SSP4.v12.s1' ;
-%                   'SSP5.v12.s1' ;
-                  } ;
-base_year = 2010 ; % The last year of LUH2 data to use. Must be included in PLUM outputs.
-year1 = 2011 ;     % The first year of the "future" period
-yearN = 2100 ;     % The last year of the "future" period
-% baseline_ver = 1 ;
-% baseline_ver = 2 ;   % Crop list based on remap_v6
-baseline_ver = 3 ;   % Crop list based on remap_v6p7
-fruitveg_sugar_2oil = false ; % Not used for crop lists for baseline_ver 1-3
-
-% % % %%% Typical runs (2010-2100), v4
-% % % dirList = {...
-% % % %    'SSP1/s1' ;
-% % % %    'SSP2/s1' ;
-% % %     'SSP3/s1' ;
-% % %     'SSP4/s1' ;
-% % %     'SSP5/s1' ;
-% % %     } ;
-% % % base_year = 2010 ;
-% % % year1 = 2011 ;
-% % % yearN = 2100 ;
-% % % fruitveg_sugar_2oil = false ;
-% % % baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
-% % 
-% % %%% Half-Earth runs (2010-2060)
-% % % dirList = {...
-% % %                   'halfearth/HEoct/baseline/s1';
-% % %                   'halfearth/HEoct/halfearth/s1';
-% % %                   } ;
-% % % base_year = 2010 ;
-% % % year1 = 2011 ;
-% % % yearN = 2060 ;
-% % % fruitveg_sugar_2oil = false ;
-% % % baseline_ver = 4 ;   % Based on remap_v8b(2oil, if fruitveg_sugar_2oil true)
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Output options %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% What output files should be saved?
-% All you really need are the half-degree .mat files, because those serve
-% as inputs for subsequent processing scripts.
-save_halfDeg_mat = true ;
-save_2deg_mat = false ;
-save_halfDeg_txt = false ;
-save_2deg_txt = false ;
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Debugging options %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Debugging outputs?
-debug_areas = false ;
-debug_nfert = false ;
-debug_irrig = false ;
-
-% Coordinates of 2-degree cell to debug (leave empty for no debug)
-debugIJ_2deg = [] ;
-
-% Land use of interest
-dbCrop = '' ;
-
-% Print verbose messages?
-verbose = true ;
-
-% Combine all crops? This is useful only as a test to see how different the
-% area is this way as opposed to the right way (keeping every crop
-% separate). This also may not actually work!
-combineCrops = false ;
+% PLUMharm_options.m must be somewhere on your path.
+% There, specify the following variables:
+%
+% PATHS
+%     remaps_topDir: Path where remaps_v6p7/ etc. can be found.
+%     dirList: Locations of PLUM output directories to process. If relative paths, make
+%              sure to provide thisDir (see below).
+%     thisDir: Path where directories in dirList can be found. Only needed if providing
+%              relative paths (i.e., not absolute paths) in dirList.
+%
+% HARMONIZATION BEHAVIOR
+%     conserv_tol_pct: How much divergence (%) from PLUM-original transition is
+%                      acceptable? Also used for checking whether 
+%                         out_total > max_mgmt_thisRing.
+%                      Recommendation: 0.2
+%     conserv_tol_area: How much divergence (m2) from PLUM-original transition is
+%                       acceptable? Also used for checking whether agricultural area
+%                       exceeds vegetated area in each gridcell. Recommendation: 1e3
+%     norm2extra: The areal fraction of real crops not included in PLUM's 6 non-
+%                 energyCrops commodities. Multiply PLUM area by (1-norm2extra) to get
+%                 area of the crop itself without the norm2extra fraction included.
+%                 Recommendation: 0.177; depends on PLUM setting.
+%     useLatestPLUMmgmt: Use "latest PLUM management" in cells that don't have thisCrop
+%                        thisYear but did in a previous year? FALSE = rely solely on
+%                        interpolation of thisYear's thisMgmt. Recommendation: true
+%
+% TIME OPTIONS
+%     base_year: The last year of LUH2 data to use. Must be included in PLUM outputs.
+%     year1:     The first year of the "future" period.
+%     yearN:     The last year of the "future" period.
+%
+% CROP LIST OPTIONS
+%     baseline_ver: Crop list to use. Choose from:
+%         1: ?
+%         2: Crop list based on remap_v6
+%         3: Crop list based on remap_v6p7
+%         4: Crop list hased on remap_v8b(2oil, if fruitveg_sugar_2oil true)
+%     fruitveg_sugar_2oil: Separate oilcrops into OilNfix and OilOther? (true/false)
+%                          Only used if baseline_ver==4.
+%    
+% OUTPUT OPTIONS
+% All you really need are the half-degree .mat files, because those serve as inputs for
+% subsequent processing scripts. However, it can be useful for troubleshooting purposes to
+% save .mat files from the 2-degree step.
+%     save_halfDeg_mat: Save half-degree .mat output files? (true/false)
+%     save_2deg_mat:    Save 2-degree .mat output files? (true/false)
+% You can also save outputs from PLUMharm.m in .txt format:
+%     save_halfDeg_txt: Save half-degree .txt output files? (true/false)
+%     save_2deg_txt:    Save 2-degree .txt output files? (true/false)
+% There are also various settings related to .txt output file formats, used for both this
+% script as well as PLUMharm2LPJG.m:
+%     outPrec: Precision (number of decimal places) to which output .txt files should be
+%              saved. (Recommendation: 6)
+%     outWidth: Width of output columns. Recommendation is 1; columns should auto-adjust.
+%     delimiter: Recommendation: ' '.
+%     overwrite: Should existing output files be overwritten? (true/false)
+%     fancy: Not sure. Recommendation: false.
+%
+% DEBUGGING/DIAGNOSTIC OPTIONS
+%    debug_areas: Print debug info about land use areas? (true/false)
+%    debug_nfert: Print debug info about fertilizer? (true/false)
+%    debug_irrig: Print debug info about irrigation? (true/false)
+%    debugIJ_2deg: Coordinates of 2-degree cell to debug (leave empty for no debug)
+%    dbCrop: Land use of interest for debugging (string)
+%    verbose: Print verbose messages? (true/false)
+%    combineCrops: Combine all crops? This is useful only as a test to see how different
+%                  the area is this way as opposed to the right way (keeping every crop
+%                  separate). E.g., comparison in Rabin et al. (2020) Fig. S2.
+%                  *This may not actually work!*
 
 
-%% Setup
+PLUMharm_options
+
+
+%% Setup and process options
 
 warning('on','all')
 
-% Determine which system you're on and set up
-if force_ssr_mac
-    thisSystem = 'ssr_mac' ;
-else
-    thisSystem = get_system_name() ;
+addpath(genpath(landsymm_lpjg_path()))
+
+if exist('thisDir', 'var')
+    if ~exist(thisDir, 'dir')
+        error('thisDir not found: %s', thisDir)
+    end
+    cd(thisDir)
 end
-if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = ssrmac_paper02_repo_path ;
-    plumharm_repo_path = ssrmac_plumharm_repo_path ;
-elseif strcmp(thisSystem, 'ssr_keal')
-    paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
-    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
-else
-    error('thisSystem not recognized: %s', thisSystem)
-end
-addpath(genpath(paper02_repo_path))
-addpath(genpath(plumharm_repo_path))
 
 % Method for inpaint_nans()
 % (moved to PLUMharm_importRefData)
-
-% Use "latest PLUM management" in cells that don't have thisCrop thisYear
-% but did in a previous year? FALSE = rely solely on interpolation of
-% thisYear's thisMgmt.
-useLatestPLUMmgmt = true ;
 
 % Save details
 save_halfDeg_any = save_halfDeg_mat || save_halfDeg_txt ;
 save_2deg_any = save_2deg_mat || save_2deg_txt ;
 save_any = save_halfDeg_any || save_2deg_any ;
-
-% Output file details
-outPrec = 6 ;
-outWidth = 1 ;
-delimiter = ' ' ;
-overwrite = true ;
-fancy = false ;
-
-% How much divergence from PLUM-original transition is acceptable? (%)
-% Also used for checking whether out_total > max_mgmt_thisRing.
-conserv_tol_pct = 0.2 ;
-% How much divergence from PLUM-original transition is acceptable? (m2)
-% Also used for checking whether agricultural area exceeds vegetated area
-% in each gridcell.
-conserv_tol_area = 1e3 ;
-
-% The fraction of real crops (by area) not included in PLUM's 6
-% non-energyCrops commodities. Multiply PLUM area by (1-norm2extra) to
-% get area of the crop itself without the norm2extra fraction included.
-norm2extra = 0.177 ;
 
 if combineCrops
     warning('Combining all crops into one! Will skip harmonization of nfert and irrig.')
