@@ -165,7 +165,7 @@ if isfield(base, 'maps_YXvy')
 end
 clear S
 
-% Get repmat 0.5º land area
+% Get repmat 0.5-degree land area
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 if ~doHarm
@@ -435,7 +435,7 @@ end
 base_vegdFrac_YX = base_vegd_YX ./ landArea_YX ;
 base_bareFrac_YX = base_bare_YX ./ landArea_YX ;
 
-% Aggregate from 0.5º to 2º
+% Aggregate from 0.5-degree to 2-degree
 base_2deg.varNames = base.varNames ;
 if ~combineCrops
     base_2deg_nfert.varNames = LPJGcrops ;
