@@ -9,6 +9,7 @@ if ~exist('combineCrops', 'var')
 end
 
 % Get files based on baseline version
+disp('    Get files based on baseline version')
 fruitveg_sugar_2oil_ok = false ;
 if baseline_ver == 1
     if strcmp(thisSystem, 'ssr_mac')
@@ -53,6 +54,7 @@ if fruitveg_sugar_2oil && ~fruitveg_sugar_2oil_ok
 end
 
 % Make lower-left lat/lon map (for compat. with PLUM style)
+disp('    Make lower-left lat/lon map (for compat. with PLUM style)')
 lons_map_2deg = repmat(-180:2:178,[90 1]) ;
 lats_map_2deg = repmat((-90:2:88)',[1 180]) ;
 lons_map = repmat(-180:0.5:179.5,[360 1]) ;
@@ -60,11 +62,13 @@ lats_map = repmat((-90:0.5:89.5)',[1 720]) ;
 
 % Read fraction of VEGETATED protected by...
 %%% Terrain
+disp('    Read fraction of VEGETATED protected by terrain')
 resFrac_terr = lpjgu_matlab_readTable_then2map(PLUM_file_res_terr,'verboseIfNoMat',false,'force_mat_nosave',true,'force_mat_save',false) ;
 resFrac_terr_YX = 1 - resFrac_terr.maps_YXv ;
 resFrac_terr_YX(isnan(resFrac_terr_YX)) = 0 ;
 clear resFrac_terr
 %%% Protected areas
+disp('    Read fraction of VEGETATED protected by protected areas')
 fid = fopen(PLUM_file_res_prot, 'rt') ;
 resFrac_prot = textscan(fid, ['%f' repmat(' %f',[1 720-1])], 'headerLines', 6) ;
 fclose(fid) ;
@@ -73,6 +77,7 @@ clear resFrac_prot
 resFrac_prot_YX(resFrac_prot_YX==-9999) = 0 ;
 
 % Get LUH2 land area (m2)
+disp('    Get LUH2 land area')
 gcelArea_YXqd = 1e6*double(transpose(ncread(landarea_file,'carea'))) ;
 land_frac_YXqd = 1 - double(flipud(transpose(ncread(landarea_file,'icwtr')))) ;
 landArea_YXqd = gcelArea_YXqd .* land_frac_YXqd ;
@@ -84,6 +89,7 @@ landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 clear *_YXqd tmp
 
 % Import LUH2 base_year
+disp('    Import LUH2 base_year')
 base = lpjgu_matlab_readTable_then2map(luh2_file, 'force_mat_save', true);%, 'verbose', true, 'verboseIfNoMat', true) ;
 if ~isempty(find(base.maps_YXvy(:,:,contains(base.varNames,{'URBAN','PEATLAND'}),:)>0,1))
     error('This code is not designed to handle LUH2 inputs with any URBAN or PEATLAND area!')
@@ -108,6 +114,7 @@ else
 end
 
 % Rearrange LU names
+disp('    Rearrange LU names')
 LUnames = {'CROPLAND','PASTURE','NATURAL','BARREN'} ;
 if ~isequal(LUnames,base.varNames)
     if ~isequal(sort(LUnames),sort(base.varNames))
@@ -126,6 +133,7 @@ if ~isequal(LUnames,base.varNames)
 end
 
 % Harmonize masks
+disp('    Harmonize masks')
 dir1 = dirList{1} ;
 if ~exist(dir1, 'dir')
     error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent. Current working directory: %s', ...
@@ -152,6 +160,7 @@ end
 clear S
 
 % Get repmat 0.5-degree land area
+disp('    Get repmat 0.5-degree land area')
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 if ~doHarm
@@ -159,6 +168,7 @@ if ~doHarm
 end
 
 % Avoid, to high precision, sum(LU) > 1
+disp('    Avoid, to high precision, sum(LU) > 1')
 if doHarm
     tmp_YX = sum(base.maps_YXv,3) ;
     j = 0 ;
@@ -186,6 +196,7 @@ else
 end
 
 % Convert from "fraction of land" to "land area (m2)"
+disp('    Convert from "fraction of land" to "land area (m2)"')
 % (This also masks where needed due to harmonization of LUH2+PLUM masks)
 if doHarm
     % First, avoid negative bare
@@ -204,6 +215,7 @@ else
 end
 
 % Import base_year crop fractions
+disp('    Import base_year crop fractions')
 if combineCrops
     LPJGcrops = {'AllCrop'} ;
     Ncrops_lpjg = length(LPJGcrops) ;
@@ -214,11 +226,13 @@ else
     % step, we will combine CC3G and CC4G into ExtraCrop. (Was called SetAside,
     % but renamed to avoid confusion, considering that this is not just
     % setAside but also unhandledCrops.)
+    disp('      Read base_cropf')
     base_cropf = lpjgu_matlab_readTable_then2map(cropf_file,...
         'verboseIfNoMat',false,'force_mat_save',true) ;
     
     % Get just base year, if needed
     if isfield(base_cropf,'yearList')
+        disp('      Get just base year')
         if doHarm
             tmp = base_cropf.maps_YXvy(:,:,:,base_cropf.yearList==base_year) ;
             base_cropf = rmfield(base_cropf,{'maps_YXvy','yearList'}) ;
@@ -231,6 +245,7 @@ else
     end
     % Combine CC3G and CC4G into ExtraCrop
     if any(strcmp(base_cropf.varNames,'CC3G')) && any(strcmp(base_cropf.varNames,'CC4G'))
+        disp('      Combine CC3G and CC4G into ExtraCrop')
         base_cropf.maps_YXv(:,:,strcmp(base_cropf.varNames,'CC3G')) = ...
             base_cropf.maps_YXv(:,:,strcmp(base_cropf.varNames,'CC3G')) ...
             + base_cropf.maps_YXv(:,:,strcmp(base_cropf.varNames,'CC4G')) ;
@@ -241,6 +256,7 @@ else
     
     % Avoid, to high precision, sum(base_cropf) > 1
     if doHarm
+        disp('      Avoid, to high precision, sum(base_cropf) > 1')
         tmp_YX = sum(base_cropf.maps_YXv,3) ;
         j = 0 ;
         while any(tmp_YX(:)-1 > 3*eps)
@@ -255,6 +271,7 @@ else
     end
     
     % Get previous crop types
+    disp('      Get previous crop types')
     tmp = base_cropf.varNames ;
     for c = 1:length(base_cropf.varNames)
         thisCrop = base_cropf.varNames{c} ;
@@ -285,6 +302,7 @@ else
     
     % Get "irrigation intensity" as fraction of thisCrop that is irrigated
     % (later, will interpolate to cells without any of thisCrop)
+    disp('      Get "irrigation intensity" as fraction of thisCrop that is irrigated')
     base_irrig.varNames = LPJGcrops ;
     if doHarm
         base_irrig.maps_YXv = nan([size(landArea_YX) Ncrops_lpjg],'double') ;
@@ -321,10 +339,12 @@ else
     end
     
     % Combine irrigated and rainfed, if not already done
+    disp('      Combine irrigated and rainfed')
     base_cropf = PLUMharm_combineIrrig(base_cropf, LPJGcrops) ;
     
     % Read baseline fertilization
     % (later, will interpolate to cells without any of thisCrop)
+    disp('      Read baseline fertilization')
     base_nfert = lpjgu_matlab_readTable_then2map(nfert_file,...
         'verboseIfNoMat',false,'force_mat_save',true) ;
     % Get just base year, if needed
@@ -350,6 +370,7 @@ else
     end
     % Add ExtraCrop, if needed
     if any(strcmp(LPJGcrops,'ExtraCrop')) && ~any(strcmp(base_nfert.varNames,'ExtraCrop'))
+        disp('      Add ExtraCrop')
         base_nfert.varNames = [base_nfert.varNames {'ExtraCrop'}] ;
         if doHarm
             base_nfert.maps_YXv = cat(3,base_nfert.maps_YXv,zeros(size(landArea_YX))) ;
@@ -372,6 +393,7 @@ else
     base_orig = base ;
     base_cropa = base_cropf ;
     if doHarm
+        disp('      Convert base to have individual crops instead of CROPLAND')
         base_cropa.maps_YXv = base_cropf.maps_YXv .* base_orig.maps_YXv(:,:,strcmp(base_orig.varNames,'CROPLAND')) ;
         clear base
         base.varNames = [base_cropa.varNames base_orig.varNames(~strcmp(base_orig.varNames,'CROPLAND'))] ;
@@ -396,6 +418,7 @@ isAgri_isPast = strcmp(LUnames_agri,'PASTURE') ;
 isCrop = ~strcmp(LUnames,'NATURAL') & ~strcmp(LUnames,'PASTURE') & notBare ;
 
 % Convert NaNs to zeros for addition
+disp('    Convert NaNs to zeros for addition')
 if doHarm
     base.maps_YXv(isnan(base.maps_YXv)) = 0 ;
     if ~combineCrops
@@ -411,6 +434,7 @@ else
 end
 
 % Get baseline fraction that is vegetated, barren
+disp('    Get baseline fraction that is vegetated, barren')
 if doHarm
     base_vegd_YX = sum(base.maps_YXv(:,:,notBare),3) ;
     base_bare_YX = base.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
@@ -422,6 +446,7 @@ base_vegdFrac_YX = base_vegd_YX ./ landArea_YX ;
 base_bareFrac_YX = base_bare_YX ./ landArea_YX ;
 
 % Aggregate from 0.5-degree to 2-degree
+disp('    Aggregate from 0.5-degree to 2-degree')
 base_2deg.varNames = base.varNames ;
 if ~combineCrops
     base_2deg_nfert.varNames = LPJGcrops ;
@@ -443,6 +468,7 @@ end
 landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
 
 % Do not allow invalid management inputs.
+disp('    Do not allow invalid management inputs')
 if ~combineCrops
     if doHarm
         if any(base_2deg_nfert.maps_YXv(:)<0)
@@ -464,6 +490,7 @@ if ~combineCrops
 end
 
 % Interpolate management inputs
+disp('    Interpolate management inputs')
 if ~combineCrops && doHarm
     base_2deg_nfert.maps_YXv = PLUMharm_interpolateMgmt(...
         base_2deg_nfert.maps_YXv, base.maps_YXv(:,:,isCrop), landArea_2deg_YX,...
@@ -474,6 +501,7 @@ if ~combineCrops && doHarm
 end
 
 % Get LUH2 2-deg fraction that is vegetated, barren
+disp('    Get LUH2 2-deg fraction that is vegetated, barren')
 if doHarm
     base_2deg_vegd_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
     base_2deg_bare_YX = base_2deg.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
@@ -485,6 +513,7 @@ base_2deg_vegdFrac_YX = base_2deg_vegd_YX ./ landArea_2deg_YX ;
 base_2deg_bareFrac_YX = base_2deg_bare_YX ./ landArea_2deg_YX ;
 
 % Get other info
+disp('    Get other info')
 if ~combineCrops
     if doHarm
         base_nfertTot_2deg.maps_YXv = base_2deg_nfert.maps_YXv .* base_2deg.maps_YXv(:,:,isCrop) ;
