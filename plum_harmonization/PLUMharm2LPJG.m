@@ -338,6 +338,13 @@ for d = 1:length(dirList)
         file_out_nfert = strrep(file_out_nfert, '.txt', '.noMinCropFrac.txt') ;
         file_out_irrig = strrep(file_out_irrig, '.txt', '.noMinCropFrac.txt') ;
     end
+
+    % Get options
+    if overwrite
+        gzip_opts = '-f' ; %#ok<*UNRCH>
+    else
+        gzip_opts = '' ; %#ok<*UNRCH>
+    end
     
     % Save land cover
     disp('Saving land cover...')
@@ -351,7 +358,7 @@ for d = 1:length(dirList)
         'verbose', verbose_write) ;
     if do_gzip
         disp('gzipping...')
-        unix(['gzip ' file_out_LU]) ;
+        unix(sprintf('gzip %s %s', gzip_opts, file_out_LU)) ;
     end
     clear lu_out
    
@@ -367,7 +374,7 @@ for d = 1:length(dirList)
         'verbose', verbose_write) ;
     if do_gzip
         disp('gzipping...')
-        unix(['gzip ' file_out_crop]) ;
+        unix(sprintf('gzip %s %s', gzip_opts, file_out_crop)) ;
     end
     clear cf_out
     
@@ -386,7 +393,7 @@ for d = 1:length(dirList)
             'verbose', verbose_write) ;
         if do_gzip
             disp('gzipping...')
-            unix(['gzip ' file_out_nfert]) ;
+            unix(sprintf('gzip %s %s', gzip_opts, file_out_nfert)) ;
         end
     end
     clear nf_out
@@ -406,7 +413,7 @@ for d = 1:length(dirList)
             'verbose', verbose_write) ;
         if do_gzip
             disp('gzipping...')
-            unix(['gzip ' file_out_irrig]) ;
+            unix(sprintf('gzip %s %s', gzip_opts, file_out_irrig)) ;
         end
     end
     clear ir_out
