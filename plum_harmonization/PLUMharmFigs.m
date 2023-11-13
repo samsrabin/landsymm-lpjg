@@ -1223,6 +1223,9 @@ for v = 1:Nlu
     else
         new_caxis = [-1 1]*max(max(abs(tmp_xvr(:,v,:)))) ;
     end
+    if isequal(new_caxis, [0 0])
+        new_caxis = [-1 1] ;
+    end
     for r = 1:Nruns
         thisRun = runList_legend{r} ;
         h1 = subplot_tight(2,2,r,spacing) ;
