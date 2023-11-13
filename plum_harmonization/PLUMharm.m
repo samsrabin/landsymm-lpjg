@@ -9,7 +9,6 @@ rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
 % There, specify the following variables:
 %
 % PATHS
-%     paper02_repo_path: Path to MATLAB repository for Rabin et al. (2020)
 %     remaps_topDir: Path where remaps_v6p7/ etc. can be found.
 %     dirList: Locations of PLUM output directories to process. If relative paths, make
 %              sure to provide thisDir (see below).
