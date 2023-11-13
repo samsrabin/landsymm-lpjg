@@ -2,12 +2,11 @@
 %%% Testing harmonized PLUM land use trajectory %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% For Daniel
-force_ssr_mac = true ;
-ssrmac_paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-ssrmac_plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
-ssrmac_inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
-cd('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') % Where you've downloaded SSP3.v12.s1
+addpath(genpath(plum_harmonization_path()))
+rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
+
+PLUMharm_options
+
 dirList = {'SSP3'} ;
 runList_legend = {'SSP3-60'} ;
 
@@ -68,23 +67,14 @@ norm2extra = 0.177 ;
 
 %% Setup
 
-% Determine which system you're on and set up
-if force_ssr_mac
-    thisSystem = 'ssr_mac' ;
-else
-    thisSystem = get_system_name() ;
+addpath(genpath(landsymm_lpjg_path()))
+
+if exist('thisDir', 'var')
+    if ~exist(thisDir, 'dir')
+        error('thisDir not found: %s', thisDir)
+    end
+    cd(thisDir)
 end
-if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = ssrmac_paper02_repo_path ;
-    plumharm_repo_path = ssrmac_plumharm_repo_path ;
-elseif strcmp(thisSystem, 'ssr_keal')
-    paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
-    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
-else
-    error('thisSystem not recognized: %s', thisSystem)
-end
-addpath(genpath(paper02_repo_path))
-addpath(genpath(plumharm_repo_path))
 
 % Before making output directory, make sure you're in the correct
 % directory to begin with.
