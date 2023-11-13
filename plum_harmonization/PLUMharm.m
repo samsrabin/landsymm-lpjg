@@ -5,7 +5,7 @@
 addpath(genpath(plum_harmonization_path()))
 rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
 
-% plum_harmonization_options.m must be somewhere on your path.
+% PLUMharm_options.m must be somewhere on your path.
 % There, specify the following variables:
 %
 % PATHS
@@ -76,7 +76,7 @@ rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
 %                  *This may not actually work!*
 
 
-plum_harmonization_options
+PLUMharm_options
 
 
 %% Setup and process options
