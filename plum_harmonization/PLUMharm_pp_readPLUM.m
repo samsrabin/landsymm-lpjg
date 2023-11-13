@@ -11,6 +11,8 @@ S_irrig_out = [] ;
 
 % Does MAT-file already exist?
 MATfile = [inDir '.processed.' thisVer 'mat'] ;
+MATfile = sprintf('%s.processed.%d-%d.%smat', inDir, yearList(1), yearList(end), thisVer) ;
+disp(MATfile)
 if exist(MATfile,'file')
     MATfile_info = dir(MATfile) ;
     [~, TXTfile] = unix(['ls -t ' inDir '/*/*.' thisVer 'txt | head -n 1  | tr -d ''\n''']) ;
