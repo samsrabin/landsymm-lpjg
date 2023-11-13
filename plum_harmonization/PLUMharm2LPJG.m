@@ -5,41 +5,36 @@
 addpath(genpath(plum_harmonization_path()))
 rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
 
+% PLUMharm_options.m must be somewhere on your path.
+% See PLUMharm.m for instructions for that file.
 PLUMharm_options
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Input directories and settings specific thereto %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-yStep = 1 ;
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% General behavior options %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Trying to avoid new crop spinup time; will repeat first PLUMout 
-% year over y1_pre:(year1-1). Set to year1 to skip.
-% y1_pre = 2006 ;
-y1_pre = year1 ;
-
-% Make it so that each gridcell always has at least some tiny amount of
-% every crop? Needed to avoid weird first few years after a cell gets its
-% first area of some new crop.
-someofall = true ;
-
-% When someofall==true, this designates the order in which area donated
-% to cropland will be taken from (decreasing order of preference).
-donation_order = {'PASTURE','NATURAL','BARREN'} ;
-
-% Zip up outputs?
-do_gzip = true ;
+% In addition, PLUMharm2LPJG_options.m must be somewhere on your path.
+% There, specify the following variables:
+%     yStep: Save output files every yStep years. Recommendation: 1
+%     do_gzip: Zip up outputs? (true/false)
+%     someofall: Make it so that each gridcell always has at least some tiny amount of
+%                every crop? Needed to avoid weird first few years after a cell gets its
+%                first area of some new crop. Recommendation: true
+%     donation_order: When someofall==true, this designates the order in which area 
+%                     donated to cropland will be taken from (decreasing order of
+%                     preference). Recommendation: {'PASTURE','NATURAL','BARREN'}
+%     y1_pre: Experimental setting trying to avoid new crop spinup time; will repeat first
+%             PLUMout year over y1_pre:(year1-1). Set to year1, [], or unset to skip.
+PLUMharm2LPJG_options
 
 
 %% Setup
 
 addpath(genpath(landsymm_lpjg_path()))
+
+if exist('thisDir', 'var')
+    if ~exist(thisDir, 'dir')
+        error('thisDir not found: %s', thisDir)
+    end
+    cd(thisDir)
+end
+
 
 dirList = strcat(dirList, '.harm') ;
 
@@ -62,7 +57,7 @@ verbose_write = true ;
 % Get year info
 yearList = shiftdim(year1:yStep:yearN) ;
 Nyears = length(yearList) ;
-if y1_pre<year1
+if exist('y1_pre', 'var') && ~isempty(y1_pre) && y1_pre<year1
     yearList_xtra = y1_pre:(year1-1) ;
 else
     yearList_xtra = [] ;
