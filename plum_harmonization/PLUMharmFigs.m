@@ -22,7 +22,7 @@ if ~exist('dirList', 'var')
 else
     dirList = strcat(dirList, ['.' PLUM_version]) ;
 end
-yearList_harm = 2011:2100 ;
+yearList_harm = year1:yearN ;
 fruitveg_sugar_2oil = false ;
 
 % baseline_ver = 1 ;
@@ -719,6 +719,7 @@ disp('Done')
 %% Harmonization effects by the numbers
 
 incl_years = 2010:2100 ;
+incl_years = intersect(yearList_orig, incl_years) ;
 
 harm_focus_regions = { ...
 ... Number  Super-region    General biome           Geog. restriction?      Description
@@ -1131,6 +1132,10 @@ for r = 1:Nruns
         thisLU = LUnames{v} ;
         for y = 1:3
             thisYear = theseYears(y) ;
+            if isempty(intersect(yearList_orig, thisYear))
+                warning('Skipping %d (outside yearList)', thisYear)
+                continue
+            end
             h1 = subplot_tight(2,3,y,spacing) ;
             tmp = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), size(landArea_YX), list2map) ;
             tmp(landArea_YX==0) = NaN ;
@@ -1174,6 +1179,10 @@ for r = 1:Nruns
         thisLU = LUnames{v} ;
         for y = 1:3
             thisYear = theseYears(y) ;
+            if isempty(intersect(yearList_orig, thisYear))
+                warning('Skipping %d (outside yearList)', thisYear)
+                continue
+            end
             h1 = subplot_tight(1,3,y,spacing) ;
             tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), size(landArea_YX), list2map) ;
             tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), size(landArea_YX), list2map) ;
@@ -1271,6 +1280,10 @@ for r = 1:Nruns
         for y = 1:2
             thisYear1 = theseYears(y) ;
             thisYear2 = theseYears(y+1) ;
+            if isempty(intersect(yearList_orig, thisYear1)) || isempty(intersect(yearList_orig, thisYear2))
+                warning('Skipping %d-%d (outside yearList)', thisYear1, thisYear2)
+                continue
+            end
             h1 = subplot_tight(2,2,y,spacing) ;
             tmp1 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear1,r), size(landArea_YX), list2map) ;
             tmp2 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear2,r), size(landArea_YX), list2map) ;
