@@ -37,6 +37,7 @@ for v = 1:Ncrops_lpjg
 end
 
 % Save
+warning off export_fig:exportgraphics
 export_fig(sprintf('%stimeSeries_%s.pdf', out_dir, fileWord))
 close
 
