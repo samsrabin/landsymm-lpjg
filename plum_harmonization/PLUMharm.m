@@ -51,10 +51,11 @@ rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
 % save .mat files from the 2-degree step.
 %     save_halfDeg_mat: Save half-degree .mat output files? (true/false)
 %     save_2deg_mat:    Save 2-degree .mat output files? (true/false)
-% You can also save these in .txt format:
+% You can also save outputs from PLUMharm.m in .txt format:
 %     save_halfDeg_txt: Save half-degree .txt output files? (true/false)
 %     save_2deg_txt:    Save 2-degree .txt output files? (true/false)
-% There are also various settings related to .txt output file formats:
+% There are also various settings related to .txt output file formats, used for both this
+% script as well as PLUMharm2LPJG.m:
 %     outPrec: Precision (number of decimal places) to which output .txt files should be
 %              saved. (Recommendation: 6)
 %     outWidth: Width of output columns. Recommendation is 1; columns should auto-adjust.

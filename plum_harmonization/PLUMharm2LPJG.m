@@ -21,6 +21,9 @@ PLUMharm_options
 %                     preference). Recommendation: {'PASTURE','NATURAL','BARREN'}
 %     y1_pre: Experimental setting trying to avoid new crop spinup time; will repeat first
 %             PLUMout year over y1_pre:(year1-1). Set to year1, [], or unset to skip.
+%     save_every_pct: How many rows (% of total) should be written at once. Lower means
+%                     lower memory requirement. Recommendation: 1.
+%     verbose_write: Set to true to slightly increase verbosity of write step.
 PLUMharm2LPJG_options
 
 
@@ -35,24 +38,15 @@ if exist('thisDir', 'var')
     cd(thisDir)
 end
 
-
 dirList = strcat(dirList, '.harm') ;
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
-% Output options
-outPrec = 6 ;
 if someofall
     mincropfrac = 10^-outPrec ;
 else
     mincropfrac = 0 ;
 end
-outWidth = 1 ;
-delimiter = ' ' ;
-overwrite = true ;
-fancy = false ;
-save_every_pct = 1 ;
-verbose_write = true ;
 
 % Get year info
 yearList = shiftdim(year1:yStep:yearN) ;
