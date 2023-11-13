@@ -2,47 +2,17 @@
 %%% Convert harmonized PLUM outputs into files for LPJ-GUESS %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% For Daniel
-force_ssr_mac = true ;
-ssrmac_paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-ssrmac_plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
-ssrmac_inDir_remap6 = '/Users/Shared/PLUM/input/remaps_v6p7/' ;
-cd('/Users/Shared/PLUM/PLUM_outputs_for_LPJG') % Where you've downloaded SSP3.v12.s1
+addpath(genpath(plum_harmonization_path()))
+rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
+
+PLUMharm_options
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input directories and settings specific thereto %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%% Typical runs (2010-2100)
-dirList = {...
-%               'SSP1.v10.s1.harm' ;
-%               'SSP3.v10.s1.harm' ;
-%               'SSP4.v10.s1.harm' ;
-%               'SSP5.v10.s1.harm' ;
-%               'SSP1.v12.s1.harm' ;
-              'SSP3.v12.s1.harm' ;
-%               'SSP4.v12.s1.harm' ;
-%               'SSP5.v12.s1.harm' ;
-%     'SSP1/s1.harm' ;
-%     'SSP2/s1.harm' ;
-%     'SSP3/s1.harm' ;
-%     'SSP4/s1.harm' ;
-%     'SSP5/s1.harm' ;
-              } ;
-base_year = 2010 ;
-y1 = 2011 ;
-yN = 2100 ;
 yStep = 1 ;
-
-%%% Half-Earth runs (2010-2060)
-% dirList = {...
-%           'baseline/s1.harm';
-%           'halfearth/s1.harm';
-%           } ;
-% base_year = 2010 ; %#ok<*NASGU>
-% y1 = 2011 ;
-% yN = 2060 ;
-% yStep = 1 ;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,9 +20,9 @@ yStep = 1 ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Trying to avoid new crop spinup time; will repeat first PLUMout 
-% year over y1_pre:(y1-1). Set to y1 to skip.
+% year over y1_pre:(year1-1). Set to year1 to skip.
 % y1_pre = 2006 ;
-y1_pre = y1 ;
+y1_pre = year1 ;
 
 % Make it so that each gridcell always has at least some tiny amount of
 % every crop? Needed to avoid weird first few years after a cell gets its
@@ -69,23 +39,9 @@ do_gzip = true ;
 
 %% Setup
 
-% Determine which system you're on and set up
-if force_ssr_mac
-    thisSystem = 'ssr_mac' ;
-else
-    thisSystem = get_system_name() ;
-end
-if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = ssrmac_paper02_repo_path ;
-    plumharm_repo_path = ssrmac_plumharm_repo_path ;
-elseif strcmp(thisSystem, 'ssr_keal')
-    paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
-    plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
-else
-    error('thisSystem not recognized: %s', thisSystem)
-end
-addpath(genpath(paper02_repo_path))
-addpath(genpath(plumharm_repo_path))
+addpath(genpath(landsymm_lpjg_path()))
+
+dirList = strcat(dirList, '.harm') ;
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
@@ -104,10 +60,10 @@ save_every_pct = 1 ;
 verbose_write = true ;
 
 % Get year info
-yearList = shiftdim(y1:yStep:yN) ;
+yearList = shiftdim(year1:yStep:yearN) ;
 Nyears = length(yearList) ;
-if y1_pre<y1
-    yearList_xtra = y1_pre:(y1-1) ;
+if y1_pre<year1
+    yearList_xtra = y1_pre:(year1-1) ;
 else
     yearList_xtra = [] ;
 end
