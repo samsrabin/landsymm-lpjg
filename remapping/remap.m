@@ -37,12 +37,12 @@ addpath(genpath(landsymm_lpjg_path()))
 Nyears_out = length(yearList_out) ;
 
 % LUH2 input files and years they contain
-file_luh2_states = '/Users/sam/Geodata/LUH2/v2h/states.1850-2015.nc' ;
+file_luh2_states = fullfile(geodata_dir, 'LUH2', 'v2h', 'states.1850-2015.nc') ;
 yearList_luh2_states = 1850:2015 ;
 if min(yearList_out) < min(yearList_luh2_states) || max(yearList_out) > max(yearList_luh2_states)
     error('yearList_out must be entirely contained within yearList_luh2_states!')
 end
-file_luh2_mgmts = '/Users/sam/Geodata/LUH2/v2h/management.1850-2015.nc' ;
+file_luh2_mgmts = fullfile(geodata_dir, 'LUH2', 'v2h', 'management.1850-2015.nc') ;
 yearList_luh2_mgmts = 1850:2015 ;
 if min(yearList_out) < min(yearList_luh2_mgmts) || max(yearList_out) > max(yearList_luh2_mgmts)
     error('yearList_out must be entirely contained within yearList_luh2_mgmts!')
@@ -85,7 +85,7 @@ warning('on','all')
 
 %% Get gridlist
 
-file_gridlist = '/Users/Shared/LandSyMM/inputs/gridlists/gridlist_62892.runAEclimOK.txt' ;
+file_gridlist = fullfile(landsymm_inputs_dir, 'gridlists', 'gridlist_62892.runAEclimOK.txt') ;
 gridlist = lpjgu_matlab_read2geoArray(file_gridlist, ...
     'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
 Ncells = length(gridlist.list2map) ;
@@ -93,7 +93,8 @@ Ncells = length(gridlist.list2map) ;
 
 %% Get climate gridlist, just to see what's missing from it
 
-climate_gridlist = lpjgu_matlab_read2geoArray('/Users/Shared/LandSyMM/inputs/LU/remaps_v10_g2p_isimipclimMask/gridlist.remapv10_g2p_isimipclimMask.txt', ...
+climate_gridlist = lpjgu_matlab_read2geoArray(...
+    fullfile(landsymm_inputs_dir, 'LU', 'remaps_v10_g2p_isimipclimMask', 'gridlist.remapv10_g2p_isimipclimMask.txt'), ...
     'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
 
 shademap(gridlist.mask_YX & ~climate_gridlist.mask_YX) ;
@@ -110,7 +111,7 @@ disp('Importing land uses...')
 fprintf('  file_luh2_states: %s\n', file_luh2_states) ;
 
 % Import cell area (km2); aggregate to half-degree
-file_luh2_etc = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+file_luh2_etc = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'staticData_quarterdeg.nc') ;
 fprintf('file_luh2_etc: %s\n', file_luh2_etc) ;
 carea_XY = ncread(file_luh2_etc,'carea') ;
 carea_YX = flipud(transpose(carea_XY)) ;
@@ -200,7 +201,7 @@ disp('Done.')
 disp('Importing crop fractions...')
 
 % Import from MIRCA.txt.maps.mat
-file_cropmirca = '/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt' ;
+file_cropmirca = fullfile(geodata_dir, 'MIRCA', 'harvested_area_grids_26crops_30mn', 'MIRCA.txt') ;
 fprintf('file_cropmirca: %s\n', file_cropmirca) ;
 croparea_in = lpjgu_matlab_readTable_then2map(file_cropmirca,...
     'verboseIfNoMat',true) ;
@@ -291,7 +292,7 @@ disp('Done.')
 % No manure, because that wasn't included in Phase 1
 
 disp('Importing Nfert...')
-nfert_dir = '/Users/Shared/unifying_gridlist/AgGRID_nutrient_input_v1.1' ;
+nfert_dir = fullfile(geodata_dir, 'AgGRID_nutrient_input_v1.1') ;
 fprintf('nfert_dir: %s\n', nfert_dir) ;
 
 % Map input to output crop types. Make sure we're being consistent w/r/t
@@ -662,7 +663,7 @@ diary off
 
 %% Interpolate and save soil
 
-file_soil = '/Users/Shared/lpj-guess/input/soil/WISE/soilmap_center_interpolated.dat' ;
+file_soil = fullfile(lpjg_inputs_dir, 'soil', 'WISE', 'soilmap_center_interpolated.dat') ;
 soil = lpjgu_matlab_read2geoArray(file_soil, ...
     'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ; 
 
