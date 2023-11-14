@@ -13,6 +13,7 @@ remap_options
 
 %% Setup
 
+out_dir = fullfile(out_dir_top, sprintf('remaps_v%s',remapVer)) ;
 if ~exist(out_dir,'dir')
     mkdir(out_dir) ;
 end
