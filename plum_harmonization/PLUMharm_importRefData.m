@@ -12,6 +12,7 @@ end
 disp('    Get files based on baseline version')
 fruitveg_sugar_2oil_ok = false ;
 if baseline_ver == 1
+    error('Update baseline_ver 1 to work with remaps_topDir')
     if strcmp(thisSystem, 'ssr_mac')
         luh2_file = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
         cropf_file = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
