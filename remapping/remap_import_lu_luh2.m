@@ -1,11 +1,14 @@
 function [out_lu, carea_YX] = remap_import_lu_luh2( ...
-    geodata_dir, yearList_lu_states, yearList_out, gridlist)
+    geodata_dir, yearList_out, gridlist)
 
 Nyears_out = length(yearList_out) ;
 Ncells = length(gridlist.list2map) ;
 
 % LUH2 input file and years it contains
-file_luh2_states = fullfile(geodata_dir, 'LUH2', 'v2h', 'states.1850-2015.nc') ;
+yearList_lu_states = 1850:2015 ;
+file_luh2_states = fullfile(geodata_dir, 'LUH2', 'v2h', ...
+    sprintf('states.%d-%d.nc', yearList_lu_states(1), yearList_lu_states(end)) ...
+    ) ;
 if min(yearList_out) < min(yearList_lu_states) || max(yearList_out) > max(yearList_lu_states)
     error('yearList_out must be entirely contained within yearList_luh2_states!')
 end

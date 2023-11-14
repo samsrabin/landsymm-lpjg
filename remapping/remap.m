@@ -65,7 +65,7 @@ writematrix(missing_lonlats, fullfile(out_dir, 'missing_climate.csv'))
 %% Import land uses
 
 [out_lu, carea_YX] = remap_import_lu_luh2( ...
-    geodata_dir, yearList_lu_states, yearList_out, gridlist) ;
+    geodata_dir, yearList_out, gridlist) ;
 
 
 %% Import crop fractions and process crop types
