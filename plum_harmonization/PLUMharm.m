@@ -2,8 +2,8 @@
 %%% LUH1-style harmonization for PLUM outputs, at cropType level %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-addpath(genpath(plum_harmonization_path()))
-rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
+addpath(genpath(landsymm_lpjg_path()))
+rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
 % PLUMharm_options.m must be somewhere on your path.
 % There, specify the following variables:
@@ -82,8 +82,6 @@ PLUMharm_options
 %% Setup and process options
 
 warning('on','all')
-
-addpath(genpath(landsymm_lpjg_path()))
 
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')

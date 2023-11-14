@@ -96,7 +96,7 @@ oilcrops_proxy_fruitveg_sugar = false ;
 
 % Get countries map
 if ctrymapVer == 1
-    filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
+    filename_countriesMap = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'country_boundaries', 'country_boundaries62892.noNeg99.extrapd.asc') ;
 else
     error('ctrymapVer %d not recognized', ctrymapVer)
 end

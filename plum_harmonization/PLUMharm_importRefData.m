@@ -1,8 +1,8 @@
 disp('Importing reference data...')
 
-landarea_file = sprintf('%s/input_data/staticData_quarterdeg.nc', plum_harmonization_path()) ;
-PLUM_file_res_terr = sprintf('%s/input_data/maxcropfrac2.txt', plum_harmonization_path()) ;
-PLUM_file_res_prot = sprintf('%s/input_data/protected_areas_with_points.txt', plum_harmonization_path()) ;
+landarea_file = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'staticData_quarterdeg.nc') ;
+PLUM_file_res_terr = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'maxcropfrac2.txt') ;
+PLUM_file_res_prot = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'protected_areas_with_points.txt') ;
 
 if ~exist('combineCrops', 'var')
     combineCrops = false ;

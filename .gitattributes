@@ -1,0 +1,6 @@
+*.prj binary
+*.qpj binary
+*.asc binary
+*.csv binary
+data/geodata/maxcropfrac2.txt binary
+data/geodata/protected_areas_with_points.txt binary

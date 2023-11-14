@@ -90,7 +90,7 @@ if ~exist('filename_countriesMap', 'var')
     if strcmp(verName_calib, 'ani_test')
         filename_countriesMap = 'ne_10m_admin_0_countries_ssrIDs_0.25deg.tif' ;
     else
-        filename_countriesMap = 'country_boundaries62892.noNeg99.extrapd.asc' ;
+        filename_countriesMap = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'country_boundaries', 'country_boundaries62892.noNeg99.extrapd.asc') ;
     end
 end
 

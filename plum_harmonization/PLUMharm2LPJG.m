@@ -2,8 +2,8 @@
 %%% Convert harmonized PLUM outputs into files for LPJ-GUESS %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-addpath(genpath(plum_harmonization_path()))
-rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
+addpath(genpath(landsymm_lpjg_path()))
+rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
 % PLUMharm_options.m must be somewhere on your path.
 % See PLUMharm.m for instructions for that file.
@@ -28,8 +28,6 @@ PLUMharm2LPJG_options
 
 
 %% Setup
-
-addpath(genpath(landsymm_lpjg_path()))
 
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')

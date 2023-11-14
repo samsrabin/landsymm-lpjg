@@ -2,8 +2,8 @@
 %%% Testing harmonized PLUM land use trajectory %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-addpath(genpath(plum_harmonization_path()))
-rmpath(genpath(fullfile(plum_harmonization_path(), '.git')))
+addpath(genpath(landsymm_lpjg_path()))
+rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
 PLUMharm_options
 
@@ -67,8 +67,6 @@ norm2extra = 0.177 ;
 
 %% Setup
 
-addpath(genpath(landsymm_lpjg_path()))
-
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
@@ -127,8 +125,8 @@ R = georasterref('RasterSize', [360 720], ...
     'LatitudeLimits', [-90 90], ...
     'LongitudeLimits', [-180 180]) ;
 
-%lines_overlay = sprintf('%s/input_data/continents_from_countries.shp', plum_harmonization_path()) ;
-lines_overlay = shaperead(sprintf('%s/input_data/continents_from_countries.shp', plum_harmonization_path())) ;
+%lines_overlay = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'continents_from_countries', 'continents_from_countries.shp') ;
+lines_overlay = shaperead(fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'continents_from_countries', 'continents_from_countries.shp')) ;
 
 % y1_list = 2011 ;
 % yN_list= 2012 ;
@@ -159,15 +157,15 @@ PLUMharm_importRefData
 inpaint_method = [] ;
 
 biomeID_YX = flipud(imread( ...
-    sprintf('%s/input_data/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif', plum_harmonization_path()))) ;
+    fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'wwf_terr_ecos_dissolveBiome_halfDeg_id.tif'))) ;
 biomeID_YX(biomeID_YX<0) = NaN ;
 biomeID_x = biomeID_YX(list2map) ;
 countries_YX = flipud(dlmread( ...
-    sprintf('%s/input_data/country_boundaries62892.noNeg99.extrapd.asc', plum_harmonization_path()), ...
+    fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'country_boundaries', 'country_boundaries62892.noNeg99.extrapd.asc'), ...
     '',6,0)) ;
 countries_YX(countries_YX<=0) = NaN ;
 countries_x = countries_YX(list2map) ;
-countries_key = readtable(sprintf('%s/input_data/country_boundaries_codes4.csv', plum_harmonization_path())) ;
+countries_key = readtable(fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'country_boundaries', 'country_boundaries_codes4.csv')) ;
 
 
 %% Import PLUM (original + harmonized)
@@ -307,7 +305,7 @@ landArea_xv = repmat(landArea_x, [1 Nlu]) ;
 landArea_xvr = repmat(landArea_xv, [1 1 Nruns]) ;
 
 % Import food production units
-fpu_file = sprintf('%s/input_data/FPU.asc', plum_harmonization_path()) ;
+fpu_file = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'FPU.asc') ;
 fpu_YX = flipud(dlmread(fpu_file,' ',6,0)) ;
 fpu_YX(fpu_YX==-9999) = NaN ;
 fpu_x = fpu_YX(list2map) ;
@@ -787,8 +785,8 @@ list_regions = harm_focus_regions(:,5) ;
 list_superRegs = unique(harm_focus_regions(:,2)) ;
 Nregions = length(list_regions) ;
 NsuperRegs = length(list_superRegs) ;
-templatefile = sprintf('%s/input_data/harm_by_numbers.template.xlsx', plum_harmonization_path()) ;
-templatefile_relLandArea = sprintf('%s/input_data/harm_by_numbers.template.relLandArea.xlsx', plum_harmonization_path()) ;
+templatefile = fullfile(landsymm_lpjg_path(), 'data', 'templates', 'harm_by_numbers.template.xlsx') ;
+templatefile_relLandArea = fullfile(landsymm_lpjg_path(), 'data', 'templates', 'harm_by_numbers.template.relLandArea.xlsx') ;
 
 % Do it
 for l = 1:length(tmp_lu_list)
