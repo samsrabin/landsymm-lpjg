@@ -8,6 +8,42 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 % PLUMharm_options.m must be somewhere on your path.
 % There, specify the following variables:
 %
+% OUTPUT OPTIONS
+%     delimiter: Recommendation: ' '.
+%     do_gzip: Whether to zip up outputs from .txt. to .gz files (true/false).
+%     fancy: Not sure. Recommendation: false.
+%     outPrec: Precision (number of decimal places) to which output .txt files should be
+%              saved. (Recommendation: 6)
+%     outWidth: Width of output columns. Recommendation is 1; columns should auto-adjust.
+%     overwrite: Should existing output files be overwritten? (true/false)
+%     
+%
+% PATHS
+%     geodata_dir: Directory where misc. geographic data can be found, including LUH2/,
+%                  MIRCA/, AND AgGRID_nutrient_input_v1.1/.
+%     landsymm_inputs_dir: Directory where LandSyMM-related gridlists/ and LU/ directories
+%                          can be found. Unicluster: ~xg4606/landsymm/input
+%     lpjg_inputs_dir: Directory where LPJ-GUESS-related soil/ directory can be found.
+%                      Unicluster: ~xg4606/input/lpj-guess
+%     out_dir_top: A new subdirectory will be created here (if needed); that's where
+%                  outputs from this script will go.
+%
+% REMAPPING BEHAVIOR
+%     force_all_rainfed: Move all irrigated area to rainfed? Not sure why we'd want this
+%                        to ever be true; maybe for troubleshooting? Recommendation: false
+%     inpaint_method: Method (integer ≥0) to be used by inpaint_nans(). See help of that
+%                     function for more information. Recommendation: 4.
+%     PLUMsetAside_frac: PLUM parameter (crop_adj_factor) accounting for crops not
+%                        represented, areas set aside and failed crops.
+%     remapVer: String to be included in output filenames. E.g.,
+%                   sprintf('LU.remapv%s.txt', remapVer)
+%               Also determines the subdirectory within out_dir_top to which outputs will
+%               be written:
+%                   sprintf('remaps_v%s',remapVer)
+%     thisVer: String given to get_remapv2_keys() in order to retrieve the mapping of crop
+%              types between LPJ-GUESS and PLUM. E.g., 'WithFruitVeg_sepSugar_sepOil'.
+%     yearList_out: Years to be saved in output files. E.g., 1850:2015.
+
 remap_options
 
 
