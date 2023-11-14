@@ -33,7 +33,8 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %     inpaint_method: Method (integer ≥0) to be used by inpaint_nans(). See help of that
 %                     function for more information. Recommendation: 4.
 %     lu_source: String naming the source to use for land use fractions (CROPLAND,
-%                PASTURE, etc.). Options: 'LUH2'
+%                PASTURE, etc.). 
+%                Options: 'HILDA+', 'LUH2'
 %     PLUMsetAside_frac: PLUM parameter (crop_adj_factor) accounting for crops not
 %                        represented, areas set aside and failed crops.
 %     remapVer: String to be included in output filenames. E.g.,
@@ -104,6 +105,9 @@ writematrix(missing_lonlats, fullfile(out_dir, 'missing_climate.csv'))
 
 if strcmp(lu_source, 'LUH2')
     [out_lu, carea_YX] = remap_import_lu_luh2( ...
+        geodata_dir, yearList_out, gridlist) ;
+elseif strcmp(lu_source, 'HILDA+')
+    [out_lu, carea_YX] = remap_import_lu_hildaplus( ...
         geodata_dir, yearList_out, gridlist) ;
 else
     error('lu_source %s not recognized', lu_source)
