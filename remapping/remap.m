@@ -2,21 +2,13 @@
 %%% Create "observation"-based LU inputs for LPJ-GUESS with PLUM crops %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%% Sam Rabin, 2021-02-05
-% See previous notes for remap_v9_g2p, with the following changes:
-% - Split Oilcrops into OilNfix and OilOther
+addpath(genpath(landsymm_lpjg_path()))
+rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
-PLUMsetAside_frac = 0.103 ;
-inpaint_method = 4 ;
-yearList_out = 1850:2015 ;
-
-% Version for crop mappings
-thisVer = 'WithFruitVeg_sepSugar_sepOil' ;
-
-force_all_rainfed = false ;
-
-remapVer = '10_old_62892_gL' ;
-out_dir = sprintf('/Users/Shared/LandSyMM/inputs/LU/remaps_v%s/',remapVer) ;
+% PLUMharm_options.m must be somewhere on your path.
+% There, specify the following variables:
+%
+remap_options
 
 
 %% Setup
@@ -26,7 +18,7 @@ if ~exist(out_dir,'dir')
 end
 
 % Start diary logging and print important info
-diaryfile = sprintf('%s/matlab_log.txt', out_dir) ;
+diaryfile = fullfile(out_dir, sprintf('matlab_log.txt')) ;
 diary off
 if exist(diaryfile, 'file')
     delete(diaryfile)
@@ -109,7 +101,7 @@ title(sprintf('%d gridcells missing from climate', length(find(gridlist.mask_YX 
 
 [C, IA] = setdiff(gridlist.list2map, climate_gridlist.list2map) ;
 missing_lonlats = gridlist.lonlats(IA, :) ;
-writematrix(missing_lonlats, sprintf('%smissing_climate.csv', out_dir))
+writematrix(missing_lonlats, fullfile(out_dir, 'missing_climate.csv'))
 
 
 %% Import land uses
@@ -564,9 +556,9 @@ out_nfert_header_cell = [ ...
     {'Miscanthus','Miscanthusi'}] ;
 
 % Get filenames
-out_file_lu = [out_dir 'LU.remapv' remapVer '.txt'] ;
-out_file_cropfrac = [out_dir 'cropfracs.remapv' remapVer '.txt'] ;
-out_file_nfert = [out_dir 'nfert.remapv' remapVer '.txt'] ;
+out_file_lu = fullfile(out_dir, ['LU.remapv' remapVer '.txt']) ;
+out_file_cropfrac = fullfile(out_dir, ['cropfracs.remapv' remapVer '.txt']) ;
+out_file_nfert = fullfile(out_dir, ['nfert.remapv' remapVer '.txt']) ;
 
 % Add zeros for Miscanthus(i)
 disp('Adding zeros for Miscanthus(i)...')
@@ -622,7 +614,7 @@ Ncells_4gl = length(lons_4gl) ;
 rng(20210106) ;
 rdmsam = randsample(Ncells_4gl,Ncells_4gl) ;
 % Save gridlist
-outFile_gridlist = sprintf('%sgridlist.remapv%s.txt', out_dir, remapVer) ;
+outFile_gridlist = fullfile(out_dir, sprintf('gridlist.remapv%s.txt', remapVer)) ;
 out_formatSpec_gridlist = '%4.2f %4.2f\n' ;
 fid1_gridlist = fopen(strrep(outFile_gridlist,'\ ',' '),'w') ;
 fprintf(fid1_gridlist,out_formatSpec_gridlist,[lons_4gl(rdmsam) lats_4gl(rdmsam)]') ;
@@ -698,7 +690,7 @@ out_soil_header_cell = [ ...
     out_soil.varNames] ;
 
 [~, soil_filename, soil_ext] = fileparts(file_soil) ;
-out_file_soil = sprintf('%s%s.remapv%s%s', out_dir, soil_filename, remapVer, soil_ext) ;
+out_file_soil = fullfile(out_dir, sprintf('%s.remapv%s%s', soil_filename, remapVer, soil_ext)) ;
 
 disp('Saving soil...')
 lpjgu_matlab_saveTable(out_soil_header_cell, out_soil, out_file_soil,...
