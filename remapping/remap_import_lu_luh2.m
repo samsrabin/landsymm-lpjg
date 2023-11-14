@@ -4,24 +4,16 @@ function [out_lu, carea_YX] = remap_import_lu_luh2( ...
 Nyears_out = length(yearList_out) ;
 Ncells = length(gridlist.list2map) ;
 
-% LUH2 input files and years they contain
+% LUH2 input file and years it contains
 file_luh2_states = fullfile(geodata_dir, 'LUH2', 'v2h', 'states.1850-2015.nc') ;
 if min(yearList_out) < min(yearList_lu_states) || max(yearList_out) > max(yearList_lu_states)
     error('yearList_out must be entirely contained within yearList_luh2_states!')
-end
-file_luh2_mgmts = fullfile(geodata_dir, 'LUH2', 'v2h', 'management.1850-2015.nc') ;
-yearList_luh2_mgmts = 1850:2015 ;
-if min(yearList_out) < min(yearList_luh2_mgmts) || max(yearList_out) > max(yearList_luh2_mgmts)
-    error('yearList_out must be entirely contained within yearList_luh2_mgmts!')
 end
 
 % Get info for reading input files
 [~,yearIs_luh2_states,~] = intersect(yearList_lu_states,yearList_out) ;
 starts_luh2_states = [1 1 min(yearIs_luh2_states)] ;
 counts_luh2_states = [Inf Inf Nyears_out] ;
-[~,yearIs_luh2_mgmts,~] = intersect(yearList_luh2_mgmts,yearList_out) ;
-starts_luh2_mgmts = [1 1 min(yearIs_luh2_mgmts)] ;
-counts_luh2_mgmts = [Inf Inf Nyears_out] ;
 
 % Get land use names from input; match to names in output
 finfo = ncinfo(file_luh2_states) ;
