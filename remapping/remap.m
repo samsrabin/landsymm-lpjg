@@ -17,7 +17,6 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %     outWidth: Width of output columns. Recommendation is 1; columns should auto-adjust.
 %     overwrite: Should existing output files be overwritten? (true/false)
 %     
-%
 % PATHS
 %     geodata_dir: Directory where misc. geographic data can be found, including LUH2/,
 %                  MIRCA/, AND AgGRID_nutrient_input_v1.1/.
@@ -33,6 +32,8 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %                        to ever be true; maybe for troubleshooting? Recommendation: false
 %     inpaint_method: Method (integer ≥0) to be used by inpaint_nans(). See help of that
 %                     function for more information. Recommendation: 4.
+%     lu_source: String naming the source to use for land use fractions (CROPLAND,
+%                PASTURE, etc.). Options: 'LUH2'
 %     PLUMsetAside_frac: PLUM parameter (crop_adj_factor) accounting for crops not
 %                        represented, areas set aside and failed crops.
 %     remapVer: String to be included in output filenames. E.g.,
@@ -101,8 +102,12 @@ writematrix(missing_lonlats, fullfile(out_dir, 'missing_climate.csv'))
 
 %% Import land uses
 
-[out_lu, carea_YX] = remap_import_lu_luh2( ...
-    geodata_dir, yearList_out, gridlist) ;
+if strcmp(lu_source, 'LUH2')
+    [out_lu, carea_YX] = remap_import_lu_luh2( ...
+        geodata_dir, yearList_out, gridlist) ;
+else
+    error('lu_source %s not recognized', lu_source)
+end
 
 
 %% Import crop fractions and process crop types
