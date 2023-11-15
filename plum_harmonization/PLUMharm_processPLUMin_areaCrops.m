@@ -184,8 +184,16 @@ end
 S.varNames = [PLUMcrops S_lcf.varNames(~strcmp(S_lcf.varNames,'CROPLAND'))] ;
 S.maps_YXv = cat(3, S_cropa.maps_YXv, S_lcf.maps_YXv(:,:,~strcmp(S_lcf.varNames,'CROPLAND'))) ;
 
-% Ensure same ordering of variables in LUH and PLUM
+% Ensure same ordering of variables in baseline LU and PLUM
 if ~isequal(LUnames,S.varNames)
+    missing_types = setdiff(LUnames,S.varNames) ;
+    if ~isempty(missing_types)
+        if fruitveg_sugar_2oil && isequal(shiftdim(missing_types), shiftdim({'FruitAndVeg', 'Sugar'}))
+            error('FruitAndVeg and Sugar are missing from PLUM types; do you need to set fruitveg_sugar_2oil to false?')
+        else
+            error('Types in baseline LU but missing from PLUM: %s', sprintf('%s ', missing_types))
+        end
+    end
     [~,~,IB] = intersect(LUnames,S.varNames,'stable') ;
     if length(IB)~=length(LUnames)
         error('length(IB)~=length(LUnames)')

@@ -8,52 +8,6 @@ if ~exist('combineCrops', 'var')
     combineCrops = false ;
 end
 
-% Get files based on baseline version
-disp('    Get files based on baseline version')
-fruitveg_sugar_2oil_ok = false ;
-if baseline_ver == 1
-    error('Update baseline_ver 1 to work with remaps_topDir')
-    if strcmp(thisSystem, 'ssr_mac')
-        luh2_file = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
-        cropf_file = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-        nfert_file = '/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-    else
-        error('Configure this section to work on machine other than Mac!')
-    end
-    inpaint_method = 0 ;
-elseif baseline_ver == 2
-    inDir_remap6 = fullfile(remaps_topDir, 'remaps_v6') ;
-    luh2_file = fullfile(inDir_remap6, 'LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
-    cropf_file = fullfile(inDir_remap6, 'cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
-    nfert_file = fullfile(inDir_remap6, 'nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
-    inpaint_method = 4 ;
-elseif baseline_ver == 3
-    inDir_remap6 = fullfile(remaps_topDir, 'remaps_v6p7') ;
-    luh2_file = fullfile(inDir_remap6, 'LU.remapv6p7.txt') ;
-    cropf_file = fullfile(inDir_remap6, 'cropfracs.remapv6p7.txt') ;
-    nfert_file = fullfile(inDir_remap6, 'nfert.remapv6p7.txt') ;
-    inpaint_method = 4 ;
-elseif baseline_ver == 4
-    inDir_remap = fullfile(remaps_topDir, 'remaps_v8c') ;
-    if fruitveg_sugar_2oil
-        inDir_remap = [inDir_remap '2oil'] ;
-        luh2_file = sprintf('%s/LU.remapv8c2oil.txt', inDir_remap) ;
-        cropf_file = sprintf('%s/cropfracs.remapv8c2oil.txt', inDir_remap) ;
-        nfert_file = sprintf('%s/nfert.remapv8c2oil.txt', inDir_remap) ;
-        fruitveg_sugar_2oil_ok = true ;
-    else
-        luh2_file = sprintf('%s/LU.remapv8c.txt', inDir_remap) ;
-        cropf_file = sprintf('%s/cropfracs.remapv8c.txt', inDir_remap) ;
-        nfert_file = sprintf('%s/nfert.remapv8c.txt', inDir_remap) ;
-    end
-    inpaint_method = 4 ;
-else
-    error('baseline_ver (%d) not recognized!',baseline_ver) ;
-end
-if fruitveg_sugar_2oil && ~fruitveg_sugar_2oil_ok
-    error('You specified fruitveg_sugar_2oil TRUE but have not specified which input files should be used')
-end
-
 % Make lower-left lat/lon map (for compat. with PLUM style)
 disp('    Make lower-left lat/lon map (for compat. with PLUM style)')
 lons_map_2deg = repmat(-180:2:178,[90 1]) ;
@@ -77,8 +31,8 @@ resFrac_prot_YX = flipud(cell2mat(resFrac_prot)) ;
 clear resFrac_prot
 resFrac_prot_YX(resFrac_prot_YX==-9999) = 0 ;
 
-% Get LUH2 land area (m2)
-disp('    Get LUH2 land area')
+% Get land area (m2)
+disp('    Get land area')
 gcelArea_YXqd = 1e6*double(transpose(ncread(landarea_file,'carea'))) ;
 land_frac_YXqd = 1 - double(flipud(transpose(ncread(landarea_file,'icwtr')))) ;
 landArea_YXqd = gcelArea_YXqd .* land_frac_YXqd ;
@@ -89,11 +43,11 @@ tmp = landArea_YXqd(:,1:2:1440) + landArea_YXqd(:,2:2:1440) ;
 landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 clear *_YXqd tmp
 
-% Import LUH2 base_year
-disp('    Import LUH2 base_year')
-base = lpjgu_matlab_readTable_then2map(luh2_file, 'force_mat_save', true);%, 'verbose', true, 'verboseIfNoMat', true) ;
+% Import baseline LU base_year
+disp('    Import baseline LU base_year')
+base = lpjgu_matlab_readTable_then2map(remap_lu_file, 'force_mat_save', true);%, 'verbose', true, 'verboseIfNoMat', true) ;
 if ~isempty(find(base.maps_YXvy(:,:,contains(base.varNames,{'URBAN','PEATLAND'}),:)>0,1))
-    error('This code is not designed to handle LUH2 inputs with any URBAN or PEATLAND area!')
+    error('This code is not designed to handle baseline LU inputs with any URBAN or PEATLAND area!')
 end
 if doHarm
     tmp = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),base.yearList==base_year) ;
@@ -103,13 +57,13 @@ if doHarm
     clear tmp
     bad_base_YX = sum(base.maps_YXv,3)==0 | isnan(sum(base.maps_YXv,3)) ;
 else
-    [~,IA,~] = intersect(base.yearList,yearList_luh2) ;
-    if ~isequal(IA-min(IA)+1,(1:length(yearList_luh2))')
-        error('Incompatible yearList_luh2?')
+    [~,IA,~] = intersect(base.yearList,yearList_baselineLU) ;
+    if ~isequal(IA-min(IA)+1,(1:length(yearList_baselineLU))')
+        error('Incompatible yearList_baselineLU?')
     end
     base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IA) ;
     base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
-    base.yearList = yearList_luh2 ;
+    base.yearList = yearList_baselineLU ;
     bad_base_YX = sum(sum(base.maps_YXvy,3),4)==0 | isnan(sum(sum(base.maps_YXvy,3),4)) ;
     clear IA IB
 end
@@ -165,7 +119,7 @@ disp('    Get repmat 0.5-degree land area')
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 if ~doHarm
-    Nyears_luh2 = length(yearList_luh2) ;
+    Nyears_baselineLU = length(yearList_baselineLU) ;
 end
 
 % Avoid, to high precision, sum(LU) > 1
@@ -198,7 +152,7 @@ end
 
 % Convert from "fraction of land" to "land area (m2)"
 disp('    Convert from "fraction of land" to "land area (m2)"')
-% (This also masks where needed due to harmonization of LUH2+PLUM masks)
+% (This also masks where needed due to harmonization of baselineLU+PLUM masks)
 if doHarm
     % First, avoid negative bare
     base_vegd_YX = sum(base.maps_YXv(:,:,~strcmp(base.varNames,'BARREN')),3) ;
@@ -212,7 +166,7 @@ if doHarm
     
     base.maps_YXv = base.maps_YXv .* landArea_YXv ;
 else
-    base.maps_YXvy = base.maps_YXvy .* repmat(landArea_YXv,[1 1 1 Nyears_luh2]) ;
+    base.maps_YXvy = base.maps_YXvy .* repmat(landArea_YXv,[1 1 1 Nyears_baselineLU]) ;
 end
 
 % Import base_year crop fractions
@@ -228,7 +182,7 @@ else
     % but renamed to avoid confusion, considering that this is not just
     % setAside but also unhandledCrops.)
     disp('      Read base_cropf')
-    base_cropf = lpjgu_matlab_readTable_then2map(cropf_file,...
+    base_cropf = lpjgu_matlab_readTable_then2map(remap_cropf_file,...
         'verboseIfNoMat',false,'force_mat_save',true) ;
     
     % Get just base year, if needed
@@ -241,7 +195,7 @@ else
             base_cropf.maps_YXv(repmat(mask_YX,[1 1 length(base_cropf.varNames)])) = NaN ;
             clear tmp
         else
-            base_cropf.maps_YXvy(repmat(mask_YX,[1 1 length(base_cropf.varNames) Nyears_luh2])) = NaN ;
+            base_cropf.maps_YXvy(repmat(mask_YX,[1 1 length(base_cropf.varNames) Nyears_baselineLU])) = NaN ;
         end
     end
     % Combine CC3G and CC4G into ExtraCrop
@@ -288,15 +242,15 @@ else
     if ~doHarm
         if ~isfield(base_cropf,'yearList')
             base_cropf.yearList = base.yearList ;
-            base_cropf.maps_YXvy = repmat(base_cropf.maps_YXv,[1 1 1 Nyears_luh2]) ;
+            base_cropf.maps_YXvy = repmat(base_cropf.maps_YXv,[1 1 1 Nyears_baselineLU]) ;
             base_cropf = rmfield(base_cropf,'maps_YXv') ;
         else
-            [C,IA] = intersect(base_cropf.yearList,yearList_luh2) ;
-            if ~isequal(shiftdim(yearList_luh2),shiftdim(C))
-                error('Not all years of yearList_luh2 present in base_cropf.yearList.')
+            [C,IA] = intersect(base_cropf.yearList,yearList_baselineLU) ;
+            if ~isequal(shiftdim(yearList_baselineLU),shiftdim(C))
+                error('Not all years of yearList_baselineLU present in base_cropf.yearList.')
             end
             base_cropf.maps_YXvy = base_cropf.maps_YXvy(:,:,:,IA) ;
-            base_cropf.yearList = yearList_luh2 ;
+            base_cropf.yearList = yearList_baselineLU ;
             clear C IA
         end
     end
@@ -322,7 +276,7 @@ else
             base_irrig.maps_YXv(:,:,c) = tmp_YX ;
         end
     else
-        base_irrig.maps_YXvy = nan([size(landArea_YX) Ncrops_lpjg Nyears_luh2],'double') ;
+        base_irrig.maps_YXvy = nan([size(landArea_YX) Ncrops_lpjg Nyears_baselineLU],'double') ;
         for c = 1:Ncrops_lpjg
             thisCrop = LPJGcrops{c} ;
             if strcmp(thisCrop,'ExtraCrop')
@@ -346,7 +300,7 @@ else
     % Read baseline fertilization
     % (later, will interpolate to cells without any of thisCrop)
     disp('      Read baseline fertilization')
-    base_nfert = lpjgu_matlab_readTable_then2map(nfert_file,...
+    base_nfert = lpjgu_matlab_readTable_then2map(remap_nfert_file,...
         'verboseIfNoMat',false,'force_mat_save',true) ;
     % Get just base year, if needed
     if doHarm && isfield(base_nfert,'yearList')
@@ -357,15 +311,15 @@ else
     elseif ~doHarm
         if ~isfield(base_nfert,'yearList')
             base_nfert.yearList = base.yearList ;
-            base_nfert.maps_YXvy = repmat(base_nfert.maps_YXv,[1 1 1 Nyears_luh2]) ;
+            base_nfert.maps_YXvy = repmat(base_nfert.maps_YXv,[1 1 1 Nyears_baselineLU]) ;
             base_nfert = rmfield(base_nfert,'maps_YXv') ;
         else
-            [C,IA] = intersect(base_nfert.yearList,yearList_luh2) ;
-            if ~isequal(shiftdim(yearList_luh2),shiftdim(C))
-                error('Not all years of yearList_luh2 present in base_cropf.yearList.')
+            [C,IA] = intersect(base_nfert.yearList,yearList_baselineLU) ;
+            if ~isequal(shiftdim(yearList_baselineLU),shiftdim(C))
+                error('Not all years of yearList_baselineLU present in base_cropf.yearList.')
             end
             base_nfert.maps_YXvy = base_nfert.maps_YXvy(:,:,:,IA) ;
-            base_nfert.yearList = yearList_luh2 ;
+            base_nfert.yearList = yearList_baselineLU ;
             clear C IA
         end
     end
@@ -376,7 +330,7 @@ else
         if doHarm
             base_nfert.maps_YXv = cat(3,base_nfert.maps_YXv,zeros(size(landArea_YX))) ;
         else
-            base_nfert.maps_YXvy = cat(3,base_nfert.maps_YXvy,zeros([size(landArea_YX) 1 Nyears_luh2])) ;
+            base_nfert.maps_YXvy = cat(3,base_nfert.maps_YXvy,zeros([size(landArea_YX) 1 Nyears_baselineLU])) ;
         end
     end
     [~,IA,IB] = intersect(LPJGcrops,base_nfert.varNames,'stable') ;
@@ -501,8 +455,8 @@ if ~combineCrops && doHarm
         LPJGcrops, inpaint_method) ;
 end
 
-% Get LUH2 2-deg fraction that is vegetated, barren
-disp('    Get LUH2 2-deg fraction that is vegetated, barren')
+% Get baseline LU 2-deg fraction that is vegetated, barren
+disp('    Get baseline LU 2-deg fraction that is vegetated, barren')
 if doHarm
     base_2deg_vegd_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
     base_2deg_bare_YX = base_2deg.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
@@ -537,7 +491,9 @@ lats = lats_map(list2map) ;
 
 % Get PLUM crop types
 file_in = [dir1_base 'LandUse.txt'] ;
-T = lpjgu_matlab_readTable(file_in,'verboseIfNoMat',false,'dont_save_MAT',true) ;
+T = lpjgu_matlab_readTable(file_in, ...
+    'verboseIfNoMat', false, ...
+    'dont_save_MAT', true, 'do_save_MAT', false) ;
 PLUMcrops = T.Properties.VariableNames ;
 PLUMcrops = PLUMcrops(...
     contains(PLUMcrops,'_A') ...
@@ -557,7 +513,15 @@ else
     PLUMtoLPJG{strcmp(LPJGcrops,'CerealsC3')} = 'wheat' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'CerealsC4')} = 'maize' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'Rice')} = 'rice' ;
-    PLUMtoLPJG{strcmp(LPJGcrops,'Oilcrops')} = 'oilcrops' ;
+    try
+        PLUMtoLPJG{strcmp(LPJGcrops,'Oilcrops')} = 'oilcrops' ;
+    catch errMsg
+        if length(intersect(LPJGcrops, {'OilNfix', 'OilOther'})) == 2
+            error('Oilcrops not in LPJcrops, but OilNfix and OilOther are. Use an older remapping?')
+        else
+            rethrow(errMsg)
+        end
+    end
     PLUMtoLPJG{strcmp(LPJGcrops,'Pulses')} = 'pulses' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'StarchyRoots')} = 'starchyRoots' ;
     if any(strcmp(LPJGcrops,'FruitVeg'))
