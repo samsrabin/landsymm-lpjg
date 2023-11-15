@@ -126,7 +126,11 @@ if ~combineCrops
 end
 Nyears = length(yearList) ;
 
-landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
+if ~is2deg
+    landArea_2deg_YX = PLUMharm_aggregate(landArea_YX,0.5,2) ;
+else
+    landArea_2deg_YX = landArea_YX ;
+end
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
@@ -166,18 +170,20 @@ for y = 1:Nyears
         fprintf('%d... ',thisYear)
     end
     if mat_exists % Each loads as structure out_y1
-        if is2deg
-            thisLandArea_YX = landArea_2deg_YX ;
-        else
-            thisLandArea_YX = landArea_YX ;
-        end
         
         % Import land use areas
         tmp = load(file_in_lu) ;
         LU_tmp_in = tmp.out_y1 ; clear tmp
         LUarea_tmp_in = LU_tmp_in ;
+        if is2deg
+            error('You need to pass in half-degree land area for next step...')
+        end
         LUarea_tmp_in.maps_YXv = LU_tmp_in.maps_YXv ...
-            .* repmat(thisLandArea_YX,[1 1 size(LU_tmp_in.maps_YXv,3)]) ;
+            .* repmat(landArea_YX,[1 1 size(LU_tmp_in.maps_YXv,3)]) ;
+        if is2deg
+            LUarea_tmp_in.maps_YXv = PLUMharm_aggregate( ...
+                LUarea_tmp_in.maps_YXv, 0.5, 2) ;
+        end
         
         % Import crop areas
         if combineCrops
