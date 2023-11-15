@@ -57,13 +57,17 @@ if doHarm
     clear tmp
     bad_base_YX = sum(base.maps_YXv,3)==0 | isnan(sum(base.maps_YXv,3)) ;
 else
-    [~,IA,~] = intersect(base.yearList, yearList_baselineLU_toPlot) ;
-    if length(IA) ~= length(yearList_baselineLU_toPlot)
-        error('Mismatch between base.yearList and yearList_baselineLU_toPlot')
+    if exist('yearList_baselineLU_toPlot', 'var')
+        [~,IA,~] = intersect(base.yearList, yearList_baselineLU_toPlot) ;
+        if length(IA) ~= length(yearList_baselineLU_toPlot)
+            error('Mismatch between base.yearList and yearList_baselineLU_toPlot')
+        end
+        base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IA) ;
+        base.yearList = base.yearList(IA) ;
+    else
+        yearList_baselineLU_toPlot = base.yearList ;
     end
-    base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IA) ;
     base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
-    base.yearList = base.yearList(IA) ;
     bad_base_YX = sum(sum(base.maps_YXvy,3),4)==0 | isnan(sum(sum(base.maps_YXvy,3),4)) ;
     clear IA IB
 end
