@@ -42,8 +42,8 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %         2: Crop list based on remap_v6
 %         3: Crop list based on remap_v6p7
 %         4: Crop list hased on remap_v8b(2oil, if fruitveg_sugar_2oil true)
-%     fruitveg_sugar_2oil: Separate oilcrops into OilNfix and OilOther? (true/false)
-%                          Only used if baseline_ver==4.
+%     fruitveg_sugar_2oil: (Optional; default false.) Set to true if FruitAndVeg and Sugar
+%                          are in baseline LU data but not PLUM.
 %    
 % OUTPUT OPTIONS
 % All you really need are the half-degree .mat files, because those serve as inputs for
@@ -100,6 +100,10 @@ save_any = save_halfDeg_any || save_2deg_any ;
 
 if combineCrops
     warning('Combining all crops into one! Will skip harmonization of nfert and irrig.')
+end
+
+if ~exist('fruitveg_sugar_2oil', 'var')
+    fruitveg_sugar_2oil = false ;
 end
 
 
