@@ -330,6 +330,8 @@ for c = 1:Ncrops_out
             thisCrop_in = 'soybean' ;
         case {'Rice'}
             thisCrop_in = 'rice' ;
+        case {'Sugar'}
+            thisCrop_in = 'combined_sugars' ;
         otherwise
             error('What crop from Nfert inputs should I use for %s?', thisCrop_out)
     end
@@ -341,12 +343,18 @@ mid_nfert.garr_xv = nan([Ncells Ncrops_out]) ;
 list_cropsCombined_nfert_in = unique(list_crops_out_asNfert) ;
 for c = 1:length(list_cropsCombined_nfert_in)
     thisCrop_in = list_cropsCombined_nfert_in{c} ;
-    thisFile = sprintf('%s/agmip_%s_apprate_fill_NPK_0.5.nc4', ...
-        nfert_dir, thisCrop_in) ;
-    in_YX = flipud(transpose(ncread(thisFile, 'Napprate'))) ;
+
+    if contains(thisCrop_in, 'combined')
+        in_x = remap_combine_Nfert(thisCrop_in, croparea_in, nfert_dir, gridlist) ;
+    else
+        thisFile = sprintf('%s/agmip_%s_apprate_fill_NPK_0.5.nc4', ...
+            nfert_dir, thisCrop_in) ;
+        in_YX = flipud(transpose(ncread(thisFile, 'Napprate'))) ;
+        in_x = in_YX(gridlist.list2map) ;
+    end
 
     v = find(strcmp(list_crops_out_asNfert, thisCrop_in)) ;
-    mid_nfert.garr_xv(:,v) = repmat(in_YX(gridlist.list2map), [1 length(v)]) ;
+    mid_nfert.garr_xv(:,v) = repmat(in_x, [1 length(v)]) ;
 end
 mid_nfert.list2map = gridlist.list2map ;
 mid_nfert.lonlats = gridlist.lonlats ;
