@@ -557,7 +557,15 @@ else
     PLUMtoLPJG{strcmp(LPJGcrops,'CerealsC3')} = 'wheat' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'CerealsC4')} = 'maize' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'Rice')} = 'rice' ;
-    PLUMtoLPJG{strcmp(LPJGcrops,'Oilcrops')} = 'oilcrops' ;
+    try
+        PLUMtoLPJG{strcmp(LPJGcrops,'Oilcrops')} = 'oilcrops' ;
+    catch errMsg
+        if length(intersect(LPJGcrops, {'OilNfix', 'OilOther'})) == 2
+            error('Oilcrops not in LPJcrops, but OilNfix and OilOther are. Use an older remapping?')
+        else
+            rethrow(errMsg)
+        end
+    end
     PLUMtoLPJG{strcmp(LPJGcrops,'Pulses')} = 'pulses' ;
     PLUMtoLPJG{strcmp(LPJGcrops,'StarchyRoots')} = 'starchyRoots' ;
     if any(strcmp(LPJGcrops,'FruitVeg'))
