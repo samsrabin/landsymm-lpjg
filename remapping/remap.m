@@ -8,6 +8,16 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 % PLUMharm_options.m must be somewhere on your path.
 % There, specify the following variables:
 %
+% DIAGNOSTIC OPTIONS
+% As part of remapping, we interpolate (if necessary) the land use areas and fertilizer
+% maps to fill out the entire gridlist. We want to check how much area and fertilizer this
+% adds relative to what we'd have if we set missing cells to 0 instead of interpolating.
+% By default, this looks at the entire period specified by yearList_out. However, we can
+% specify a custom period using the following variables. (The recommended values were
+% chosen as the central MIRCA2000 year +/- 5 years.)
+%     interp_test_y1 (recommendation: 1995)
+%     interp_test_yN (recommendation: 2005)
+%
 % OUTPUT OPTIONS
 %     delimiter: Recommendation: ' '.
 %     do_gzip: Whether to zip up outputs from .txt. to .gz files (true/false).
@@ -75,6 +85,37 @@ addpath(genpath(landsymm_lpjg_path()))
 
 Nyears_out = length(yearList_out) ;
 
+% For checking how much interpolation increases global area/nfert of each LU relative to
+% what it would have been if, instead of interpolating, we set area/nfert there to zero.
+if ~exist('interp_test_y1', 'var')
+    interp_test_y1 = yearList_out(1) ;
+end
+if ~exist('interp_test_yN', 'var')
+    interp_test_yN = yearList_out(end) ;
+end
+yearList_interp_test = interp_test_y1:interp_test_yN ;
+[C, I_yrs_in_test_period] = intersect(yearList_out, yearList_interp_test) ;
+if isempty(C)
+    warning( ...
+        ['Years provided for check of interpolation-caused increase of global LU ' ...
+         'area & Nfert (%d-%d) are outside yearList_out (%d-%d); using entire ' ...
+         'yearList_out' ...
+         ], ...
+        interp_test_y1, interp_test_yN, yearList_out(1), yearList_out(end))
+    I_yrs_in_test_period = 1:Nyears_out ;
+    interp_test_y1 = yearList_out(1) ;
+    interp_test_yN = yearList_out(end) ;
+elseif ~isequal(shiftdim(C), shiftdim(yearList_interp_test))
+    warning( ...
+        ['Years provided for check of interpolation-caused increase of global LU ' ...
+         'area & Nfert (%d-%d) aren''t fully in yearList_out (%d-%d); using ' ...
+         'intersection (%d-%d)' ...
+         ], ...
+        interp_test_y1, interp_test_yN, yearList_out(1), yearList_out(end), C(1), C(end))
+    interp_test_y1 = C(1) ;
+    interp_test_yN = C(end) ;
+end
+interp_test_period_str = sprintf('%d-%d', interp_test_y1, interp_test_yN) ;
 
 warning('on','all')
 
@@ -379,14 +420,10 @@ out_cropfrac.garr_xv = nan(Ncells,Ncrops_out) ;
 out_nfert = mid_cropfrac ;
 out_nfert.garr_xv = nan(Ncells,Ncrops_out) ;
 
-% For checking how much this increases global area/nfert of each crop relative to
-% what it would have been if, instead of interpolating, we set LUH2 crop
-% area/nfert to zero.
-test_y1 = 1995 ;
-test_yN = 2005 ;
-% km2
+% For checking how much interpolation increases global area/nfert of each LU relative to
+% what it would have been if, instead of interpolating, we set area/nfert there to zero.
 test_croparea_x = mean(out_lu.garr_xvy(:, strcmp(out_lu.varNames, 'CROPLAND'), ...
-    yearList_out>=test_y1 & yearList_out<=test_yN),3) ...
+    I_yrs_in_test_period),3) ...
     .* carea_YX(gridlist.list2map) ;
 
 % Interpolate
@@ -402,8 +439,8 @@ for c = 1:Ncrops_out
     area1 = sum(test_croparea_x .* tmp1_YX(gridlist.list2map)) ;
     areaDiff = area1 - area0 ;
     areaDiff_pct = areaDiff / area0 * 100 ;
-    fprintf('    Area increased %0.2f%% (%0.1g ha)\n', ...
-        areaDiff_pct, areaDiff*100) ;
+    fprintf('    Area increased %0.2f%% (%0.1g ha/yr) in %s\n', ...
+        areaDiff_pct, areaDiff*100, interp_test_period_str) ;
     out_cropfrac.garr_xv(:,c) = tmp1_YX(gridlist.list2map) ;
     if any(isnan(out_cropfrac.garr_xv(:,c)))
         error('NaN remaining in out_cropfrac.garr_xv(:,c)!')
@@ -428,8 +465,8 @@ for c = 1:Ncrops_out
         nfert1 = sum(test_croparea_x*1e6 .* out_cropfrac.garr_xv(:,c2) .* tmp1_YX(gridlist.list2map)*1e-3) ;
         nfertDiff = nfert1 - nfert0 ; 
         nfertDiff_pct = nfertDiff / nfert0 * 100 ;
-        fprintf('    Nfert increased %0.2f%% (%0.1g t)\n', ...
-            nfertDiff_pct, nfertDiff) ;
+        fprintf('    Nfert increased %0.2f%% (%0.1g t/yr) in %s\n', ...
+            nfertDiff_pct, nfertDiff, interp_test_period_str) ;
         out_nfert.garr_xv(:,c2) = tmp1_YX(gridlist.list2map) ;
         if any(isnan(out_nfert.garr_xv(:,c2)))
             error('NaN remaining in out_nfert.garr_xv(:,c2)!')
