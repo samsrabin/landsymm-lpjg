@@ -5,12 +5,13 @@ Nyears_out = length(yearList_out) ;
 Ncells = length(gridlist.list2map) ;
 
 % Land use input file and years it contains
-yearList_lu_states = 1901:1920 ;
+yearList_lu_states = 1901:2020 ;
 file_lu_states = fullfile(geodata_dir, 'HILDA+', 'hildaplus_global_05deg_lpjguess', ...
     'data', 'hildaplus_netfrac_1901_2020.txt' ...
     ) ;
 if min(yearList_out) < min(yearList_lu_states) || max(yearList_out) > max(yearList_lu_states)
-    error('yearList_out must be entirely contained within yearList_lu_states!')
+    error('yearList_out (%d-%d) not entirely contained within yearList_lu_states (%d-%d)', ...
+        min(yearList_out), max(yearList_out), min(yearList_lu_states), max(yearList_lu_states))
 end
 
 % Read
