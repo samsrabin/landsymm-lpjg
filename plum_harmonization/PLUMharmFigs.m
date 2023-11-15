@@ -25,34 +25,6 @@ end
 yearList_harm = year1:yearN ;
 fruitveg_sugar_2oil = false ;
 
-% baseline_ver = 1 ;
-% baseline_ver = 2 ;   % Based on remap_v6
- baseline_ver = 3 ;   % Based on remap_v6p7
-
-% % % dirList = {...
-% % %     'halfearth/HEoct/baseline/s1';
-% % %     'halfearth/HEoct/halfearth/s1';
-% % %     } ;
-% % % yearList_harm = 2011:2060 ;
-% % % fruitveg_sugar_2oil = true ;
-% % % runList_legend = {'baseline', 'halfearth'} ;
-% % % legend_ts = [{'LUH2'} runList_legend] ;
-% % % baseline_ver = 4 ;   % Based on remap_v8b2oil
-
-% % % PLUM_version = 'v13.s1' ;
-% % % dirList = {...
-% % %     'SSP1/s1' ;
-% % %     'SSP2/s1' ;
-% % %     'SSP3/s1' ;
-% % %     'SSP4/s1' ;
-% % %     'SSP5/s1' ;
-% % %     } ;
-% % % yearList_harm = 2011:2100 ;
-% % % fruitveg_sugar_2oil = false ;
-% % % runList_legend = strrep(dirList, '/s1', '')' ;
-% % % legend_ts = [{'LUH2'} runList_legend] ;
-% % % baseline_ver = 4 ;   % Based on remap_v8b2oil
-
 % Use combined-crop version?
 combineCrops = false ;
 
@@ -80,7 +52,7 @@ if ~exist(dirList{1}, 'dir')
     error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent. Current working directory: %s', ...
         dirList{1}, pwd)
 end
-out_dir = sprintf('harm%dFigs_%s', baseline_ver, PLUM_version) ;
+out_dir = sprintf('harmFigs_%s', PLUM_version) ;
 out_dir = get_harm_dir(out_dir, fruitveg_sugar_2oil, combineCrops) ;
 if ~exist(out_dir, 'dir')
     mkdir(out_dir)
