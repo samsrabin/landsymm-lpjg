@@ -15,8 +15,8 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 % By default, this looks at the entire period specified by yearList_out. However, we can
 % specify a custom period using the following variables. (The recommended values were
 % chosen as the central MIRCA2000 year +/- 5 years.)
-%     interp_test_y1 (recommendation: 1995)
-%     interp_test_yN (recommendation: 2005)
+%     interp_test_y1 (optional; recommendation: 1995)
+%     interp_test_yN (optional; recommendation: 2005)
 %
 % OUTPUT OPTIONS
 %     delimiter: Recommendation: ' '.
@@ -28,10 +28,14 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %     overwrite: Should existing output files be overwritten? (true/false)
 %     
 % PATHS
+%     file_gridlist_climate: (Optional.) Path of LPJ-GUESS gridlist file with the extent
+%                            of climate data. This will be used to produce a diagnostic
+%                            figure only.
+%     file_gridlist_out: Path of LPJ-GUESS gridlist file to use as the basis for output
+%                        files. Inputs will be interpolated as necessary to match. 
+%                        Recommendation: '/path/to/gridlist_62892.runAEclimOK.txt'
 %     geodata_dir: Directory where misc. geographic data can be found, including LUH2/,
 %                  MIRCA/, AND AgGRID_nutrient_input_v1.1/.
-%     landsymm_inputs_dir: Directory where LandSyMM-related gridlists/ and LU/ directories
-%                          can be found. Unicluster: ~xg4606/landsymm/input
 %     lpjg_inputs_dir: Directory where LPJ-GUESS-related soil/ directory can be found.
 %                      Unicluster: ~xg4606/input/lpj-guess
 %     out_dir_top: A new subdirectory will be created here (if needed); that's where
@@ -124,32 +128,38 @@ interp_test_period_str = sprintf('%d-%d', interp_test_y1, interp_test_yN) ;
 warning('on','all')
 
 
-%% Get gridlist
+%% Get output gridlist
 
-file_gridlist = fullfile(landsymm_inputs_dir, 'gridlists', 'gridlist_62892.runAEclimOK.txt') ;
-gridlist = lpjgu_matlab_read2geoArray(file_gridlist, ...
+gridlist = lpjgu_matlab_read2geoArray(file_gridlist_out, ...
     'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
 Ncells = length(gridlist.list2map) ;
 
 
-%% Get climate gridlist, just to see what's missing from it
+%% Map what's missing from climate gridlist
 
-climate_gridlist = lpjgu_matlab_read2geoArray(...
-    fullfile(landsymm_inputs_dir, 'LU', 'remaps_v10_g2p_isimipclimMask', 'gridlist.remapv10_g2p_isimipclimMask.txt'), ...
+if ~exist('climate_gridlist_file', 'var')
+    warning('climate_gridlist_file not provided; skipping check of what''s missing')
+elseif ~exist(file_gridlist_climate, 'file')
+    warning('climate_gridlist_file (%s) not found; skipping check of what''s missing', ...
+        file_gridlist_climate)
+else
+    climate_gridlist = lpjgu_matlab_read2geoArray(...
+    file_gridlist_climate, ...
     'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
 
-fig_title = sprintf('%d gridcells missing from climate', ...
-    length(find(gridlist.mask_YX & ~climate_gridlist.mask_YX))) ;
-warning('%s (see missing_climate.csv); these will be filled by LPJ-GUESS', fig_title)
-fig_outfile = fullfile(out_dir_figs, 'cells_missing_from_climate.png') ;
-map_YX = double(gridlist.mask_YX & ~climate_gridlist.mask_YX) ;
-map_YX(~gridlist.mask_YX) = NaN ;
-remap_shademap(map_YX, ...
-    fig_title, fig_outfile) ;
-
-[C, IA] = setdiff(gridlist.list2map, climate_gridlist.list2map) ;
-missing_lonlats = gridlist.lonlats(IA, :) ;
-writematrix(missing_lonlats, fullfile(out_dir, 'missing_climate.csv'))
+    fig_title = sprintf('%d gridcells missing from ISIMIP3 climate', ...
+        length(find(gridlist.mask_YX & ~climate_gridlist.mask_YX))) ;
+    warning('%s (see missing_climate.csv); these will be filled by LPJ-GUESS', fig_title)
+    fig_outfile = fullfile(out_dir_figs, 'cells_missing_from_isimip3_climate.png') ;
+    map_YX = double(gridlist.mask_YX & ~climate_gridlist.mask_YX) ;
+    map_YX(~gridlist.mask_YX) = NaN ;
+    remap_shademap(map_YX, ...
+        fig_title, fig_outfile) ;
+    
+    [C, IA] = setdiff(gridlist.list2map, climate_gridlist.list2map) ;
+    missing_lonlats = gridlist.lonlats(IA, :) ;
+    writematrix(missing_lonlats, fullfile(out_dir, 'missing_climate.csv'))
+end
 
 
 %% Import land uses
