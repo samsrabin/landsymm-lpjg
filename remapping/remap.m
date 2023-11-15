@@ -116,6 +116,21 @@ end
 % Note cells with no vegetated land according to LU dataset
 remap_import_lu_note_noveg(out_lu)
 
+% Force all land cells to sum to 1
+% (Doing this here instead of a function avoids memory cost if this is unnecessary.)
+lu_out_x1y = sum(out_lu.garr_xvy,2) ;
+j = 0 ;
+Nlu_out = length(out_lu.varNames) ;
+while any(any(abs(lu_out_x1y-1)>1e-6))
+    j = j + 1;
+    if j > 50
+        error('Possible infinite loop in "remap_import_lu_force_sum1()".')
+    end
+    out_lu.garr_xvy = out_lu.garr_xvy ./ repmat(lu_out_x1y,[1 Nlu_out 1]) ;
+    lu_out_x1y = sum(out_lu.garr_xvy,2) ;
+end
+clear j lu_out_x1y
+
 
 
 %% Import crop fractions and process crop types

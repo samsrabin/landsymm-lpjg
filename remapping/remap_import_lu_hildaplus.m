@@ -84,7 +84,7 @@ icwtr_YX(icwtr_YX==1) = 0 ;
 icwtr_hd_YX = aggregate(icwtr_YX.*flipud(carea_XY'),0.25,0.5)./flipud(carea_hd_XY') ;
 icwtr_hd_x = icwtr_hd_YX(gridlist.list2map) ;
 v = strcmp(list_LU_out,'BARREN') ;
-% Ensure that LU fractions sum to 1
+% Ensure that LU fractions sum to 1, which is required for this step as coded
 max_lufrac_sum_diff_from_1 = max(max(abs(1-sum(out_lu.garr_xvy, 2)))) ;
 if max_lufrac_sum_diff_from_1 >= 1e-6
     error('LU fractions don''t appear to sum to 1. How should ice/water fraction be handled?')
@@ -100,18 +100,6 @@ out_lu.garr_xvy(:,v,:) = out_lu.garr_xvy(:,v,:) ...
     + icwtr_hd_x1y ;
 if max_lufrac_sum_diff_from_1 >= 1e-6
     error('Error in adding ice/water fraction to BARREN: Fractions do not sum to 1')
-end
-
-% Force all land cells to sum to 1
-lu_out_x1y = sum(out_lu.garr_xvy,2) ;
-j = 0 ;
-while any(any(abs(lu_out_x1y-1)>1e-6))
-    j = j + 1;
-    if j > 50
-        error('Possible infinite loop in "Force all land cells to sum to 1".')
-    end
-    out_lu.garr_xvy = out_lu.garr_xvy ./ repmat(lu_out_x1y,[1 Nlu_out 1]) ;
-    lu_out_x1y = sum(out_lu.garr_xvy,2) ;
 end
 
 disp('Done.')

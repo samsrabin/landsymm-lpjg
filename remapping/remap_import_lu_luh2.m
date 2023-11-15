@@ -100,19 +100,6 @@ v = strcmp(list_LU_out,'BARREN') ;
 out_lu.garr_xvy(:,v,:) = out_lu.garr_xvy(:,v,:) ...
     + repmat(icwtr_hd_x,[1 1 Nyears_out]) ;
 
-% Force all land cells to sum to 1
-lu_out_x1y = sum(out_lu.garr_xvy,2) ;
-j = 0 ;
-while any(any(abs(lu_out_x1y-1)>1e-6))
-    j = j + 1;
-    if j > 50
-        error('Possible infinite loop in "Force all land cells to sum to 1".')
-    end
-    out_lu.garr_xvy = out_lu.garr_xvy ./ repmat(lu_out_x1y,[1 Nlu_out 1]) ;
-    lu_out_x1y = sum(out_lu.garr_xvy,2) ;
-end
-clear lu_out_x1y
-
 disp('Done.')
 
 end
