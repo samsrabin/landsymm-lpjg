@@ -146,10 +146,10 @@ remap_interp_soil(files_soil, gridlist, out_dir, out_dir_figs, ...
 
 %% Map what's missing from climate gridlist
 
-if ~exist('climate_gridlist_file', 'var')
-    warning('climate_gridlist_file not provided; skipping check of what''s missing')
+if ~exist('file_gridlist_climate', 'var')
+    warning('file_gridlist_climate not provided; skipping check of what''s missing')
 elseif ~exist(file_gridlist_climate, 'file')
-    warning('climate_gridlist_file (%s) not found; skipping check of what''s missing', ...
+    warning('file_gridlist_climate (%s) not found; skipping check of what''s missing', ...
         file_gridlist_climate)
 else
     climate_gridlist = lpjgu_matlab_read2geoArray(...
