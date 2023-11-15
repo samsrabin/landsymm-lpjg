@@ -1,39 +1,54 @@
 function in_x = remap_combine_Nfert(thisCrop_in, croparea_in, nfert_dir, gridlist)
+% Calculate area-weighted average Nfert (mass/area) for a given crop (thisCrop_in).
 
-if ~strcmp(thisCrop_in, 'combined_sugars')
+% This is where we define what crops from the N fertilization data will be combined. Note
+% that there must be one crop name specified from the frac/area dataset for each crop to
+% be used from the N fertilization dataset.
+if strcmp(thisCrop_in, 'combined_sugars')
+    croparea_names = {'Sugarbeet', 'Sugarcane'} ;
+    Nfert_names    = {'sugarbeet', 'sugarcane'} ;
+else
     error('Not recognized: %s', thisCrop_in)
 end
 
-cropfrac_is_beet = contains(croparea_in.varNames, 'Sugarbeet') ;
-if sum(cropfrac_is_beet) ~= 2
-    error('Expected 2 croparea_in.varNames containing Sugarbeet; found %d', ...
-        sum(cropfrac_is_beet))
+Ncrops_to_combine = length(croparea_names) ;
+if length(Nfert_names) ~= Ncrops_to_combine
+    error('Different number of members in Nfert_names and croparea_names')
 end
-area_beet_x = sum(croparea_in.garr_xv(:,cropfrac_is_beet), 2) ;
-cropfrac_is_cane = contains(croparea_in.varNames, 'Sugarcane') ;
-if sum(cropfrac_is_cane) ~= 2
-    error('Expected 2 croparea_in.varNames containing Sugarcane; found %d', ...
-        sum(cropfrac_is_cane))
+
+Ncells = size(croparea_in.garr_xv, 1) ;
+area_xv = nan(Ncells, Ncrops_to_combine) ;
+for c = 1:Ncrops_to_combine
+    thisCrop_area = croparea_names{c} ;
+    is_this_crop = contains(croparea_in.varNames, thisCrop_area) ;
+    if sum(is_this_crop) ~= 2
+        error('Expected 2 croparea_in.varNames containing %s; found %d', ...
+            thisCrop_area, sum(is_this_crop))
+    end
+    area_xv(:,c) = sum(croparea_in.garr_xv(:,is_this_crop), 2) ;
 end
-area_cane_x = sum(croparea_in.garr_xv(:,cropfrac_is_cane), 2) ;
 
-area_sugar_x = area_beet_x + area_cane_x ;
-area_sugar_x(area_sugar_x==0) = 1 ; % avoid /0
-wt_beet_x = area_beet_x ./ area_sugar_x ;
-wt_cane_x = area_cane_x ./ area_sugar_x ;
+% Get total area, ensuring no NaNs
+area_total_x = sum(area_xv, 2) ;
+if any(isnan(area_total_x))
+    error('Unexpected NaN in crop area')
+end
 
-file_N_beet = fullfile(nfert_dir, ...
-    sprintf('agmip_%s_apprate_fill_NPK_0.5.nc4', ...
-    'sugarbeet')) ;
-beet_YX = flipud(transpose(ncread(file_N_beet, 'Napprate'))) ;
-file_N_cane = fullfile(nfert_dir, ...
-    sprintf('agmip_%s_apprate_fill_NPK_0.5.nc4', ...
-    'sugarcane')) ;
-cane_YX = flipud(transpose(ncread(file_N_cane, 'Napprate'))) ;
+% Avoid dividing by 0 in next step; will result in weights = 0 there
+area_total_x(area_total_x==0) = 1 ;
 
-beet_x = beet_YX(gridlist.list2map) ;
-cane_x = cane_YX(gridlist.list2map) ;
+% Calculate weights
+weights_xv = area_xv ./ repmat(area_total_x, [1 Ncrops_to_combine]) ;
 
-in_x = beet_x.*wt_beet_x + cane_x.*wt_cane_x ;
+% Calculate area-weighted average Nfert
+in_x = zeros(Ncells, 1) ;
+for c = 1:Ncrops_to_combine
+    thisCrop_Nfert = Nfert_names{c} ;
+    file_N = fullfile(nfert_dir, ...
+        sprintf('agmip_%s_apprate_fill_NPK_0.5.nc4', ...
+        thisCrop_Nfert)) ;
+    map_YX = flipud(transpose(ncread(file_N, 'Napprate'))) ;
+    in_x = in_x + weights_xv(:,c).*map_YX(gridlist.list2map) ;
+end
 
 end
