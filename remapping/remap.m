@@ -283,6 +283,14 @@ if any(cellfun(@isempty,in2out_keyCombined_frac))
     error('At least one member of in2out_keyCombined_frac is empty!')
 end
 
+disp('Crop fraction mappings (out: in):')
+for c = 1:NcropsCombined_out
+    component_crops = sprintf('%s ', in2out_keyCombined_frac{c}{:}) ;
+    fprintf('    %s: %s\n', ...
+        list_cropsCombined_out{c}, ...
+        component_crops)
+end
+
 % Make rainfed-vs-irrigated map: frac
 in2out_key_frac = {} ;
 for c = 1:NcropsCombined_out
