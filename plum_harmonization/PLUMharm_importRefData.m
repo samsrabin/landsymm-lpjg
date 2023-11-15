@@ -8,52 +8,6 @@ if ~exist('combineCrops', 'var')
     combineCrops = false ;
 end
 
-% Get files based on baseline version
-disp('    Get files based on baseline version')
-fruitveg_sugar_2oil_ok = false ;
-if baseline_ver == 1
-    error('Update baseline_ver 1 to work with remaps_topDir')
-    if strcmp(thisSystem, 'ssr_mac')
-        remap_lu_file = '/Users/Shared/PLUM/input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
-        remap_cropf_file = '/Users/Shared/PLUM/input/remaps_v4/cropfracs.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-        remap_nfert_file = '/Users/Shared/PLUM/input/remaps_v4/nfert.remapv4.20180214.cgFertIrr0.setaside0103.m0.txt' ;
-    else
-        error('Configure this section to work on machine other than Mac!')
-    end
-    inpaint_method = 0 ;
-elseif baseline_ver == 2
-    inDir_remap6 = fullfile(remaps_topDir, 'remaps_v6') ;
-    remap_lu_file = fullfile(inDir_remap6, 'LU.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
-    remap_cropf_file = fullfile(inDir_remap6, 'cropfracs.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
-    remap_nfert_file = fullfile(inDir_remap6, 'nfert.remapv6.20180214.ecFertIrr0.setaside0103.m4.txt') ;
-    inpaint_method = 4 ;
-elseif baseline_ver == 3
-    inDir_remap6 = fullfile(remaps_topDir, 'remaps_v6p7') ;
-    remap_lu_file = fullfile(inDir_remap6, 'LU.remapv6p7.txt') ;
-    remap_cropf_file = fullfile(inDir_remap6, 'cropfracs.remapv6p7.txt') ;
-    remap_nfert_file = fullfile(inDir_remap6, 'nfert.remapv6p7.txt') ;
-    inpaint_method = 4 ;
-elseif baseline_ver == 4
-    inDir_remap = fullfile(remaps_topDir, 'remaps_v8c') ;
-    if fruitveg_sugar_2oil
-        inDir_remap = [inDir_remap '2oil'] ;
-        remap_lu_file = sprintf('%s/LU.remapv8c2oil.txt', inDir_remap) ;
-        remap_cropf_file = sprintf('%s/cropfracs.remapv8c2oil.txt', inDir_remap) ;
-        remap_nfert_file = sprintf('%s/nfert.remapv8c2oil.txt', inDir_remap) ;
-        fruitveg_sugar_2oil_ok = true ;
-    else
-        remap_lu_file = sprintf('%s/LU.remapv8c.txt', inDir_remap) ;
-        remap_cropf_file = sprintf('%s/cropfracs.remapv8c.txt', inDir_remap) ;
-        remap_nfert_file = sprintf('%s/nfert.remapv8c.txt', inDir_remap) ;
-    end
-    inpaint_method = 4 ;
-else
-    error('baseline_ver (%d) not recognized!',baseline_ver) ;
-end
-if fruitveg_sugar_2oil && ~fruitveg_sugar_2oil_ok
-    error('You specified fruitveg_sugar_2oil TRUE but have not specified which input files should be used')
-end
-
 % Make lower-left lat/lon map (for compat. with PLUM style)
 disp('    Make lower-left lat/lon map (for compat. with PLUM style)')
 lons_map_2deg = repmat(-180:2:178,[90 1]) ;
