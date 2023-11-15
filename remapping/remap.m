@@ -135,7 +135,8 @@ warning('on','all')
 %% Get output gridlist
 
 gridlist = lpjgu_matlab_read2geoArray(file_gridlist_out, ...
-    'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
+    'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true, ...
+    'gridlist_warn', false) ;
 Ncells = length(gridlist.list2map) ;
 
 
@@ -154,7 +155,8 @@ elseif ~exist(file_gridlist_climate, 'file')
 else
     climate_gridlist = lpjgu_matlab_read2geoArray(...
     file_gridlist_climate, ...
-    'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
+    'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true, ...
+    'gridlist_warn', false) ;
 
     fig_title = sprintf('%d gridcells missing from ISIMIP3 climate', ...
         length(find(gridlist.mask_YX & ~climate_gridlist.mask_YX))) ;
