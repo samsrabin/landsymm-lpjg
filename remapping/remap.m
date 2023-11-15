@@ -335,14 +335,6 @@ for c = 1:length(list_cropsCombined_nfert_in)
         nfert_dir, thisCrop_in) ;
     in_YX = flipud(transpose(ncread(thisFile, 'Napprate'))) ;
 
-    % Note gridlist cells missing from fertilizer
-    isbad_x = isnan(in_YX(gridlist.list2map)) ;
-    if any(isbad_x)
-        I_bad = find(isbad_x) ;
-        warning('%d gridlist cells are missing from fertilizer for %s', ...
-            length(I_bad), thisCrop_in)
-    end
-
     v = find(strcmp(list_crops_out_asNfert, thisCrop_in)) ;
     mid_nfert.garr_xv(:,v) = repmat(in_YX(gridlist.list2map), [1 length(v)]) ;
 end
