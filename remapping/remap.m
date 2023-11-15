@@ -65,6 +65,10 @@ out_dir = fullfile(out_dir_top, sprintf('remaps_v%s',remapVer)) ;
 if ~exist(out_dir,'dir')
     mkdir(out_dir) ;
 end
+out_dir_figs = fullfile(out_dir, 'figs') ;
+if ~exist(out_dir_figs, 'dir')
+    mkdir(out_dir_figs) ;
+end
 
 % Start diary logging and print important info
 diaryfile = fullfile(out_dir, sprintf('matlab_log.txt')) ;
@@ -134,8 +138,14 @@ climate_gridlist = lpjgu_matlab_read2geoArray(...
     fullfile(landsymm_inputs_dir, 'LU', 'remaps_v10_g2p_isimipclimMask', 'gridlist.remapv10_g2p_isimipclimMask.txt'), ...
     'verboseIfNoMat', false, 'force_mat_save', false, 'force_mat_nosave', true) ;
 
-shademap(gridlist.mask_YX & ~climate_gridlist.mask_YX) ;
-title(sprintf('%d gridcells missing from climate', length(find(gridlist.mask_YX & ~climate_gridlist.mask_YX))))
+fig_title = sprintf('%d gridcells missing from climate', ...
+    length(find(gridlist.mask_YX & ~climate_gridlist.mask_YX))) ;
+warning('%s (see missing_climate.csv); these will be filled by LPJ-GUESS', fig_title)
+fig_outfile = fullfile(out_dir_figs, 'cells_missing_from_climate.png') ;
+map_YX = double(gridlist.mask_YX & ~climate_gridlist.mask_YX) ;
+map_YX(~gridlist.mask_YX) = NaN ;
+remap_shademap(map_YX, ...
+    fig_title, fig_outfile) ;
 
 [C, IA] = setdiff(gridlist.list2map, climate_gridlist.list2map) ;
 missing_lonlats = gridlist.lonlats(IA, :) ;
@@ -407,12 +417,12 @@ disp('Done.')
 disp('Interpolating to match gridlist...')
 
 % Make figures illustrating what will be interpolated
-isbad_YX = map_missing(out_lu.garr_xvy, gridlist, 'LU') ;
+isbad_YX = map_missing(out_lu.garr_xvy, gridlist, 'LU', out_dir_figs) ;
 if any(isbad_YX(:))
     error('You also need to interpolate land use')
 end
-map_missing(mid_cropfrac.garr_xv, gridlist, 'cropfrac') ;
-map_missing(mid_nfert.garr_xv, gridlist, 'nfert') ;
+map_missing(mid_cropfrac.garr_xv, gridlist, 'cropfrac', out_dir_figs) ;
+map_missing(mid_nfert.garr_xv, gridlist, 'nfert', out_dir_figs) ;
 
 % Set up output structures
 out_cropfrac = mid_cropfrac ;
@@ -681,7 +691,7 @@ lpjgu_matlab_saveTable(out_soil_header_cell, out_soil, out_file_soil,...
 
 %% FUNCTIONS
 
-function isbad_YX = map_missing(garr, gridlist, thisTitle)
+function isbad_YX = map_missing(garr, gridlist, thisTitle, fig_dir)
 
 isbad_x = isnan(garr) ;
 while length(find(size(isbad_x)>1)) > 1
@@ -689,8 +699,13 @@ while length(find(size(isbad_x)>1)) > 1
 end
 
 isbad_YX = lpjgu_vector2map(isbad_x, size(gridlist.mask_YX), gridlist.list2map) ;
-shademap(isbad_YX) ;
-title(thisTitle)
+
+fig_outfile = fullfile(fig_dir, ...
+    sprintf('cells_missing_from_%s.png', thisTitle)) ;
+Nmissing = length(find(isbad_x)) ;
+thisTitle = sprintf('%d cells missing from %s', ...
+    Nmissing, thisTitle) ;
+remap_shademap(isbad_YX, thisTitle, fig_outfile) ;
 
 end
 
