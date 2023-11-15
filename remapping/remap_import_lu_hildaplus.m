@@ -92,7 +92,10 @@ end
 Nlu = length(out_lu.varNames) ;
 icwtr_hd_x1y = repmat(icwtr_hd_x, [1, 1, Nyears_out]) ;
 icwtr_hd_xvy = repmat(icwtr_hd_x1y, [1, Nlu, 1]) ;
+tmp_xvy = out_lu.garr_xvy ;
 out_lu.garr_xvy = out_lu.garr_xvy ./ icwtr_hd_xvy ;
+out_lu.garr_xvy(icwtr_hd_xvy==0) = tmp_xvy(icwtr_hd_xvy==0) ;
+clear tmp_xvy
 out_lu.garr_xvy(:,v,:) = out_lu.garr_xvy(:,v,:) ...
     + icwtr_hd_x1y ;
 if max_lufrac_sum_diff_from_1 >= 1e-6
