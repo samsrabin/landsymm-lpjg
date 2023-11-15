@@ -57,13 +57,13 @@ if doHarm
     clear tmp
     bad_base_YX = sum(base.maps_YXv,3)==0 | isnan(sum(base.maps_YXv,3)) ;
 else
-    [~,IA,~] = intersect(base.yearList,yearList_baselineLU) ;
-    if ~isequal(IA-min(IA)+1,(1:length(yearList_baselineLU))')
-        error('Incompatible yearList_baselineLU?')
+    [~,IA,~] = intersect(base.yearList, yearList_baselineLU_toPlot) ;
+    if length(IA) ~= length(yearList_baselineLU_toPlot)
+        error('Mismatch between base.yearList and yearList_baselineLU_toPlot')
     end
     base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IA) ;
     base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
-    base.yearList = yearList_baselineLU ;
+    base.yearList = base.yearList(IA) ;
     bad_base_YX = sum(sum(base.maps_YXvy,3),4)==0 | isnan(sum(sum(base.maps_YXvy,3),4)) ;
     clear IA IB
 end
@@ -119,7 +119,7 @@ disp('    Get repmat 0.5-degree land area')
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 if ~doHarm
-    Nyears_baselineLU = length(yearList_baselineLU) ;
+    Nyears_baselineLU = length(base.yearList) ;
 end
 
 % Avoid, to high precision, sum(LU) > 1
@@ -245,12 +245,12 @@ else
             base_cropf.maps_YXvy = repmat(base_cropf.maps_YXv,[1 1 1 Nyears_baselineLU]) ;
             base_cropf = rmfield(base_cropf,'maps_YXv') ;
         else
-            [C,IA] = intersect(base_cropf.yearList,yearList_baselineLU) ;
-            if ~isequal(shiftdim(yearList_baselineLU),shiftdim(C))
-                error('Not all years of yearList_baselineLU present in base_cropf.yearList.')
+            [C,IA] = intersect(base_cropf.yearList,base.yearList) ;
+            if ~isequal(shiftdim(base.yearList),shiftdim(C))
+                error('Not all years of base.yearList present in base_cropf.yearList.')
             end
             base_cropf.maps_YXvy = base_cropf.maps_YXvy(:,:,:,IA) ;
-            base_cropf.yearList = yearList_baselineLU ;
+            base_cropf.yearList = base.yearList ;
             clear C IA
         end
     end
@@ -314,12 +314,12 @@ else
             base_nfert.maps_YXvy = repmat(base_nfert.maps_YXv,[1 1 1 Nyears_baselineLU]) ;
             base_nfert = rmfield(base_nfert,'maps_YXv') ;
         else
-            [C,IA] = intersect(base_nfert.yearList,yearList_baselineLU) ;
-            if ~isequal(shiftdim(yearList_baselineLU),shiftdim(C))
-                error('Not all years of yearList_baselineLU present in base_cropf.yearList.')
+            [C,IA] = intersect(base_nfert.yearList,base.yearList) ;
+            if ~isequal(shiftdim(base.yearList),shiftdim(C))
+                error('Not all years of base.yearList present in base_cropf.yearList.')
             end
             base_nfert.maps_YXvy = base_nfert.maps_YXvy(:,:,:,IA) ;
-            base_nfert.yearList = yearList_baselineLU ;
+            base_nfert.yearList = base.yearList ;
             clear C IA
         end
     end

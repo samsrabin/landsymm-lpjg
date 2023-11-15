@@ -7,34 +7,31 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
 PLUMharm_options
 
-dirList = {'SSP3'} ;
-runList_legend = {'SSP3-60'} ;
+% dirList = {'SSP3'} ;
+runList_legend = {'baseline'} ;
+
+yearList_baselineLU_toPlot = 1971:2010 ;
+% yearList_baselineLU_toPlot = 2001:2010 ;
 
 PLUM_version = 'v12.s1' ;
-if ~exist('dirList', 'var')
-    dirList = strcat({...
-               'SSP1' ;
-               'SSP3' ;
-               'SSP4' ;
-               'SSP5';
-                }, ['.' PLUM_version]) ;
-    runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
-else
-    dirList = strcat(dirList, ['.' PLUM_version]) ;
-end
+% if ~exist('dirList', 'var')
+%     dirList = strcat({...
+%                'SSP1' ;
+%                'SSP3' ;
+%                'SSP4' ;
+%                'SSP5';
+%                 }, ['.' PLUM_version]) ;
+%     runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
+% else
+%     dirList = strcat(dirList, ['.' PLUM_version]) ;
+% end
 yearList_harm = year1:yearN ;
-fruitveg_sugar_2oil = false ;
-
-% Use combined-crop version?
-combineCrops = false ;
 
 thisVer = '' ;
 % thisVer = 'orig.' ;
 % thisVer = '2deg.' ;
 
 base_year = 2010 ;
-
-norm2extra = 0.177 ;
 
 
 %% Setup
@@ -60,13 +57,11 @@ end
 out_dir = addslashifneeded(out_dir) ;
 fprintf('out_dir: %s/%s\n', pwd, out_dir)
 
-yearList_luh2 = 1971:2010 ;
-% yearList_luh2 = 2001:2010 ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
 add_baseline_to_harm = ...
     yearList_harm(1)==yearList_orig(1)+1 ...
     && yearList_orig(1)==base_year ...
-    && any(yearList_luh2==base_year) ;
+    && any(yearList_baselineLU_toPlot==base_year) ;
 if ~exist('legend_ts', 'var')
     if length(dirList) == 1
         legend_ts = {'LUH2','Orig','Harm'} ;
@@ -287,7 +282,7 @@ Nfpu = length(fpu_list) ;
 map_size = size(landArea_YX) ;
 if add_baseline_to_harm
     % Area
-    tmp_base_YXv = base.maps_YXvy(:,:,:,yearList_luh2==base_year) ;
+    tmp_base_YXv = base.maps_YXvy(:,:,:,yearList_baselineLU_toPlot==base_year) ;
     tmp_base_xv = nan(Ncells, Nlu) ;
     tmp_list2map_all = lpjgu_get_list2map_all(list2map, map_size, Nlu) ;
     tmp_base_xv(:) = tmp_base_YXv(tmp_list2map_all) ;
@@ -298,7 +293,7 @@ if add_baseline_to_harm
     
     if ~combineCrops
         % Fert
-        tmp_base_YXv = base_nfert.maps_YXvy(:,:,:,yearList_luh2==base_year) ;
+        tmp_base_YXv = base_nfert.maps_YXvy(:,:,:,yearList_baselineLU_toPlot==base_year) ;
         tmp_base_xv = nan(Ncells, Ncrops_lpjg) ;
         tmp_list2map_all = lpjgu_get_list2map_all(list2map, map_size, Ncrops_lpjg) ;
         tmp_base_xv(:) = tmp_base_YXv(tmp_list2map_all) ;
@@ -308,7 +303,7 @@ if add_baseline_to_harm
         clear tmp*
         
         % Irrig
-        tmp_base_YXv = base_irrig.maps_YXvy(:,:,:,yearList_luh2==base_year) ;
+        tmp_base_YXv = base_irrig.maps_YXvy(:,:,:,yearList_baselineLU_toPlot==base_year) ;
         tmp_base_xv = nan(Ncells, Ncrops_lpjg) ;
         tmp_list2map_all = lpjgu_get_list2map_all(list2map, map_size, Ncrops_lpjg) ;
         tmp_base_xv(:) = tmp_base_YXv(tmp_list2map_all) ;
@@ -1011,7 +1006,7 @@ figure('Color','w','Position',figurePos)
 
 for v = 1:length(combinedLUs)
     subplot_tight(2,2,v,spacing) ;
-    plot(yearList_luh2,ts_base_cy(v,:)*1e-6*1e-6,'-k','LineWidth',2) ;
+    plot(yearList_baselineLU_toPlot,ts_base_cy(v,:)*1e-6*1e-6,'-k','LineWidth',2) ;
     set(gca,'ColorOrderIndex',1) ;
     hold on
     plot(yearList_orig,squeeze(ts_orig_cyr(v,:,:))*1e-6*1e-6,'--','LineWidth',1)
@@ -1044,7 +1039,7 @@ ts_orig_cyr = ts_orig_cyr*1e-6*1e-6 ;
 ts_harm_cyr = ts_harm_cyr*1e-6*1e-6 ;
 
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, legend_ts, yearList_luh2, yearList_orig, units, ...
+    LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
     'Area', 'crops', out_dir)
 
 
@@ -1063,7 +1058,7 @@ end
 
 units = 'Mt N' ;
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, legend_ts, yearList_luh2, yearList_orig, units, ...
+    LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
     'Fert.', 'nfert', out_dir)
 
 
@@ -1082,7 +1077,7 @@ end
 
 units = 'intensity \times area' ;
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, legend_ts, yearList_luh2, yearList_orig, units, ...
+    LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
     'Irrigation', 'irrig', out_dir)
 
 
