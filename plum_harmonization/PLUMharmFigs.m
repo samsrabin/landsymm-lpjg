@@ -5,33 +5,24 @@
 addpath(genpath(landsymm_lpjg_path()))
 rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
+% PLUMharm_options.m must be somewhere on your path.
+% See PLUMharm.m for a description of what should be in there.
 PLUMharm_options
 
-% dirList = {'SSP3'} ;
-runList_legend = {'baseline'} ;
+% In addition, PLUMharmFigs_options.m must be somewhere on your path.
+% There, specify the following variables:
+%     runList_legend: (Optional.) Cell array of strings to use as legend in plots; one
+%                     member for each PLUM member in dirList. If not provided, will use
+%                     values from dirList.
+%     out_subdir: Subdirectory of thisDir where outputs will be saved. Can be appended to
+%                 by get_harm_dir().
+%     thisVer: (Optional.) String with values either '' (use half-degree harmonization
+%              files), '2deg.' (use 2-degree harmonization files), or 'orig.' (???). Just
+%              leave this unset to use default ''.
+%     yearList_baselineLU_toPlot: (Optional.) Years from baseline LU dataset to include in
+%                                 plots. If not provided, use all years.
 
-yearList_baselineLU_toPlot = 1971:2010 ;
-% yearList_baselineLU_toPlot = 2001:2010 ;
-
-PLUM_version = 'v12.s1' ;
-% if ~exist('dirList', 'var')
-%     dirList = strcat({...
-%                'SSP1' ;
-%                'SSP3' ;
-%                'SSP4' ;
-%                'SSP5';
-%                 }, ['.' PLUM_version]) ;
-%     runList_legend = {'SSP1-45', 'SSP3-60', 'SSP4-60', 'SSP5-85'} ;
-% else
-%     dirList = strcat(dirList, ['.' PLUM_version]) ;
-% end
-yearList_harm = year1:yearN ;
-
-thisVer = '' ;
-% thisVer = 'orig.' ;
-% thisVer = '2deg.' ;
-
-base_year = 2010 ;
+PLUMharmFigs_options
 
 
 %% Setup
@@ -49,19 +40,15 @@ if ~exist(dirList{1}, 'dir')
     error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent. Current working directory: %s', ...
         dirList{1}, pwd)
 end
-out_dir = sprintf('harmFigs_%s', PLUM_version) ;
-out_dir = get_harm_dir(out_dir, fruitveg_sugar_2oil, combineCrops) ;
+out_dir = get_harm_dir(out_subdir, fruitveg_sugar_2oil, combineCrops) ;
 if ~exist(out_dir, 'dir')
     mkdir(out_dir)
 end
 out_dir = addslashifneeded(out_dir) ;
 fprintf('out_dir: %s/%s\n', pwd, out_dir)
 
+yearList_harm = year1:yearN ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
-add_baseline_to_harm = ...
-    yearList_harm(1)==yearList_orig(1)+1 ...
-    && yearList_orig(1)==base_year ...
-    && any(yearList_baselineLU_toPlot==base_year) ;
 if ~exist('legend_ts', 'var')
     if length(dirList) == 1
         legend_ts = {'LUH2','Orig','Harm'} ;
@@ -114,11 +101,26 @@ else
     error('Set thisPos_RxW for Nruns = %d', Nruns)
 end
 
+if ~exist('runList_legend', 'var')
+    runList_legend = dirList ;
+end
+if ~exist('thisVer', 'var')
+    thisVer = '' ;
+elseif ~any(strcmp({'', '2deg.', 'orig.'}, thisVer))
+    error('Unrecognized value of thisVer: %s', thisVer)
+end
+
+
 %% Import reference data
 
 doHarm = false ;
 
 PLUMharm_importRefData
+
+add_baseline_to_harm = ...
+    yearList_harm(1)==yearList_orig(1)+1 ...
+    && yearList_orig(1)==base_year ...
+    && any(yearList_baselineLU_toPlot==base_year) ;
 
 % We don't need to inpaint NaNs in this script
 inpaint_method = [] ;
