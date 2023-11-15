@@ -427,12 +427,12 @@ disp('Done.')
 disp('Interpolating to match gridlist...')
 
 % Make figures illustrating what will be interpolated
-isbad_YX = map_missing(out_lu.garr_xvy, gridlist, 'LU', out_dir_figs) ;
+isbad_YX = remap_map_missing(out_lu.garr_xvy, gridlist, 'LU', out_dir_figs) ;
 if any(isbad_YX(:))
     error('You also need to interpolate land use')
 end
-map_missing(mid_cropfrac.garr_xv, gridlist, 'cropfrac', out_dir_figs) ;
-map_missing(mid_nfert.garr_xv, gridlist, 'nfert', out_dir_figs) ;
+remap_map_missing(mid_cropfrac.garr_xv, gridlist, 'cropfrac', out_dir_figs) ;
+remap_map_missing(mid_nfert.garr_xv, gridlist, 'nfert', out_dir_figs) ;
 
 % Set up output structures
 out_cropfrac = mid_cropfrac ;
@@ -696,26 +696,3 @@ lpjgu_matlab_saveTable(out_soil_header_cell, out_soil, out_file_soil,...
     'fancy', fancy, ...
     'progress_step_pct', 20, ...
     'gzip', do_gzip) ;
-
-
-
-%% FUNCTIONS
-
-function isbad_YX = map_missing(garr, gridlist, thisTitle, fig_dir)
-
-isbad_x = isnan(garr) ;
-while length(find(size(isbad_x)>1)) > 1
-    isbad_x = squeeze(any(isbad_x, 2)) ;
-end
-
-isbad_YX = lpjgu_vector2map(isbad_x, size(gridlist.mask_YX), gridlist.list2map) ;
-
-fig_outfile = fullfile(fig_dir, ...
-    sprintf('cells_missing_from_%s.png', thisTitle)) ;
-Nmissing = length(find(isbad_x)) ;
-thisTitle = sprintf('%d cells missing from %s', ...
-    Nmissing, thisTitle) ;
-remap_shademap(isbad_YX, thisTitle, fig_outfile) ;
-
-end
-
