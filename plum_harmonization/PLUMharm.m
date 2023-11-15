@@ -32,7 +32,7 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %                        interpolation of thisYear's thisMgmt. Recommendation: true
 %
 % TIME OPTIONS
-%     base_year: The last year of LUH2 data to use. Must be included in PLUM outputs.
+%     base_year: The last year of LU data to use. Must be included in PLUM outputs.
 %     year1:     The first year of the "future" period.
 %     yearN:     The last year of the "future" period.
 %
@@ -188,13 +188,13 @@ for d = 1:length(dirList)
         fprintf('Center Lon %.2f, Lat %.2f, land area %0.4g\n\n',1+lons_map_2deg(db2i,db2j),1+lats_map_2deg(db2i,db2j),round(landArea_2deg_YX(db2i,db2j),4)) ;
         if year1==base_year+1
             if debug_areas && ~isempty(debugIJ_2deg)
-                PLUMharm_debugOut('LUH2','areas',base_2deg.maps_YXv,landArea_2deg_YX,debugIJ_2deg,LUnames)
+                PLUMharm_debugOut('LU baseline','areas',base_2deg.maps_YXv,landArea_2deg_YX,debugIJ_2deg,LUnames)
             end
             if debug_nfert && ~isempty(debugIJ_2deg)
-                PLUMharm_debugOut('LUH2','Nfert',base_nfertTot_2deg.maps_YXv,base_2deg.maps_YXv(:,:,isCrop),debugIJ_2deg,LPJGcrops)
+                PLUMharm_debugOut('LU baseline','Nfert',base_nfertTot_2deg.maps_YXv,base_2deg.maps_YXv(:,:,isCrop),debugIJ_2deg,LPJGcrops)
             end
             if debug_irrig && ~isempty(debugIJ_2deg)
-                PLUMharm_debugOut('LUH2','irrig',base_irrigTot_2deg.maps_YXv,base_2deg.maps_YXv(:,:,isCrop),debugIJ_2deg,LPJGcrops)
+                PLUMharm_debugOut('LU baseline','irrig',base_irrigTot_2deg.maps_YXv,base_2deg.maps_YXv(:,:,isCrop),debugIJ_2deg,LPJGcrops)
             end
         end
     end
@@ -221,7 +221,7 @@ for d = 1:length(dirList)
         if thisYear-1 == base_year
             out_y0 = base ;
             if do_debug
-                disp('out_y0 from luh2')
+                disp('out_y0 from baseline LU')
             end
             out_y0_2deg = base_2deg ;
             out_y0_vegd_YX = sum(base.maps_YXv(:,:,notBare),3) ;
@@ -474,7 +474,7 @@ for d = 1:length(dirList)
         end
         
         % Get maximum allowed N fertilization (maximum seen for this crop
-        % in any PLUM output thus far, or in LUH2, or in any harmonized
+        % in any PLUM output thus far, or in baseline LU, or in any harmonized
         % output thus far [although no harmonized output should exceed max
         % anyway)
         if ~combineCrops

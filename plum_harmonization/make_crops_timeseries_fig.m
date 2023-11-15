@@ -1,5 +1,5 @@
 function make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, legend_ts, yearList_luh2, yearList_orig, units, ...
+    LPJGcrops, legend_ts, yearList_baselineLU, yearList_orig, units, ...
     titleWord, fileWord, out_dir)
 
 Ncrops_lpjg = length(LPJGcrops) ;
@@ -20,7 +20,7 @@ figure('Color', 'w', 'Resize', 'off', 'Position', thisPos)
 for v = 1:Ncrops_lpjg
     subplot_tight(ny,2,v,spacing) ;
     if ~isempty(ts_base_cy)
-        plot(yearList_luh2,ts_base_cy(v,:),'-k','LineWidth',2) ;
+        plot(yearList_baselineLU,ts_base_cy(v,:),'-k','LineWidth',2) ;
     end
     set(gca,'ColorOrderIndex',1) ;
     hold on

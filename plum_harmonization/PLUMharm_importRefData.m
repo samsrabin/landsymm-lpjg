@@ -77,8 +77,8 @@ resFrac_prot_YX = flipud(cell2mat(resFrac_prot)) ;
 clear resFrac_prot
 resFrac_prot_YX(resFrac_prot_YX==-9999) = 0 ;
 
-% Get LUH2 land area (m2)
-disp('    Get LUH2 land area')
+% Get land area (m2)
+disp('    Get land area')
 gcelArea_YXqd = 1e6*double(transpose(ncread(landarea_file,'carea'))) ;
 land_frac_YXqd = 1 - double(flipud(transpose(ncread(landarea_file,'icwtr')))) ;
 landArea_YXqd = gcelArea_YXqd .* land_frac_YXqd ;
@@ -89,11 +89,11 @@ tmp = landArea_YXqd(:,1:2:1440) + landArea_YXqd(:,2:2:1440) ;
 landArea_YX = tmp(1:2:720,:) + tmp(2:2:720,:) ;
 clear *_YXqd tmp
 
-% Import LUH2 base_year
-disp('    Import LUH2 base_year')
+% Import baseline LU base_year
+disp('    Import baseline LU base_year')
 base = lpjgu_matlab_readTable_then2map(remap_lu_file, 'force_mat_save', true);%, 'verbose', true, 'verboseIfNoMat', true) ;
 if ~isempty(find(base.maps_YXvy(:,:,contains(base.varNames,{'URBAN','PEATLAND'}),:)>0,1))
-    error('This code is not designed to handle LUH2 inputs with any URBAN or PEATLAND area!')
+    error('This code is not designed to handle baseline LU inputs with any URBAN or PEATLAND area!')
 end
 if doHarm
     tmp = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),base.yearList==base_year) ;
@@ -103,13 +103,13 @@ if doHarm
     clear tmp
     bad_base_YX = sum(base.maps_YXv,3)==0 | isnan(sum(base.maps_YXv,3)) ;
 else
-    [~,IA,~] = intersect(base.yearList,yearList_luh2) ;
-    if ~isequal(IA-min(IA)+1,(1:length(yearList_luh2))')
-        error('Incompatible yearList_luh2?')
+    [~,IA,~] = intersect(base.yearList,yearList_baselineLU) ;
+    if ~isequal(IA-min(IA)+1,(1:length(yearList_baselineLU))')
+        error('Incompatible yearList_baselineLU?')
     end
     base.maps_YXvy = base.maps_YXvy(:,:,~contains(base.varNames,{'URBAN','PEATLAND'}),IA) ;
     base.varNames(contains(base.varNames,{'URBAN','PEATLAND'})) = [] ;
-    base.yearList = yearList_luh2 ;
+    base.yearList = yearList_baselineLU ;
     bad_base_YX = sum(sum(base.maps_YXvy,3),4)==0 | isnan(sum(sum(base.maps_YXvy,3),4)) ;
     clear IA IB
 end
@@ -165,7 +165,7 @@ disp('    Get repmat 0.5-degree land area')
 Nlu = length(LUnames) ;
 landArea_YXv = repmat(landArea_YX,[1 1 Nlu]) ;
 if ~doHarm
-    Nyears_luh2 = length(yearList_luh2) ;
+    Nyears_baselineLU = length(yearList_baselineLU) ;
 end
 
 % Avoid, to high precision, sum(LU) > 1
@@ -198,7 +198,7 @@ end
 
 % Convert from "fraction of land" to "land area (m2)"
 disp('    Convert from "fraction of land" to "land area (m2)"')
-% (This also masks where needed due to harmonization of LUH2+PLUM masks)
+% (This also masks where needed due to harmonization of baselineLU+PLUM masks)
 if doHarm
     % First, avoid negative bare
     base_vegd_YX = sum(base.maps_YXv(:,:,~strcmp(base.varNames,'BARREN')),3) ;
@@ -212,7 +212,7 @@ if doHarm
     
     base.maps_YXv = base.maps_YXv .* landArea_YXv ;
 else
-    base.maps_YXvy = base.maps_YXvy .* repmat(landArea_YXv,[1 1 1 Nyears_luh2]) ;
+    base.maps_YXvy = base.maps_YXvy .* repmat(landArea_YXv,[1 1 1 Nyears_baselineLU]) ;
 end
 
 % Import base_year crop fractions
@@ -241,7 +241,7 @@ else
             base_cropf.maps_YXv(repmat(mask_YX,[1 1 length(base_cropf.varNames)])) = NaN ;
             clear tmp
         else
-            base_cropf.maps_YXvy(repmat(mask_YX,[1 1 length(base_cropf.varNames) Nyears_luh2])) = NaN ;
+            base_cropf.maps_YXvy(repmat(mask_YX,[1 1 length(base_cropf.varNames) Nyears_baselineLU])) = NaN ;
         end
     end
     % Combine CC3G and CC4G into ExtraCrop
@@ -288,15 +288,15 @@ else
     if ~doHarm
         if ~isfield(base_cropf,'yearList')
             base_cropf.yearList = base.yearList ;
-            base_cropf.maps_YXvy = repmat(base_cropf.maps_YXv,[1 1 1 Nyears_luh2]) ;
+            base_cropf.maps_YXvy = repmat(base_cropf.maps_YXv,[1 1 1 Nyears_baselineLU]) ;
             base_cropf = rmfield(base_cropf,'maps_YXv') ;
         else
-            [C,IA] = intersect(base_cropf.yearList,yearList_luh2) ;
-            if ~isequal(shiftdim(yearList_luh2),shiftdim(C))
-                error('Not all years of yearList_luh2 present in base_cropf.yearList.')
+            [C,IA] = intersect(base_cropf.yearList,yearList_baselineLU) ;
+            if ~isequal(shiftdim(yearList_baselineLU),shiftdim(C))
+                error('Not all years of yearList_baselineLU present in base_cropf.yearList.')
             end
             base_cropf.maps_YXvy = base_cropf.maps_YXvy(:,:,:,IA) ;
-            base_cropf.yearList = yearList_luh2 ;
+            base_cropf.yearList = yearList_baselineLU ;
             clear C IA
         end
     end
@@ -322,7 +322,7 @@ else
             base_irrig.maps_YXv(:,:,c) = tmp_YX ;
         end
     else
-        base_irrig.maps_YXvy = nan([size(landArea_YX) Ncrops_lpjg Nyears_luh2],'double') ;
+        base_irrig.maps_YXvy = nan([size(landArea_YX) Ncrops_lpjg Nyears_baselineLU],'double') ;
         for c = 1:Ncrops_lpjg
             thisCrop = LPJGcrops{c} ;
             if strcmp(thisCrop,'ExtraCrop')
@@ -357,15 +357,15 @@ else
     elseif ~doHarm
         if ~isfield(base_nfert,'yearList')
             base_nfert.yearList = base.yearList ;
-            base_nfert.maps_YXvy = repmat(base_nfert.maps_YXv,[1 1 1 Nyears_luh2]) ;
+            base_nfert.maps_YXvy = repmat(base_nfert.maps_YXv,[1 1 1 Nyears_baselineLU]) ;
             base_nfert = rmfield(base_nfert,'maps_YXv') ;
         else
-            [C,IA] = intersect(base_nfert.yearList,yearList_luh2) ;
-            if ~isequal(shiftdim(yearList_luh2),shiftdim(C))
-                error('Not all years of yearList_luh2 present in base_cropf.yearList.')
+            [C,IA] = intersect(base_nfert.yearList,yearList_baselineLU) ;
+            if ~isequal(shiftdim(yearList_baselineLU),shiftdim(C))
+                error('Not all years of yearList_baselineLU present in base_cropf.yearList.')
             end
             base_nfert.maps_YXvy = base_nfert.maps_YXvy(:,:,:,IA) ;
-            base_nfert.yearList = yearList_luh2 ;
+            base_nfert.yearList = yearList_baselineLU ;
             clear C IA
         end
     end
@@ -376,7 +376,7 @@ else
         if doHarm
             base_nfert.maps_YXv = cat(3,base_nfert.maps_YXv,zeros(size(landArea_YX))) ;
         else
-            base_nfert.maps_YXvy = cat(3,base_nfert.maps_YXvy,zeros([size(landArea_YX) 1 Nyears_luh2])) ;
+            base_nfert.maps_YXvy = cat(3,base_nfert.maps_YXvy,zeros([size(landArea_YX) 1 Nyears_baselineLU])) ;
         end
     end
     [~,IA,IB] = intersect(LPJGcrops,base_nfert.varNames,'stable') ;
@@ -501,8 +501,8 @@ if ~combineCrops && doHarm
         LPJGcrops, inpaint_method) ;
 end
 
-% Get LUH2 2-deg fraction that is vegetated, barren
-disp('    Get LUH2 2-deg fraction that is vegetated, barren')
+% Get baseline LU 2-deg fraction that is vegetated, barren
+disp('    Get baseline LU 2-deg fraction that is vegetated, barren')
 if doHarm
     base_2deg_vegd_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
     base_2deg_bare_YX = base_2deg.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
