@@ -317,6 +317,8 @@ for d = 1:length(dirList)
         % positive PLUM discrepancy can foreshadow an eventual drop to zero
         % after harmonization.
         if thisYear-1 == base_year
+            fprintf('    PLUM baseline (%d) discrepancies relative to baseline LU:\n', ...
+                base_year)
             for v = 1:length(in_y0.varNames)
                 thisVar = in_y0.varNames{v} ;
                 
@@ -325,7 +327,7 @@ for d = 1:length(dirList)
                 tmp_in = squeeze(nansum(nansum(tmp_in_area_YX,2),1)) ;
                 tmp_out_area_YX = out_y0.maps_YXv(:,:,v) ;
                 tmp_out = squeeze(nansum(nansum(tmp_out_area_YX,2),1)) ;
-                check_discrepancy(tmp_in, tmp_out, base_year, thisVar, 'area')
+                check_discrepancy(tmp_in, tmp_out, thisVar, 'area')
                 
                 % Managements
                 if ~isCrop(v)
@@ -337,14 +339,14 @@ for d = 1:length(dirList)
                 tmp_out = squeeze(nansum(nansum( ...
                     tmp_out_area_YX .* ...
                     out_y0_nfert_YXv(:,:,strcmp(LPJGcrops, thisVar)),1),2)) ;
-                check_discrepancy(tmp_in, tmp_out, base_year, thisVar, 'fert')
+                check_discrepancy(tmp_in, tmp_out, thisVar, 'fert')
                 tmp_in = squeeze(nansum(nansum( ...
                     tmp_in_area_YX .* ...
                     in_y0_irrig.maps_YXv(:,:,strcmp(LPJGcrops, thisVar)),1),2)) ;
                 tmp_out = squeeze(nansum(nansum( ...
                     tmp_out_area_YX .* ...
                     out_y0_irrig_YXv(:,:,strcmp(LPJGcrops, thisVar)),1),2)) ;
-                check_discrepancy(tmp_in, tmp_out, base_year, thisVar, 'irrig')                
+                check_discrepancy(tmp_in, tmp_out, thisVar, 'irrig')                
             end 
         end
 
@@ -1355,20 +1357,15 @@ end
 
 %% FUNCTIONS
 
-function check_discrepancy(tmp_in, tmp_out, base_year, thisVar, thisName)
+function check_discrepancy(tmp_in, tmp_out, thisVar, thisName)
 
 errPct = (tmp_in - tmp_out) / tmp_out * 100 ;
 errSign = '' ;
 if errPct > 0
     errSign = '+' ;
 end
-if tmp_out > 0 && abs(errPct) > 50
-    warning('PLUM baseline (%d) discrepancy: %s: %s: %s%0.1f%%', ...
-        base_year, thisVar, thisName, errSign, errPct)
-end
-if errPct < -99
-    keyboard
-end
+fprintf('        %s %s: %s%0.1f%%\n', ...
+    thisVar, thisName, errSign, errPct)
 
 end
 
