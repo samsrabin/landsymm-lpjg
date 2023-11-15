@@ -16,6 +16,7 @@ set(gca, ...
 
 colormap(gca, 'cool')
 
+fig_title = replace(fig_title, '_', '\_') ;
 title(fig_title)
 
 out_res = 150 ;
