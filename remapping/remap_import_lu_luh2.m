@@ -100,20 +100,6 @@ v = strcmp(list_LU_out,'BARREN') ;
 out_lu.garr_xvy(:,v,:) = out_lu.garr_xvy(:,v,:) ...
     + repmat(icwtr_hd_x,[1 1 Nyears_out]) ;
 
-% Mask cells with no vegetated land according to LU dataset
-bad_x = out_lu.garr_xvy(:,4,1)==1 ;
-if any(bad_x)
-    error('Decide how you want to handle masking of cells with no vegetated land.')
-    fprintf('Removing %d cells with no vegetated land...\n', length(find(bad_x))) ;
-    out_lu.garr_xvy(bad_x,:,:) = [] ;
-    out_lu.list2map(bad_x) = [] ;
-    out_lu.lonlats(bad_x,:) = [] ;
-    gridlist.mask_YX(gridlist.list2map(bad_x)) = false ;
-    gridlist.list2map(bad_x) = [] ;
-    gridlist.lonlats(bad_x,:) = [] ;
-    Ncells = length(gridlist.list2map) ;
-end
-
 % Force all land cells to sum to 1
 lu_out_x1y = sum(out_lu.garr_xvy,2) ;
 j = 0 ;

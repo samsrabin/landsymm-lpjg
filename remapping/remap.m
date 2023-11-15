@@ -113,6 +113,10 @@ else
     error('lu_source %s not recognized', lu_source)
 end
 
+% Note cells with no vegetated land according to LU dataset
+remap_import_lu_note_noveg(out_lu)
+
+
 
 %% Import crop fractions and process crop types
 
