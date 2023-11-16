@@ -322,7 +322,6 @@ disp('Done reading PLUM.')
 
 
 %% Scatter plots after Hurtt et al. (2011) Fig. 4 (crop, pre-harm)
-do_save = true ;
 
 % Options %%%
 ny = 1 ;
@@ -356,15 +355,12 @@ for r = 1:Nruns
     
 end
 
-if do_save
-    export_fig([out_dir 'scatter_hurtt2011_fig4.png'], '-r300') ;
-    close
-end
+export_fig([out_dir 'scatter_hurtt2011_fig4.png'], '-r300') ;
+close
 
 
 
 %% Scatter plots after Hurtt et al. (2011) Fig. 5 (crop and past, post-harm)
-do_save = true ;
 
 % Options %%%
 ny = 2 ;
@@ -499,10 +495,8 @@ for r = 1:Nruns
     end
 end
 
-if do_save
-    export_fig([out_dir 'scatter_hurtt2011_fig5.png'], '-r300') ;
-    close
-end
+export_fig([out_dir 'scatter_hurtt2011_fig5.png'], '-r300') ;
+close
 
 
 %% Map deltas for orig and harm
@@ -511,7 +505,6 @@ end
 tmp_lu_list = {'NATURAL'} ;
 
 % Options %%%%%%%%%
-do_save = false ;
 fontSize = 14 ;
 % spacing = [0.02 0.02] - 0.0025*8 ;   % [vert, horz]
 spacing = 0 ;
@@ -657,24 +650,22 @@ for l = 1:length(tmp_lu_list)
             bins_lowBnds, this_colormap_name, col_titles, ...
             lines_overlay) ;
 
-        if do_save
-            filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
-                this_outdir, thisLU, y1, yN) ;
-            if ~as_frac_land
-                filename = strrep(filename, '.png', sprintf('.%s.png', units_map)) ;
-            end
-            export_fig(filename, pngres) ;
-            close
-            if as_frac_land && length(y1_list) == 1
-                disp('Saving GeoTIFFs...')
-                for r = 1:Nruns
-                    filename = sprintf('%s/D%s_%d-%d_%s_orig.tif', ...
-                        removeslashifneeded(this_outdir_geo), ...
-                        thisLU_short, y1_list, yN_list, runList_legend{r}) ;
-                    geotiffwrite_ssr(filename,orig_diff_YXrH(:,:,r),R,-999)
-                    filename = strrep(filename, 'orig', 'harm') ;
-                    geotiffwrite_ssr(filename,harm_diff_YXrH(:,:,r),R,-999)
-                end
+        filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
+            this_outdir, thisLU, y1, yN) ;
+        if ~as_frac_land
+            filename = strrep(filename, '.png', sprintf('.%s.png', units_map)) ;
+        end
+        export_fig(filename, pngres) ;
+        close
+        if as_frac_land && length(y1_list) == 1
+            disp('Saving GeoTIFFs...')
+            for r = 1:Nruns
+                filename = sprintf('%s/D%s_%d-%d_%s_orig.tif', ...
+                    removeslashifneeded(this_outdir_geo), ...
+                    thisLU_short, y1_list, yN_list, runList_legend{r}) ;
+                geotiffwrite_ssr(filename,orig_diff_YXrH(:,:,r),R,-999)
+                filename = strrep(filename, 'orig', 'harm') ;
+                geotiffwrite_ssr(filename,harm_diff_YXrH(:,:,r),R,-999)
             end
         end
     end
@@ -901,7 +892,6 @@ legend(runList_legend, 'Location', 'best')
 
 
 %% Map one year, one LC for orig and harm
-do_save = true ;
 
 thisLU = 'NATURAL' ;
 thisYear = 2010 ;
@@ -980,12 +970,10 @@ thisYear = 2010 ;
 %    bins_lowBnds, this_colormap_name, col_titles, ...
 %    lines_overlay) ;
 %
-%if do_save
 %    filename = sprintf('%s/maps_%d_beforeAfter.png', ...
 %        this_outdir, thisYear) ;
 %    export_fig(filename, pngres) ;
 %    close
-%end
     
 
 %% Time series of LUs
