@@ -2,6 +2,27 @@ function [THISlist_cropsCombined_out, THISin2out_keyCombined_frac, ...
     THISlist_ignore_frac, ...
     out_names, out_keys, out_ignores, out_ignore_types] ...
     = get_remapv2_keys(in_version)
+% get_remapv2_keys()
+%    This function returns cells arrays related to the mapping of crop types between
+%    LandSyMM and MIRCA. Each code block represents one mapping scheme, with the oldest
+%    schemes on top. To add a scheme, use an existing scheme as a template and rename it
+%    (making sure to add the new name to out_names). Then:
+%        1. For each LandSyMM crop LCROP, write a line with left-hand side
+%               in2out_keyCombined_frac{getOci('LCROP')}
+%           and right-hand side
+%               {'MCROP1', 'MCROP2'} ;
+%           This means that the areas for MIRCA crops MCROP1 and MCROP2 will be summed to
+%           create LandSyMM crop LCROP.
+%        2. If there are any MIRCA crops not included in any LandSyMM crop, add them to
+%           outIgnores like so:
+%               out_ignores{strcmp(out_names,'YOUR_SCHEMENAME)} = ...
+%                   {'NOTINCLUDED1', 'NOTINCLUDED2', 'NOTINCLUDED3} ;
+%
+%    NOTE that may not be the only place you need to make changes! See also:
+%    * remap_AgGRID_type_to_LandSyMM()
+%    * remap_combine_Nfert()  --> Only if adding a new combined_ type to
+%                                 remap_AgGRID_type_to_LandSyMM()
+%    * get_fao_info()  --> used in calibration only, not remapping
 
 out_names = {'20180105b', '20180206', '20180210', '20180212', ...
     '20180214', '20190216', ...
