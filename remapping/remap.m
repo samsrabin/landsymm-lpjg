@@ -189,17 +189,23 @@ end
 remap_import_lu_note_noveg(out_lu)
 
 % Force all land cells to sum to 1
-% (Doing this here instead of a function avoids memory cost if this is unnecessary.)
+% (Doing this here instead of a function avoids memory cost of duplicating out_lu if this
+% is unnecessary.)
 lu_out_x1y = sum(out_lu.garr_xvy,2) ;
 j = 0 ;
 Nlu_out = length(out_lu.varNames) ;
 while remap_get_xvy_sumLU_max_diff(out_lu.garr_xvy, 1) > 1e-6
+    if j == 0
+        disp('Forcing all land cells'' LU fractions to sum to 1:')
+        fprintf('    Before iteration 1, max err = %g\n', max(max(abs(lu_out_x1y-1))))
+    end
     j = j + 1;
     if j > 50
         error('Possible infinite loop in "remap_import_lu_force_sum1()".')
     end
     out_lu.garr_xvy = out_lu.garr_xvy ./ repmat(lu_out_x1y,[1 Nlu_out 1]) ;
     lu_out_x1y = sum(out_lu.garr_xvy,2) ;
+    fprintf('    After  iteration %d, max err = %g\n', j, max(max(abs(lu_out_x1y-1))))
 end
 clear j lu_out_x1y
 
