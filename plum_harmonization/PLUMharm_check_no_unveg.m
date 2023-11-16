@@ -11,7 +11,6 @@ bad_YX = bad_YX & landArea_YX>0 ;
 
 Nbad = length(find(bad_YX)) ;
 if Nbad
-    keyboard
     error('%s baseline has %d non-vegetated gridcells where landArea>0!', ...
         which_baseline, Nbad)
 end
