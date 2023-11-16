@@ -896,6 +896,10 @@ end
 hold off
 legend(runList_legend, 'Location', 'best')
 
+title('Time series of harmonization effect on change in non-agri area')
+export_fig([out_dir 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf']) ;
+close
+
 
 %% Map one year, one LC for orig and harm
 
