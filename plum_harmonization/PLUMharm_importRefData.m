@@ -545,13 +545,7 @@ else
 end
 
 % Check that there are no non-vegetated gridcells where landArea>0
-if (doHarm && any(any(sum(base.maps_YXv(:,:,~strcmp(base.varNames,'BARREN')),3)==0 & landArea_YX>0))) ...
-|| (~doHarm && any(any(any(sum(base.maps_YXvy(:,:,~strcmp(base.varNames,'BARREN'),:),3)==0 & landArea_YX>0))))
-    error('Half-deg baseline has non-vegetated gridcells where landArea>0!')
-end
-if (doHarm && any(any(sum(base_2deg.maps_YXv(:,:,~strcmp(base_2deg.varNames,'BARREN')),3)==0 & landArea_2deg_YX>0))) ...
-|| (~doHarm && any(any(any(sum(base_2deg.maps_YXvy(:,:,~strcmp(base_2deg.varNames,'BARREN'),:),3)==0 & landArea_2deg_YX>0))))
-    error('2-deg baseline has non-vegetated gridcells where landArea>0!')
-end
+PLUMharm_check_no_unveg(base, landArea_YX, 'Half-deg')
+PLUMharm_check_no_unveg(base_2deg, landArea_2deg_YX, '2-deg')
 
 disp('Done importing reference data.')
