@@ -100,6 +100,9 @@ out_lu.garr_xvy(icwtr_hd_xvy==0) = tmp_xvy(icwtr_hd_xvy==0) ;
 clear tmp_xvy
 out_lu.garr_xvy(:,v,:) = out_lu.garr_xvy(:,v,:) ...
     + icwtr_hd_x1y ;
+
+% Check again
+max_lufrac_sum_diff_from_1 = remap_get_xvy_sumLU_max_diff(out_lu.garr_xvy, 1) ;
 if max_lufrac_sum_diff_from_1 >= 1e-6
     error('Error in adding ice/water fraction to BARREN: Fractions do not sum to 1')
 end
