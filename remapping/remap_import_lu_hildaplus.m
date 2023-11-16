@@ -79,17 +79,18 @@ carea_hd_XY = aggregate(carea_XY,0.25,0.5) ;
 
 disp('Finishing...')
 
+% Ensure that LU fractions sum to 1, which is required for next step as coded
+max_lufrac_sum_diff_from_1 = remap_get_xvy_sumLU_max_diff(out_lu.garr_xvy, 1) ;
+if max_lufrac_sum_diff_from_1 >= 1e-6
+    error('LU fractions don''t appear to sum to 1. How should ice/water fraction be handled?')
+end
+
 % Add water fraction to BARREN
 icwtr_YX = flipud(transpose(ncread(file_lu_etc,'icwtr'))) ;
 icwtr_YX(icwtr_YX==1) = 0 ;
 icwtr_hd_YX = aggregate(icwtr_YX.*flipud(carea_XY'),0.25,0.5)./flipud(carea_hd_XY') ;
 icwtr_hd_x = icwtr_hd_YX(gridlist.list2map) ;
 v = strcmp(list_LU_out,'BARREN') ;
-% Ensure that LU fractions sum to 1, which is required for this step as coded
-max_lufrac_sum_diff_from_1 = max(max(abs(1-sum(out_lu.garr_xvy, 2)))) ;
-if max_lufrac_sum_diff_from_1 >= 1e-6
-    error('LU fractions don''t appear to sum to 1. How should ice/water fraction be handled?')
-end
 Nlu = length(out_lu.varNames) ;
 icwtr_hd_x1y = repmat(icwtr_hd_x, [1, 1, Nyears_out]) ;
 icwtr_hd_xvy = repmat(icwtr_hd_x1y, [1, Nlu, 1]) ;
