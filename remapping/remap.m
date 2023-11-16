@@ -61,7 +61,8 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %               be written:
 %                   sprintf('remaps_v%s',remapVer)
 %     thisVer: String given to get_remapv2_keys() in order to retrieve the mapping of crop
-%              types between LPJ-GUESS and PLUM. E.g., 'WithFruitVeg_sepSugar_sepOil'.
+%              types between LandSyMM and MIRCA (source of crop fraction data).
+%              E.g., 'WithFruitVeg_sepSugar_sepOil'.
 %     yearList_out: Years to be saved in output files. E.g., 1850:2015.
 
 remap_options
