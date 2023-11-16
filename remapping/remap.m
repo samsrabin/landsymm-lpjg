@@ -334,22 +334,8 @@ for c = 1:Ncrops_out
     if strcmp(thisCrop_out(end), 'i')
         thisCrop_out = thisCrop_out(1:end-1) ;
     end
-    switch thisCrop_out
-        case {'CerealsC3', 'StarchyRoots', 'FruitAndVeg', ...
-                'Sugarbeet', 'OilOther', 'ExtraCrop'}
-            thisCrop_in = 'wheat' ;
-        case {'CerealsC4', 'Miscanthus', 'Sugarcane'}
-            thisCrop_in = 'maize' ;
-        case {'Oilcrops', 'Pulses', 'OilNfix'}
-            thisCrop_in = 'soybean' ;
-        case {'Rice'}
-            thisCrop_in = 'rice' ;
-        case {'Sugar'}
-            thisCrop_in = 'combined_sugars' ;
-        otherwise
-            error('What crop from Nfert inputs should I use for %s?', thisCrop_out)
-    end
-    list_crops_out_asNfert{c} = thisCrop_in ;
+    
+    list_crops_out_asNfert{c} = remap_AgGRID_type_to_LandSyMM(thisCrop_out) ;
 end
 
 mid_nfert.varNames = list_crops_out ;
