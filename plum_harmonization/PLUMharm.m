@@ -21,6 +21,9 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %              relative paths (i.e., not absolute paths) in dirList.
 %
 % HARMONIZATION BEHAVIOR
+%     allow_unveg: EXPERIMENTAL! Land cells with no vegetated area might have problems in
+%                  harmonization. Set this to false to throw an error if unvegetated land
+%                  cells are present in baseline LU dataset.
 %     conserv_tol_pct: How much divergence (%) from PLUM-original transition is
 %                      acceptable? Also used for checking whether 
 %                         out_total > max_mgmt_thisRing.

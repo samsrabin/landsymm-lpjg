@@ -545,7 +545,9 @@ else
 end
 
 % Check that there are no non-vegetated gridcells where landArea>0
-PLUMharm_check_no_unveg(base, landArea_YX, 'Half-deg')
-PLUMharm_check_no_unveg(base_2deg, landArea_2deg_YX, '2-deg')
+if ~allow_unveg
+    PLUMharm_check_no_unveg(base, landArea_YX, 'Half-deg')
+    PLUMharm_check_no_unveg(base_2deg, landArea_2deg_YX, '2-deg')
+end
 
 disp('Done importing reference data.')

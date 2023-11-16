@@ -42,6 +42,10 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %                  outputs from this script will go.
 %
 % REMAPPING BEHAVIOR
+%     fill_unveg: EXPERIMENTAL! Land cells with no vegetated area might have problems in
+%                 harmonization. Set to a negative number to throw an error in such cases.
+%                 Set to 0 to ignore. Set to a positive number <= 1 to transfer that much
+%                 area fraction from BARREN to NATURAL.
 %     force_all_rainfed: Move all irrigated area to rainfed? Not sure why we'd want this
 %                        to ever be true; maybe for troubleshooting? Recommendation: false
 %     inpaint_method: Method (integer ≥0) to be used by inpaint_nans(). See help of that
@@ -186,7 +190,7 @@ else
 end
 
 % Note cells with no vegetated land according to LU dataset
-remap_import_lu_note_noveg(out_lu)
+out_lu = remap_import_lu_note_noveg(out_lu, fill_unveg) ;
 
 % Force all land cells to sum to 1
 % (Doing this here instead of a function avoids memory cost of duplicating out_lu if this
@@ -209,6 +213,10 @@ while remap_get_xvy_sumLU_max_diff(out_lu.garr_xvy, 1) > 1e-6
 end
 clear j lu_out_x1y
 
+% Ensure that the above didn't introduce any new unvegetated cells
+if fill_unveg > 0
+    remap_import_lu_note_noveg(out_lu, -1) ;
+end
 
 
 %% Import crop fractions and process crop types
