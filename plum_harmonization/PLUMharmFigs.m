@@ -881,6 +881,9 @@ x = yearList_orig(2:end) ;
 lms = cell(Nruns,1) ;
 for r = 1:Nruns
     lms{r} = fitlm(x, harmEffect_yr(:,r)) ;
+    if strcmp(lastwarn, 'Regression design matrix is rank deficient to within machine precision.')
+        lms{r} = [] ;
+    end
 end
 
 figure('Color', 'w', 'Position', thisPos) ;
@@ -890,8 +893,10 @@ set(gca, 'FontSize', fontSize) ;
 hold on
 set(gca,'ColorOrderIndex',1) ;
 for r = 1:Nruns
-    plot(x, lms{r}.Fitted, '--', ...
-        'LineWidth', 2)
+    if ~isempty(lms{r})
+        plot(x, lms{r}.Fitted, '--', ...
+            'LineWidth', 2)
+    end
 end
 hold off
 legend(runList_legend, 'Location', 'best')
