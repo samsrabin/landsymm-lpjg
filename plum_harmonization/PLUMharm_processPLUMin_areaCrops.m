@@ -230,24 +230,19 @@ end
 S.maps_YXv(landArea_YXv==0) = NaN ;
 
 % Harmonize vegetated+barren fractions
-% Will not work if any vegdFrac_y1_YX==0!
 if ~isempty(bareFrac_y0_YX)
     vegdFrac_y1_YX = sum(S.maps_YXv(:,:,notBare),3) ;
-    if min(vegdFrac_y1_YX(~isnan(vegdFrac_y1_YX))) == 0
-        error('"Harmonize vegetated+barren fractions" will not work if any vegdFrac_y1_YX==0!')
+    vegdFrac_y1_YXrep = repmat(vegdFrac_y1_YX, [1 1 sum(notBare)]) ;
+    vegdFrac_y1_YXv = S.maps_YXv(:,:,notBare) ./ vegdFrac_y1_YXrep ;
+    vegdFrac_y1_YXv(vegdFrac_y1_YXrep==0) = 0 ;
+    S.maps_YXv(:,:,notBare) = vegdFrac_y1_YXv .* (1 - bareFrac_y0_YX) ;
+    S.maps_YXv(:,:,~notBare) = bareFrac_y0_YX ;
+    tol = 1e-12 ;
+    maxdiff = nanmax(nanmax(abs(sum(S.maps_YXv, 3) - 1))) ;
+    if maxdiff > tol
+        error('Land use fractions don''t sum to 1 within tolerance %g; max abs. difference %g', ...
+            tol, maxdiff)
     end
-    bareFrac_y1_YX = S.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ;
-    bare_diff_YX = bareFrac_y1_YX - bareFrac_y0_YX ;
-    
-    nonBare_weights_YXv = S.maps_YXv(:,:,notBare) ./ repmat(vegdFrac_y1_YX, [1 1 length(find(notBare))]) ;
-    nonBare_weights_YXv(repmat(vegdFrac_y1_YX,[1 1 length(find(notBare))])==0) = 0 ;
-    
-    S.maps_YXv(:,:,notBare) = S.maps_YXv(:,:,notBare) ...
-        + (repmat(bare_diff_YX,[1 1 length(find(notBare))]) ...
-        .* nonBare_weights_YXv) ;
-    S.maps_YXv(:,:,strcmp(LUnames,'BARREN')) = ...
-        S.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ...
-        - bare_diff_YX ;
 end
 
 % Convert map to km2 (with zeros instead of NaNs)
