@@ -12,6 +12,9 @@ switch landsymm_type
         aggrid_type = 'rice' ;
     case {'Sugar'}
         aggrid_type = 'combined_sugars' ;
+    case {'OilPalm'}
+        % Use coffee because, like coffee, oil palm is a perennial tree.
+        aggrid_type = 'coffee' ;
     otherwise
         error('What crop from AgGRID Nfert inputs should I use for %s?', landsymm_type)
 end

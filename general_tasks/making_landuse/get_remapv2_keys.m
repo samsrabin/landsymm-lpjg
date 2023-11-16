@@ -31,6 +31,7 @@ out_names = {'20180105b', '20180206', '20180210', '20180212', ...
     'WithFruitVegSugar_b_2oil', ...
     'WithFruitVeg_sepSugar', ...
     'WithFruitVeg_sepSugar_sepOil', ...
+    'WithFruitVeg_sepSugar_sepOilInclPalm', ...
     'WithFruitVeg_sepSugar_sepOil_sepC3', ...
     'ggcmi5', 'ggcmi5_preBNF', ...
     'jianyong01', 'jianyong01b', ...
@@ -291,6 +292,30 @@ in2out_keyCombined_frac{getOci('CerealsC4')}   = {'Maize','Millet','Sorghum'} ;
 in2out_keyCombined_frac{getOci('Rice')}        = {'Rice'} ;
 in2out_keyCombined_frac{getOci('OilNfix')}    = {'Soybeans','GroundnutsPeanuts'} ;
 in2out_keyCombined_frac{getOci('OilOther')}    = {'Sunflower','RapeseedCanola','Oilpalm'} ;
+in2out_keyCombined_frac{getOci('Pulses')}      = {'Pulses'} ;
+in2out_keyCombined_frac{getOci('StarchyRoots')}= {'Potatoes','Cassava'} ;
+in2out_keyCombined_frac{getOci('FruitAndVeg')} = {'Datepalm','Citrus','GrapesVine','OtherAnnuals','OtherPerennials'} ;
+in2out_keyCombined_frac{getOci('Sugarbeet')}       = {'Sugarbeet'} ;
+in2out_keyCombined_frac{getOci('Sugarcane')}       = {'Sugarcane'} ;
+out_keys{strcmp(out_names,thisOne)} = in2out_keyCombined_frac ;
+list_cropsCombined_out_ALL{strcmp(out_names,thisOne)} = list_cropsCombined_out ;
+clear in2out_keyCombined_frac
+out_ignores{strcmp(out_names,thisOne)} = ...
+    {'Cotton';'Cocoa';'Coffee';'FodderGrasses'} ;
+
+% WithFruitVeg_sepSugar_sepOilInclPalm
+% As WithFruitVeg_sepSugar_sepOilInclPalm, but with OilPalm broken out from OilNfix
+thisOne = 'WithFruitVeg_sepSugar_sepOilInclPalm' ;
+list_cropsCombined_out = {'CerealsC3','CerealsC4','Rice', ...
+    'OilNfix','OilOther','OilPalm', ...
+    'Pulses','StarchyRoots','FruitAndVeg','Sugarbeet','Sugarcane'} ;
+getOci = @(x) find(strcmp(list_cropsCombined_out,x)) ;
+in2out_keyCombined_frac{getOci('CerealsC3')}   = {'Wheat','Barley','Rye'} ;
+in2out_keyCombined_frac{getOci('CerealsC4')}   = {'Maize','Millet','Sorghum'} ;
+in2out_keyCombined_frac{getOci('Rice')}        = {'Rice'} ;
+in2out_keyCombined_frac{getOci('OilNfix')}    = {'Soybeans','GroundnutsPeanuts'} ;
+in2out_keyCombined_frac{getOci('OilOther')}    = {'Sunflower','RapeseedCanola'} ;
+in2out_keyCombined_frac{getOci('OilPalm')}     = {'Oilpalm'} ;
 in2out_keyCombined_frac{getOci('Pulses')}      = {'Pulses'} ;
 in2out_keyCombined_frac{getOci('StarchyRoots')}= {'Potatoes','Cassava'} ;
 in2out_keyCombined_frac{getOci('FruitAndVeg')} = {'Datepalm','Citrus','GrapesVine','OtherAnnuals','OtherPerennials'} ;
