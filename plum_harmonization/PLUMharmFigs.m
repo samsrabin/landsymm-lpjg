@@ -19,6 +19,8 @@ PLUMharm_options
 %     thisVer: (Optional.) String with values either '' (use half-degree harmonization
 %              files), '2deg.' (use 2-degree harmonization files), or 'orig.' (???). Just
 %              leave this unset to use default ''.
+%     threeYears: Some figures compare things at three different years. Specify those
+%                 three years here. Recommendation: [2011 2050 2100]
 %     yearList_baselineLU_toPlot: (Optional.) Years from baseline LU dataset to include in
 %                                 plots. If not provided, use all years.
 
@@ -108,6 +110,10 @@ if ~exist('thisVer', 'var')
     thisVer = '' ;
 elseif ~any(strcmp({'', '2deg.', 'orig.'}, thisVer))
     error('Unrecognized value of thisVer: %s', thisVer)
+end
+
+if min(threeYears) < min(yearList_harm) || max(threeYears) > max(yearList_harm)
+    error('threeYears must be entirely within yearList_harm')
 end
 
 
@@ -1073,7 +1079,6 @@ make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
 
 %% Maps: At three years
 
-theseYears = [2011 2050 2100] ;
 spacing = [0.01 0.025] ;
 cbar_loc = 'SouthOutside' ;
 y1 = 60 ;
@@ -1086,7 +1091,7 @@ for r = 1:Nruns
         figure('Color','w','Position',figurePos) ;
         thisLU = LUnames{v} ;
         for y = 1:3
-            thisYear = theseYears(y) ;
+            thisYear = threeYears(y) ;
             if isempty(intersect(yearList_orig, thisYear))
                 warning('Skipping %d (outside yearList)', thisYear)
                 continue
@@ -1111,7 +1116,7 @@ for r = 1:Nruns
             caxis(h2,new_caxis) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([out_dir 'maps_' thisLU '_' strrep(num2str(theseYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig([out_dir 'maps_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
         close
     end
 end
@@ -1119,7 +1124,6 @@ end
 
 %% Maps: Diffs between orig and harm at 3 years
 
-theseYears = [2011 2050 2100] ;
 spacing = [0.01 0.025] ;
 cbar_loc = 'SouthOutside' ;
 y1 = 60 ;
@@ -1133,7 +1137,7 @@ for r = 1:Nruns
         figure('Color','w','Position',thisPos) ;
         thisLU = LUnames{v} ;
         for y = 1:3
-            thisYear = theseYears(y) ;
+            thisYear = threeYears(y) ;
             if isempty(intersect(yearList_orig, thisYear))
                 warning('Skipping %d (outside yearList)', thisYear)
                 continue
@@ -1152,7 +1156,7 @@ for r = 1:Nruns
             title(sprintf('Harm-Orig, %s: %s, %d',thisRun,thisLU,thisYear)) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([out_dir 'mapsOHdiffs_' thisLU '_' strrep(num2str(theseYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig([out_dir 'mapsOHdiffs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
         close
     end
 end
@@ -1220,7 +1224,6 @@ disp('Done')
 
 %% Maps: Differences between two pairs of years
 
-theseYears = [2011 2050 2100] ;
 spacing = [0.01 0.025] ;
 cbar_loc = 'SouthOutside' ;
 y1 = 60 ;
@@ -1233,8 +1236,8 @@ for r = 1:Nruns
         figure('Color','w','Position',figurePos) ;
         thisLU = LUnames{v} ;
         for y = 1:2
-            thisYear1 = theseYears(y) ;
-            thisYear2 = theseYears(y+1) ;
+            thisYear1 = threeYears(y) ;
+            thisYear2 = threeYears(y+1) ;
             if isempty(intersect(yearList_orig, thisYear1)) || isempty(intersect(yearList_orig, thisYear2))
                 warning('Skipping %d-%d (outside yearList)', thisYear1, thisYear2)
                 continue
@@ -1265,7 +1268,7 @@ for r = 1:Nruns
             caxis(h2,new_caxis) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([out_dir 'mapsChgs_' thisLU '_' strrep(num2str(theseYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig([out_dir 'mapsChgs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
         close
     end
 end
