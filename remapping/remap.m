@@ -46,6 +46,7 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %                 harmonization. Set to a negative number to throw an error in such cases.
 %                 Set to 0 to ignore. Set to a positive number <= 1 to transfer that much
 %                 area fraction from BARREN to NATURAL.
+%                 * Optional; default -1.
 %     force_all_rainfed: Move all irrigated area to rainfed? Not sure why we'd want this
 %                        to ever be true; maybe for troubleshooting? Recommendation: false
 %     inpaint_method: Method (integer ≥0) to be used by inpaint_nans(). See help of that
@@ -132,6 +133,11 @@ interp_test_period_str = sprintf('%d-%d', interp_test_y1, interp_test_yN) ;
 
 if ischar(files_soil)
     files_soil = {files_soil} ;
+end
+
+if ~exist('fill_unveg', 'var')
+    % By default, if unvegetated land cells exist, error.
+    fill_unveg = -1 ;
 end
 
 warning('on','all')
