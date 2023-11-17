@@ -6,7 +6,7 @@ function [S, S_nfert, S_irrig, ...
         file_in_lcf, landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
         latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
         PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-        fruitveg_sugar_2oil, varargin)
+        fruitveg_sugar_2oil, allow_unveg, varargin)
 
 outPrec = 6 ;
 if ~isempty(varargin)
@@ -231,7 +231,7 @@ S.maps_YXv(landArea_YXv==0) = NaN ;
 
 % Harmonize vegetated+barren fractions
 if ~isempty(bareFrac_y0_YX)
-    S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX) ;
+    S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX, allow_unveg) ;
 end
 
 % Convert map to km2 (with zeros instead of NaNs)

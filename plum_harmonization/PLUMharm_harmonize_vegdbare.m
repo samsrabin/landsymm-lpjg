@@ -1,4 +1,5 @@
-function S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX)
+function S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX, ...
+    allow_unveg)
 
 bareFrac_y1_YX = sum(S.maps_YXv(:,:,~notBare), 3) ;
 if ~isequaln(bareFrac_y0_YX, bareFrac_y1_YX)
@@ -14,6 +15,11 @@ if ~isequaln(bareFrac_y0_YX, bareFrac_y1_YX)
 %     fprintf('        Sum bare |diff| = %g km2 (%0.2f%% of y0)\n', grossDiff, grossDiff_pct)
     
     vegdFrac_y1_YX = sum(S.maps_YXv(:,:,notBare),3) ;
+    
+    if ~allow_unveg && any(any(vegdFrac_y1_YX > 0 & landArea_YX == 0))
+        error('PLUM has vegetated fraction where baseline LU has either no land or all unvegetated land')
+    end
+    
     vegdFrac_y1_YXrep = repmat(vegdFrac_y1_YX, [1 1 sum(notBare)]) ;
     vegdFrac_y1_YXv = S.maps_YXv(:,:,notBare) ./ vegdFrac_y1_YXrep ;
     vegdFrac_y1_YXv(vegdFrac_y1_YXrep==0) = 0 ;
