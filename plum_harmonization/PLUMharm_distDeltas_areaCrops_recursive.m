@@ -74,10 +74,28 @@ for i = 1:size(landArea_2deg_YX,1)
         if update_avail_land
             now_agri_YX = sum(out_y0_agri_YXv(iy,ix,:),3) ;
             avail_land = out_y0_vegd_theseCells - now_agri_YX(:) ;
+
+            % Ensure that there is SOME available land if there's a net positive change in
+            % agricultural area
+            if sum(avail_land) == 0 && sum(agri_d) > 0
+                msg = sprintf('(%d,%d): Positive sum(agri_d) but no avail_land', ...
+                    i, j) ;
+                % If we're talking about very small changes in area, just ignore
+                if sum(agri_d) < conserv_tol_area
+                    out_y1_agri_YXv(iy,ix,:) = out_y0_agri_YXv(iy,ix,:) ;
+                    warning([msg '. Ignoring, because sum(agri_d) %g < conserv_tol_area %g'], ...
+                        sum(agri_d), conserv_tol_area)
+                    continue
+                % Otherwise, throw an error
+                else
+                    error([msg ' and sum(agri_d) %g >= conserv_tol_area %g'], ...
+                        sum(agri_d), conserv_tol_area)
+                end
+            end
         else
             avail_land = [] ;
         end
-        
+
         % Loop through all land uses (may be recursive)
         already_done = false(1,Nagri) ;
         [out_y1_agri_YXv, ~] = ...
