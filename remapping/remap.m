@@ -61,7 +61,8 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %               be written:
 %                   sprintf('remaps_v%s',remapVer)
 %     thisVer: String given to get_remapv2_keys() in order to retrieve the mapping of crop
-%              types between LPJ-GUESS and PLUM. E.g., 'WithFruitVeg_sepSugar_sepOil'.
+%              types between LandSyMM and MIRCA (source of crop fraction data).
+%              E.g., 'WithFruitVeg_sepSugar_sepOil'.
 %     yearList_out: Years to be saved in output files. E.g., 1850:2015.
 
 remap_options
@@ -334,22 +335,8 @@ for c = 1:Ncrops_out
     if strcmp(thisCrop_out(end), 'i')
         thisCrop_out = thisCrop_out(1:end-1) ;
     end
-    switch thisCrop_out
-        case {'CerealsC3', 'StarchyRoots', 'FruitAndVeg', ...
-                'Sugarbeet', 'OilOther', 'ExtraCrop'}
-            thisCrop_in = 'wheat' ;
-        case {'CerealsC4', 'Miscanthus', 'Sugarcane'}
-            thisCrop_in = 'maize' ;
-        case {'Oilcrops', 'Pulses', 'OilNfix'}
-            thisCrop_in = 'soybean' ;
-        case {'Rice'}
-            thisCrop_in = 'rice' ;
-        case {'Sugar'}
-            thisCrop_in = 'combined_sugars' ;
-        otherwise
-            error('What crop from Nfert inputs should I use for %s?', thisCrop_out)
-    end
-    list_crops_out_asNfert{c} = thisCrop_in ;
+    
+    list_crops_out_asNfert{c} = remap_AgGRID_type_to_LandSyMM(thisCrop_out) ;
 end
 
 mid_nfert.varNames = list_crops_out ;

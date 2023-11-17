@@ -37,7 +37,7 @@ if need_countries
         end
         countries_YX = flipud(dlmread(filename_countriesMap,'',NheaderLines,0)) ;
         countries_YX(countries_YX<=0) = NaN ;
-        countries_key = readtable(fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'country_boundaries', 'country_boundaries_codes4.csv') ;
+        countries_key = readtable(fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'country_boundaries', 'country_boundaries_codes4.csv')) ;
     else
         countries_YX = flipud(imread(filename_countriesMap)) ;
         countries_YX(countries_YX==0) = NaN ; % Water
