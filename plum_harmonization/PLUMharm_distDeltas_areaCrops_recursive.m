@@ -88,7 +88,7 @@ for i = 1:size(landArea_2deg_YX,1)
                     continue
                 % Otherwise, throw an error
                 else
-                    error([msg 'and sum(agri_d) %g >= conserv_tol_area %g'], ...
+                    error([msg ' and sum(agri_d) %g >= conserv_tol_area %g'], ...
                         sum(agri_d), conserv_tol_area)
                 end
             end
