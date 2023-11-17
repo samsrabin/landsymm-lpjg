@@ -24,6 +24,7 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %     allow_unveg: EXPERIMENTAL! Land cells with no vegetated area might have problems in
 %                  harmonization. Set this to false to throw an error if unvegetated land
 %                  cells are present in baseline LU dataset.
+%                  * Optional; default false
 %     conserv_tol_pct: How much divergence (%) from PLUM-original transition is
 %                      acceptable? Also used for checking whether 
 %                         out_total > max_mgmt_thisRing.
@@ -114,6 +115,9 @@ end
 
 if ~exist('fruitveg_sugar_2oil', 'var')
     fruitveg_sugar_2oil = false ;
+end
+if ~exist('allow_unveg', 'var')
+    allow_unveg = false ;
 end
 
 
