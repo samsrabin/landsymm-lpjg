@@ -81,7 +81,7 @@ for i = 1:size(landArea_2deg_YX,1)
                 msg = sprintf('(%d,%d): Positive sum(agri_d) but no avail_land', ...
                     i, j) ;
                 % If we're talking about very small changes in area, just ignore
-                if all(agri_d >= 0) && sum(agri_d) < conserv_tol_area
+                if sum(agri_d) < conserv_tol_area
                     out_y1_agri_YXv(iy,ix,:) = out_y0_agri_YXv(iy,ix,:) ;
                     warning([msg '. Ignoring, because sum(agri_d) %g < conserv_tol_area %g'], ...
                         sum(agri_d), conserv_tol_area)
