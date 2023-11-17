@@ -53,9 +53,9 @@ yearList_harm = year1:yearN ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
 if ~exist('legend_ts', 'var')
     if length(dirList) == 1
-        legend_ts = {'LUH2','Orig','Harm'} ;
+        legend_ts = {'Baseline LU','Orig','Harm'} ;
     else
-        legend_ts = {'LUH2'} ;
+        legend_ts = {'Baseline LU'} ;
         for s = 1:length(dirList)
             legend_ts = [legend_ts {dirList{s}(1:4)}] ; %#ok<AGROW>
         end
@@ -356,7 +356,7 @@ for r = 1:Nruns
     axis equal tight ;
     set(gca,'XLim',[0 1],'YLim',[0 1], 'FontSize', fontSize)
     title(runList_legend{r})
-    xlabel(sprintf('Fraction of gridcell %d (LUH2)', y1))
+    xlabel(sprintf('Fraction of gridcell %d (Baseline LU)', y1))
     ylabel(sprintf('Fraction of gridcell %d (PLUM output)', y1))
     
 end
