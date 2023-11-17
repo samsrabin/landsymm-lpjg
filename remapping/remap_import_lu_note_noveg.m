@@ -39,8 +39,6 @@ if Nbad
 
         % Check that this worked
         remap_import_lu_note_noveg(out_lu, -1) ;
-    elseif ~strcmp(handle_unveg, 'ignore')
-        error('Unrecognized handle_unveg: %s', handle_unveg)
     end
 
 end
