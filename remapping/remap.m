@@ -575,6 +575,11 @@ out_file_lu = fullfile(out_dir, ['LU.remapv' remapVer '.txt']) ;
 out_file_cropfrac = fullfile(out_dir, ['cropfracs.remapv' remapVer '.txt']) ;
 out_file_nfert = fullfile(out_dir, ['nfert.remapv' remapVer '.txt']) ;
 
+% Delete any existing .mat files so that MATLAB doesn't ignore the new .txt files we write
+delete_existing_mat_outputs(out_file_lu)
+delete_existing_mat_outputs(out_file_cropfrac)
+delete_existing_mat_outputs(out_file_nfert)
+
 % Add zeros for Miscanthus(i)
 disp('Adding zeros for Miscanthus(i)...')
 out_cropfrac.garr_xv = cat(2, ...
