@@ -109,9 +109,9 @@ for d = 1:length(harmDirs)
     end
     harmDir = removeslashifneeded(harmDir) ;
     disp(harmDir)
-    outDir = addslashifneeded([removeslashifneeded(harmDir) '.forLPJG']) ;
-    if ~exist(outDir, 'dir')
-        mkdir(outDir)
+    toLPJG_dir = addslashifneeded([removeslashifneeded(harmDir) '.forLPJG']) ;
+    if ~exist(toLPJG_dir, 'dir')
+        mkdir(toLPJG_dir)
     end
     
     
@@ -360,10 +360,10 @@ for d = 1:length(harmDirs)
     end
     
     % Get filenames
-    file_out_LU = [outDir 'landcover.txt'] ;
-    file_out_crop = [outDir 'cropfractions.txt'] ;
-    file_out_nfert = [outDir 'nfert.txt'] ;
-    file_out_irrig = [outDir 'irrig.txt'] ;
+    file_out_LU = [toLPJG_dir 'landcover.txt'] ;
+    file_out_crop = [toLPJG_dir 'cropfractions.txt'] ;
+    file_out_nfert = [toLPJG_dir 'nfert.txt'] ;
+    file_out_irrig = [toLPJG_dir 'irrig.txt'] ;
     if mincropfrac==0
         file_out_LU = strrep(file_out_LU, '.txt', '.noMinCropFrac.txt') ;
         file_out_crop = strrep(file_out_crop, '.txt', '.noMinCropFrac.txt') ;
