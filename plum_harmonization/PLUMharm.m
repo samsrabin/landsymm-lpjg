@@ -165,8 +165,15 @@ for d = 1:length(plumDirs)
             plumDir, pwd)
     end
     plumDir = addslashifneeded(plumDir) ;
+    [~, plumDir_fa] = fileattrib(plumDir) ;
+    fprintf('\n*\n*\n*\nPLUM output directory (plumDir): %s\n', plumDir_fa.Name) ;
+
+    % Check input directory
+    if ~plumDir_fa.UserRead
+        error('plumDir is not readable!')
+    elseif ~plumDir_fa.directory
+        error('plumDir is not a directory!')
     end
-    disp(inDir)
     outDir = [inDir '.harm'] ;
     outDir = get_harm_dir(outDir, fruitveg_sugar_2oil, combineCrops) ;
     outDir = addslashifneeded(outDir) ;
