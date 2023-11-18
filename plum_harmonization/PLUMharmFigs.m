@@ -201,7 +201,7 @@ end
 for r = 1:Nruns
     plumDir = removeslashifneeded(plumDirs{r}) ;
     if ~exist(plumDir, 'dir')
-        error('plumDir %s not found. Try changing MATLAB working directory to plumDir''s parent.')
+        error('plumDir not found: %s')
     end
 
     % Original
