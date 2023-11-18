@@ -34,8 +34,8 @@ PLUMharm_options
 %     someofall: Make it so that each gridcell always has at least some tiny amount of
 %                every crop? Needed to avoid weird first few years after a cell gets its
 %                first area of some new crop. Recommendation: true
-%     toLPJG_dirs: (Optional.) Directories where outputs of this script will be saved. If
-%                  not provided, will append '.harm' to each harmDir.
+%     forLPJG_dirs: (Optional.) Directories where outputs of this script will be saved. If
+%                   not provided, will append '.harm' to each harmDir.
 %     verbose_write: Set to true to slightly increase verbosity of write step.
 %     yStep: Save output files every yStep years. Recommendation: 1
 %     y1_pre: Experimental setting trying to avoid new crop spinup time; will repeat first
@@ -84,17 +84,17 @@ end
 harmDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
 Ndirs = length(harmDirs) ;
 
-% Get toLPJG_dirs, if needed
-if ~exist('toLPJG_dirs', 'var')
-    toLPJG_dirs = cell(Ndirs, 1) ;
+% Get forLPJG_dirs, if needed
+if ~exist('forLPJG_dirs', 'var')
+    forLPJG_dirs = cell(Ndirs, 1) ;
     for d = 1:Ndirs
         harmDir = removeslashifneeded(harmDirs{d}) ;
-        toLPJG_dirs{d} = [harmDir '.forLPJG/'] ;
+        forLPJG_dirs{d} = [harmDir '.forLPJG/'] ;
     end
 end
 
-% Check toLPJG_dirs
-toLPJG_dirs = PLUMharm_check_dirs(toLPJG_dirs, 'rw') ;
+% Check forLPJG_dirs
+forLPJG_dirs = PLUMharm_check_dirs(forLPJG_dirs, 'rw') ;
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
@@ -123,7 +123,7 @@ for d = 1:Ndirs
     harmDir = harmDirs{d} ;
     harmDir = removeslashifneeded(harmDir) ;
     disp(harmDir)
-    toLPJG_dir = toLPJG_dirs{d} ;
+    forLPJG_dir = forLPJG_dirs{d} ;
     
     
     %%%%%%%%%%%%%%
@@ -372,10 +372,10 @@ for d = 1:Ndirs
     end
     
     % Get filenames
-    file_out_LU = [toLPJG_dir 'landcover.txt'] ;
-    file_out_crop = [toLPJG_dir 'cropfractions.txt'] ;
-    file_out_nfert = [toLPJG_dir 'nfert.txt'] ;
-    file_out_irrig = [toLPJG_dir 'irrig.txt'] ;
+    file_out_LU = [forLPJG_dir 'landcover.txt'] ;
+    file_out_crop = [forLPJG_dir 'cropfractions.txt'] ;
+    file_out_nfert = [forLPJG_dir 'nfert.txt'] ;
+    file_out_irrig = [forLPJG_dir 'irrig.txt'] ;
     if mincropfrac==0
         file_out_LU = strrep(file_out_LU, '.txt', '.noMinCropFrac.txt') ;
         file_out_crop = strrep(file_out_crop, '.txt', '.noMinCropFrac.txt') ;
