@@ -36,7 +36,7 @@ if exist('thisDir', 'var')
     cd(thisDir)
 end
 
-dirList = strcat(dirList, '.harm') ;
+harmDirs = strcat(harmDirs, '.harm') ;
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
@@ -59,17 +59,17 @@ Nyears_xtra = length(yearList_xtra) ;
 
 %% Do it
 
-for d = 1:length(dirList)
+for d = 1:length(harmDirs)
     
     % Get directories
-    inDir = dirList{d} ;
-    if ~exist(inDir, 'dir')
-        error('inDir %s not found. Try changing MATLAB working directory to inDir''s parent. Current working directory: %s', ...
-            inDir, pwd)
+    harmDir = harmDirs{d} ;
+    if ~exist(harmDir, 'dir')
+        error('harmDir %s not found. Try changing MATLAB working directory to harmDir''s parent. Current working directory: %s', ...
+            harmDir, pwd)
     end
-    inDir = removeslashifneeded(inDir) ;
-    disp(inDir)
-    outDir = addslashifneeded([removeslashifneeded(inDir) '.forLPJG']) ;
+    harmDir = removeslashifneeded(harmDir) ;
+    disp(harmDir)
+    outDir = addslashifneeded([removeslashifneeded(harmDir) '.forLPJG']) ;
     if ~exist(outDir, 'dir')
         mkdir(outDir)
     end
@@ -85,13 +85,13 @@ for d = 1:length(dirList)
         disp(['   Reading ' num2str(thisYear) '...'])
         
         % Import this year's harmonized outputs
-        load(sprintf('%s/%d/LandCoverFract.base%d.mat', inDir, thisYear, base_year)) ;
+        load(sprintf('%s/%d/LandCoverFract.base%d.mat', harmDir, thisYear, base_year)) ;
         S_lu = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/CropFract.base%d.mat', inDir, thisYear, base_year)) ;
+        load(sprintf('%s/%d/CropFract.base%d.mat', harmDir, thisYear, base_year)) ;
         S_cf = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/Fert.base%d.mat', inDir, thisYear, base_year)) ;
+        load(sprintf('%s/%d/Fert.base%d.mat', harmDir, thisYear, base_year)) ;
         S_nf = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/Irrig.base%d.mat', inDir, thisYear, base_year)) ;
+        load(sprintf('%s/%d/Irrig.base%d.mat', harmDir, thisYear, base_year)) ;
         S_ir = out_y1 ; clear out_y1
         
         % Set up empty arrays and do other initialization
