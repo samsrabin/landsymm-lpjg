@@ -255,13 +255,13 @@ for r = 1:Nruns
 
     % Harmonized
     tic
-    thisDir_harm = [thisDir_orig '.harm'] ;
-    thisDir_harm = get_harm_dir(thisDir_harm, fruitveg_sugar_2oil, combineCrops) ;
-    fprintf('Importing %s...\n', thisDir_harm) ;
+    harmDir = [thisDir_orig '.harm'] ;
+    harmDir = get_harm_dir(harmDir, fruitveg_sugar_2oil, combineCrops) ;
+    fprintf('Importing %s...\n', harmDir) ;
     
     if combineCrops
         [S_out, ~, ~] = PLUMharm_pp_readPLUM(...
-            thisDir_harm,base_year,yearList_harm, ...
+            harmDir,base_year,yearList_harm, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, [], 0, [], thisVer, false, fruitveg_sugar_2oil, allow_unveg) ;
         S_out.maps_YXvy = cat(3, ...
@@ -270,11 +270,11 @@ for r = 1:Nruns
         S_out.varNames = [LPJGcrops, S_out.varNames(contains(S_out.varNames,{'PASTURE','NATURAL','BARREN'}))] ;
     else
         [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
-            thisDir_harm,base_year,yearList_harm, ...
+            harmDir,base_year,yearList_harm, ...
             thisLandArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, [], 0, [], thisVer, false, fruitveg_sugar_2oil, allow_unveg) ;
     end
-    clear thisDir_harm
+    clear harmDir
     
     if length(year_indices) ~= size(S_out.maps_YXvy,4) && ~add_baseline_to_harm
         S_out.maps_YXvy = S_out.maps_YXvy(:,:,:,year_indices) ;
