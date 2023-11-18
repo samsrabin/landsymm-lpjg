@@ -45,6 +45,11 @@ PLUMharmFigs_options
 
 %% Setup
 
+% Ensure plumDirs is cell array
+if ischar(plumDirs)
+    plumDirs = {plumDirs} ;
+end
+
 % Process defaults
 if ~exist('combineCrops', 'var')
     combineCrops = false ;

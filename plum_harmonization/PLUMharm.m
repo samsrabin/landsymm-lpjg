@@ -101,6 +101,11 @@ PLUMharm_options
 
 warning('on','all')
 
+% Ensure plumDirs is cell array
+if ischar(plumDirs)
+    plumDirs = {plumDirs} ;
+end
+
 % Process defaults
 if ~exist('allow_unveg', 'var')
     allow_unveg = false ;
