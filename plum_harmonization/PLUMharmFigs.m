@@ -63,12 +63,13 @@ if ~exist(plumDirs{1}, 'dir')
     error('plumDirs{1} %s not found. Try changing MATLAB working directory to plumDirs{1}''s parent. Current working directory: %s', ...
         plumDirs{1}, pwd)
 end
-out_dir = get_harm_dir(out_subdir, fruitveg_sugar_2oil, combineCrops) ;
-if ~exist(out_dir, 'dir')
-    mkdir(out_dir)
+harms_figs_dir = get_harm_dir(out_subdir, fruitveg_sugar_2oil, combineCrops) ;
+if ~exist(harms_figs_dir, 'dir')
+    mkdir(harms_figs_dir)
 end
-out_dir = addslashifneeded(out_dir) ;
-fprintf('out_dir: %s/%s\n', pwd, out_dir)
+harms_figs_dir = addslashifneeded(harms_figs_dir) ;
+fprintf('harms_figs_dir: %s/%s\n', pwd, harms_figs_dir)
+stop
 
 yearList_harm = year1:yearN ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
@@ -382,7 +383,7 @@ for r = 1:Nruns
     
 end
 
-export_fig([out_dir 'scatter_hurtt2011_fig4.png'], '-r300') ;
+export_fig([harms_figs_dir 'scatter_hurtt2011_fig4.png'], '-r300') ;
 close
 
 
@@ -522,7 +523,7 @@ for r = 1:Nruns
     end
 end
 
-export_fig([out_dir 'scatter_hurtt2011_fig5.png'], '-r300') ;
+export_fig([harms_figs_dir 'scatter_hurtt2011_fig5.png'], '-r300') ;
 close
 
 
@@ -556,13 +557,13 @@ end
 textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 if length(y1_list) > 1
     this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
-        out_dir, min(y1_list), max(yN_list), yN_list(2)-yN_list(1)) ;
+        harms_figs_dir, min(y1_list), max(yN_list), yN_list(2)-yN_list(1)) ;
     pngres = '-r150' ;
 else
-    this_outdir = out_dir ;
+    this_outdir = harms_figs_dir ;
     pngres = '-r300' ;
 end
-this_outdir_geo = [removeslashifneeded(out_dir) 'geo/'] ;
+this_outdir_geo = [removeslashifneeded(harms_figs_dir) 'geo/'] ;
 
 if ~exist(this_outdir, 'dir')
     mkdir(this_outdir) ;
@@ -779,7 +780,7 @@ templatefile_relLandArea = fullfile(landsymm_lpjg_path(), 'data', 'templates', '
 for l = 1:length(tmp_lu_list)
     thisLU = tmp_lu_list{l} ;
     outfile = sprintf('%s/harm_by_numbers.%d-%d.%s.xlsx', ...
-        out_dir, ...
+        harms_figs_dir, ...
         y1, yN, thisLU) ;
     if combineCrops
         outfile = strrep(outfile, thisLU, ['combCrops.' thisLU]) ;
@@ -923,7 +924,7 @@ hold off
 legend(runList_legend, 'Location', 'best')
 
 title('Time series of harmonization effect on change in non-agri area')
-export_fig([out_dir 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf']) ;
+export_fig([harms_figs_dir 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf']) ;
 close
 
 
@@ -955,10 +956,10 @@ thisYear = 2010 ;
 %
 %if length(y1_list) > 1
 %    this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
-%        out_dir, min(y1_list), max(yN_list), yN_list(1)-y1_list(1)+1) ;
+%        harms_figs_dir, min(y1_list), max(yN_list), yN_list(1)-y1_list(1)+1) ;
 %    pngres = '-r150' ;
 %else
-%    this_outdir = out_dir ;
+%    this_outdir = harms_figs_dir ;
 %    pngres = '-r300' ;
 %end
 %
@@ -1046,7 +1047,7 @@ for v = 1:length(combinedLUs)
 end
 
 % Save
-export_fig([out_dir 'timeSeries_landUse.pdf']) ;
+export_fig([harms_figs_dir 'timeSeries_landUse.pdf']) ;
 close
 
 
@@ -1066,7 +1067,7 @@ ts_harm_cyr = ts_harm_cyr*1e-6*1e-6 ;
 
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
     LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Area', 'crops', out_dir)
+    'Area', 'crops', harms_figs_dir)
 
 
 %% Time series of Nfert
@@ -1085,7 +1086,7 @@ end
 units = 'Mt N' ;
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
     LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Fert.', 'nfert', out_dir)
+    'Fert.', 'nfert', harms_figs_dir)
 
 
 %% Time series of irrig
@@ -1104,7 +1105,7 @@ end
 units = 'intensity \times area' ;
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
     LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Irrigation', 'irrig', out_dir)
+    'Irrigation', 'irrig', harms_figs_dir)
 
 
 %% Maps: At three years
@@ -1146,7 +1147,7 @@ for r = 1:Nruns
             caxis(h2,new_caxis) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([out_dir 'maps_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig([harms_figs_dir 'maps_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
         close
     end
 end
@@ -1186,7 +1187,7 @@ for r = 1:Nruns
             title(sprintf('Harm-Orig, %s: %s, %d',thisRun,thisLU,thisYear)) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([out_dir 'mapsOHdiffs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig([harms_figs_dir 'mapsOHdiffs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
         close
     end
 end
@@ -1242,7 +1243,7 @@ for v = 1:Nlu
         hsgt = sgtitle(sprintf('Harm-Orig (km^2): %s, %d', thisLU, thisYear)) ;
     end
     set(hsgt, 'FontSize', fontSize+2, 'FontWeight', 'bold')
-    filename = sprintf('%s/mapsOHdiffs_%s_%d.png', out_dir, thisLU, thisYear) ;
+    filename = sprintf('%s/mapsOHdiffs_%s_%d.png', harms_figs_dir, thisLU, thisYear) ;
     if as_frac_land
         filename = strrep(filename, 'diffs', 'diffsFrac') ;
     end
@@ -1298,7 +1299,7 @@ for r = 1:Nruns
             caxis(h2,new_caxis) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([out_dir 'mapsChgs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig([harms_figs_dir 'mapsChgs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
         close
     end
 end
