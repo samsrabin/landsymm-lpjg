@@ -26,7 +26,7 @@ PLUMharm_options
 % In addition, PLUMharm2LPJG_options.m must be somewhere on your path.
 % There, specify the following variables:
 %     yStep: Save output files every yStep years. Recommendation: 1
-%     do_gzip: Zip up outputs? (true/false)
+%     do_gzip: (Optional.) Zip up outputs? (Default: false)
 %     someofall: Make it so that each gridcell always has at least some tiny amount of
 %                every crop? Needed to avoid weird first few years after a cell gets its
 %                first area of some new crop. Recommendation: true
@@ -51,6 +51,9 @@ PLUMharm2LPJG_options
 % Process defaults
 if ~exist('combineCrops', 'var')
     combineCrops = false ;
+end
+if ~exist('do_gzip', 'var')
+    do_gzip = false ;
 end
 if ~exist('fruitveg_sugar_2oil', 'var')
     fruitveg_sugar_2oil = false ;
