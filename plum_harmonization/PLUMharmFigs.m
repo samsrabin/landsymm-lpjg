@@ -85,27 +85,8 @@ if length(plumDirs) ~= length(harmDirs)
         length(plumDirs), length(harmDirs))
 end
 for r = 1:Nruns
-    % Check plumDir
-    plumDir = plumDirs{r} ;
-    [~, plumDir_fa] = fileattrib(plumDir) ;
-    plumDir = plumDir_fa.Name ;
-    plumDir = addslashifneeded(plumDir) ;
-    if ~plumDir_fa.UserRead
-        error('plumDir is not readable!')
-    elseif ~plumDir_fa.directory
-        error('plumDir is not a directory!')
-    end
-    plumDirs{r} = plumDir ; %#ok<SAGROW>
-
-    % Check harmDir
-    harmDir = harmDirs{r} ;
-    [~, harmDir_fa] = fileattrib(harmDir) ;
-    harmDir = harmDir_fa.Name ;
-    if ~harmDir_fa.UserRead
-        error('harmDir is not readable!')
-    end
-    harmDir = addslashifneeded(harmDir) ;
-    harmDirs{r} = harmDir ;
+    plumDirs = PLUMharm_check_dirs(plumDirs, 'r') ;
+    harmDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
 end
 
 % Process harms_figs_dir
