@@ -64,6 +64,17 @@ if exist('thisDir', 'var')
     cd(thisDir)
 end
 
+harmDirs_specified = exist('harmDirs', 'var') ;
+if ~harmDirs_specified
+    % SSR 2023-11-18: UNTESTED!
+    harmDirs = cell(length(plumDirs), 1) ;
+    for d = 1:length(plumDirs)
+        harmDir = [plumDir '.harm'] ;
+        harmDir = get_harm_dir(harmDir, fruitveg_sugar_2oil, combineCrops) ;
+        harmDirs{d} = harmDir ;
+    end
+end
+
 % Process harms_figs_dir
 if ~exist(harms_figs_dir, 'dir')
     mkdir(harms_figs_dir)
@@ -203,6 +214,7 @@ for r = 1:Nruns
     if ~exist(plumDir, 'dir')
         error('plumDir not found: %s')
     end
+    harmDir = harmDirs{d} ;
 
     % Original
     fprintf('Importing %s...\n', plumDir) ;
@@ -255,8 +267,6 @@ for r = 1:Nruns
 
     % Harmonized
     tic
-    harmDir = [thisDir_orig '.harm'] ;
-    harmDir = get_harm_dir(harmDir, fruitveg_sugar_2oil, combineCrops) ;
     fprintf('Importing %s...\n', harmDir) ;
     
     if combineCrops
