@@ -577,8 +577,7 @@ close
 
 %% Map deltas for orig and harm
 
-% tmp_lu_list = {'CROPLAND','PASTURE','NATURAL'} ;
-tmp_lu_list = {'NATURAL'} ;
+tmp_lu_list = {'CROPLAND', 'PASTURE', 'NATURAL'} ;
 
 % Options %%%%%%%%%
 fontSize = 14 ;
