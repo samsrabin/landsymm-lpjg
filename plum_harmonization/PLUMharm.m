@@ -182,9 +182,10 @@ for d = 1:length(plumDirs)
         error('plumDir %s not found. Try changing MATLAB working directory to plumDir''s parent. Current working directory: %s', ...
             plumDir, pwd)
     end
-    plumDir = addslashifneeded(plumDir) ;
     [~, plumDir_fa] = fileattrib(plumDir) ;
-    fprintf('\n*\n*\n*\nPLUM output directory (plumDir): %s\n', plumDir_fa.Name) ;
+    plumDir = plumDir_fa.Name ;
+    plumDir = addslashifneeded(plumDir) ;
+    fprintf('\n*\n*\n*\nPLUM output directory (plumDir): %s\n', plumDir) ;
 
     % Check input directory
     if ~plumDir_fa.UserRead
@@ -199,7 +200,6 @@ for d = 1:length(plumDirs)
     else
         harmDir = [plumDir '.harm'] ;
         harmDir = get_harm_dir(harmDir, fruitveg_sugar_2oil, combineCrops) ;
-        harmDir = addslashifneeded(harmDir) ;
         harmDirs{d} = harmDir ;
     end
     if strcmp(plumDir, harmDir)
@@ -212,8 +212,10 @@ for d = 1:length(plumDirs)
 
     % Check output directory
     [~, harmDir_fa] = fileattrib(harmDir) ;
+    harmDir = harmDir_fa.Name ;
+    harmDir = addslashifneeded(harmDir) ;
     fprintf('Harm. output directory (harmDir): %s\n*\n*\n*\n', ...
-        harmDir_fa.Name) ;
+        harmDir) ;
     if ~harmDir_fa.UserWrite
         error('harmDir is not writeable!')
     end
