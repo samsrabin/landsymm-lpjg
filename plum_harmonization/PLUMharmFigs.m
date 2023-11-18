@@ -68,13 +68,7 @@ Nruns = length(plumDirs) ;
 % Get harmDirs, if needed
 harmDirs_specified = exist('harmDirs', 'var') ;
 if ~harmDirs_specified
-    % SSR 2023-11-18: UNTESTED!
-    harmDirs = cell(length(plumDirs), 1) ;
-    for d = 1:length(plumDirs)
-        harmDir = [plumDir '.harm'] ;
-        harmDir = get_harm_dir(harmDir, fruitveg_sugar_2oil, combineCrops) ;
-        harmDirs{d} = harmDir ;
-    end
+    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops) ;
 elseif ischar(harmDirs)
     harmDirs = {harmDirs} ;
 end
