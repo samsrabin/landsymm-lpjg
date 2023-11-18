@@ -40,7 +40,7 @@ for i = 1:length(LPJGcrops)
             end
         else
             bad = 1 ;
-            error('Global %s mgmt changes are not conserved to within %0.2f percent! (check %s; err = %0.2f)', ...
+            error('Global %s mgmt changes are not conserved to within %0.2f%%! (check %s; err = %0.2f%%)', ...
                 LPJGcrops{i}, conserv_tol_pct, check_name, pct_error)
         end
     end
