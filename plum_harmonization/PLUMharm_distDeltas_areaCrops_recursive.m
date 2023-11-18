@@ -2,7 +2,7 @@ function out_y1_agri_YXv = ...
     PLUMharm_distDeltas_areaCrops_recursive( ...
     landArea_YX, landArea_2deg_YX, ...
     out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, out_y0_agri_YXv, ...
-    out_y0_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames, ...
+    out_y0_vegd_YX, fixTinyNegs_tol_m2, conserv_tol_pct, conserv_tol_area, LUnames, ...
     debug_ijk)
 % Loop through all 2-degree gridcells and distribute the new LU changes to
 % the half-degree gridcells within.
@@ -37,7 +37,6 @@ else
 end
 
 Nagri = size(out_y0_agri_YXv,3) ;
-max_diff = 0 ;
 
 out_y1_agri_YXv = out_y0_agri_YXv ;
 for i = 1:size(landArea_2deg_YX,1)
@@ -102,17 +101,19 @@ for i = 1:size(landArea_2deg_YX,1)
         already_done = false(1,Nagri) ;
         [out_y1_agri_YXv, ~] = ...
             loop_thru_agri(already_done, 1, debug_ijk, ...
-            update_avail_land, proper_zero_denoms, conserv_tol_area, ...
+            ...update_avail_land, proper_zero_denoms, conserv_tol_area, ...
+            update_avail_land, proper_zero_denoms, fixTinyNegs_tol_m2, ...
             i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
             out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land, ...
-            LUnames(1:end-2)) ;
+            LUnames(1:end-2), fixTinyNegs_tol_m2) ;
         
         % Check for invalid cell areas
         agri_YX = sum(out_y1_agri_YXv(iy,ix,:),3) ;
-        if any(agri_YX(:) > conserv_tol_area+out_y0_vegd_YX(theseCells))
-            error('Members >vegd_area in half-deg out_y1_(crop+past)_YX!')
+        max_too_much = max(agri_YX(:)-out_y0_vegd_YX(theseCells)) ;
+        if any(agri_YX(:) > fixTinyNegs_tol_m2+out_y0_vegd_YX(theseCells))
+            warning('(%d,%d): Members >vegd_area (by max %g) in half-deg out_y1_agri_YX', ...
+                i, j, max_too_much)
         end
-        max_diff = max(max_diff,max(agri_YX(:)-out_y0_vegd_YX(theseCells))) ;
         
         % Debugging step 4
         for k = 1:Nagri
@@ -125,7 +126,6 @@ for i = 1:size(landArea_2deg_YX,1)
     end
 end
 
-% disp(['   max_diff = ' num2str(max_diff)])
 
 
 end
