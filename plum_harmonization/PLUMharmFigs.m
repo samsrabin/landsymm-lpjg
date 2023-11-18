@@ -1213,7 +1213,6 @@ for v = 1:Nlu
     export_fig(filename,['-r' num2str(png_res)]) ;
     close
 end
-disp('Done')
 
 
 %% Maps: Differences between two pairs of years
