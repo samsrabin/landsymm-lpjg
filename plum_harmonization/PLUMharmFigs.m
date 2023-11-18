@@ -151,6 +151,7 @@ R = georasterref('RasterSize', [360 720], ...
     'ColumnsStartFrom', 'north', ...
     'LatitudeLimits', [-90 90], ...
     'LongitudeLimits', [-180 180]) ;
+geotiffwrite_ssr_verbose = false ;
 
 %lines_overlay = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'continents_from_countries', 'continents_from_countries.shp') ;
 lines_overlay = shaperead(fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'continents_from_countries', 'continents_from_countries.shp')) ;
@@ -733,20 +734,20 @@ for l = 1:length(tmp_lu_list)
         export_fig(filename, pngres) ;
         close
         if as_frac_land && length(y1_list) == 1
-            disp('Saving GeoTIFFs...')
             for r = 1:Nruns
                 filename = sprintf('%s/D%s_%d-%d_%s_orig.tif', ...
                     removeslashifneeded(this_outdir_geo), ...
                     thisLU_short, y1_list, yN_list, runList_legend{r}) ;
-                geotiffwrite_ssr(filename,orig_diff_YXrH(:,:,r),R,-999)
+                geotiffwrite_ssr(filename,orig_diff_YXrH(:,:,r),R,-999, ...
+                    geotiffwrite_ssr_verbose)
                 filename = strrep(filename, 'orig', 'harm') ;
-                geotiffwrite_ssr(filename,harm_diff_YXrH(:,:,r),R,-999)
+                geotiffwrite_ssr(filename,harm_diff_YXrH(:,:,r),R,-999, ...
+                    geotiffwrite_ssr_verbose)
             end
         end
     end
     
 end
-disp('Done')
 
 
 %% Harmonization effects by the numbers
