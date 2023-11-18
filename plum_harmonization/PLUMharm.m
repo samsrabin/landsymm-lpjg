@@ -123,6 +123,8 @@ fixTinyNegs_tol_m2 = abs(fixTinyNegs_tol_m2) ;
 harmDirs_specified = exist('harmDirs', 'var') ;
 if ~harmDirs_specified
     harmDirs = cell(length(plumDirs)) ;
+elseif ischar(harmDirs)
+    harmDirs = {harmDirs} ;
 end
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')

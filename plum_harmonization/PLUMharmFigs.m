@@ -75,6 +75,8 @@ if ~harmDirs_specified
         harmDir = get_harm_dir(harmDir, fruitveg_sugar_2oil, combineCrops) ;
         harmDirs{d} = harmDir ;
     end
+elseif ischar(harmDirs)
+    harmDirs = {harmDirs} ;
 end
 
 % Check plumDirs and harmDirs
