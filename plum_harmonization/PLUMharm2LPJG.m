@@ -29,6 +29,13 @@ PLUMharm2LPJG_options
 
 %% Setup
 
+% Process defaults
+if ~exist('combineCrops', 'var')
+    combineCrops = false ;
+end
+if ~exist('fruitveg_sugar_2oil', 'var')
+    fruitveg_sugar_2oil = false ;
+end
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
@@ -36,7 +43,23 @@ if exist('thisDir', 'var')
     cd(thisDir)
 end
 
-harmDirs = strcat(harmDirs, '.harm') ;
+% Get harmDirs, if needed
+harmDirs_specified = exist('harmDirs', 'var') ;
+if ~harmDirs_specified
+    if ~exist('plumDirs', 'var')
+        error('If not providing harmDirs, you must provide plumDirs')
+    end
+    plumDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
+    if ischar(plumDirs)
+        plumDirs = {plumDirs} ;
+    end
+    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops) ;
+elseif ischar(harmDirs)
+    harmDirs = {harmDirs} ;
+end
+
+% Check harmDirs
+harmDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
