@@ -32,7 +32,7 @@ for v = 1:Ncrops_lpjg
     set(gca,'FontSize',fontSize)
     ylabel(units)
     if ~isempty(legend_ts)
-        legend(legend_ts,'Location','NorthWest')
+        legend(legend_ts,'Location','best')
     end
 end
 

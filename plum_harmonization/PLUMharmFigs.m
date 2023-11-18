@@ -1086,7 +1086,7 @@ for v = 1:length(combinedLUs)
     title(['Area: ' combinedLUs{v}])
     set(gca,'FontSize',14)
     ylabel('Million km2')
-    legend(timeseries_legend,'Location','NorthWest')
+    legend(timeseries_legend,'Location','best')
 end
 
 % Save
