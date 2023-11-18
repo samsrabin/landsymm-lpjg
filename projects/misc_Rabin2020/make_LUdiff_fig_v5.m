@@ -22,7 +22,7 @@ else
     new_caxis = [1 Nbins+1] ;
 end
 for r = 1:Nruns
-    runName = runList{r}
+    runName = runList{r} ;
     
     if has2lu
         i1 = (r-1)*2 + 1 ;
@@ -31,7 +31,7 @@ for r = 1:Nruns
         area_lu2_bl_r_tmp = area_lu2_bl_r(min(r, length(area_lu2_bl_r))) ;
         total_lu2Diff_r_tmp = total_lu2Diff_r(r) ;
     else
-        i1 = r
+        i1 = r ;
         i2 = [] ;
         diff_lu2_YXr_tmp = [] ;
         area_lu2_bl_r_tmp = [] ;
@@ -264,6 +264,13 @@ function ht = plot_map(map_YX, bins_lowBnds, this_colormap_name, ...
     textX, textY_1, textY_2, ...
     do_caps, lines_overlay, new_caxis)
 
+% Get plotting function (to suppress a warning)
+if ~all(isfield(lines_overlay, {'Lat', 'Lon'}))
+    geo_or_map_show = @mapshow ;
+else
+    geo_or_map_show = @geoshow ;
+end
+
 % Create binned version of map
 if isempty(bins_lowBnds)
     Nbins = 64 ;
@@ -294,7 +301,7 @@ caxis(new_caxis)
 % Plot continent outlines
 if ~isempty(lines_overlay)
     hold on
-    geoshow(lines_overlay, 'FaceAlpha', 0)
+    geo_or_map_show(lines_overlay, 'FaceAlpha', 0)
     hold off
 end
 

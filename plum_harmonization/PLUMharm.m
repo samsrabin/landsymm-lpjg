@@ -115,10 +115,35 @@ if ~exist('fixTinyNegs_tol_m2', 'var')
     fixTinyNegs_tol_m2 = 1 ;
 end
 fixTinyNegs_tol_m2 = abs(fixTinyNegs_tol_m2) ;
+
+% Ensure plumDirs is cell array
+if ischar(plumDirs)
+    plumDirs = {plumDirs} ;
+end
+Ndirs = length(plumDirs) ;
+
+% Get harmDirs, if needed
 harmDirs_specified = exist('harmDirs', 'var') ;
 if ~harmDirs_specified
-    harmDirs = cell(length(plumDirs)) ;
+    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops) ;
+elseif ischar(harmDirs)
+    harmDirs = {harmDirs} ;
 end
+
+% Check plumDirs and harmDirs
+if length(plumDirs) ~= length(harmDirs)
+    error('Numbers of plumDirs (%d) and harmDirs (%d) don''t match', ...
+        length(plumDirs), length(harmDirs))
+end
+plumDirs = PLUMharm_check_dirs(plumDirs, 'r') ;
+harmDirs = PLUMharm_check_dirs(harmDirs, 'rw') ;
+for d = 1:Ndirs
+    if strcmp(plumDirs{d}, harmDirs{d})
+        error('plumDir and harmDir must not be the same: %s', ...
+            plumDirs{d})
+    end
+end
+
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
@@ -170,55 +195,18 @@ elseif year1 > yearN
     error('year1 (%d) must be <= yearN (%d)!\n', year1, yearN)
 end
 
-for d = 1:length(plumDirs)
+for d = 1:Ndirs
 
     %%%%%%%%%%%%%
     %%% Setup %%% 
     %%%%%%%%%%%%%
 
-    % Get input directory
-    plumDir = removeslashifneeded(plumDirs{d}) ;
-    if ~exist(plumDir, 'dir')
-        error('plumDir %s not found. Try changing MATLAB working directory to plumDir''s parent. Current working directory: %s', ...
-            plumDir, pwd)
-    end
-    [~, plumDir_fa] = fileattrib(plumDir) ;
-    plumDir = plumDir_fa.Name ;
-    plumDir = addslashifneeded(plumDir) ;
+    % Get directories
+    plumDir = plumDirs{d} ;
     fprintf('\n*\n*\n*\nPLUM output directory (plumDir): %s\n', plumDir) ;
-
-    % Check input directory
-    if ~plumDir_fa.UserRead
-        error('plumDir is not readable!')
-    elseif ~plumDir_fa.directory
-        error('plumDir is not a directory!')
-    end
-
-    % Get output directory
-    if harmDirs_specified
-        harmDir = harmDirs{d} ;
-    else
-        harmDir = [plumDir '.harm'] ;
-        harmDir = get_harm_dir(harmDir, fruitveg_sugar_2oil, combineCrops) ;
-        harmDirs{d} = harmDir ;
-    end
-    if strcmp(plumDir, harmDir)
-        warning('plumDir and harmDir must not be the same: %s\nSkipping', plumDir)
-        continue
-    end
-    if ~exist(harmDir, 'dir')
-        mkdir(harmDir)
-    end
-
-    % Check output directory
-    [~, harmDir_fa] = fileattrib(harmDir) ;
-    harmDir = harmDir_fa.Name ;
-    harmDir = addslashifneeded(harmDir) ;
+    harmDir = harmDirs{d} ;
     fprintf('Harm. output directory (harmDir): %s\n*\n*\n*\n', ...
         harmDir) ;
-    if ~harmDir_fa.UserWrite
-        error('harmDir is not writeable!')
-    end
     
     % Save diary file
     diary off
