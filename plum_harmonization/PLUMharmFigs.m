@@ -12,8 +12,8 @@ PLUMharm_options
 % In addition, PLUMharmFigs_options.m must be somewhere on your path.
 % There, specify the following variables:
 %     runList_legend: (Optional.) Cell array of strings to use as legend in plots; one
-%                     member for each PLUM member in dirList. If not provided, will use
-%                     values from dirList.
+%                     member for each PLUM member in plumDirs. If not provided, will use
+%                     values from plumDirs.
 %     out_subdir: Subdirectory of thisDir where outputs will be saved. Can be appended to
 %                 by get_harm_dir().
 %     thisVer: (Optional.) String with values either '' (use half-degree harmonization
@@ -38,9 +38,9 @@ end
 
 % Before making output directory, make sure you're in the correct
 % directory to begin with.
-if ~exist(dirList{1}, 'dir')
-    error('dirList{1} %s not found. Try changing MATLAB working directory to dirList{1}''s parent. Current working directory: %s', ...
-        dirList{1}, pwd)
+if ~exist(plumDirs{1}, 'dir')
+    error('plumDirs{1} %s not found. Try changing MATLAB working directory to plumDirs{1}''s parent. Current working directory: %s', ...
+        plumDirs{1}, pwd)
 end
 out_dir = get_harm_dir(out_subdir, fruitveg_sugar_2oil, combineCrops) ;
 if ~exist(out_dir, 'dir')
@@ -52,19 +52,19 @@ fprintf('out_dir: %s/%s\n', pwd, out_dir)
 yearList_harm = year1:yearN ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
 if ~exist('legend_ts', 'var')
-    if length(dirList) == 1
+    if length(plumDirs) == 1
         legend_ts = {'Baseline LU','Orig','Harm'} ;
     else
         legend_ts = {'Baseline LU'} ;
-        for s = 1:length(dirList)
-            legend_ts = [legend_ts {dirList{s}(1:4)}] ; %#ok<AGROW>
+        for s = 1:length(plumDirs)
+            legend_ts = [legend_ts {plumDirs{s}(1:4)}] ; %#ok<AGROW>
         end
     end
 end
 
 Nyears_orig = length(yearList_orig) ;
 Nyears_harm = length(yearList_harm) ;
-Nruns = length(dirList) ;
+Nruns = length(plumDirs) ;
 
 % % Make lower-left lat/lon map (for compat. with PLUM style)
 % lons_map_2deg = repmat(-180:2:178,[90 1]) ;
@@ -104,7 +104,7 @@ else
 end
 
 if ~exist('runList_legend', 'var')
-    runList_legend = dirList ;
+    runList_legend = plumDirs ;
 end
 if ~exist('thisVer', 'var')
     thisVer = '' ;
@@ -171,7 +171,7 @@ if ~combineCrops
 end
 
 for r = 1:Nruns
-    thisDir_orig = removeslashifneeded(dirList{r}) ;
+    thisDir_orig = removeslashifneeded(plumDirs{r}) ;
     if ~exist(thisDir_orig, 'dir')
         error('thisDir_orig %s not found. Try changing MATLAB working directory to thisDir_orig''s parent.')
     end
@@ -519,7 +519,7 @@ textY_1 = 50/360 ;
 textY_2 = 20/360 ;
 shiftup = 15/360 ; textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 nx = 2 ;
-ny = length(dirList) ;
+ny = length(plumDirs) ;
 as_frac_land = true ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 units_total = 'Mkm^2' ;
