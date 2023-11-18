@@ -6,7 +6,18 @@ addpath(genpath(landsymm_lpjg_path()))
 rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
 % PLUMharm_options.m must be somewhere on your path.
-% See PLUMharm.m for a description of what should be in there.
+% Here are the variables PLUMharmFigs takes from there (see PLUMharm.m for description):
+%     * base_year
+%     * combineCrops
+%     * fruitveg_sugar_2oil
+%     * norm2extra
+%     * plumDirs
+%     * remap_cropf_file
+%     * remap_lu_file
+%     * remap_nfert_file
+%     * thisDir
+%     * year1
+%     * yearN
 PLUMharm_options
 
 % In addition, PLUMharmFigs_options.m must be somewhere on your path.
@@ -23,6 +34,9 @@ PLUMharm_options
 %                 three years here. Recommendation: [2011 2050 2100]
 %     yearList_baselineLU_toPlot: (Optional.) Years from baseline LU dataset to include in
 %                                 plots. If not provided, use all years.
+%
+% You can also specify any variables listed as being taken from PLUMharm_options.m that
+% you want to override.
 
 PLUMharmFigs_options
 
