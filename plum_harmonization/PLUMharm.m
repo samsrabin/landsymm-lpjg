@@ -654,11 +654,13 @@ for d = 1:length(plumDirs)
             end
         end
                         
-        % Rounding errors can result in small negative values. Fix and
-        % check for bad values
+        % Rounding errors can result in small negative values; these will presumably be
+        % < fixTinyNegs_tol_m2. However, sometimes you can get larger negative values,
+        % which---if the issue is with NATURAL---are probably due to PLUM trying to assign
+        % more agricultural area than there is vegetated land in a gridcell.
         tmp_YXv = cat(3, mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), ...
-            LUnames, outPrec, fixTinyNegs_tol_m2, debugIJ_2deg) ;
+            LUnames, outPrec, fixTinyNegs_tol_m2, conserv_tol_area, debugIJ_2deg) ;
         PLUMharm_checkBadVals(tmp_YXv, [], [], ...
             landArea_2deg_YX, LUnames, 'mid_y1_2deg', outPrec) ;
         mid_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
@@ -734,7 +736,7 @@ for d = 1:length(plumDirs)
         % Check for bad values
         tmp_YXv = cat(3, out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX, out_y1_2deg_bare_YX) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), ...
-            LUnames, outPrec, fixTinyNegs_tol_m2, debugIJ_2deg) ;
+            LUnames, outPrec, fixTinyNegs_tol_m2, conserv_tol_area, debugIJ_2deg) ;
         PLUMharm_checkBadVals(tmp_YXv, [] ,[], ...
             landArea_2deg_YX, LUnames, 'out_y1_2deg', outPrec) ;
         out_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
@@ -943,8 +945,8 @@ for d = 1:length(plumDirs)
             PLUMharm_distDeltas_areaCrops_recursive( ...
             landArea_YX, landArea_2deg_YX, ...
             out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, out_y0_agri_YXv, ...
-            out_y0_vegd_YX, conserv_tol_pct, conserv_tol_area, LUnames, ...
-            debug_tmp) ; clear debug_tmp
+            out_y0_vegd_YX, conserv_tol_pct, conserv_tol_area, fixTinyNegs_tol_m2, ...
+            LUnames, debug_tmp) ; clear debug_tmp
         out_y1_ntrl_YX = out_y0_vegd_YX - sum(out_y1_agri_YXv,3) ;
         out_y1_vegd_YX = sum(out_y1_agri_YXv,3) + out_y1_ntrl_YX ;
         out_y1_bare_YX = landArea_YX - out_y1_vegd_YX ;
@@ -964,11 +966,13 @@ for d = 1:length(plumDirs)
             out_y0_agri_YXv, out_y1_agri_YXv, ...
             conserv_tol_pct, LUnames_agri, '2-deg to half-deg', 'agri')
 
-        % Rounding errors can result in small negative values. Fix.
-        % Check for bad values.
+        % Rounding errors can result in small negative values; these will presumably be
+        % < fixTinyNegs_tol_m2. However, sometimes you can get larger negative values,
+        % which---if the issue is with NATURAL---are probably due to PLUM trying to assign
+        % more agricultural area than there is vegetated land in a gridcell.
         tmp_YXv = cat(3, out_y1_agri_YXv, out_y1_ntrl_YX, out_y1_bare_YX) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_YX,[1 1 Nlu]), ...
-            LUnames, outPrec, fixTinyNegs_tol_m2, []) ;
+            LUnames, outPrec, fixTinyNegs_tol_m2, conserv_tol_area, []) ;
         PLUMharm_checkBadVals(tmp_YXv, [] ,[], ...
             landArea_YX, LUnames, 'out_y1_2deg', outPrec) ;
         out_y1_agri_YXv = tmp_YXv(:,:,1:end-2) ;

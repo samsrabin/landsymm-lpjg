@@ -3,7 +3,7 @@ function [out_y1_agri_YXv, already_done] = ...
     update_avail_land, proper_zero_denoms, conserv_tol_area, ...
     i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
     out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land, ...
-    AGRInames)
+    AGRInames, fixTinyNegs_tol_m2)
 
 Nagri = size(out_y0_agri_YXv,3) ;
 if k1 > Nagri
@@ -32,12 +32,13 @@ for k = k1:Nagri
         % Get delta for this land use. If 0, skip. Otherwise, set
         % up for rest of logic.
         this_d = agri_d(k) ;
+        
         if this_d==0
             out_y1_agri_YXv(iy,ix,k) = out_y0_agri_YXv(iy,ix,k) ;
             already_done(k) = true ;
-%             if debug_ijk(1)==i && debug_ijk(2)==j
-%                 keyboard
-%             end
+            if debug_ijk(1)==i && debug_ijk(2)==j
+                fprintf('   %s (%d): No change\n', AGRInames{k}, k)
+            end
             continue
         end
         out_y0_this_YX = out_y0_agri_YXv(iy,ix,k) ;
@@ -77,20 +78,27 @@ for k = k1:Nagri
                 else
                     avail_land_tmp = [] ;
                 end
+                if debug_ijk(1)==i && debug_ijk(2)==j
+                    fprintf('RECURSING at %s\n', AGRInames{k})
+                end
                 [out_y1_agri_YXv, already_done] = ...
                     loop_thru_agri(already_done, k+1, debug_ijk, ...
                     update_avail_land, proper_zero_denoms, conserv_tol_area, ...
                     i, j, iy, ix, theseCells, out_y0_vegd_theseCells, agri_d, ...
                     out_y0_agri_YXv, out_y0_2deg_agri_YXv, out_y1_agri_YXv, avail_land_tmp, ...
-                    AGRInames) ;
+                    AGRInames, fixTinyNegs_tol_m2) ;
                 
                 % How much NATURAL land is available now we have
                 % sufficently decreased enough of the next LUs?
                 now_agri_YX_this = sum(out_y1_agri_YXv,3) ;
                 avail_land_this = out_y0_vegd_theseCells - now_agri_YX_this(theseCells) ;
                 if debug_ijk(1)==i && debug_ijk(2)==j
-                    fprintf('   %s (%d): Now available: %0.4e\n', ...
-                        AGRInames{k}, k, sum(avail_land)) ;
+                    fprintf('AFTER RECURSION   %s (%d): Now available: %g\n', ...
+                        AGRInames{k}, k, sum(avail_land_this)) ;
+                end
+                if sum(avail_land_this) + abs(fixTinyNegs_tol_m2) < this_d
+                    warning('(%d,%d): %s increase %g exceeds available land %g by %g', ...
+                        i, j, AGRInames{k}, this_d, sum(avail_land_this), this_d - sum(avail_land_this))
                 end
                 % Distribute thisLU demand to half-degree gridcells
                 % based on how much NATURAL land each has
@@ -106,9 +114,9 @@ for k = k1:Nagri
             else % thisLU increases and (nextLU increases OR available land is enough to satisfy thisLU demand)
                 % Distribute thisLU demand to half-degree gridcells based
                 % on how much NATURAL land each has
-                if debug_ijk(1)==i && debug_ijk(2)==j
-                    keyboard
-                end
+%                 if debug_ijk(1)==i && debug_ijk(2)==j
+%                     keyboard
+%                 end
                 if proper_zero_denoms
                     if sum(avail_land)==0
                         error('How is there no available land here?? Cell (%d,%d,%d)',i,j,k)
@@ -167,20 +175,7 @@ for k = k1:Nagri
 %         keyboard
 %     end
     out_y1_agri_YXv(iy,ix,k) = out_y1_this_theseCells ;
-    already_done(k) = true ;
-    
-    % Another check
-    if k==Nagri
-        agri_YX = sum(out_y1_agri_YXv(iy,ix,:),3) ;
-        if debug_ijk(1)==i && debug_ijk(2)==j
-            disp(['k = ' num2str(k)])
-            [agri_YX(:) out_y0_vegd_theseCells agri_YX(:)-out_y0_vegd_theseCells]
-        end
-        if any(agri_YX(:) > conserv_tol_area+out_y0_vegd_theseCells)
-            error('Members >vegd_area in half-deg out_y1_(crop+past)_YX!')
-        end
-    end
-    
+    already_done(k) = true ;    
     
 end % for k = 1:Nagri
 

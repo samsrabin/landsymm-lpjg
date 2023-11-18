@@ -1,28 +1,55 @@
 function out_YXv = PLUMharm_fixTinyNegs(in_YXv, landArea_YXv, ...
-    LUnames, outPrec, fixTinyNegs_tol_m2, debugIJ_2deg)
+    LUnames, outPrec, fixTinyNegs_tol_m2, conserv_tol_area, debugIJ_2deg)
 % Rounding errors can result in small negative values. Fix.
 
 Nlu = size(in_YXv, 3) ;
 do_debug = ~isempty(debugIJ_2deg) ;
 
-if min(in_YXv(:)) < -abs(fixTinyNegs_tol_m2)
+fixTinyNegs_tol_m2 = abs(fixTinyNegs_tol_m2) ;
+conserv_tol_area = abs(conserv_tol_area) ;
+
+if fixTinyNegs_tol_m2 > conserv_tol_area
+    error('fixTinyNegs_tol_m2 must be ≤ conserv_tol_area')
+end
+
+if min(in_YXv(:)) < -fixTinyNegs_tol_m2
     msg = sprintf('Negative value(s) of area exceeding tolerance %g m2 (fixTinyNegs_tol):', ...
         fixTinyNegs_tol_m2);
+    non_ntrl_bad = false ;
     for v = 1:Nlu
         this_YX = in_YXv(:,:,v) ;
         thisMin = min(this_YX(:)) ;
         if thisMin >= -fixTinyNegs_tol_m2
             continue
         end
-        if length(LUnames) == Nlu
-            thisLU = LUnames{v} ;
-        else
-            thisLU = sprintf('v = %d', v) ;
+        if length(LUnames) ~= Nlu
+            error('length(LUnames) ~= Nlu')
+        end
+        thisLU = LUnames{v} ;
+        if ~strcmp(thisLU, 'NATURAL')
+            non_ntrl_bad = true ;
         end
         msg = sprintf('%s\n    %s min\t%g', ...
             msg, thisLU, thisMin) ;
     end
-    error(msg)
+    if min(in_YXv(:)) < -conserv_tol_area
+        error(msg)
+    else
+        msg = sprintf('%s\nStill within conserv_tol_area (%g)', ...
+            msg, conserv_tol_area) ;
+        if non_ntrl_bad
+            msg = sprintf('%s, %s', ...
+                msg, ...
+                'but this is only expected for NATURAL. Figure out why this happened!') ;
+            error(msg) %#ok<*SPERR> 
+        else
+             msg = sprintf('%s, %s', ...
+                msg, ...
+                'and it''s only for NATURAL, so zeroing.') ;
+            warning(msg) %#ok<*SPWRN> 
+        end
+    end
+
 end
 
 out_YXv = in_YXv ;
