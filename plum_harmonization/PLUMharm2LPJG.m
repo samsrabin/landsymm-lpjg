@@ -25,21 +25,21 @@ PLUMharm_options
 
 % In addition, PLUMharm2LPJG_options.m must be somewhere on your path.
 % There, specify the following variables:
-%     yStep: Save output files every yStep years. Recommendation: 1
 %     do_gzip: (Optional.) Zip up outputs? (Default: false)
-%     someofall: Make it so that each gridcell always has at least some tiny amount of
-%                every crop? Needed to avoid weird first few years after a cell gets its
-%                first area of some new crop. Recommendation: true
 %     donation_order: When someofall==true, this designates the order in which area 
 %                     donated to cropland will be taken from (decreasing order of
 %                     preference). Recommendation: {'PASTURE','NATURAL','BARREN'}
-%     y1_pre: Experimental setting trying to avoid new crop spinup time; will repeat first
-%             PLUMout year over y1_pre:(year1-1). Set to year1, [], or unset to skip.
 %     save_every_pct: How many rows (% of total) should be written at once. Lower means
 %                     lower memory requirement. Recommendation: 1.
-%     verbose_write: Set to true to slightly increase verbosity of write step.
+%     someofall: Make it so that each gridcell always has at least some tiny amount of
+%                every crop? Needed to avoid weird first few years after a cell gets its
+%                first area of some new crop. Recommendation: true
 %     toLPJG_dirs: (Optional.) Directories where outputs of this script will be saved. If
 %                  not provided, will append '.harm' to each harmDir.
+%     verbose_write: Set to true to slightly increase verbosity of write step.
+%     yStep: Save output files every yStep years. Recommendation: 1
+%     y1_pre: Experimental setting trying to avoid new crop spinup time; will repeat first
+%             PLUMout year over y1_pre:(year1-1). Set to year1, [], or unset to skip.
 %
 % You can also specify any variables listed as being taken from PLUMharm_options.m that
 % you want to override.
