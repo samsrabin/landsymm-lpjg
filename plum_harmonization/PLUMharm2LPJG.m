@@ -38,6 +38,8 @@ PLUMharm_options
 %     save_every_pct: How many rows (% of total) should be written at once. Lower means
 %                     lower memory requirement. Recommendation: 1.
 %     verbose_write: Set to true to slightly increase verbosity of write step.
+%     toLPJG_dirs: (Optional.) Directories where outputs of this script will be saved. If
+%                  not provided, will append '.harm' to each harmDir.
 %
 % You can also specify any variables listed as being taken from PLUMharm_options.m that
 % you want to override.
@@ -77,6 +79,19 @@ end
 
 % Check harmDirs
 harmDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
+Ndirs = length(harmDirs) ;
+
+% Get toLPJG_dirs, if needed
+if ~exist('toLPJG_dirs', 'var')
+    toLPJG_dirs = cell(Ndirs, 1) ;
+    for d = 1:Ndirs
+        harmDir = removeslashifneeded(harmDirs{d}) ;
+        toLPJG_dirs{d} = [harmDir '.forLPJG/'] ;
+    end
+end
+
+% Check toLPJG_dirs
+toLPJG_dirs = PLUMharm_check_dirs(toLPJG_dirs, 'rw') ;
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
@@ -99,20 +114,13 @@ Nyears_xtra = length(yearList_xtra) ;
 
 %% Do it
 
-for d = 1:length(harmDirs)
+for d = 1:Ndirs
     
     % Get directories
     harmDir = harmDirs{d} ;
-    if ~exist(harmDir, 'dir')
-        error('harmDir %s not found. Try changing MATLAB working directory to harmDir''s parent. Current working directory: %s', ...
-            harmDir, pwd)
-    end
     harmDir = removeslashifneeded(harmDir) ;
     disp(harmDir)
-    toLPJG_dir = addslashifneeded([removeslashifneeded(harmDir) '.forLPJG']) ;
-    if ~exist(toLPJG_dir, 'dir')
-        mkdir(toLPJG_dir)
-    end
+    toLPJG_dir = toLPJG_dirs{d} ;
     
     
     %%%%%%%%%%%%%%
