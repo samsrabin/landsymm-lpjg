@@ -35,6 +35,9 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %     conserv_tol_area: How much divergence (m2) from PLUM-original transition is
 %                       acceptable? Also used for checking whether agricultural area
 %                       exceeds vegetated area in each gridcell. Recommendation: 1e3
+%     fixTinyNegs_tol_m2: (Optional.) When zeroing tiny negative values of area, what's
+%                         the worst value (m2) that will not produce an error?
+%                         Default: 1.
 %     inpaint_method: Method (integer ≥0) to be used by inpaint_nans(). See help of that
 %                     function for more information. Recommendation: 4.
 %     norm2extra: The areal fraction of real crops not included in PLUM's 6 non-
@@ -108,6 +111,11 @@ harmDirs_specified = exist('harmDirs', 'var') ;
 if ~harmDirs_specified
     harmDirs = cell(length(plumDirs)) ;
 end
+
+if ~exist('fixTinyNegs_tol_m2', 'var')
+    fixTinyNegs_tol_m2 = 1 ;
+end
+fixTinyNegs_tol_m2 = abs(fixTinyNegs_tol_m2) ;
 
 % Save details
 save_halfDeg_any = save_halfDeg_mat || save_halfDeg_txt ;
@@ -646,7 +654,7 @@ for d = 1:length(plumDirs)
         % check for bad values
         tmp_YXv = cat(3, mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), ...
-            LUnames, outPrec, debugIJ_2deg) ;
+            LUnames, outPrec, fixTinyNegs_tol_m2, debugIJ_2deg) ;
         PLUMharm_checkBadVals(tmp_YXv, [], [], ...
             landArea_2deg_YX, LUnames, 'mid_y1_2deg', outPrec) ;
         mid_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
@@ -722,7 +730,7 @@ for d = 1:length(plumDirs)
         % Check for bad values
         tmp_YXv = cat(3, out_y1_2deg_agri_YXv, out_y1_2deg_ntrl_YX, out_y1_2deg_bare_YX) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), ...
-            LUnames, outPrec, debugIJ_2deg) ;
+            LUnames, outPrec, fixTinyNegs_tol_m2, debugIJ_2deg) ;
         PLUMharm_checkBadVals(tmp_YXv, [] ,[], ...
             landArea_2deg_YX, LUnames, 'out_y1_2deg', outPrec) ;
         out_y1_2deg_agri_YXv = tmp_YXv(:,:,1:end-2) ;
@@ -956,7 +964,7 @@ for d = 1:length(plumDirs)
         % Check for bad values.
         tmp_YXv = cat(3, out_y1_agri_YXv, out_y1_ntrl_YX, out_y1_bare_YX) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_YX,[1 1 Nlu]), ...
-            LUnames, outPrec, []) ;
+            LUnames, outPrec, fixTinyNegs_tol_m2, []) ;
         PLUMharm_checkBadVals(tmp_YXv, [] ,[], ...
             landArea_YX, LUnames, 'out_y1_2deg', outPrec) ;
         out_y1_agri_YXv = tmp_YXv(:,:,1:end-2) ;

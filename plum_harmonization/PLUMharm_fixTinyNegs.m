@@ -1,12 +1,11 @@
 function out_YXv = PLUMharm_fixTinyNegs(in_YXv, landArea_YXv, ...
-    LUnames, outPrec, debugIJ_2deg)
+    LUnames, outPrec, fixTinyNegs_tol_m2, debugIJ_2deg)
 % Rounding errors can result in small negative values. Fix.
 
 Nlu = size(in_YXv, 3) ;
 do_debug = ~isempty(debugIJ_2deg) ;
 
-fixTinyNegs_tol_m2 = 1 ;   % m2
-if min(in_YXv(:)) < -fixTinyNegs_tol_m2
+if min(in_YXv(:)) < -abs(fixTinyNegs_tol_m2)
     msg = sprintf('Negative value(s) of area exceeding tolerance %g m2 (fixTinyNegs_tol):', ...
         fixTinyNegs_tol_m2);
     for v = 1:Nlu
