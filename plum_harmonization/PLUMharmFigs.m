@@ -29,6 +29,13 @@ PLUMharmFigs_options
 
 %% Setup
 
+% Process defaults
+if ~exist('combineCrops', 'var')
+    combineCrops = false ;
+end
+if ~exist('fruitveg_sugar_2oil', 'var')
+    fruitveg_sugar_2oil = false ;
+end
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
