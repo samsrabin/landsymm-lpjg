@@ -6,13 +6,27 @@ addpath(genpath(landsymm_lpjg_path()))
 rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
 % PLUMharm_options.m must be somewhere on your path.
-% See PLUMharm.m for instructions for that file.
+% Here are the variables PLUMharm2LPJG needs from there (see PLUMharm.m for description):
+%     * base_year
+%     * delimiter
+%     * fancy
+%     * harmDirs (if provided)
+%     * outPrec
+%     * outWidth
+%     * overwrite
+%     * plumDirs (if harmDirs not provided)
+%     * year1
+%     * yearN
+% PLUMharm2LPJG will also use these from PLUMharm_options.m if provided; otherwise, it
+% uses the defaults.
+%     * combineCrops
+%     * fruitveg_sugar_2oil
 PLUMharm_options
 
 % In addition, PLUMharm2LPJG_options.m must be somewhere on your path.
 % There, specify the following variables:
 %     yStep: Save output files every yStep years. Recommendation: 1
-%     do_gzip: Zip up outputs? (true/false)
+%     do_gzip: (Optional.) Zip up outputs? (Default: false)
 %     someofall: Make it so that each gridcell always has at least some tiny amount of
 %                every crop? Needed to avoid weird first few years after a cell gets its
 %                first area of some new crop. Recommendation: true
@@ -24,11 +38,26 @@ PLUMharm_options
 %     save_every_pct: How many rows (% of total) should be written at once. Lower means
 %                     lower memory requirement. Recommendation: 1.
 %     verbose_write: Set to true to slightly increase verbosity of write step.
+%     toLPJG_dirs: (Optional.) Directories where outputs of this script will be saved. If
+%                  not provided, will append '.harm' to each harmDir.
+%
+% You can also specify any variables listed as being taken from PLUMharm_options.m that
+% you want to override.
 PLUMharm2LPJG_options
 
 
 %% Setup
 
+% Process defaults
+if ~exist('combineCrops', 'var')
+    combineCrops = false ;
+end
+if ~exist('do_gzip', 'var')
+    do_gzip = false ;
+end
+if ~exist('fruitveg_sugar_2oil', 'var')
+    fruitveg_sugar_2oil = false ;
+end
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
@@ -36,7 +65,36 @@ if exist('thisDir', 'var')
     cd(thisDir)
 end
 
-dirList = strcat(dirList, '.harm') ;
+% Get harmDirs, if needed
+harmDirs_specified = exist('harmDirs', 'var') ;
+if ~harmDirs_specified
+    if ~exist('plumDirs', 'var')
+        error('If not providing harmDirs, you must provide plumDirs')
+    end
+    plumDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
+    if ischar(plumDirs)
+        plumDirs = {plumDirs} ;
+    end
+    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops) ;
+elseif ischar(harmDirs)
+    harmDirs = {harmDirs} ;
+end
+
+% Check harmDirs
+harmDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
+Ndirs = length(harmDirs) ;
+
+% Get toLPJG_dirs, if needed
+if ~exist('toLPJG_dirs', 'var')
+    toLPJG_dirs = cell(Ndirs, 1) ;
+    for d = 1:Ndirs
+        harmDir = removeslashifneeded(harmDirs{d}) ;
+        toLPJG_dirs{d} = [harmDir '.forLPJG/'] ;
+    end
+end
+
+% Check toLPJG_dirs
+toLPJG_dirs = PLUMharm_check_dirs(toLPJG_dirs, 'rw') ;
 
 cf_kgNha_kgNm2 = 1e-4 ;
 
@@ -59,20 +117,13 @@ Nyears_xtra = length(yearList_xtra) ;
 
 %% Do it
 
-for d = 1:length(dirList)
+for d = 1:Ndirs
     
     % Get directories
-    inDir = dirList{d} ;
-    if ~exist(inDir, 'dir')
-        error('inDir %s not found. Try changing MATLAB working directory to inDir''s parent. Current working directory: %s', ...
-            inDir, pwd)
-    end
-    inDir = removeslashifneeded(inDir) ;
-    disp(inDir)
-    outDir = addslashifneeded([removeslashifneeded(inDir) '.forLPJG']) ;
-    if ~exist(outDir, 'dir')
-        mkdir(outDir)
-    end
+    harmDir = harmDirs{d} ;
+    harmDir = removeslashifneeded(harmDir) ;
+    disp(harmDir)
+    toLPJG_dir = toLPJG_dirs{d} ;
     
     
     %%%%%%%%%%%%%%
@@ -85,13 +136,14 @@ for d = 1:length(dirList)
         disp(['   Reading ' num2str(thisYear) '...'])
         
         % Import this year's harmonized outputs
-        load(sprintf('%s/%d/LandCoverFract.base%d.mat', inDir, thisYear, base_year)) ;
+        thisYear_str = num2str(thisYear) ;
+        load(fullfile(harmDir, thisYear_str, sprintf('LandCoverFract.base%d.mat', base_year)))
         S_lu = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/CropFract.base%d.mat', inDir, thisYear, base_year)) ;
+        load(fullfile(harmDir, thisYear_str, sprintf('CropFract.base%d.mat', base_year)))
         S_cf = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/Fert.base%d.mat', inDir, thisYear, base_year)) ;
+        load(fullfile(harmDir, thisYear_str, sprintf('Fert.base%d.mat', base_year)))
         S_nf = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/Irrig.base%d.mat', inDir, thisYear, base_year)) ;
+        load(fullfile(harmDir, thisYear_str, sprintf('Irrig.base%d.mat', base_year)))
         S_ir = out_y1 ; clear out_y1
         
         % Set up empty arrays and do other initialization
@@ -320,10 +372,10 @@ for d = 1:length(dirList)
     end
     
     % Get filenames
-    file_out_LU = [outDir 'landcover.txt'] ;
-    file_out_crop = [outDir 'cropfractions.txt'] ;
-    file_out_nfert = [outDir 'nfert.txt'] ;
-    file_out_irrig = [outDir 'irrig.txt'] ;
+    file_out_LU = [toLPJG_dir 'landcover.txt'] ;
+    file_out_crop = [toLPJG_dir 'cropfractions.txt'] ;
+    file_out_nfert = [toLPJG_dir 'nfert.txt'] ;
+    file_out_irrig = [toLPJG_dir 'irrig.txt'] ;
     if mincropfrac==0
         file_out_LU = strrep(file_out_LU, '.txt', '.noMinCropFrac.txt') ;
         file_out_crop = strrep(file_out_crop, '.txt', '.noMinCropFrac.txt') ;
