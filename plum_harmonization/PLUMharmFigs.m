@@ -45,11 +45,6 @@ PLUMharmFigs_options
 
 %% Setup
 
-% Ensure plumDirs is cell array
-if ischar(plumDirs)
-    plumDirs = {plumDirs} ;
-end
-
 % Process defaults
 if ~exist('combineCrops', 'var')
     combineCrops = false ;
@@ -64,6 +59,13 @@ if exist('thisDir', 'var')
     cd(thisDir)
 end
 
+% Ensure plumDirs is cell array
+if ischar(plumDirs)
+    plumDirs = {plumDirs} ;
+end
+Nruns = length(plumDirs) ;
+
+% Get harmDirs, if needed
 harmDirs_specified = exist('harmDirs', 'var') ;
 if ~harmDirs_specified
     % SSR 2023-11-18: UNTESTED!
@@ -73,6 +75,35 @@ if ~harmDirs_specified
         harmDir = get_harm_dir(harmDir, fruitveg_sugar_2oil, combineCrops) ;
         harmDirs{d} = harmDir ;
     end
+end
+
+% Check plumDirs and harmDirs
+if length(plumDirs) ~= length(harmDirs)
+    error('Numbers of plumDirs (%d) and harmDirs (%d) don''t match', ...
+        length(plumDirs), length(harmDirs))
+end
+for r = 1:Nruns
+    % Check plumDir
+    plumDir = plumDirs{r} ;
+    [~, plumDir_fa] = fileattrib(plumDir) ;
+    plumDir = plumDir_fa.Name ;
+    plumDir = addslashifneeded(plumDir) ;
+    if ~plumDir_fa.UserRead
+        error('plumDir is not readable!')
+    elseif ~plumDir_fa.directory
+        error('plumDir is not a directory!')
+    end
+    plumDirs{r} = plumDir ; %#ok<SAGROW>
+
+    % Check harmDir
+    harmDir = harmDirs{r} ;
+    [~, harmDir_fa] = fileattrib(harmDir) ;
+    harmDir = harmDir_fa.Name ;
+    if ~harmDir_fa.UserRead
+        error('harmDir is not readable!')
+    end
+    harmDir = addslashifneeded(harmDir) ;
+    harmDirs{r} = harmDir ;
 end
 
 % Process harms_figs_dir
@@ -103,7 +134,6 @@ end
 
 Nyears_orig = length(yearList_orig) ;
 Nyears_harm = length(yearList_harm) ;
-Nruns = length(plumDirs) ;
 
 % % Make lower-left lat/lon map (for compat. with PLUM style)
 % lons_map_2deg = repmat(-180:2:178,[90 1]) ;
