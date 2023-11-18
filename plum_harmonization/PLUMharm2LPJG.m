@@ -6,7 +6,21 @@ addpath(genpath(landsymm_lpjg_path()))
 rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 
 % PLUMharm_options.m must be somewhere on your path.
-% See PLUMharm.m for instructions for that file.
+% Here are the variables PLUMharm2LPJG needs from there (see PLUMharm.m for description):
+%     * base_year
+%     * delimiter
+%     * fancy
+%     * harmDirs (if provided)
+%     * outPrec
+%     * outWidth
+%     * overwrite
+%     * plumDirs (if harmDirs not provided)
+%     * year1
+%     * yearN
+% PLUMharm2LPJG will also use these from PLUMharm_options.m if provided; otherwise, it
+% uses the defaults.
+%     * combineCrops
+%     * fruitveg_sugar_2oil
 PLUMharm_options
 
 % In addition, PLUMharm2LPJG_options.m must be somewhere on your path.
@@ -24,6 +38,9 @@ PLUMharm_options
 %     save_every_pct: How many rows (% of total) should be written at once. Lower means
 %                     lower memory requirement. Recommendation: 1.
 %     verbose_write: Set to true to slightly increase verbosity of write step.
+%
+% You can also specify any variables listed as being taken from PLUMharm_options.m that
+% you want to override.
 PLUMharm2LPJG_options
 
 
