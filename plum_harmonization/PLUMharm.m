@@ -177,10 +177,20 @@ for d = 1:length(plumDirs)
     outDir = [inDir '.harm'] ;
     outDir = get_harm_dir(outDir, fruitveg_sugar_2oil, combineCrops) ;
     outDir = addslashifneeded(outDir) ;
+    if strcmp(plumDir, outDir)
+        error('plumDir and outDir must not be the same: %s', plumDir)
+    end
     if ~exist(outDir, 'dir')
         mkdir(outDir)
     end
-    inDir = addslashifneeded(inDir) ;
+
+    % Check output directory
+    [~, outDir_fa] = fileattrib(outDir) ;
+    fprintf('Harm. output directory (outDir): %s\n*\n*\n*\n', ...
+        outDir_fa.Name) ;
+    if ~outDir_fa.UserWrite
+        error('outDir is not writeable!')
+    end
     
     % Save diary file
     diary off
