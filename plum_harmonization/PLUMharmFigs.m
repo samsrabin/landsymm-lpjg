@@ -78,9 +78,13 @@ if length(plumDirs) ~= length(harmDirs)
     error('Numbers of plumDirs (%d) and harmDirs (%d) don''t match', ...
         length(plumDirs), length(harmDirs))
 end
+plumDirs = PLUMharm_check_dirs(plumDirs, 'r') ;
+harmDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
 for r = 1:Nruns
-    plumDirs = PLUMharm_check_dirs(plumDirs, 'r') ;
-    harmDirs = PLUMharm_check_dirs(harmDirs, 'r') ;
+    if strcmp(plumDirs{r}, harmDirs{r})
+        error('plumDir and harmDir must not be the same: %s', ...
+            plumDirs{r})
+    end
 end
 
 % Process harms_figs_dir
