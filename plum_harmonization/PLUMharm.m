@@ -913,6 +913,13 @@ for d = 1:length(dirList)
                 LUnames, isCrop, isAgri, dbCrop, thisYear)
         end
 
+        % Warn if PLUMharm_distDeltas_areaCrops_recursive() messed with area changes more
+        % than is tolerable
+        PLUMharm_check_preserved_global_deltas( ...
+            out_y0_2deg_agri_YXv, out_y1_2deg_agri_YXv, ...
+            out_y0_agri_YXv, out_y1_agri_YXv, ...
+            conserv_tol_pct, LUnames_agri, '2-deg to half-deg', 'agri')
+
         % Rounding errors can result in small negative values. Fix.
         % Check for bad values.
         tmp_YXv = cat(3, out_y1_agri_YXv, out_y1_ntrl_YX, out_y1_bare_YX) ;
