@@ -25,8 +25,10 @@ PLUMharm_options
 %     runList_legend: (Optional.) Cell array of strings to use as legend in plots; one
 %                     member for each PLUM member in plumDirs. If not provided, will use
 %                     values from plumDirs.
-%     out_subdir: Subdirectory of thisDir where outputs will be saved. Can be appended to
-%                 by get_harm_dir().
+%     harms_figs_dir: Directory where output figures will be saved. Can be absolute or
+%                     relative. If relative and thisDir is provided, then relative to
+%                     thisDir; otherwise, relative to whatever MATLAB's current path
+%                     happens to be.
 %     thisVer: (Optional.) String with values either '' (use half-degree harmonization
 %              files), '2deg.' (use 2-degree harmonization files), or 'orig.' (???). Just
 %              leave this unset to use default ''.
@@ -57,20 +59,19 @@ if exist('thisDir', 'var')
     cd(thisDir)
 end
 
-% Before making output directory, make sure you're in the correct
-% directory to begin with.
-if ~exist(plumDirs{1}, 'dir')
-    error('plumDirs{1} %s not found. Try changing MATLAB working directory to plumDirs{1}''s parent. Current working directory: %s', ...
-        plumDirs{1}, pwd)
-end
-harms_figs_dir = get_harm_dir(out_subdir, fruitveg_sugar_2oil, combineCrops) ;
+% Process harms_figs_dir
 if ~exist(harms_figs_dir, 'dir')
     mkdir(harms_figs_dir)
 end
+[~, harms_figs_dir_fa] = fileattrib(harms_figs_dir) ;
+harms_figs_dir = harms_figs_dir_fa.Name ;
 harms_figs_dir = addslashifneeded(harms_figs_dir) ;
-fprintf('harms_figs_dir: %s/%s\n', pwd, harms_figs_dir)
-stop
+fprintf('harms_figs_dir: %s\n', harms_figs_dir)
 
+% Check harms_figs_dir
+if ~harms_figs_dir_fa.UserWrite
+    error('harmDir is not writeable!')
+end
 yearList_harm = year1:yearN ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
 if ~exist('legend_ts', 'var')
