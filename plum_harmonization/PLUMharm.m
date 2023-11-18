@@ -101,9 +101,6 @@ if exist('thisDir', 'var')
     cd(thisDir)
 end
 
-% Method for inpaint_nans()
-% (moved to PLUMharm_importRefData)
-
 % Save details
 save_halfDeg_any = save_halfDeg_mat || save_halfDeg_txt ;
 save_2deg_any = save_2deg_mat || save_2deg_txt ;
