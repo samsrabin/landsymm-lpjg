@@ -75,7 +75,7 @@ fprintf('harms_figs_dir: %s\n', harms_figs_dir)
 
 % Check harms_figs_dir
 if ~harms_figs_dir_fa.UserWrite
-    error('harmDir is not writeable!')
+    error('harms_figs_dir_fa is not writeable!')
 end
 yearList_harm = year1:yearN ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
