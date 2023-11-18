@@ -100,18 +100,34 @@ fprintf('harms_figs_dir: %s\n', harms_figs_dir)
 if ~harms_figs_dir_fa.UserWrite
     error('harms_figs_dir_fa is not writeable!')
 end
+
+% Process yearLists
 yearList_harm = year1:yearN ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
-if ~exist('legend_ts', 'var')
+
+% Check/get figure legends
+if exist('runList_legend', 'var')
+    if ischar(runList_legend)
+        runList_legend = {runList_legend} ;
+    end
+    if length(runList_legend) ~= Nruns
+        error('Number of members of runList_legend (%d) does not match Nruns (%d)', ...
+            length(runList_legend), Nruns)
+    end
+else
     if length(plumDirs) == 1
-        legend_ts = {'Baseline LU','Orig','Harm'} ;
+        runList_legend = {'Baseline LU','Orig','Harm'} ;
     else
-        legend_ts = {'Baseline LU'} ;
+        runList_legend = {'Baseline LU'} ;
         for s = 1:length(plumDirs)
-            legend_ts = [legend_ts {plumDirs{s}(1:4)}] ; %#ok<AGROW>
+            runList_legend = [runList_legend {plumDirs{s}(1:4)}] ; %#ok<AGROW>
         end
     end
 end
+if any(strcmp(runList_legend, 'historical'))
+    error('Legend item name ''historical'' is reserved. Use something else.')
+end
+timeseries_legend = [{'historical'} runList_legend] ;
 
 Nyears_orig = length(yearList_orig) ;
 Nyears_harm = length(yearList_harm) ;
@@ -1070,7 +1086,7 @@ for v = 1:length(combinedLUs)
     title(['Area: ' combinedLUs{v}])
     set(gca,'FontSize',14)
     ylabel('Million km2')
-    legend(legend_ts,'Location','NorthWest')
+    legend(timeseries_legend,'Location','NorthWest')
 end
 
 % Save
@@ -1093,7 +1109,7 @@ ts_orig_cyr = ts_orig_cyr*1e-6*1e-6 ;
 ts_harm_cyr = ts_harm_cyr*1e-6*1e-6 ;
 
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
+    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
     'Area', 'crops', harms_figs_dir)
 
 
@@ -1112,7 +1128,7 @@ end
 
 units = 'Mt N' ;
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
+    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
     'Fert.', 'nfert', harms_figs_dir)
 
 
@@ -1131,7 +1147,7 @@ end
 
 units = 'intensity \times area' ;
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, legend_ts, yearList_baselineLU_toPlot, yearList_orig, units, ...
+    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
     'Irrigation', 'irrig', harms_figs_dir)
 
 
