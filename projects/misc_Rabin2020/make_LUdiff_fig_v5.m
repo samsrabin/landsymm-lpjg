@@ -264,6 +264,13 @@ function ht = plot_map(map_YX, bins_lowBnds, this_colormap_name, ...
     textX, textY_1, textY_2, ...
     do_caps, lines_overlay, new_caxis)
 
+% Get plotting function (to suppress a warning)
+if ~all(isfield(lines_overlay, {'Lat', 'Lon'}))
+    geo_or_map_show = @mapshow ;
+else
+    geo_or_map_show = @geoshow ;
+end
+
 % Create binned version of map
 if isempty(bins_lowBnds)
     Nbins = 64 ;
@@ -294,7 +301,7 @@ caxis(new_caxis)
 % Plot continent outlines
 if ~isempty(lines_overlay)
     hold on
-    geoshow(lines_overlay, 'FaceAlpha', 0)
+    geo_or_map_show(lines_overlay, 'FaceAlpha', 0)
     hold off
 end
 
