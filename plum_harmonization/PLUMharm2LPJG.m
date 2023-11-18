@@ -133,13 +133,14 @@ for d = 1:Ndirs
         disp(['   Reading ' num2str(thisYear) '...'])
         
         % Import this year's harmonized outputs
-        load(sprintf('%s/%d/LandCoverFract.base%d.mat', harmDir, thisYear, base_year)) ;
+        thisYear_str = num2str(thisYear) ;
+        load(fullfile(harmDir, thisYear_str, sprintf('LandCoverFract.base%d.mat', base_year)))
         S_lu = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/CropFract.base%d.mat', harmDir, thisYear, base_year)) ;
+        load(fullfile(harmDir, thisYear_str, sprintf('CropFract.base%d.mat', base_year)))
         S_cf = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/Fert.base%d.mat', harmDir, thisYear, base_year)) ;
+        load(fullfile(harmDir, thisYear_str, sprintf('Fert.base%d.mat', base_year)))
         S_nf = out_y1 ; clear out_y1
-        load(sprintf('%s/%d/Irrig.base%d.mat', harmDir, thisYear, base_year)) ;
+        load(fullfile(harmDir, thisYear_str, sprintf('Irrig.base%d.mat', base_year)))
         S_ir = out_y1 ; clear out_y1
         
         % Set up empty arrays and do other initialization
