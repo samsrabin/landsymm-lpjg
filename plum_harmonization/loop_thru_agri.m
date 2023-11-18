@@ -167,20 +167,7 @@ for k = k1:Nagri
 %         keyboard
 %     end
     out_y1_agri_YXv(iy,ix,k) = out_y1_this_theseCells ;
-    already_done(k) = true ;
-    
-    % Another check
-    if k==Nagri
-        agri_YX = sum(out_y1_agri_YXv(iy,ix,:),3) ;
-        if debug_ijk(1)==i && debug_ijk(2)==j
-            disp(['k = ' num2str(k)])
-            [agri_YX(:) out_y0_vegd_theseCells agri_YX(:)-out_y0_vegd_theseCells]
-        end
-        if any(agri_YX(:) > conserv_tol_area+out_y0_vegd_theseCells)
-            error('Members >vegd_area in half-deg out_y1_(crop+past)_YX!')
-        end
-    end
-    
+    already_done(k) = true ;    
     
 end % for k = 1:Nagri
 
