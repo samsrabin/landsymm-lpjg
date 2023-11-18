@@ -5,9 +5,25 @@ function out_YXv = PLUMharm_fixTinyNegs(in_YXv, landArea_YXv, ...
 Nlu = size(in_YXv, 3) ;
 do_debug = ~isempty(debugIJ_2deg) ;
 
-tolerance = 1 ;   % m2
-if min(in_YXv(:)) < -tolerance
-    error('"Large" negative values of area! Min %0.1e', min(in_YXv(:)))
+fixTinyNegs_tol_m2 = 1 ;   % m2
+if min(in_YXv(:)) < -fixTinyNegs_tol_m2
+    msg = sprintf('Negative value(s) of area exceeding tolerance %g m2 (fixTinyNegs_tol):', ...
+        fixTinyNegs_tol_m2);
+    for v = 1:Nlu
+        this_YX = in_YXv(:,:,v) ;
+        thisMin = min(this_YX(:)) ;
+        if thisMin >= -fixTinyNegs_tol_m2
+            continue
+        end
+        if length(LUnames) == Nlu
+            thisLU = LUnames{v} ;
+        else
+            thisLU = sprintf('v = %d', v) ;
+        end
+        msg = sprintf('%s\n    %s min\t%g', ...
+            msg, thisLU, thisMin) ;
+    end
+    error(msg)
 end
 
 out_YXv = in_YXv ;
