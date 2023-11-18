@@ -25,6 +25,8 @@ PLUMharm_options
 %     runList_legend: (Optional.) Cell array of strings to use as legend in plots; one
 %                     member for each PLUM member in plumDirs. If not provided, will use
 %                     values from plumDirs.
+%     timeseries_legend_loc: (Optional.) Location of legend within timeseries plots,
+%                            passed to legend(..., 'Location'). Default: 'best'
 %     harms_figs_dir: Directory where output figures will be saved. Can be absolute or
 %                     relative. If relative and thisDir is provided, then relative to
 %                     thisDir; otherwise, relative to whatever MATLAB's current path
@@ -51,6 +53,9 @@ if ~exist('combineCrops', 'var')
 end
 if ~exist('fruitveg_sugar_2oil', 'var')
     fruitveg_sugar_2oil = false ;
+end
+if ~exist('timeseries_legend_loc', 'var')
+    timeseries_legend_loc = 'best' ;
 end
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
@@ -964,7 +969,7 @@ for r = 1:Nruns
     end
 end
 hold off
-legend(runList_legend, 'Location', 'best')
+legend(runList_legend, 'Location', timeseries_legend_loc)
 
 title('Time series of harmonization effect on change in non-agri area')
 export_fig([harms_figs_dir 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf']) ;
@@ -1086,7 +1091,7 @@ for v = 1:length(combinedLUs)
     title(['Area: ' combinedLUs{v}])
     set(gca,'FontSize',14)
     ylabel('Million km2')
-    legend(timeseries_legend,'Location','best')
+    legend(timeseries_legend, 'Location', timeseries_legend_loc)
 end
 
 % Save
@@ -1110,7 +1115,7 @@ ts_harm_cyr = ts_harm_cyr*1e-6*1e-6 ;
 
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
     LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Area', 'crops', harms_figs_dir)
+    'Area', 'crops', harms_figs_dir, timeseries_legend_loc)
 
 
 %% Time series of Nfert
@@ -1129,7 +1134,7 @@ end
 units = 'Mt N' ;
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
     LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Fert.', 'nfert', harms_figs_dir)
+    'Fert.', 'nfert', harms_figs_dir, timeseries_legend_loc)
 
 
 %% Time series of irrig
@@ -1148,7 +1153,7 @@ end
 units = 'intensity \times area' ;
 make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
     LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Irrigation', 'irrig', harms_figs_dir)
+    'Irrigation', 'irrig', harms_figs_dir, timeseries_legend_loc)
 
 
 %% Maps: At three years

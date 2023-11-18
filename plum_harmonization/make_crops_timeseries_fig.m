@@ -1,6 +1,6 @@
 function make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
     LPJGcrops, legend_ts, yearList_baselineLU, yearList_orig, units, ...
-    titleWord, fileWord, out_dir)
+    titleWord, fileWord, out_dir, timeseries_legend_loc)
 
 Ncrops_lpjg = length(LPJGcrops) ;
 ny = ceil(Ncrops_lpjg/2) ;
@@ -32,7 +32,7 @@ for v = 1:Ncrops_lpjg
     set(gca,'FontSize',fontSize)
     ylabel(units)
     if ~isempty(legend_ts)
-        legend(legend_ts,'Location','best')
+        legend(legend_ts, 'Location', timeseries_legend_loc)
     end
 end
 
