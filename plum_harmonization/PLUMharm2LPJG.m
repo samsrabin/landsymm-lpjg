@@ -121,7 +121,6 @@ for d = 1:Ndirs
     
     % Get directories
     harmDir = harmDirs{d} ;
-    harmDir = removeslashifneeded(harmDir) ;
     disp(harmDir)
     forLPJG_dir = forLPJG_dirs{d} ;
     
@@ -372,10 +371,10 @@ for d = 1:Ndirs
     end
     
     % Get filenames
-    file_out_LU = [forLPJG_dir 'landcover.txt'] ;
-    file_out_crop = [forLPJG_dir 'cropfractions.txt'] ;
-    file_out_nfert = [forLPJG_dir 'nfert.txt'] ;
-    file_out_irrig = [forLPJG_dir 'irrig.txt'] ;
+    file_out_LU = fullfile(forLPJG_dir, 'landcover.txt') ;
+    file_out_crop = fullfile(forLPJG_dir, 'cropfractions.txt') ;
+    file_out_nfert = fullfile(forLPJG_dir, 'nfert.txt') ;
+    file_out_irrig = fullfile(forLPJG_dir, 'irrig.txt') ;
     if mincropfrac==0
         file_out_LU = strrep(file_out_LU, '.txt', '.noMinCropFrac.txt') ;
         file_out_crop = strrep(file_out_crop, '.txt', '.noMinCropFrac.txt') ;
