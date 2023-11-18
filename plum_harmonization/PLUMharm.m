@@ -87,9 +87,10 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %    debugIJ_2deg: Coordinates of 2-degree cell to debug (leave empty for no debug)
 %    dbCrop: Land use of interest for debugging (string)
 %    verbose: Print verbose messages? (true/false)
-%    combineCrops: Combine all crops? This is useful only as a test to see how different
+%    combineCrops: (Optional.) Combine all crops? This is useful only as a test to see how different
 %                  the area is this way as opposed to the right way (keeping every crop
 %                  separate). E.g., comparison in Rabin et al. (2020) Fig. S2.
+%                  Default: false.
 %                  *This may not actually work!*
 
 
@@ -100,22 +101,30 @@ PLUMharm_options
 
 warning('on','all')
 
+% Process defaults
+if ~exist('allow_unveg', 'var')
+    allow_unveg = false ;
+end
+if ~exist('combineCrops', 'var')
+    combineCrops = false ;
+end
+if ~exist('fruitveg_sugar_2oil', 'var')
+    fruitveg_sugar_2oil = false ;
+end
+if ~exist('fixTinyNegs_tol_m2', 'var')
+    fixTinyNegs_tol_m2 = 1 ;
+end
+fixTinyNegs_tol_m2 = abs(fixTinyNegs_tol_m2) ;
+harmDirs_specified = exist('harmDirs', 'var') ;
+if ~harmDirs_specified
+    harmDirs = cell(length(plumDirs)) ;
+end
 if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
     end
     cd(thisDir)
 end
-
-harmDirs_specified = exist('harmDirs', 'var') ;
-if ~harmDirs_specified
-    harmDirs = cell(length(plumDirs)) ;
-end
-
-if ~exist('fixTinyNegs_tol_m2', 'var')
-    fixTinyNegs_tol_m2 = 1 ;
-end
-fixTinyNegs_tol_m2 = abs(fixTinyNegs_tol_m2) ;
 
 % Save details
 save_halfDeg_any = save_halfDeg_mat || save_halfDeg_txt ;
@@ -124,13 +133,6 @@ save_any = save_halfDeg_any || save_2deg_any ;
 
 if combineCrops
     warning('Combining all crops into one! Will skip harmonization of nfert and irrig.')
-end
-
-if ~exist('fruitveg_sugar_2oil', 'var')
-    fruitveg_sugar_2oil = false ;
-end
-if ~exist('allow_unveg', 'var')
-    allow_unveg = false ;
 end
 
 
