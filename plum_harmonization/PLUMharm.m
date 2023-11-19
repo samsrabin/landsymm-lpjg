@@ -80,6 +80,10 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %     overwrite: Should existing output files be overwritten? (true/false)
 %     fancy: Not sure. Recommendation: false.
 %
+% FIGURE OPTIONS
+%     timeseries_legend_loc: (Optional.) Location of legend within timeseries plots,
+%                            passed to legend(..., 'Location'). Default: 'best'
+%
 % DEBUGGING/DIAGNOSTIC OPTIONS
 %    debug_areas: Print debug info about land use areas? (true/false)
 %    debug_nfert: Print debug info about fertilizer? (true/false)
@@ -113,6 +117,9 @@ if ~exist('fruitveg_sugar_2oil', 'var')
 end
 if ~exist('fixTinyNegs_tol_m2', 'var')
     fixTinyNegs_tol_m2 = 1 ;
+end
+if ~exist('timeseries_legend_loc', 'var')
+    timeseries_legend_loc = 'best' ;
 end
 fixTinyNegs_tol_m2 = abs(fixTinyNegs_tol_m2) ;
 
@@ -1373,7 +1380,7 @@ for d = 1:Ndirs
     ts_harm_cy = ts_harm_cy*1e-6*1e-6 ;
     make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
         tmp_names, legend_ts, [], in_ts.yearList, units, ...
-        'Area', 'landUse', figDir)
+        'Area', 'landUse', figDir, timeseries_legend_loc)
     
     % Crops
     units = 'Million km2' ;
@@ -1381,7 +1388,7 @@ for d = 1:Ndirs
     ts_harm_cy = out_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
     make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
         in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
-        'Area', 'crops', figDir)
+        'Area', 'crops', figDir, timeseries_legend_loc)
     
     % Fertilization
     units = 'Mt N' ;
@@ -1389,7 +1396,7 @@ for d = 1:Ndirs
     ts_harm_cy = out_ts.nfert_vy*1e-3*1e-6 ;
     make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
         in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
-        'Fert.', 'nfert', figDir)
+        'Fert.', 'nfert', figDir, timeseries_legend_loc)
     
     % Irrigation
     units = 'intensity \times area' ;
@@ -1397,7 +1404,7 @@ for d = 1:Ndirs
     ts_harm_cy = out_ts.irrig_vy ;
     make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
         in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
-        'Irrigation', 'irrig', figDir)
+        'Irrigation', 'irrig', figDir, timeseries_legend_loc)
     
     disp('Done')
     diary off

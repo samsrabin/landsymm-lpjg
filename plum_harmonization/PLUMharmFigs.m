@@ -16,6 +16,7 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %     * remap_lu_file
 %     * remap_nfert_file
 %     * thisDir
+%     * timeseries_legend_loc
 %     * year1
 %     * yearN
 PLUMharm_options
@@ -25,8 +26,6 @@ PLUMharm_options
 %     runList_legend: (Optional.) Cell array of strings to use as legend in plots; one
 %                     member for each PLUM member in plumDirs. If not provided, will use
 %                     values from plumDirs.
-%     timeseries_legend_loc: (Optional.) Location of legend within timeseries plots,
-%                            passed to legend(..., 'Location'). Default: 'best'
 %     harms_figs_dir: Directory where output figures will be saved. Can be absolute or
 %                     relative. If relative and thisDir is provided, then relative to
 %                     thisDir; otherwise, relative to whatever MATLAB's current path
