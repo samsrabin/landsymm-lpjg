@@ -227,6 +227,9 @@ for d = 1:Ndirs
     % Read fraction of VEGETATED protected by...
     %%% PLUM's minimum natural fraction ("rate")
     plum_config_file = fullfile(plumDir, 'config.properties') ;
+    if ~exist(plum_config_file, 'file')
+        error('PLUM config file not found: %s', plum_config_file)
+    end
     cmd = sprintf('grep "MIN_NATURAL_RATE"  %s | sed "s/MIN_NATURAL_RATE=//"  | tr -d ''\\n''', ...
         plum_config_file) ;
     [s,r] = unix(cmd) ;
