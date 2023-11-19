@@ -89,7 +89,7 @@ if ~exist('forLPJG_dirs', 'var')
     forLPJG_dirs = cell(Ndirs, 1) ;
     for d = 1:Ndirs
         harmDir = removeslashifneeded(harmDirs{d}) ;
-        forLPJG_dirs{d} = [harmDir '.forLPJG/'] ;
+        forLPJG_dirs{d} = [harmDir '.forLPJG'] ;
     end
 end
 

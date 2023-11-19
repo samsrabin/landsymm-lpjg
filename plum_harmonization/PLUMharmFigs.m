@@ -97,7 +97,6 @@ if ~exist(harms_figs_dir, 'dir')
 end
 [~, harms_figs_dir_fa] = fileattrib(harms_figs_dir) ;
 harms_figs_dir = harms_figs_dir_fa.Name ;
-harms_figs_dir = addslashifneeded(harms_figs_dir) ;
 fprintf('harms_figs_dir: %s\n', harms_figs_dir)
 
 % Check harms_figs_dir
@@ -152,8 +151,8 @@ R = georasterref('RasterSize', [360 720], ...
     'LongitudeLimits', [-180 180]) ;
 geotiffwrite_ssr_verbose = false ;
 
-%lines_overlay = fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'continents_from_countries', 'continents_from_countries.shp') ;
-lines_overlay = shaperead(fullfile(landsymm_lpjg_path(), 'data', 'geodata', 'continents_from_countries', 'continents_from_countries.shp')) ;
+lines_overlay = shaperead(fullfile(landsymm_lpjg_path(), ...
+    'data', 'geodata', 'continents_from_countries', 'continents_from_countries.shp')) ;
 
 % y1_list = 2011 ;
 % yN_list= 2012 ;
@@ -242,10 +241,7 @@ if ~combineCrops
 end
 
 for r = 1:Nruns
-    plumDir = removeslashifneeded(plumDirs{r}) ;
-    if ~exist(plumDir, 'dir')
-        error('plumDir not found: %s')
-    end
+    plumDir = plumDirs{r} ;
     harmDir = harmDirs{d} ;
 
     % Original
@@ -603,14 +599,14 @@ end
 
 textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ; 
 if length(y1_list) > 1
-    this_outdir = sprintf('%s/maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
-        harms_figs_dir, min(y1_list), max(yN_list), yN_list(2)-yN_list(1)) ;
+    this_outdir = fullfile(harms_figs_dir, sprintf('maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
+        min(y1_list), max(yN_list), yN_list(2)-yN_list(1))) ;
     pngres = '-r150' ;
 else
     this_outdir = harms_figs_dir ;
     pngres = '-r300' ;
 end
-this_outdir_geo = [removeslashifneeded(harms_figs_dir) 'geo/'] ;
+this_outdir_geo = [harms_figs_dir 'geo/'] ;
 
 if ~exist(this_outdir, 'dir')
     mkdir(this_outdir) ;
@@ -725,8 +721,8 @@ for l = 1:length(tmp_lu_list)
             bins_lowBnds, this_colormap_name, col_titles, ...
             lines_overlay) ;
 
-        filename = sprintf('%s/maps_deltas_%s_%d-%d_beforeAfter.png', ...
-            this_outdir, thisLU, y1, yN) ;
+        filename = fullfile(this_outdir, sprintf('maps_deltas_%s_%d-%d_beforeAfter.png', ...
+            thisLU, y1, yN)) ;
         if ~as_frac_land
             filename = strrep(filename, '.png', sprintf('.%s.png', units_map)) ;
         end
@@ -734,9 +730,9 @@ for l = 1:length(tmp_lu_list)
         close
         if as_frac_land && length(y1_list) == 1
             for r = 1:Nruns
-                filename = sprintf('%s/D%s_%d-%d_%s_orig.tif', ...
-                    removeslashifneeded(this_outdir_geo), ...
-                    thisLU_short, y1_list, yN_list, runList_legend{r}) ;
+                filename = fullfile( ...
+                    this_outdir_geo, sprintf('D%s_%d-%d_%s_orig.tif', ...
+                    thisLU_short, y1_list, yN_list, runList_legend{r})) ;
                 geotiffwrite_ssr(filename,orig_diff_YXrH(:,:,r),R,-999, ...
                     geotiffwrite_ssr_verbose)
                 filename = strrep(filename, 'orig', 'harm') ;
@@ -826,9 +822,8 @@ templatefile_relLandArea = fullfile(landsymm_lpjg_path(), 'data', 'templates', '
 % Do it
 for l = 1:length(tmp_lu_list)
     thisLU = tmp_lu_list{l} ;
-    outfile = sprintf('%s/harm_by_numbers.%d-%d.%s.xlsx', ...
-        harms_figs_dir, ...
-        y1, yN, thisLU) ;
+    outfile = fullfile(harms_figs_dir, sprintf('harm_by_numbers.%d-%d.%s.xlsx', ...
+        y1, yN, thisLU)) ;
     if combineCrops
         outfile = strrep(outfile, thisLU, ['combCrops.' thisLU]) ;
     end
@@ -1205,7 +1200,9 @@ for v = 1:Nlu
         hsgt = sgtitle(sprintf('Harm-Orig (km^2): %s, %d', thisLU, thisYear)) ;
     end
     set(hsgt, 'FontSize', fontSize+2, 'FontWeight', 'bold')
-    filename = sprintf('%s/mapsOHdiffs_%s_%d.png', harms_figs_dir, thisLU, thisYear) ;
+    filename = fullfile(harms_figs_dir, ...
+        sprintf('mapsOHdiffs_%s_%d.png', ...
+        thisLU, thisYear)) ;
     if as_frac_land
         filename = strrep(filename, 'diffs', 'diffsFrac') ;
     end

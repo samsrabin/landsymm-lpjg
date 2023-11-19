@@ -4,6 +4,7 @@ Ndirs = length(dirList) ;
 
 for d = 1:Ndirs
     thisDir = dirList{d} ;
+    thisDir = removeslashifneeded(thisDir) ;
 
     if ~exist(thisDir, 'dir')
         if ~contains(rw, 'w')
@@ -30,7 +31,6 @@ for d = 1:Ndirs
     end
 
     % Finish up
-    thisDir = addslashifneeded(thisDir) ;
     dirList{d} = thisDir ;
 end
 

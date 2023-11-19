@@ -141,7 +141,7 @@ for y = 1:Nyears
     txt_exists = false ;
     gz_exists = false ;
     
-    file_in_lu = [inDir '/' num2str(thisYear) '/LandCoverFract.mat'] ;
+    file_in_lu = fullfile(inDir, num2str(thisYear), 'LandCoverFract.mat') ;
     if ~is_orig
         file_in_lu = strrep(file_in_lu, '.mat', sprintf('.base%d.mat', base_year)) ;
     end

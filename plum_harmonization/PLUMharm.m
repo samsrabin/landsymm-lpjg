@@ -217,7 +217,7 @@ for d = 1:Ndirs
     
     % Save diary file
     diary off
-    diaryfile = sprintf('%s/matlab_log.txt', harmDir) ;
+    diaryfile = fullfile(harmDir, 'matlab_log.txt') ;
     if exist(diaryfile, 'file')
         delete(diaryfile)
     end
@@ -226,7 +226,13 @@ for d = 1:Ndirs
 
     % Read fraction of VEGETATED protected by...
     %%% PLUM's minimum natural fraction ("rate")
-    [~,r] = unix(['grep "MIN_NATURAL_RATE" ' plumDir 'config.properties | sed "s/MIN_NATURAL_RATE=//"  | tr -d ''\n''']) ;
+    plum_config_file = fullfile(plumDir, 'config.properties') ;
+    cmd = sprintf('grep "MIN_NATURAL_RATE"  %s | sed "s/MIN_NATURAL_RATE=//"  | tr -d ''\\n''', ...
+        plum_config_file) ;
+    [s,r] = unix(cmd) ;
+    if s ~= 0
+        error(r)
+    end
     min_natural_rate = str2double(r) ;
     resFrac_minN_YX = min_natural_rate * ones(size(resFrac_prot_YX)) ;
     %%% Total
@@ -293,8 +299,8 @@ for d = 1:Ndirs
                 out_y0_2deg_nfert_YXv = base_2deg_nfert.maps_YXv ;
                 out_y0_2deg_irrig_YXv = base_2deg_irrig.maps_YXv ;
             end
-        elseif y==1
-            file_in = [removeslashifneeded(plumDir) '.harm/' num2str(thisYear-1) 'post.base' num2str(base_year) '.mat'] ;
+        elseif y==1  % SSR 2023-11-18: Untested!
+            file_in = fullfile(harmDir, [num2str(thisYear-1) 'post.base' num2str(base_year) '.mat']) ;
             % Load previous MAT-file
             if do_debug
                 disp(['*y0* from ' file_in])
@@ -328,7 +334,7 @@ for d = 1:Ndirs
         
         % Import and process previous year, if needed
         if ~exist('in_y0','var')
-            file_in = [plumDir num2str(thisYear-1) '/LandCoverFract.txt'] ;
+            file_in = fullfile(plumDir, num2str(thisYear-1), 'LandCoverFract.txt') ;
             if do_debug
                 disp(['in_y0 from ' file_in])
             end
@@ -397,7 +403,7 @@ for d = 1:Ndirs
         end
 
         % Import this year and convert to area
-        file_in = [plumDir num2str(thisYear) '/LandCoverFract.txt'] ;
+        file_in = fullfile(plumDir, num2str(thisYear), 'LandCoverFract.txt') ;
         if do_debug
             disp(['in_y1 from ' file_in])
         end
@@ -1070,7 +1076,7 @@ for d = 1:Ndirs
             disp(['  Done processing (' toc_hms(toc) '). Now writing.'])
         end
         
-        harmDir_thisYear = sprintf('%s%d', harmDir, thisYear) ;
+        harmDir_thisYear = fullfile(harmDir, num2str(thisYear)) ;
         if save_halfDeg_any
             if ~exist(harmDir_thisYear, 'dir')
                 mkdir(harmDir_thisYear)
@@ -1084,12 +1090,12 @@ for d = 1:Ndirs
             out_y1.maps_YXv = out_y1.maps_YXv ./ repmat(landArea_YX,[1 1 length(out_y1.varNames)]) ;
             
             if save_halfDeg_mat
-                file_out = [harmDir_thisYear '/LandCoverFract.base' num2str(base_year) '.mat'] ;
+                file_out = fullfile(harmDir_thisYear, ['LandCoverFract.base' num2str(base_year) '.mat']) ;
                 save(file_out,'out_y1') ;
             end
             if save_halfDeg_txt
                 [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-                file_out = [harmDir_thisYear '/LandCoverFract.base' num2str(base_year) '.txt'] ;
+                file_out = fullfile(harmDir_thisYear, ['LandCoverFract.base' num2str(base_year) '.txt']) ;
                 lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                     'outPrec', outPrec, ...
                     'outWidth', outWidth, ...
@@ -1107,12 +1113,12 @@ for d = 1:Ndirs
                 out_y1.maps_YXv(repmat(out_y1_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
                 out_y1.varNames = LPJGcrops ;
                 if save_halfDeg_mat
-                    file_out = [harmDir_thisYear '/CropFract.base' num2str(base_year) '.mat'] ;
+                    file_out = fullfile(harmDir_thisYear, ['CropFract.base' num2str(base_year) '.mat']) ;
                     save(file_out,'out_y1') ;
                 end
                 if save_halfDeg_txt
                     [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-                    file_out = [harmDir_thisYear '/CropFract.base' num2str(base_year) '.txt'] ;
+                    file_out = fullfile(harmDir_thisYear, ['CropFract.base' num2str(base_year) '.txt']) ;
                     lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                         'outPrec', outPrec, ...
                         'outWidth', outWidth, ...
@@ -1132,12 +1138,12 @@ for d = 1:Ndirs
                 out_y1.maps_YXv = 1e4*out_y1_nfert_YXv ;
                 out_y1.varNames = LPJGcrops ;
                 if save_halfDeg_mat
-                    file_out = [harmDir_thisYear '/Fert.base' num2str(base_year) '.mat'] ;
+                    file_out = fullfile(harmDir_thisYear, ['Fert.base' num2str(base_year) '.mat']) ;
                     save(file_out,'out_y1') ;
                 end
                 if save_halfDeg_txt
                     [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-                    file_out = [harmDir_thisYear '/Fert.base' num2str(base_year) '.txt'] ;
+                    file_out = fullfile(harmDir_thisYear, ['Fert.base' num2str(base_year) '.txt']) ;
                     lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                         'outPrec', outPrec, ...
                         'outWidth', outWidth, ...
@@ -1155,12 +1161,12 @@ for d = 1:Ndirs
                 out_y1.maps_YXv = out_y1_irrig_YXv ;
                 out_y1.varNames = LPJGcrops ;
                 if save_halfDeg_mat
-                    file_out = [harmDir_thisYear '/Irrig.base' num2str(base_year) '.mat'] ;
+                    file_out = fullfile(harmDir_thisYear, ['Irrig.base' num2str(base_year) '.mat']) ;
                     save(file_out,'out_y1') ;
                 end
                 if save_halfDeg_txt
                     [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map) ;
-                    file_out = [harmDir_thisYear '/Irrig.base' num2str(base_year) '.txt'] ;
+                    file_out = fullfile(harmDir_thisYear, ['Irrig.base' num2str(base_year) '.txt']) ;
                     lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                         'outPrec', outPrec, ...
                         'outWidth', outWidth, ...
@@ -1192,7 +1198,7 @@ for d = 1:Ndirs
             end
             if save_2deg_txt
                 [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-                file_out = [harmDir_thisYear '/LandCoverFract.base' num2str(base_year) '.2deg.txt'] ;
+                file_out = fullfile(harmDir_thisYear, ['LandCoverFract.base' num2str(base_year) '.2deg.txt']) ;
                 lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                     'outPrec', outPrec, ...
                     'outWidth', outWidth, ...
@@ -1210,12 +1216,12 @@ for d = 1:Ndirs
                 out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
                 out_y1.varNames = LPJGcrops ;
                 if save_2deg_mat
-                    file_out = [harmDir_thisYear '/CropFract.base' num2str(base_year) '.2deg.mat'] ;
+                    file_out = fullfile(harmDir_thisYear, ['CropFract.base' num2str(base_year) '.2deg.mat']) ;
                     save(file_out,'out_y1') ;
                 end
                 if save_2deg_txt
                     [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-                    file_out = [harmDir_thisYear '/CropFract.base' num2str(base_year) '.2deg.txt'] ;
+                    file_out = fullfile(harmDir_thisYear, ['CropFract.base' num2str(base_year) '.2deg.txt']) ;
                     lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                         'outPrec', outPrec, ...
                         'outWidth', outWidth, ...
@@ -1235,12 +1241,12 @@ for d = 1:Ndirs
                 out_y1.maps_YXv = 1e4*out_y1_2deg_nfert_YXv ;
                 out_y1.varNames = LPJGcrops ;
                 if save_2deg_mat
-                    file_out = [harmDir_thisYear '/Fert.base' num2str(base_year) '.2deg.mat'] ;
+                    file_out = fullfile(harmDir_thisYear, ['Fert.base' num2str(base_year) '.2deg.mat']) ;
                     save(file_out,'out_y1') ;
                 end
                 if save_2deg_txt
                     [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-                    file_out = [harmDir_thisYear '/Fert.base' num2str(base_year) '.2deg.txt'] ;
+                    file_out = fullfile(harmDir_thisYear, ['Fert.base' num2str(base_year) '.2deg.txt']) ;
                     lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                         'outPrec', outPrec, ...
                         'outWidth', outWidth, ...
@@ -1259,12 +1265,12 @@ for d = 1:Ndirs
                 out_y1.maps_YXv(repmat(out_y1_2deg_crop_YX,[1 1 length(LPJGcrops)])==0) = 0 ;
                 out_y1.varNames = LPJGcrops ;
                 if save_2deg_mat
-                    file_out = [harmDir_thisYear '/Irrig.base' num2str(base_year) '.2deg.mat'] ;
+                    file_out = fullfile(harmDir_thisYear, ['Irrig.base' num2str(base_year) '.2deg.mat']) ;
                     save(file_out,'out_y1') ;
                 end
                 if save_2deg_txt
                     [out_y1_array, out_header_cell] = lpjgu_matlab_maps2table(out_y1,list2map_2deg) ;
-                    file_out = [harmDir_thisYear '/Irrig.base' num2str(base_year) '.2deg.txt'] ;
+                    file_out = fullfile(harmDir_thisYear, ['Irrig.base' num2str(base_year) '.2deg.txt']) ;
                     lpjgu_matlab_saveTable(out_header_cell, out_y1_array, file_out,...
                         'outPrec', outPrec, ...
                         'outWidth', outWidth, ...
@@ -1341,7 +1347,7 @@ for d = 1:Ndirs
         end
         
         % Save full-precision outputs for use in restarting
-        thisMATfile = [harmDir_thisYear 'post.base' num2str(base_year) '.mat'] ;
+        thisMATfile = fullfile(harmDir_thisYear, ['post.base' num2str(base_year) '.mat']) ;
         save(thisMATfile, ...
             '*y0*','latestPLUMin_*','-v7.3') ;
         if ~combineCrops
@@ -1361,7 +1367,7 @@ for d = 1:Ndirs
     %%% Make figures %%%
     %%%%%%%%%%%%%%%%%%%%
     
-    figDir = addslashifneeded(sprintf('%s_figs', removeslashifneeded(harmDir))) ;
+    figDir = [harmDir '_figs'] ;
     if ~exist(figDir, 'dir')
         mkdir(figDir)
     end

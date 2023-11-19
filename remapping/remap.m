@@ -354,8 +354,8 @@ for c = 1:length(list_cropsCombined_nfert_in)
     if contains(thisCrop_in, 'combined')
         in_x = remap_combine_Nfert(thisCrop_in, croparea_in, nfert_dir, gridlist) ;
     else
-        thisFile = sprintf('%s/agmip_%s_apprate_fill_NPK_0.5.nc4', ...
-            nfert_dir, thisCrop_in) ;
+        thisFile = fullfile(nfert_dir, sprintf('agmip_%s_apprate_fill_NPK_0.5.nc4', ...
+            thisCrop_in)) ;
         in_YX = flipud(transpose(ncread(thisFile, 'Napprate'))) ;
         in_x = in_YX(gridlist.list2map) ;
     end
