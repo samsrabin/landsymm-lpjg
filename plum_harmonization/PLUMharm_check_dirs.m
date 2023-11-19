@@ -11,7 +11,12 @@ for d = 1:Ndirs
             error('%s not found', ...
                 thisDir)
         end
-        mkdir(thisDir)
+        try
+            mkdir(thisDir)
+        catch ME
+            error('Trying to make %s:\n%s', ...
+                thisDir, ME.message)
+        end
     end
 
     [~, fa] = fileattrib(thisDir) ;
