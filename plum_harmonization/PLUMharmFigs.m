@@ -30,6 +30,8 @@ PLUMharm_options
 %                     relative. If relative and thisDir is provided, then relative to
 %                     thisDir; otherwise, relative to whatever MATLAB's current path
 %                     happens to be.
+%     save_geotiffs: (Optional.) Should "Map deltas for orig and harm" maps be saved as
+%                    GeoTIFFs? Default: false
 %     thisVer: (Optional.) String with values either '' (use half-degree harmonization
 %              files), '2deg.' (use 2-degree harmonization files), or 'orig.' (???). Just
 %              leave this unset to use default ''.
@@ -52,6 +54,9 @@ if ~exist('combineCrops', 'var')
 end
 if ~exist('fruitveg_sugar_2oil', 'var')
     fruitveg_sugar_2oil = false ;
+end
+if ~exist('save_geotiffs', 'var')
+    save_geotiffs = false ;
 end
 if ~exist('timeseries_legend_loc', 'var')
     timeseries_legend_loc = 'best' ;
@@ -184,6 +189,12 @@ end
 
 if min(threeYears) < min(yearList_harm) || max(threeYears) > max(yearList_harm)
     error('threeYears must be entirely within yearList_harm')
+end
+
+if save_geotiffs
+    if ~exist('geotiffwrite', 'file') %#ok<UNRCH> 
+        error('This MATLAB installation does not have geotiffwrite. Set save_geotiffs to false.')
+    end
 end
 
 
@@ -728,7 +739,7 @@ for l = 1:length(tmp_lu_list)
         end
         export_fig(filename, pngres) ;
         close
-        if as_frac_land && length(y1_list) == 1
+        if save_geotiffs && as_frac_land && length(y1_list) == 1
             for r = 1:Nruns
                 filename = fullfile( ...
                     this_outdir_geo, sprintf('D%s_%d-%d_%s_orig.tif', ...
