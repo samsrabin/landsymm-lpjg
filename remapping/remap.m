@@ -141,6 +141,7 @@ if ~exist('fill_unveg', 'var')
 end
 
 warning('on','all')
+warning('off','MATLAB:prnRenderer:opengl');
 
 
 %% Get output gridlist

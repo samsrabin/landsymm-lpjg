@@ -223,6 +223,9 @@ if save_geotiffs
     end
 end
 
+warning('on','all')
+warning('off','MATLAB:prnRenderer:opengl');
+
 
 %% Import reference data
 

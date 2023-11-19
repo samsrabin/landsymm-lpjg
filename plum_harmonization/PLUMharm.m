@@ -167,6 +167,9 @@ if combineCrops
     warning('Combining all crops into one! Will skip harmonization of nfert and irrig.')
 end
 
+warning('on','all')
+warning('off','MATLAB:prnRenderer:opengl');
+
 
 %% Import reference data
 
@@ -175,8 +178,6 @@ PLUMharm_importRefData
 
 
 %% Do it
-
-warning('on','all')
 
 % Debug?
 do_debug = ~isempty(debugIJ_2deg) && (debug_areas || debug_nfert || debug_irrig) ;
