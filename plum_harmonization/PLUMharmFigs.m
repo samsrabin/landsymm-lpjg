@@ -170,7 +170,7 @@ yN_list= yearList_harm(end) ;
 % yN_list = 2020:20:yearList_harm(end) ;
 % y1_list = 2010*ones(size(yN_list)) ;
 
-if any(Nruns == [4 5])
+if any(Nruns == [3 4 5])
     thisPos_RxW = [1    33   770   772] ;
 elseif Nruns<=2
     thisPos_RxW = [1   308   770   497] ;
@@ -467,7 +467,7 @@ for r = 1:Nruns
     
 end
 
-export_fig([harms_figs_dir 'scatter_hurtt2011_fig4.png'], '-r300') ;
+export_fig(fullfile(harms_figs_dir, 'scatter_hurtt2011_fig4.png'), '-r300') ;
 close
 
 
@@ -607,7 +607,7 @@ for r = 1:Nruns
     end
 end
 
-export_fig([harms_figs_dir 'scatter_hurtt2011_fig5.png'], '-r300') ;
+export_fig(fullfile(harms_figs_dir, 'scatter_hurtt2011_fig5.png'), '-r300') ;
 close
 
 
@@ -646,7 +646,7 @@ else
     this_outdir = harms_figs_dir ;
     pngres = '-r300' ;
 end
-this_outdir_geo = [harms_figs_dir 'geo/'] ;
+this_outdir_geo = fullfile(harms_figs_dir, 'geo/') ;
 
 if ~exist(this_outdir, 'dir')
     mkdir(this_outdir) ;
@@ -1006,7 +1006,7 @@ hold off
 legend(runList_legend, 'Location', timeseries_legend_loc)
 
 title('Time series of harmonization effect on change in non-agri area')
-export_fig([harms_figs_dir 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf']) ;
+export_fig(fullfile(harms_figs_dir, 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf')) ;
 close
     
 
@@ -1044,7 +1044,7 @@ for v = 1:length(combinedLUs)
 end
 
 % Save
-export_fig([harms_figs_dir 'timeSeries_landUse.pdf']) ;
+export_fig(fullfile(harms_figs_dir, 'timeSeries_landUse.pdf')) ;
 close
 
 
@@ -1144,7 +1144,7 @@ for r = 1:Nruns
             caxis(h2,new_caxis) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([harms_figs_dir 'maps_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig(fullfile(harms_figs_dir, ['maps_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']),['-r' num2str(png_res)]) ;
         close
     end
 end
@@ -1184,7 +1184,7 @@ for r = 1:Nruns
             title(sprintf('Harm-Orig, %s: %s, %d',thisRun,thisLU,thisYear)) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([harms_figs_dir 'mapsOHdiffs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig(fullfile(harms_figs_dir, ['mapsOHdiffs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']),['-r' num2str(png_res)]) ;
         close
     end
 end
@@ -1297,7 +1297,7 @@ for r = 1:Nruns
             caxis(h2,new_caxis) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig([harms_figs_dir 'mapsChgs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png'],['-r' num2str(png_res)]) ;
+        export_fig(fullfile(harms_figs_dir, ['mapsChgs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']),['-r' num2str(png_res)]) ;
         close
     end
 end

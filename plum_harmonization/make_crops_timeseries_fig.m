@@ -38,7 +38,7 @@ end
 
 % Save
 warning off export_fig:exportgraphics
-export_fig(sprintf('%stimeSeries_%s.pdf', out_dir, fileWord))
+export_fig(fullfile(out_dir, sprintf('timeSeries_%s.pdf', fileWord)))
 close
 
 end
