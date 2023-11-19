@@ -122,6 +122,13 @@ if ~exist('timeseries_legend_loc', 'var')
     timeseries_legend_loc = 'best' ;
 end
 fixTinyNegs_tol_m2 = abs(fixTinyNegs_tol_m2) ;
+if exist('thisDir', 'var')
+    if ~exist(thisDir, 'dir')
+        error('thisDir not found: %s', thisDir)
+    end
+    cd(thisDir)
+end
+
 
 % Ensure plumDirs is cell array
 if ischar(plumDirs)
@@ -149,13 +156,6 @@ for d = 1:Ndirs
         error('plumDir and harmDir must not be the same: %s', ...
             plumDirs{d})
     end
-end
-
-if exist('thisDir', 'var')
-    if ~exist(thisDir, 'dir')
-        error('thisDir not found: %s', thisDir)
-    end
-    cd(thisDir)
 end
 
 % Save details
