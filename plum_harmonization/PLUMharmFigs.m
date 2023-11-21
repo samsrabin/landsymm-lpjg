@@ -282,7 +282,7 @@ end
 
 for r = 1:Nruns
     plumDir = plumDirs{r} ;
-    harmDir = harmDirs{d} ;
+    harmDir = harmDirs{r} ;
 
     % Original
     fprintf('Importing %s...\n', plumDir) ;
