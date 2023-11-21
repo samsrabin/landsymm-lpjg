@@ -13,6 +13,8 @@ Most of these scripts and functions were originally written to work on my laptop
 - `crop_diagnostics.m`
 - `get_calibration_factors.m`
 - `get_max_oilsug.m`
+- `remap.m`
+- PLUM harmonization scripts
 
 ## Produce some diagnostic figures for crop outputs
 
@@ -39,3 +41,23 @@ As of 2022-12-27, I'm doing yield-generating runs that include some crops that P
 
 These LPJ-GUESS crops need to be somehow chosen between or combined before sending the outputs to PLUM. For now, this is a manual process using the script `general_tasks/get_max_oilsug.m`, which contains more details and instructions.
 
+## "Remap" land use, crop fraction, and fertilizer datasets to LandSyMM types
+
+`remap.m` allows you to produce datasets for use in LPJ-GUESS:
+
+- `file_lu`:  Based on LUH2 or HILDA+
+- `file_lucrop`: Based on MIRCA2000
+- `file_nfert`: Based on the AgGRID fertilizer dataset
+
+You can define new crop lists in `get_remapv2_keys.m` and some other functions; see that file for instructions.
+
+## PLUM harmonization
+
+Before PLUM outputs are used in LPJ-GUESS, they should be harmonized with historical land use data to avoid jumps at the historical-future transition. This is accomplished in two steps:
+
+1. `PLUMharm.m` harmonizes the future-period PLUM outputs with historical-period land use files that were produced with `remap.m` (see above).
+2. `PLUMharm2LPJG.m` converts the files produced by `PLUMharm.m` into a format usable by LPJ-GUESS.
+
+Optionally, `PLUMharmFigs.m` can be used to produce figures showing the results of the harmonization process. 
+
+The mentioned scripts contain instructions on their use.
