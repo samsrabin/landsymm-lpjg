@@ -113,7 +113,7 @@ for c = 1:Ncrops
 end
 
 fclose(fid) ;
-
+fclose(fids) ;
 
 
 end
