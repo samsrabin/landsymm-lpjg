@@ -1,4 +1,17 @@
 function get_st_pft_lists(thisVer, remapVer, include_cropphencol, out_dir)
+% Produce LPJ-GUESS ins-files with crop stands and PFTs
+%
+% ARGUMENTS:
+%     thisVer: String given to get_remapv2_keys() in order to retrieve the mapping of crop
+%              types between LandSyMM and MIRCA (source of crop fraction data).
+%              E.g., 'WithFruitVeg_sepSugar_sepOil'.
+%     remapVer: String to be included in output filenames. E.g.,
+%                   sprintf('crop_n_stlist.remap%s.ins', remapVer)
+%     include_cropphencol: If true, include CFT attribute cropphen_col. Set to true if you
+%                          want to use crop calendar/phenology forcing files that don't
+%                          have one column for every CFT. (It's rare that you will want to
+%                          use such forcing files, so usually leave this as false.)
+%     out_dir: Output directory.
 
 %%%%%%%%%%%%%
 %%% Setup %%%
