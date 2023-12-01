@@ -99,8 +99,8 @@ fclose(fids_noForPotYield) ;
 %%% Construct CFT type list %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-out_file_simple = sprintf('%s/crop_n_pftlist.remap%s.ins', out_dir, remapVer) ;
-fid = fopen(out_file_simple, 'w') ;
+out_file = sprintf('%s/crop_n_pftlist.remap%s.ins', out_dir, remapVer) ;
+fid = fopen(out_file, 'w') ;
 out_file_simple = sprintf('%s/crop_n_pftlist.simplePFT.remap%s.ins', out_dir, remapVer) ;
 fids = fopen(out_file_simple, 'w') ;
 
