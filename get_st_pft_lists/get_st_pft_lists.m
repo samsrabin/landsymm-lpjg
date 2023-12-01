@@ -18,7 +18,6 @@ if ~all(isint(Nlist))
 end
 Nformat_stand = ['%0' num2str(Nwidth) 'd'] ;
 Nformat_appfert = ['%0.' num2str(max(-log10(1e-4*Nlist))) 'f'] ;
-Nlevels_token = regexprep(num2str(Nlist), '\s*', '-') ;
 Nn = length(Nlist) ;
 
 
