@@ -38,14 +38,14 @@ Nn = length(Nlist) ;
 %%% Save stand type list %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-out_file = sprintf('%s/crop_n_stlist.remap%s.ins', out_dir, remapVer) ;
-fid = fopen(out_file, 'w') ;
-
 out_file_simple = sprintf('%s/crop_n_stlist.simplePFT.remap%s.ins', out_dir, remapVer) ;
 fids = fopen(out_file_simple, 'w') ;
 
 out_file_simple_noForPotYield = sprintf('%s/crop_n_stlist.simplePFT.noForPotYield.remap%s.ins', out_dir, remapVer) ;
 fids_noForPotYield = fopen(out_file_simple_noForPotYield, 'w') ;
+
+out_file = sprintf('%s/crop_n_stlist.remap%s.ins', out_dir, remapVer) ;
+fid = fopen(out_file, 'w') ;
 
 for c = 1:Ncrops
     thisCrop = cropList{c} ;
@@ -79,13 +79,13 @@ for c = 1:Ncrops
                 thisN = [] ;
             end
 
-            % Complex
-            getstpftlists_generate_stand_file_text(thisCropIrrN, thisCropIrrN, isIrr, fid, n, ...
-                [], [])
-
             % Simple
             getstpftlists_generate_stand_file_text(thisCropIrrN, thisCrop, isIrr, fids, n, ...
                 Nformat_appfert, thisN)
+
+            % Complex
+            getstpftlists_generate_stand_file_text(thisCropIrrN, thisCropIrrN, isIrr, fid, n, ...
+                [], [])
         end
     end
 end
@@ -99,17 +99,17 @@ fclose(fids_noForPotYield) ;
 %%% Construct CFT type list %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-out_file = sprintf('%s/crop_n_pftlist.remap%s.ins', out_dir, remapVer) ;
-fid = fopen(out_file, 'w') ;
 out_file_simple = sprintf('%s/crop_n_pftlist.simplePFT.remap%s.ins', out_dir, remapVer) ;
 fids = fopen(out_file_simple, 'w') ;
+out_file = sprintf('%s/crop_n_pftlist.remap%s.ins', out_dir, remapVer) ;
+fid = fopen(out_file, 'w') ;
 
 for c = 1:Ncrops
     thisCrop = cropList{c} ;
     thisCFT = getstpftlists_get_cft_from_crop(thisCrop) ;
+    getstpftlists_construct_cft_type_list_simple(thisCrop, thisCFT, include_cropphencol, cropList, fids)
     getstpftlists_construct_cft_type_list(irrList, thisCrop, thisCFT, Nformat_stand, ...
         Nformat_appfert, include_cropphencol, Nlist, cropList, fid) ;
-    getstpftlists_construct_cft_type_list_simple(thisCrop, thisCFT, include_cropphencol, cropList, fids)
 end
 
 fclose(fid) ;
