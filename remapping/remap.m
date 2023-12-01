@@ -18,6 +18,14 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %     interp_test_y1 (optional; recommendation: 1995)
 %     interp_test_yN (optional; recommendation: 2005)
 %
+% INS-FILE OPTIONS
+% This script produces ins-files containing crop stands and PFTs to be used with the
+% output file_lucrop and file_nfert.
+%     include_cropphencol: (Optional.) If true, include CFT attribute cropphen_col. Set to
+%                          true if you want to use crop calendar/phenology forcing files
+%                          that don't have one column for every CFT. This is a rare use
+%                          case, so by default this is false.
+%
 % OUTPUT OPTIONS
 %     delimiter: Recommendation: ' '.
 %     do_gzip: Whether to zip up outputs from .txt. to .gz files (true/false).
@@ -142,6 +150,17 @@ end
 
 warning('on','all')
 warning('off','MATLAB:prnRenderer:opengl');
+
+
+%% Get (crop) stand and PFT ins-files
+
+if ~exist('include_cropphencol', 'var')
+    include_cropphencol = false ;
+end
+
+for simple = [true false]
+    get_st_pft_lists(thisVer, remapVer, include_cropphencol, simple, out_dir)
+end
 
 
 %% Get output gridlist
