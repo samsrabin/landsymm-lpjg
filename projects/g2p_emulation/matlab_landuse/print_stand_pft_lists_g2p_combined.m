@@ -25,4 +25,8 @@ end
 
 %% Do it
 
-get_st_pft_lists(thisVer, remapVer, include_cropphencol, out_dir)
+simple = false ;
+get_st_pft_lists(thisVer, remapVer, include_cropphencol, simple, out_dir)
+
+simple = true ;
+get_st_pft_lists(thisVer, remapVer, include_cropphencol, simple, out_dir)

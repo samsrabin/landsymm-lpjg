@@ -1,4 +1,4 @@
-function get_st_pft_lists(thisVer, remapVer, include_cropphencol, out_dir)
+function get_st_pft_lists(thisVer, remapVer, include_cropphencol, simple, out_dir)
 % Produce LPJ-GUESS ins-files with crop stands and PFTs
 %
 % ARGUMENTS:
@@ -11,6 +11,14 @@ function get_st_pft_lists(thisVer, remapVer, include_cropphencol, out_dir)
 %                          want to use crop calendar/phenology forcing files that don't
 %                          have one column for every CFT. (It's rare that you will want to
 %                          use such forcing files, so usually leave this as false.)
+%     simple: If true, PFT list file will not contain a separate CFT for each Nfert*irrig
+%             combination. Instead, those management properties will be linked to the
+%             stand. Note that you'll want to save LPJ-GUESS outputs at the stand level
+%             rather than (or at least, in addition to) the PFT level, because the PFT
+%             outputs will be area-weighted averages of all stands containing each PFT.
+%             Note also that simple=true will produce an additional stand list file without
+%             stands for Nfert*irrig combinations, which is what you want unless you're
+%             producing LandSyMM potential yields.
 %     out_dir: Output directory.
 
 %%%%%%%%%%%%%
@@ -38,14 +46,16 @@ Nn = length(Nlist) ;
 %%% Save stand type list %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-out_file_simple = sprintf('%s/crop_n_stlist.simplePFT.remap%s.ins', out_dir, remapVer) ;
-fids = fopen(out_file_simple, 'w') ;
-
-out_file_simple_noForPotYield = sprintf('%s/crop_n_stlist.simplePFT.noForPotYield.remap%s.ins', out_dir, remapVer) ;
-fids_noForPotYield = fopen(out_file_simple_noForPotYield, 'w') ;
-
-out_file = sprintf('%s/crop_n_stlist.remap%s.ins', out_dir, remapVer) ;
-fid = fopen(out_file, 'w') ;
+if simple
+    out_file_simple = sprintf('%s/crop_n_stlist.simplePFT.remap%s.ins', out_dir, remapVer) ;
+    fid = fopen(out_file_simple, 'w') ;
+    
+    out_file_simple_noForPotYield = sprintf('%s/crop_n_stlist.simplePFT.noForPotYield.remap%s.ins', out_dir, remapVer) ;
+    fids_noForPotYield = fopen(out_file_simple_noForPotYield, 'w') ;
+else
+    out_file = sprintf('%s/crop_n_stlist.remap%s.ins', out_dir, remapVer) ;
+    fid = fopen(out_file, 'w') ;
+end
 
 for c = 1:Ncrops
     thisCrop = cropList{c} ;
@@ -58,14 +68,16 @@ for c = 1:Ncrops
         thisCropIrr = [thisCrop thisIrr] ;
 
         % Generate stand file text WITHOUT isforpotyield crops
-        fprintf(fids_noForPotYield, 'st "%s" (\n', thisCropIrr) ;
-        fprintf(fids_noForPotYield, '\tcrop_stand\n\tstinclude 1\n') ;
-        fprintf(fids_noForPotYield, '\tpft "%s"\n', thisCrop) ;
-        if isIrr
-            fprintf(fids_noForPotYield, '\thydrology "irrigated_sat"') ;
-            fprintf(fids_noForPotYield, '\n') ;
+        if simple
+            fprintf(fids_noForPotYield, 'st "%s" (\n', thisCropIrr) ;
+            fprintf(fids_noForPotYield, '\tcrop_stand\n\tstinclude 1\n') ;
+            fprintf(fids_noForPotYield, '\tpft "%s"\n', thisCrop) ;
+            if isIrr
+                fprintf(fids_noForPotYield, '\thydrology "irrigated_sat"') ;
+                fprintf(fids_noForPotYield, '\n') ;
+            end
+            fprintf(fids_noForPotYield, ')\n\n') ;
         end
-        fprintf(fids_noForPotYield, ')\n\n') ;
 
         for n = 0:Nn
             if n > 0
@@ -79,41 +91,47 @@ for c = 1:Ncrops
                 thisN = [] ;
             end
 
-            % Simple
-            getstpftlists_generate_stand_file_text(thisCropIrrN, thisCrop, isIrr, fids, n, ...
-                Nformat_appfert, thisN)
-
-            % Complex
-            getstpftlists_generate_stand_file_text(thisCropIrrN, thisCropIrrN, isIrr, fid, n, ...
-                [], [])
+            if simple
+                getstpftlists_generate_stand_file_text(thisCropIrrN, thisCrop, isIrr, fid, n, ...
+                    Nformat_appfert, thisN)
+            else
+                getstpftlists_generate_stand_file_text(thisCropIrrN, thisCropIrrN, isIrr, fid, n, ...
+                    [], [])
+            end
         end
     end
 end
 
+if simple
+    fclose(fids_noForPotYield) ;
+end
 fclose(fid) ;
-fclose(fids) ;
-fclose(fids_noForPotYield) ;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Construct CFT type list %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-out_file_simple = sprintf('%s/crop_n_pftlist.simplePFT.remap%s.ins', out_dir, remapVer) ;
-fids = fopen(out_file_simple, 'w') ;
-out_file = sprintf('%s/crop_n_pftlist.remap%s.ins', out_dir, remapVer) ;
+if simple
+    out_file = sprintf('%s/crop_n_pftlist.simplePFT.remap%s.ins', out_dir, remapVer) ;
+else
+    out_file = sprintf('%s/crop_n_pftlist.remap%s.ins', out_dir, remapVer) ;
+end
 fid = fopen(out_file, 'w') ;
 
 for c = 1:Ncrops
     thisCrop = cropList{c} ;
     thisCFT = getstpftlists_get_cft_from_crop(thisCrop) ;
-    getstpftlists_construct_cft_type_list_simple(thisCrop, thisCFT, include_cropphencol, cropList, fids)
-    getstpftlists_construct_cft_type_list(irrList, thisCrop, thisCFT, Nformat_stand, ...
-        Nformat_appfert, include_cropphencol, Nlist, cropList, fid) ;
+    if simple
+        getstpftlists_construct_cft_type_list_simple(thisCrop, thisCFT, ...
+            include_cropphencol, cropList, fid)
+    else
+        getstpftlists_construct_cft_type_list(irrList, thisCrop, thisCFT, Nformat_stand, ...
+            Nformat_appfert, include_cropphencol, Nlist, cropList, fid) ;
+    end
 end
 
 fclose(fid) ;
-fclose(fids) ;
 
 
 end
