@@ -371,6 +371,7 @@ for d = 1:Ndirs
     end
     
     % Get filenames
+    file_out_gridlist = fullfile(forLPJG_dir, 'gridlist.txt') ;
     file_out_LU = fullfile(forLPJG_dir, 'landcover.txt') ;
     file_out_crop = fullfile(forLPJG_dir, 'cropfractions.txt') ;
     file_out_nfert = fullfile(forLPJG_dir, 'nfert.txt') ;
@@ -388,6 +389,10 @@ for d = 1:Ndirs
     else
         gzip_opts = '' ; %#ok<*UNRCH>
     end
+
+    % Save gridlist
+    lonlats = unique(lu_out(:,1:2), 'rows') ;
+    lpjgu_save_gridlist(lonlats, file_out_gridlist)
     
     % Save land cover
     disp('Saving land cover...')
