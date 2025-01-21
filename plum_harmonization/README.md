@@ -35,3 +35,30 @@ This code has another feature not present in the LUH1 harmonization, which is to
 2. Original code's `IAM_preprocessing/IMAGE/new_grids2.m`, line 206: `j` does not reset to 1 before pasture's `while` loop.
 3. LUH1 code always started a ring if a cell had any unmet, even if all the unmet could be met by the cell itself.
 4. Can be disabled by setting `update_avail_land = false` (not tested).
+
+## Code overview
+Whereas the first part of this README provided a high-level overview of how the code works, this section is intended to walk through the code step-by-step at a medium level. Error checking and debugging steps are excluded here, as are steps related to MATLAB array manipulation etc.
+
+### Initial setup
+1. Read options.
+2. Import reference data (lat/lon map, land area, area ineligible for land use).
+3. Import baseline land use areas and management levels---i.e., the LUH2 or HILDA+ maps from the "baseline" year (call it year `B`) against which PLUM will be harmonized. (These maps have already been processed for use in LPJ-GUESS.)
+4. Ensure that all imported maps have the same land/ocean mask.
+5. Define dictionaries to map between LPJ-GUESS's crop names and PLUM's crop names.
+
+### Loop through all PLUM directories
+For each, e.g., SSP that PLUM processed...
+
+### Loop through all PLUM years
+Starting with the year after the baseline (`B+1`), for each year `N`:
+1. (If `N == B+1`: Import all PLUM outputs for year `N-1`.)
+2. Import PLUM area outputs for year `N`.
+3. For each land use type, calculate the area changes ("deltas") in the PLUM outputs between years `N-1` and `N`.
+4. Get limits: (1) Area available for land use given harmonized (or LUH2/HILDA+ baseline) maps for year `N-1`. (2) Max allowable N fertilization rate.
+5. Coarsen all maps from 0.5° to 2°.
+6. Apply area deltas to harmonized 2° map from year `N-1`.
+7. Handle invalid area changes: Loop through every 2-degree gridcell. If a gridcell has "unmet" crop and/or pasture area change (i.e., PLUM says to expand area beyond what is actually available or to reduce area by more than what the gridcell actually has), look for available space in its neighboring gridcells. Keep expanding that search ring as needed until all unmet area change has been displaced to new 2 degree cells.
+8. Apply management deltas to harmonized 2° map from year `N-1`.
+9. Handle "unmet" management changes (N fertilization, irrigation intensity) using the same basic algorithm as step (7).
+10. Loop through all 2° gridcells and distribute the new crop and pasture area changes to the 0.5° gridcells within: If the crop or pasture change is a decrease, apply the same PERCENTAGE decrease to all 0.5° crop or pasture gridcells within the 2-degree cell. If the crop or pasture change is an increase, apply this increase to all 0.5° gridcells within the 2-degree cell proportionally according to available land area. Make sure that total area within a 0.5° gridcell does not exceed 1 or 0.
+11. Write output files with harmonized data for year `N`.
