@@ -58,11 +58,11 @@ Starting with the year after the baseline (`B+1`), for each year `N`:
 1. (If `N == B+1`: Import all PLUM outputs for year `N-1`.)
 2. Import PLUM area outputs for year `N`.
 3. For each land use type, calculate the area changes ("deltas") in the PLUM outputs between years `N-1` and `N`.
-4. Get limits: (1) Area available for land use given harmonized (or LUH2/HILDA+ baseline) maps for year `N-1`. (2) Max allowable N fertilization rate.
+4. Get limits: (1) Area available for land use given harmonized (or, if `N == B+1`, LUH2/HILDA+ baseline) maps for year `N-1`. (2) Max allowable N fertilization rate.
 5. Coarsen all maps from 0.5° to 2°.
 6. Apply area deltas to harmonized 2° map from year `N-1`.
-7. Handle invalid area changes: Loop through every 2-degree gridcell. If a gridcell has "unmet" crop and/or pasture area change (i.e., PLUM says to expand area beyond what is actually available or to reduce area by more than what the gridcell actually has), look for available space in its neighboring gridcells. Keep expanding that search ring as needed until all unmet area change has been displaced to new 2 degree cells.
+7. Handle invalid area changes: Loop through every 2° gridcell. If a gridcell has "unmet" crop and/or pasture area change (i.e., PLUM says to expand area beyond what is actually available or to reduce area by more than what the gridcell actually has), look for available space in its neighboring gridcells. Keep expanding that search ring as needed until all unmet area change has been displaced to new 2° cells.
 8. Apply management deltas to harmonized 2° map from year `N-1`.
 9. Handle "unmet" management changes (N fertilization, irrigation intensity) using the same basic algorithm as step (7).
-10. Loop through all 2° gridcells and distribute the new crop and pasture area changes to the 0.5° gridcells within: If the crop or pasture change is a decrease, apply the same PERCENTAGE decrease to all 0.5° crop or pasture gridcells within the 2-degree cell. If the crop or pasture change is an increase, apply this increase to all 0.5° gridcells within the 2-degree cell proportionally according to available land area. Make sure that total area within a 0.5° gridcell does not exceed 1 or 0.
+10. Loop through all 2° gridcells and distribute the new crop and pasture area changes to the 0.5° gridcells within: If the crop or pasture change is a decrease, apply the same PERCENTAGE decrease to all 0.5° crop or pasture gridcells within the 2° cell. If the crop or pasture change is an increase, apply this increase to all 0.5° gridcells within the 2° cell proportionally according to available land area. Make sure that total area within a 0.5° gridcell does not exceed 1 or 0.
 11. Write output files with harmonized data for year `N`.
