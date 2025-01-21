@@ -39,6 +39,10 @@ This code has another feature not present in the LUH1 harmonization, which is to
 ## Code overview
 Whereas the first part of this README provided a high-level overview of how the code works, this section is intended to walk through the code step-by-step at a medium level. Error checking and debugging steps are excluded here, as are steps related to MATLAB array manipulation etc.
 
+When looking through the code, you'll see lots of arrays with the suffix `_YXv`. This indicates that the dimensions of the array are (latitude, longitude, variable). "Variable" here usually refers to different land use types. In `agri_YXv` arrays, "variable" comprises the crop types plus one pasture type. in `nfert_YXv` and `irrig_YXv` arrays, "variable" just refers to the crop types.
+
+Arrays also often have `y0` or `y1` in their names. Those refer to years `N-1` and `N`, respectively, in the following description.
+
 ### Initial setup
 1. Read options.
 2. Import reference data (lat/lon map, land area, area ineligible for land use).
