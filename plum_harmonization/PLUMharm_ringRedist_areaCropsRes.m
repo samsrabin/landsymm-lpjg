@@ -15,6 +15,8 @@ function [out_y1_2deg_agri_YXv, out_ntrl_YX] = ...
 
 out_ntrl_YX = out_y0_2deg_ntrl_YX ;
 
+resArea_2deg_YX(isnan(resArea_2deg_YX)) = 0 ;
+
 YXv_dims = size(mid_y1_2deg_agri_YXv) ;
 YX_dims = YXv_dims(1:2) ;
 Nagri = YXv_dims(3) ;
