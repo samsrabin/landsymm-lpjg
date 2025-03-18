@@ -7,7 +7,7 @@ yearList_toRead = 1960:2010 ;
 
 %% Import LUH2 data
 
-cd '/Users/sam/Geodata/LUH2/'
+cd '/Users/samrabin/Geodata/LUH2/'
 
 crop_names = {'c3ann','c4ann','c3per','c4per','c3nfx'} ;
 Ncrops = length(crop_names) ;
@@ -61,7 +61,7 @@ luh2_nfertTot_YXyv = luh2_nfert_YXyv .* (1e2*luh2_croparea_YXyv) ;
 %% Import MIRCA data
 
 % Set up for area import
-cd '/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn'
+cd '/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_30mn'
 list_crops_MIRCA = {'Wheat' ; 'Maize' ; 'Rice' ; 'Barley' ; 'Rye' ;
                     'Millet' ; 'Sorghum' ; 'Soybeans' ; 'Sunflower' ;
                     'Potatoes' ; 'Cassava' ;'Sugarcane' ; 'Sugarbeet' ;

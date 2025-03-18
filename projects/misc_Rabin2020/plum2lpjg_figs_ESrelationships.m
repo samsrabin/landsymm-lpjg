@@ -32,7 +32,7 @@ pngres = 150 ;
 do_caps = -1 ;
 
 % Import LPJ-GUESS results
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import.m') ;
+run('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import.m') ;
 
 
 %% Import PLUM outputs

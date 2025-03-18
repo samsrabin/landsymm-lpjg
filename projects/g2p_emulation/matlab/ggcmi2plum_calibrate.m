@@ -39,7 +39,7 @@ dir_data = '/Users/Shared/PLUM/crop_calib_data/' ;
 
 % Path to figures/tables output directories
 dir_outfigs = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_calib/calib_figs/' ;
-dir_outtables = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
+dir_outtables = '/Users/samrabin/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
 
 % Add code files to path (just for this session)
 addpath(genpath(landsymm_lpjg_path()))

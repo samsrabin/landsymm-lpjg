@@ -23,7 +23,7 @@ else
 end
 clear tmp
 if onMac
-    landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+    landarea_file = '/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 else
     landarea_file = '/home/fh1-project-lpjgpi/lr8247/PLUM/input/LUH2/supporting/staticData_quarterdeg.nc' ;
 end

@@ -63,12 +63,12 @@ addpath(genpath(landsymm_lpjg_path()))
 Nyears_out = length(yearList_out) ;
 
 % LUH2 input files and years they contain
-file_luh2_states = '/Users/sam/Geodata/LUH2/v2h/states.1850-2015.nc' ;
+file_luh2_states = '/Users/samrabin/Geodata/LUH2/v2h/states.1850-2015.nc' ;
 yearList_luh2_states = 1850:2015 ;
 if min(yearList_out) < min(yearList_luh2_states) || max(yearList_out) > max(yearList_luh2_states)
     error('yearList_out must be entirely contained within yearList_luh2_states!')
 end
-file_luh2_mgmts = '/Users/sam/Geodata/LUH2/v2h/management.1850-2015.nc' ;
+file_luh2_mgmts = '/Users/samrabin/Geodata/LUH2/v2h/management.1850-2015.nc' ;
 yearList_luh2_mgmts = 1850:2015 ;
 if min(yearList_out) < min(yearList_luh2_mgmts) || max(yearList_out) > max(yearList_luh2_mgmts)
     error('yearList_out must be entirely contained within yearList_luh2_mgmts!')
@@ -132,7 +132,7 @@ disp('Importing land uses...')
 fprintf('  file_luh2_states: %s\n', file_luh2_states) ;
 
 % Import cell area (km2); aggregate to half-degree
-file_luh2_etc = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+file_luh2_etc = '/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 fprintf('file_luh2_etc: %s\n', file_luh2_etc) ;
 carea_XY = ncread(file_luh2_etc,'carea') ;
 carea_YX = flipud(transpose(carea_XY)) ;
@@ -229,7 +229,7 @@ disp('Done.')
 disp('Importing crop fractions...')
 
 % Import from MIRCA.txt.maps.mat
-file_cropmirca = '/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt' ;
+file_cropmirca = '/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt' ;
 fprintf('file_cropmirca: %s\n', file_cropmirca) ;
 croparea_in = lpjgu_matlab_readTable_then2map(file_cropmirca,...
     'verboseIfNoMat',true) ;

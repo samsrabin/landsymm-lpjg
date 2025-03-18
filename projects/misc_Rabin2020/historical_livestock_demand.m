@@ -4,7 +4,7 @@ include_eggs = false ;
 
 %% Import
 
-T = readtable('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/livestock_byregion_FAOSTAT_data_12-13-2019.csv') ;
+T = readtable('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/livestock_byregion_FAOSTAT_data_12-13-2019.csv') ;
 
 % Remove unnecessary columns
 T(:,contains(T.Properties.VariableNames,{'Code', 'Flag', 'Domain'})) = [] ;

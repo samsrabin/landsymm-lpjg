@@ -65,7 +65,7 @@ future_yN_emu = 2084 ;
 current_dir = pwd ;
 if strcmp(current_dir(1:6), '/Users') || strcmp(current_dir(1:6), '/Volum')
     which_system = 'mymac' ;
-    topdir_db = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
+    topdir_db = '/Users/samrabin/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB' ;
     topDir_agmipout = '/Volumes/Reacher/GGCMI/AgMIP.output' ;
     topDir_emu = sprintf('%s/CMIP_emulated', topDir_agmipout) ;
 elseif strcmp(current_dir(1:3), '/pd')

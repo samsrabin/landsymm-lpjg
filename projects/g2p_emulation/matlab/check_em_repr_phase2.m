@@ -8,7 +8,7 @@ thisModel = 'pDSSAT' ;
 
 emulator_file = sprintf('/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/outputs_recreate_phase2/%s.out.gz', thisModel) ;
 phase2_topdir = sprintf('/Volumes/WDMPP_Storage/GGCMI/AgMIP.output/%s/phase2', thisModel) ;
-outdir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/recreate_phase2_test' ;
+outdir = '/Users/samrabin/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/recreate_phase2_test' ;
 
 
 %% Setup

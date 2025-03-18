@@ -53,7 +53,7 @@ fclose_every = 1000 ;
 pct_progress = 25 ;
 
 % Path to this script (so we can copy it to the output directory)
-scripts_dir = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
+scripts_dir = '/Users/samrabin/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
 addpath(scripts_dir)
 thisScript = sprintf('%s/process_PLUMout_forLPJGin_%s.m', ...
     scripts_dir, thisVer) ;

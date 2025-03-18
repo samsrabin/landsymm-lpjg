@@ -20,7 +20,7 @@ remove_outliers = true ;
 
 lu_file = '/Users/Shared/PLUM/input/remaps_v6p7/LU.remapv6p7.2010.txt.mat' ;
 cf_file = '/Users/Shared/PLUM/input/remaps_v6p7/cropfracs.remapv6p7.2010.txt.mat' ;
-landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+landarea_file = '/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 
 Nggcm = length(ggcm_list) ;
 

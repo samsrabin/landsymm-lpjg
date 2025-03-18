@@ -128,7 +128,7 @@ for b = 1:Nbiomes
 end
 
 subplot_tight(ny, nx, Nbiomes+1, spacing) ;
-imshow('/Users/sam/Geodata/KoeppenGeiger/Koeppen-Geiger_v1.1/koeppen-geiger_0.5_QGISprint.png')
+imshow('/Users/samrabin/Geodata/KoeppenGeiger/Koeppen-Geiger_v1.1/koeppen-geiger_0.5_QGISprint.png')
 
 if ~isempty(titl_prefix)
     ht = sgtitle(titl_prefix,'FontSize',round(fontSize*1.5),'FontWeight','bold') ;

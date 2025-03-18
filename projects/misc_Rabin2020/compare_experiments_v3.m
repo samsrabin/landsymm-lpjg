@@ -22,14 +22,14 @@ fig_script_outputs_dir = addslashifneeded('/Volumes/Crucial 480GB SSD/PLUM/trunk
 
 % Where to save figures?
 outDir_ts = addslashifneeded(...
-    ['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/' ...
+    ['/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/' ...
     'figs_comp_' expt_names{1} '_VS_' expt_names{2}]) ;
 if ~exist(outDir_ts,'dir')
     unix(['mkdir -p ' outDir_ts]) ;
 end
 
 % Set up path
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
 % Build runList
 runList = {'SSP1 (R45)','SSP3 (R60)','SSP4 (R60)','SSP5 (R85)'} ;

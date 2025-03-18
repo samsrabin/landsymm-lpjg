@@ -13,7 +13,7 @@ yStep = 1 ;
 cf_ktNha_kgNm2 = 1e-4 ;
 cf_tPha_kgPm2 = 0.1 ;
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/')
 
 inDir = find_PLUM2LPJG_inputs(thisDir) ;
 disp(inDir)

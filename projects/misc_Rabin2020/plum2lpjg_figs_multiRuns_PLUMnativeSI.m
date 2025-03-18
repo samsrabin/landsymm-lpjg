@@ -67,7 +67,7 @@ years_endf = 2091:2100 ;
 %% Setup and import
 
 tic
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import.m') ;
+run('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/plum2lpjg_figs_setup_import.m') ;
 toc
 
 
@@ -136,7 +136,7 @@ rowInfo = { ...
 %%% Make figure %%%
 %%%%%%%%%%%%%%%%%%%
 
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph.m') ;
+run('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph.m') ;
 
 ht = title(sprintf('Change in land use and drivers, %d-%d to %d-%d', ...
     min(years_endh), max(years_endh), min(years_endf), max(years_endf))) ;
@@ -198,7 +198,7 @@ rowInfo = { ...
 %%% Make figure %%%
 %%%%%%%%%%%%%%%%%%%
 
-run('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph.m') ;
+run('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work/make_big_bar_graph.m') ;
 
 
 title(sprintf('Change in ecosystem service indicators, %d-%d to %d-%d', ...
@@ -273,7 +273,7 @@ for c = 1:Nvars
     else
         thisSD = errb_endh_v(c) ;
     end
-    string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
+    string_endh{c} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean thisSD]) ;
     for r = 1:Nruns
         if strcmp(rowInfo{c,4},'%d')
             thisMean_endf = round(mean_endf_vr(c,r)) ;
@@ -285,7 +285,7 @@ for c = 1:Nvars
         else
             thisSD_endf = errb_endf_vr(c,r) ;
         end
-        string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
+        string_endf{c,r} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
     end
 
 end
@@ -1166,7 +1166,7 @@ legloc = 'Southeast' ;
 %%%%%%%%%%%%%%%%%%%
 
 % Import
-table_in = readtable('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
+table_in = readtable('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
 
 % Restrict to global runs
 table_in(~strcmp(table_in.location,'Global'),:) = [] ;
@@ -3022,8 +3022,8 @@ end
 % if strcmp(version('-release'),'2014b')
 % 
 %     % Biodiversity hotspots
-%     hotspot_YX = imread('/Users/sam/Geodata/global200ecoregions/g200_terr_raster0.5deg.tif') ;
-%     hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/g200_terr_from0.5raster.shp' ;
+%     hotspot_YX = imread('/Users/samrabin/Geodata/global200ecoregions/g200_terr_raster0.5deg.tif') ;
+%     hotspot_shp = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/g200_terr_from0.5raster.shp' ;
 %     hotspot_YX = flipud(hotspot_YX) ;
 %     hotspot_area_YX = hotspot_YX.*land_area_YX ;
 %     hotspot_area_YXB = hotspot_area_YX .* maps_LU.maps_YXvyB(:,:,strcmp(maps_LU.varNames,'NATURAL'),end) ;
@@ -3109,7 +3109,7 @@ end
 %     else
 %         thisSD = errb_endh_v(c) ;
 %     end
-%     string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
+%     string_endh{c} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean thisSD]) ;
 %     for r = 1:Nruns
 %         if strcmp(rowInfo{c,4},'%d')
 %             thisMean_begf = round(mean_begf(c,r)) ;
@@ -3125,8 +3125,8 @@ end
 %             thisSD_begf = sem_begf(c,r) ;
 %             thisSD_endf = errb_endf_vr(c,r) ;
 %         end
-%         string_begf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_begf thisSD_begf]) ;
-%         string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
+%         string_begf{c,r} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean_begf thisSD_begf]) ;
+%         string_endf{c,r} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
 %     end
 % 
 % end

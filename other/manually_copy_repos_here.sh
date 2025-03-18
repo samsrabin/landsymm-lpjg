@@ -3,14 +3,14 @@ set -e
 
 # Based on instructions at https://dev.to/art_ptushkin/how-to-migrate-a-directory-from-git-repository-to-another-one-preserving-git-history-bitbucket-example-15m5
 
-thisDir=/Users/sam/Documents/git_repos/meta-repo4
+thisDir=/Users/samrabin/Documents/git_repos/meta-repo4
 cd $thisDir
 
-tmpDir=/Users/sam/Downloads/tmp
+tmpDir=/Users/samrabin/Downloads/tmp
 
-# old_repos=( /Users/sam/Documents/git_repos/Carbon_forestry_MATLAB \
-# 		    /Users/sam/Documents/git_repos/g2p_emulation \
-# 		    /Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work \
+# old_repos=( /Users/samrabin/Documents/git_repos/Carbon_forestry_MATLAB \
+# 		    /Users/samrabin/Documents/git_repos/g2p_emulation \
+# 		    /Users/samrabin/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work \
 # 		    /Users/Shared/PLUM/crop_calib_code )
 # old_branches=( main \
 # 			   split_combine_burnin \

@@ -40,7 +40,7 @@ list_cropsCombined_fert_in = nfert_in.varNames ;
 NcropsCombined_fert_in = length(list_cropsCombined_fert_in) ;
 
 % Crop fractions
-croparea_in = lpjgu_matlab_readTable_then2map('/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
+croparea_in = lpjgu_matlab_readTable_then2map('/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
     'verboseIfNoMat',true) ;
 
 % Align gridlists
@@ -208,9 +208,9 @@ end
 Ncrops_luh2_in = length(luh2_to_import) ;
 yearList_out = 1850:2015 ;
 Nyears_out = length(yearList_out) ;
-luh2_file_states = '/Users/sam/Geodata/LUH2/v2h/states.1850-2015.nc' ;
-luh2_file_management = '/Users/sam/Geodata/LUH2/v2h/management.1850-2015.nc' ;
-carea_YX = ncread('/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc','carea') ;
+luh2_file_states = '/Users/samrabin/Geodata/LUH2/v2h/states.1850-2015.nc' ;
+luh2_file_management = '/Users/samrabin/Geodata/LUH2/v2h/management.1850-2015.nc' ;
+carea_YX = ncread('/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc','carea') ;
 carea_YXy = repmat(carea_YX,[1 1 length(1850:2015)]) ;
 yearList_inFile = 1850:2015 ;
 [~,yearIndices,~] = intersect(yearList_inFile,yearList_out) ;
@@ -551,7 +551,7 @@ disp('Done interpolating.')
 % disp('Done')
 
 %% Add manure N for year 2000 (new in remap_v5)
-load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.BAD.mat') ;
+load('/Users/samrabin/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.BAD.mat') ;
 manure2crop_hd_YX = manure2crop_hd_YXy(:,:,1860:2014==2000) ;
 manure2crop_hd_YX(manure2crop_hd_YX<1e-6) = 0 ;
 clear manure2crop_hd_YXy

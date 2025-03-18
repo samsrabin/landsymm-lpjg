@@ -1,6 +1,6 @@
 %% Setup
 
-cd '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work'
+cd '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/MATLAB_work'
 
 % Define raster reference object and missing value
 R = georasterref('RasterSize', [360 720], ...
@@ -23,9 +23,9 @@ if strcmp(thisVer,'20180424agmip7') || strcmp(thisVer,'20180424agmip7_asPLUMout2
     include_fao = false ;
 end
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
-continents_shp = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
+continents_shp = '/Users/samrabin/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 
 trimFirstFuture = 0 ;
 if strcmp(thisVer,'20180424agmip7')
@@ -580,7 +580,7 @@ Nyears_bl = length(yearList_baseline) ;
 Nyears_fu = length(yearList_future) ;
 
 % Output directory
-outDir_base = addslashifneeded(['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
+outDir_base = addslashifneeded(['/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
                            'figures_' thisVer '_SI']) ;
 outDir_maps = addslashifneeded([outDir_base 'maps']) ;
 outDir_gtif = addslashifneeded([outDir_base 'gtif']) ;
@@ -1328,14 +1328,14 @@ disp('Done performing secondary calculations.')
 %% Import biodiversity hotspots
 
 disp('Importing biodiversity hotspots...')
-hotspot_YX = flipud(imread('/Users/sam/Geodata/BiodiversityHotspotsRevisited_ConservationInternational_2004/data/hotspots_revisited_2004.outerlimit.tif')) ;
+hotspot_YX = flipud(imread('/Users/samrabin/Geodata/BiodiversityHotspotsRevisited_ConservationInternational_2004/data/hotspots_revisited_2004.outerlimit.tif')) ;
 hotspot_YX(nanmask) = NaN ;
 hotspot_YX = 1==hotspot_YX ;
 hotspot_area_YX = hotspot_YX.*gcel_area_YX ;
-hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
+hotspot_shp = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/hotspots_clipByGridlist.shp' ;
 
 disp('Importing Congolian swamp and lowland forests...')
-ecoid_YX = flipud(imread('/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.ECO_ID.tif')) ;
+ecoid_YX = flipud(imread('/Users/samrabin/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.ECO_ID.tif')) ;
 cslf_YX = false(size(ecoid_YX)) ;
 cslf_IDs = [ ...
     30129 ; ... Western Congolian swamp forests
@@ -1349,7 +1349,7 @@ for j = 1:length(cslf_IDs)
 end
 clear ecoid_YX
 hotspotCSLF_area_YX = (hotspot_YX | cslf_YX).*gcel_area_YX ;
-cslf_shp = '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.CSLF.shp' ;
+cslf_shp = '/Users/samrabin/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_UnpackClip.halfDeg.CSLF.shp' ;
 
 
 %% Import food production units and basins

@@ -7,7 +7,7 @@ emu_list = {'LPJ-GUESS', 'LPJmL', 'pDSSAT', 'EPIC-TAMU'} ;
 incl_cf = true ;
 
 top_dir = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/potYields_20200310/IPSL-CM5A-MR_r1i1p1' ;
-fig_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/potYields_20200310_IPSL-CM5A-MR' ;
+fig_dir = '/Users/samrabin/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/potYields_20200310_IPSL-CM5A-MR' ;
 
 
 %% Setup
@@ -21,7 +21,7 @@ Nn = length(N_list_lpj) ;
 Nemu = length(emu_list) ;
 
 if incl_cf
-    cf_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
+    cf_dir = '/Users/samrabin/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
     fig_dir = strrep(fig_dir, 'potYields', 'potYields_cf') ;
 end
 

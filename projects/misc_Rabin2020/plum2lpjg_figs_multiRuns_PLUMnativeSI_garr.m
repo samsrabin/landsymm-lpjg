@@ -42,8 +42,8 @@ years_endf = 2091:2100 ;
 % Determine which system you're on and set up.
 thisSystem = get_system_name() ;
 if strcmp(thisSystem, 'ssr_mac')
-    paper02_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
-    plumharm_repo_path = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
+    paper02_repo_path = '/Users/samrabin/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work' ;
+    plumharm_repo_path = '/Users/samrabin/Documents/Dropbox/2016_KIT/LandSyMM/plum_harmonization/' ;
 elseif strcmp(thisSystem, 'ssr_keal')
     paper02_repo_path = '/pd/data/lpj/sam/paper02-matlab-work' ;
     plumharm_repo_path = '/pd/data/lpj/sam/PLUM/plum_harmonization' ;
@@ -240,7 +240,7 @@ rowInfo = { ...
 %%% Make figure %%%
 %%%%%%%%%%%%%%%%%%%
 
-run('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/make_big_bar_graph_garr.m') ;
+run('/Users/samrabin/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/make_big_bar_graph_garr.m') ;
 
 ht = title(sprintf('Change in land use and drivers, %d-%d to %d-%d', ...
     min(years_endh), max(years_endh), min(years_endf), max(years_endf))) ;
@@ -308,7 +308,7 @@ rowInfo = { ...
 %%% Make figure %%%
 %%%%%%%%%%%%%%%%%%%
 
-run('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/make_big_bar_graph_garr.m') ;
+run('/Users/samrabin/Documents/Dropbox/2016_KIT/LandSyMM/MATLAB_work/make_big_bar_graph_garr.m') ;
 
 title(sprintf('Change in ecosystem service indicators, %d-%d to %d-%d', ...
     min(years_endh), max(years_endh), min(years_endf), max(years_endf)))
@@ -386,7 +386,7 @@ for c = 1:Nvars
     else
         thisSD = errb_endh_v(c) ;
     end
-    string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
+    string_endh{c} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean thisSD]) ;
     for r = 1:Nruns
         if strcmp(rowInfo{c,4},'%d')
             thisMean_endf = round(mean_endf_vr(c,r)) ;
@@ -398,7 +398,7 @@ for c = 1:Nvars
         else
             thisSD_endf = errb_endf_vr(c,r) ;
         end
-        string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
+        string_endf{c,r} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
     end
 
 end
@@ -1179,7 +1179,7 @@ bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 this_colormap_name = '-PiYG_ssr' ;
 lines_overlay = 'landareas.shp' ;
-% lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
+% lines_overlay = '/Users/samrabin/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
 thisY1 = yearList_baseline(end) ;
@@ -1252,7 +1252,7 @@ bins_lowBnds = [-100:20:-20 -3 3 20:20:80] ;
 conv_fact_total = 1e-6*1e-6 ;   % m2 to Mkm2
 this_colormap_name = '-PiYG_ssr' ;
 lines_overlay = 'landareas.shp' ;
-% lines_overlay = '/Users/sam/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
+% lines_overlay = '/Users/samrabin/Geodata/General/continents_from_countries/continents_from_countries.shp' ;
 %%%%%%%%%%%%%%%%%%%
 
 thisY1 = yearList_baseline(end) ;
@@ -1461,7 +1461,7 @@ legloc = 'Southeast' ;
 %%%%%%%%%%%%%%%%%%%
 
 % Import
-table_in = readtable('/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
+table_in = readtable('/Users/samrabin/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
 
 % Restrict to global runs
 table_in(~strcmp(table_in.location,'Global'),:) = [] ;
@@ -3479,8 +3479,8 @@ clear tmp_hotspot* tmp_lu*
 % if strcmp(version('-release'),'2014b')
 % 
 %     % Biodiversity hotspots
-%     hotspot_YX = imread('/Users/sam/Geodata/global200ecoregions/g200_terr_raster0.5deg.tif') ;
-%     hotspot_shp = '/Users/sam/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper2/MATLAB_work/g200_terr_from0.5raster.shp' ;
+%     hotspot_YX = imread('/Users/samrabin/Geodata/global200ecoregions/g200_terr_raster0.5deg.tif') ;
+%     hotspot_shp = '/Users/samrabin/Documents/Dropbox/2016_KIT/LandSyMM/LPJGP_paper2/MATLAB_work/g200_terr_from0.5raster.shp' ;
 %     hotspot_YX = flipud(hotspot_YX) ;
 %     hotspot_area_YX = hotspot_YX.*land_area_YX ;
 %     hotspot_area_YXB = hotspot_area_YX .* maps_LU.maps_YXvyB(:,:,strcmp(maps_LU.varNames,'NATURAL'),end) ;
@@ -3566,7 +3566,7 @@ clear tmp_hotspot* tmp_lu*
 %     else
 %         thisSD = errb_endh_v(c) ;
 %     end
-%     string_endh{c} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean thisSD]) ;
+%     string_endh{c} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean thisSD]) ;
 %     for r = 1:Nruns
 %         if strcmp(rowInfo{c,4},'%d')
 %             thisMean_begf = round(mean_begf(c,r)) ;
@@ -3582,8 +3582,8 @@ clear tmp_hotspot* tmp_lu*
 %             thisSD_begf = sem_begf(c,r) ;
 %             thisSD_endf = errb_endf_vr(c,r) ;
 %         end
-%         string_begf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_begf thisSD_begf]) ;
-%         string_endf{c,r} = sprintf([rowInfo{c,4} ' ± ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
+%         string_begf{c,r} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean_begf thisSD_begf]) ;
+%         string_endf{c,r} = sprintf([rowInfo{c,4} ' ï¿½ ' rowInfo{c,5}],[thisMean_endf thisSD_endf]) ;
 %     end
 % 
 % end
@@ -3765,7 +3765,7 @@ end
 %% Map lost primary land
 
 if ~exist('dPrim_YX', 'var')
-    % fileName = '/Users/sam/Geodata/LUH2/v2h/states.1850-2015.nc' ;
+    % fileName = '/Users/samrabin/Geodata/LUH2/v2h/states.1850-2015.nc' ;
     % Ntimes = 166 ;
     % date1 = [1850 1 1] ;
     % dateN = [2010 1 1] ;
@@ -3798,7 +3798,7 @@ if ~exist('dPrim_YX', 'var')
     prim_t1_YX = primf_t1_YX + primn_t1_YX ;
     prim_tN_YX = primf_tN_YX + primn_tN_YX ;
     carea_YX = 1e6*flipud(transpose(ncread( ...
-        '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc', ...
+        '/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc', ...
         'carea'))) ;
     prim_t1_YX = prim_t1_YX .* carea_YX ;
     prim_tN_YX = prim_tN_YX .* carea_YX ;
@@ -3818,7 +3818,7 @@ end
 
 if ~exist('biomeID_x', 'var')
     biomeID_YX = flipud(imread( ...
-        '/Users/sam/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif')) ;
+        '/Users/samrabin/Geodata/General/WWF terrestrial ecosystems/wwf_terr_ecos_dissolveBiome_halfDeg_id.tif')) ;
     biomeID_YX(biomeID_YX<0) = NaN ;
     biomeID_x = biomeID_YX(list2map) ;
 end

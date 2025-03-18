@@ -1367,54 +1367,54 @@ for d = 1:Ndirs
     end % years loop
     
     
-    %%%%%%%%%%%%%%%%%%%%
-    %%% Make figures %%%
-    %%%%%%%%%%%%%%%%%%%%
-    
-    figDir = [harmDir '_figs'] ;
-    if ~exist(figDir, 'dir')
-        mkdir(figDir)
-    end
-    legend_ts = {'From PLUM', 'Harmonized'} ;
-    
-    % LU areas
-    tmp_names = [{'CROPLAND'} in_ts.luNames(~isCrop)] ;
-    ts_orig_cy = nan(length(tmp_names), length(in_ts.yearList)) ;
-    ts_orig_cy(strcmp(tmp_names, 'CROPLAND'),:) = sum(in_ts.area_vy(isCrop,:),1) ;
-    ts_orig_cy(~strcmp(tmp_names, 'CROPLAND'),:) = in_ts.area_vy(~isCrop,:) ;
-    ts_harm_cy = ts_orig_cy ;
-    ts_harm_cy(strcmp(tmp_names, 'CROPLAND'),:) = sum(out_ts.area_vy(isCrop,:),1) ;
-    ts_harm_cy(~strcmp(tmp_names, 'CROPLAND'),:) = out_ts.area_vy(~isCrop,:) ;
-    units = 'Million km2' ;
-    ts_orig_cy = ts_orig_cy*1e-6*1e-6 ;
-    ts_harm_cy = ts_harm_cy*1e-6*1e-6 ;
-    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
-        tmp_names, legend_ts, [], in_ts.yearList, units, ...
-        'Area', 'landUse', figDir, timeseries_legend_loc)
-    
-    % Crops
-    units = 'Million km2' ;
-    ts_orig_cy = in_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
-    ts_harm_cy = out_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
-    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
-        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
-        'Area', 'crops', figDir, timeseries_legend_loc)
-    
-    % Fertilization
-    units = 'Mt N' ;
-    ts_orig_cy = in_ts.nfert_vy*1e-3*1e-6 ;
-    ts_harm_cy = out_ts.nfert_vy*1e-3*1e-6 ;
-    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
-        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
-        'Fert.', 'nfert', figDir, timeseries_legend_loc)
-    
-    % Irrigation
-    units = 'intensity \times area' ;
-    ts_orig_cy = in_ts.irrig_vy ;
-    ts_harm_cy = out_ts.irrig_vy ;
-    make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
-        in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
-        'Irrigation', 'irrig', figDir, timeseries_legend_loc)
+    % %%%%%%%%%%%%%%%%%%%%
+    % %%% Make figures %%%
+    % %%%%%%%%%%%%%%%%%%%%
+    % 
+    % figDir = [harmDir '_figs'] ;
+    % if ~exist(figDir, 'dir')
+    %     mkdir(figDir)
+    % end
+    % legend_ts = {'From PLUM', 'Harmonized'} ;
+    % 
+    % % LU areas
+    % tmp_names = [{'CROPLAND'} in_ts.luNames(~isCrop)] ;
+    % ts_orig_cy = nan(length(tmp_names), length(in_ts.yearList)) ;
+    % ts_orig_cy(strcmp(tmp_names, 'CROPLAND'),:) = sum(in_ts.area_vy(isCrop,:),1) ;
+    % ts_orig_cy(~strcmp(tmp_names, 'CROPLAND'),:) = in_ts.area_vy(~isCrop,:) ;
+    % ts_harm_cy = ts_orig_cy ;
+    % ts_harm_cy(strcmp(tmp_names, 'CROPLAND'),:) = sum(out_ts.area_vy(isCrop,:),1) ;
+    % ts_harm_cy(~strcmp(tmp_names, 'CROPLAND'),:) = out_ts.area_vy(~isCrop,:) ;
+    % units = 'Million km2' ;
+    % ts_orig_cy = ts_orig_cy*1e-6*1e-6 ;
+    % ts_harm_cy = ts_harm_cy*1e-6*1e-6 ;
+    % make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+    %     tmp_names, legend_ts, [], in_ts.yearList, units, ...
+    %     'Area', 'landUse', figDir, timeseries_legend_loc)
+    % 
+    % % Crops
+    % units = 'Million km2' ;
+    % ts_orig_cy = in_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
+    % ts_harm_cy = out_ts.area_vy(isCrop,:)*1e-6*1e-6 ;
+    % make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+    %     in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+    %     'Area', 'crops', figDir, timeseries_legend_loc)
+    % 
+    % % Fertilization
+    % units = 'Mt N' ;
+    % ts_orig_cy = in_ts.nfert_vy*1e-3*1e-6 ;
+    % ts_harm_cy = out_ts.nfert_vy*1e-3*1e-6 ;
+    % make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+    %     in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+    %     'Fert.', 'nfert', figDir, timeseries_legend_loc)
+    % 
+    % % Irrigation
+    % units = 'intensity \times area' ;
+    % ts_orig_cy = in_ts.irrig_vy ;
+    % ts_harm_cy = out_ts.irrig_vy ;
+    % make_crops_timeseries_fig([], ts_orig_cy, ts_harm_cy, ...
+    %     in_ts.cropNames, legend_ts, [], in_ts.yearList, units, ...
+    %     'Irrigation', 'irrig', figDir, timeseries_legend_loc)
     
     disp('Done')
     diary off

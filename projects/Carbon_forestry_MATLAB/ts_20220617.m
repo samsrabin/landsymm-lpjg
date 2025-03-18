@@ -16,7 +16,7 @@ donor = 'forC' ;
 
 %% Setup
 
-landarea_file = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+landarea_file = '/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 % Use gridcell area instead of land area
 land_area_YXqd = transpose(ncread(landarea_file,'carea')) ;
 addpath '/Users/Shared/PLUM/crop_calib_code'

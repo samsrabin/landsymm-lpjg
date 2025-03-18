@@ -282,7 +282,7 @@ for d = 1:length(inDir_list)
         end
     else
 %         [x,LUcropDir_tmp] = unix([thisDir 'get_lu_dir.sh '...
-%             ...'/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work']) ;
+%             ...'/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work']) ;
 %             inDir]) ;
 %         LUcropDir_tmp = LUcropDir_tmp(1:end-1) ;
 %         LUcropDir = find_PLUM2LPJG_inputs(LUcropDir_tmp) ;

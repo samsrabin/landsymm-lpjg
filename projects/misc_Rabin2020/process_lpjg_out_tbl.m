@@ -95,7 +95,7 @@ if ~isequal(cropfracs.yearList,fpc.yearList)
 end
 
 % Import bare-soil albedo
-baresoil_albedo_file = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/soilmap.txt' ;
+baresoil_albedo_file = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/soilmap.txt' ;
 baresoil_albedo = lpjgu_matlab_readTable_then2map(baresoil_albedo_file,'force_mat_save',true) ;
 baresoil_albedo_YX = baresoil_albedo.maps_YXv ;
 clear baresoil_albedo

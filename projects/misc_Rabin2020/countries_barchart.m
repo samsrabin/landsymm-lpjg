@@ -27,7 +27,7 @@ lu.maps_YXvy(:,:,strcmp(lu.varNames,'BARREN'),:) = [] ;
 lu.varNames(strcmp(lu.varNames,'BARREN')) = [] ;
 
 % Get area
-land_area_YXqd = transpose(ncread('/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc','carea')) ;
+land_area_YXqd = transpose(ncread('/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc','carea')) ;
 land_area_YXqd = double(land_area_YXqd) ;
 xres = 360/size(countries_YX,2) ;
 yres = 180/size(countries_YX,1) ;

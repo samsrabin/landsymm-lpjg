@@ -2,8 +2,8 @@
 %%% Check for missing irrigation data %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% topDir = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB/CMIP_emulated_forPLUM_tars/CMIP_emulated_forPLUM_20211005/A1_v2.5_UKESM1-0-LL_ssp126_20210923_ph2bl_intpinfs_rmolend_fake1k/sim_LPJ-GUESS' ;
-topDir = '/Users/sam/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB/CMIP_emulated_forPLUM_tars/sim_LPJ-GUESS' ;
+% topDir = '/Users/samrabin/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB/CMIP_emulated_forPLUM_tars/CMIP_emulated_forPLUM_20211005/A1_v2.5_UKESM1-0-LL_ssp126_20210923_ph2bl_intpinfs_rmolend_fake1k/sim_LPJ-GUESS' ;
+topDir = '/Users/samrabin/Documents/Dropbox/2016_KIT/GGCMI/GGCMI2PLUM_DB/CMIP_emulated_forPLUM_tars/sim_LPJ-GUESS' ;
 
 
 %%

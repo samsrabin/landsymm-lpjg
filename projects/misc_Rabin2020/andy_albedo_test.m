@@ -1,9 +1,9 @@
 
-baresoil_albedo_file = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/soilmap.txt' ;
+baresoil_albedo_file = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/soilmap.txt' ;
 
-fpc_file = '/Users/sam/Geodata/Andy_albedo_test/MAgPIE_BIOADAFF/fpc.out.gz' ;
-snowdepth_file = '/Users/sam/Geodata/Andy_albedo_test/MAgPIE_BIOADAFF/msnow.out.gz' ;
-% LU_file = '/Users/sam/Geodata/Andy_albedo_test/MAgPIE_BIOADAFF/MAgPIE_MIT-BIO-AD-AFF-RCP26-co2_LPJG_landuse_1901_2100_midpoint.txt.gz' ;
+fpc_file = '/Users/samrabin/Geodata/Andy_albedo_test/MAgPIE_BIOADAFF/fpc.out.gz' ;
+snowdepth_file = '/Users/samrabin/Geodata/Andy_albedo_test/MAgPIE_BIOADAFF/msnow.out.gz' ;
+% LU_file = '/Users/samrabin/Geodata/Andy_albedo_test/MAgPIE_BIOADAFF/MAgPIE_MIT-BIO-AD-AFF-RCP26-co2_LPJG_landuse_1901_2100_midpoint.txt.gz' ;
 
 % fpc_file = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p3/output-2018-12-01-082125/fpc.out' ;
 % snowdepth_file = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_1850-2010_remap6p3/output-2018-12-01-082125/msnowdepth.out' ;

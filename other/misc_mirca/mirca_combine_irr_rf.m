@@ -2,7 +2,7 @@
 %%% Manipulating MIRCA data %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-cd '/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn'
+cd '/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_30mn'
 addpath(genpath(pwd))
 
 list_crops = {'Wheat' ; 'Maize' ; 'Rice' ; 'Barley' ; 'Rye' ; 'Millet' ;
@@ -85,13 +85,13 @@ clear tmp
 % Import Hurtt gridlist
 which_hurtt_gridlist = 'expanded' ;
 if strcmp(which_hurtt_gridlist,'original')
-    scripts_dir = '/Users/sam/Documents/Dropbox/lpj-guess-plum/input/unifying_gridlist/extrapd_to_hurttList/handy_MATLAB_scripts/' ;
+    scripts_dir = '/Users/samrabin/Documents/Dropbox/lpj-guess-plum/input/unifying_gridlist/extrapd_to_hurttList/handy_MATLAB_scripts/' ;
     addpath(genpath(scripts_dir))
-    thisDir = '/Users/sam/Documents/Dropbox/lpj-guess-plum/input/unifying_gridlist/' ;
+    thisDir = '/Users/samrabin/Documents/Dropbox/lpj-guess-plum/input/unifying_gridlist/' ;
     filename_hurttRNDM = 'lists_for_MATLAB/gridlist_hurtt_RNDM.csv' ;
     import_hurtt_RNDM
 elseif strcmp(which_hurtt_gridlist,'expanded')
-    filename_hurttRNDM = '/Users/sam/Documents/Dropbox/lpj-guess-plum/input/unifying_gridlist/lists_for_MATLAB/gridlist_hurtt_grossfrac.csv' ;
+    filename_hurttRNDM = '/Users/samrabin/Documents/Dropbox/lpj-guess-plum/input/unifying_gridlist/lists_for_MATLAB/gridlist_hurtt_grossfrac.csv' ;
     gridlist_hurttRNDM = readtable(filename_hurttRNDM) ;
     gridlist_hurttRNDM = sortrows(gridlist_hurttRNDM,{'Lon','Lat'},{'ascend','ascend'}) ;
     hurtt_lons = gridlist_hurttRNDM.Lon ;

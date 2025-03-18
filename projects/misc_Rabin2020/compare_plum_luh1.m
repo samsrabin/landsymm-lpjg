@@ -2,7 +2,7 @@
 %%% Compare PLUM trajectory with LUH1 %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_luh1 = '/Users/sam/Geodata/LU_HurttEA2011/future/LUHa.v1_message.v1.updated_states.mat' ;
+file_luh1 = '/Users/samrabin/Geodata/LU_HurttEA2011/future/LUHa.v1_message.v1.updated_states.mat' ;
 file_plum = '/Users/Shared/PLUM/PLUM_outputs_for_LPJG/SSP5.v12.s1.harm.forLPJG/landcover.txt.maps.mat' ;
 
 

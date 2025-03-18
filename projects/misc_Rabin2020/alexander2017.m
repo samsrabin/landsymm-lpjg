@@ -4,7 +4,7 @@
 
 %% Import
 
-table_in = readtable('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
+table_in = readtable('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/AlexanderEtAl2017_allNonGriddedData.csv') ;
 
 % Restrict to global runs
 table_in(~strcmp(table_in.location,'Global'),:) = [] ;

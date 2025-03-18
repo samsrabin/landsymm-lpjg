@@ -7,7 +7,7 @@
 % script.
 % 
 % In remap_v3, we put unhandled crop area into CC3G or CC4G crops. The
-% partitioning depends on which has higher NPP in 2000±10 according to a 
+% partitioning depends on which has higher NPP in 2000ï¿½10 according to a 
 % previous pasture-only run. Not time-evolving because other crop-specific
 % outputs (cropfrac, nfert) are set at 2000 levels.
 %
@@ -18,7 +18,7 @@
 % Also includes a fix for what to use for interpolated Nfert map of
 % irrigated crops.
 %
-% If C3/C4 tied, assign based on latitude. Tropics (within ±22.5º of
+% If C3/C4 tied, assign based on latitude. Tropics (within ï¿½22.5ï¿½ of
 % Equator) get C4; other areas get C3. Assigning NaN and letting 
 % interpolation figure it out doesn't work because you need to get from 
 % area to fraction before interpolation happens.
@@ -62,7 +62,7 @@ list_cropsCombined_fert_in = nfert_in.varNames ;
 NcropsCombined_fert_in = length(list_cropsCombined_fert_in) ;
 
 % Crop fractions
-croparea_in = lpjgu_matlab_readTable_then2map('/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
+croparea_in = lpjgu_matlab_readTable_then2map('/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
     'verboseIfNoMat',true) ;
 
 % Align gridlists

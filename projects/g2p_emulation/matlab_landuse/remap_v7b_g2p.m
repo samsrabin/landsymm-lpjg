@@ -32,12 +32,12 @@ addpath(genpath(landsymm_lpjg_path()))
 Nyears_out = length(yearList_out) ;
 
 % LUH2 input files and years they contain
-file_luh2_states = '/Users/sam/Geodata/LUH2/v2h/states.1850-2015.nc' ;
+file_luh2_states = '/Users/samrabin/Geodata/LUH2/v2h/states.1850-2015.nc' ;
 yearList_luh2_states = 1850:2015 ;
 if min(yearList_out) < min(yearList_luh2_states) || max(yearList_out) > max(yearList_luh2_states)
     error('yearList_out must be entirely contained within yearList_luh2_states!')
 end
-file_luh2_mgmts = '/Users/sam/Geodata/LUH2/v2h/management.1850-2015.nc' ;
+file_luh2_mgmts = '/Users/samrabin/Geodata/LUH2/v2h/management.1850-2015.nc' ;
 yearList_luh2_mgmts = 1850:2015 ;
 if min(yearList_out) < min(yearList_luh2_mgmts) || max(yearList_out) > max(yearList_luh2_mgmts)
     error('yearList_out must be entirely contained within yearList_luh2_mgmts!')
@@ -88,7 +88,7 @@ warning('on','all')
 disp('Importing land uses...')
 
 % Import cell area (km2); aggregate to half-degree
-file_luh2_etc = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+file_luh2_etc = '/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 carea_XY = ncread(file_luh2_etc,'carea') ;
 carea_XYy = repmat(carea_XY,[1 1 Nyears_out]) ;
 carea_hd_XY = coarsen_res(carea_XY,0.25,0.5) ;
@@ -173,7 +173,7 @@ disp('Done.')
 disp('Importing crop fractions...')
 
 % Import from MIRCA
-croparea_in = lpjgu_matlab_readTable_then2map('/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
+croparea_in = lpjgu_matlab_readTable_then2map('/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
     'verboseIfNoMat',true) ;
 
 % Process crop fractions
@@ -616,7 +616,7 @@ if save_nfert
 
     % Add manure N (already in kg/m2), assuming even distribution to all crops
     disp('Adding manure to Nfert...')
-    load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
+    load('/Users/samrabin/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
     yearList_manure = 1860:2014 ;
     yearList_manure_missing = setdiff(yearList_out,yearList_manure) ;
     if ~isempty(yearList_manure_missing)

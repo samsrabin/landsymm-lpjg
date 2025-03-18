@@ -27,7 +27,7 @@ Ncrops = length(CFTnames) ;
 yearList_plum = shiftdim(2010:2100) ;
 Nyears_plum = length(yearList_plum) ;
 
-outDir_ts = addslashifneeded(['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
+outDir_ts = addslashifneeded(['/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
                            'figures_v' num2str(plum_ver) '_FAOvsPLUMfbs']) ;
 if ~exist(outDir_ts,'dir')
     mkdir(outDir_ts)
@@ -39,7 +39,7 @@ cf_t2kg = 1e3 ;
 cf_ha2m2 = 1e4 ;
 cf_kcal2Ecal = 1e-15 ;
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
 
 %% Import FAO data

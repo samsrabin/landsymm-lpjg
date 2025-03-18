@@ -4,7 +4,7 @@
 
 %% Setup
 
-addpath(genpath('/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap'))
+addpath(genpath('/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap'))
 
 %% Do it
 Example_PlottingGeographicMap()

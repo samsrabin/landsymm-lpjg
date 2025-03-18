@@ -45,7 +45,7 @@ inDir_list = {...
 
 test_cropfracs_20170108 = false ;
 
-outDir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper04_Sam_ESintxns/test_outs/' ;
+outDir = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper04_Sam_ESintxns/test_outs/' ;
 
 addpath(genpath(landsymm_lpjg_path()))
 
@@ -112,7 +112,7 @@ gcel_area_YX = gcel_area_YX*1e6 ;
 clear tmp gcel_area_YXqd land_frac_YXqd
 
 % Import Koeppen-Geiger map and set up interpretations
-kg_file = '/Users/sam/Geodata/KoeppenGeiger/Koeppen-Geiger_v1.1/koeppen-geiger_GTiffs/koeppen-geiger_0.5.tif' ;
+kg_file = '/Users/samrabin/Geodata/KoeppenGeiger/Koeppen-Geiger_v1.1/koeppen-geiger_GTiffs/koeppen-geiger_0.5.tif' ;
 kg_YX = flipud(imread(kg_file)) ;
 kg_YX(kg_YX==0) = NaN ;
 kg_names = {'tropical','dry','temperate','continental','polar'} ;
@@ -125,7 +125,7 @@ end
 
 % Ice/water
 
-file_luh2_etc = '/Users/sam/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
+file_luh2_etc = '/Users/samrabin/Geodata/LUH2/supporting/staticData_quarterdeg.nc' ;
 icwtr_YX_qd = flipud(transpose(ncread(file_luh2_etc,'icwtr'))) .* land_area_YXqd ;
 %%%% Convert to half-degree
 tmp = icwtr_YX_qd(:,1:2:1440) + icwtr_YX_qd(:,2:2:1440) ;

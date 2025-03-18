@@ -51,7 +51,7 @@ force_overwrite = true ;
 fclose_every = 1000 ;
 pct_progress = 25 ;
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
 PLUMcrops = {'wheat';
              'maize';

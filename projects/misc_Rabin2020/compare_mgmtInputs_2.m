@@ -14,7 +14,7 @@ Ncfts = length(CFTnames) ;
 
 %% Setup
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/')
 
 % Get input directories
 inDir_v1 = addslashifneeded(['/Volumes/WDMPP_Storage/Shared/PLUM/PLUM_outputs_for_LPJG/' thisRun '.v2.forLPJG.MATLAB.20171201']) ;

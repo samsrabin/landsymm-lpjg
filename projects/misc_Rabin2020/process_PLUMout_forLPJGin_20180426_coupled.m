@@ -30,10 +30,10 @@
 % someofall = true ;
 % previous_yield = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz' ;
 % LUfile = '/project/fh1-project-lpjgpi/lr8247/input/PLUM_input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
-% scripts_dir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work' ;
+% scripts_dir = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work' ;
 
-inDir = '/Users/sam/Desktop/peter_issue/test_in' ;
-outDir = '/Users/sam/Desktop/peter_issue/test_out' ;
+inDir = '/Users/samrabin/Desktop/peter_issue/test_in' ;
+outDir = '/Users/samrabin/Desktop/peter_issue/test_out' ;
 y1 = 2011 ;
 yN = 2012 ;
 yStep = 1 ;
@@ -41,7 +41,7 @@ y1_pre = inf ;
 someofall = true ;
 previous_yield = '/Users/Shared/PLUM/trunk_runs/LPJGPLUM_expt1.1_2006-2100_PLUM6xtra_20180412171654/rcp26/2011-2015/yield.out.gz' ;
 LUfile = '/project/fh1-project-lpjgpi/lr8247/input/PLUM_input/LU/lu_1850_2015_luh2_aggregate_sum2x2_midpoint_nourban_orig_v21.txt' ;
-scripts_dir = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work' ;
+scripts_dir = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work' ;
 
 
 % Replace with path to dependencies

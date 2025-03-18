@@ -20,7 +20,7 @@ if strcmp(thisVer,'20180424agmip7') || strcmp(thisVer,'20180424agmip7_asPLUMout2
     include_fao = false ;
 end
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
 trimFirstFuture = 0 ;
 if strcmp(thisVer,'20180424agmip7')
@@ -72,9 +72,9 @@ Nyears_bl = length(yearList_baseline) ;
 Nyears_fu = length(yearList_future) ;
 
 % Output directory
-outDir_maps = addslashifneeded(['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
+outDir_maps = addslashifneeded(['/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
                            'figures_' thisVer '/maps']) ;
-outDir_ts = ['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
+outDir_ts = ['/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
                            'figures_' thisVer '/TS'] ;
 if rebase
     outDir_ts = addslashifneeded([outDir_ts '_rebased']) ;
@@ -1130,8 +1130,8 @@ lineWidth = 0.25 ;
 if strcmp(version('-release'),'2014b')
     
     % Biodiversity hotspots
-    hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/hotspots_clipByGridlist.shp' ;
-    hotspot_YX = dlmread('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/hotspots_raster.txt',...
+    hotspot_shp = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/hotspots_clipByGridlist.shp' ;
+    hotspot_YX = dlmread('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/hotspots_raster.txt',...
         ' ', 6, 0) ;
     hotspot_YX(hotspot_YX==-9999) = NaN ;
     hotspot_YX(:,721) = [] ;
@@ -1178,8 +1178,8 @@ lineWidth = 0.25 ;
 if strcmp(version('-release'),'2014b')
 
     % Biodiversity hotspots
-    hotspot_YX = imread('/Users/sam/Geodata/global200ecoregions/g200_terr_raster0.5deg.tif') ;
-    hotspot_shp = '/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/g200_terr_from0.5raster.shp' ;
+    hotspot_YX = imread('/Users/samrabin/Geodata/global200ecoregions/g200_terr_raster0.5deg.tif') ;
+    hotspot_shp = '/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/g200_terr_from0.5raster.shp' ;
     hotspot_YX = flipud(hotspot_YX) ;
     hotspot_area_YX = hotspot_YX.*land_area_YX ;
     hotspot_area_YXB = hotspot_area_YX .* maps_LU.maps_YXvyB(:,:,strcmp(maps_LU.varNames,'NATURAL'),end) ;

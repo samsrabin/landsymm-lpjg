@@ -35,7 +35,7 @@ list_cropsCombined_fert_in = nfert_in.varNames ;
 NcropsCombined_fert_in = length(list_cropsCombined_fert_in) ;
 
 % Crop fractions
-croparea_in = lpjgu_matlab_readTable_then2map('/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
+croparea_in = lpjgu_matlab_readTable_then2map('/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
     'verboseIfNoMat',true) ;
 
 % Align gridlists

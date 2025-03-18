@@ -41,7 +41,7 @@ cropList = {'Wheat'; 'Maize'; 'Rice'; 'Barley'; 'Rye'; 'Millet'; ...
     'Grapes / Vine'; 'Cotton'; 'Cocoa'; 'Coffee'; ...
     'Others perennial'; 'Fodder grasses'; 'Others annual'} ;
 Ncrops = length(cropList) ;
-mirca_dir = '/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_5mn' ;
+mirca_dir = '/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_5mn' ;
 
 % Ancillary MIRCA crop stuff
 list_crops_frac_in = [strcat(cropList,'_RF') strcat(cropList,'_IR')] ;
@@ -61,7 +61,7 @@ disp('Importing ancillary data...')
 addpath(genpath(landsymm_lpjg_path()))
 
 % Import HYDE land area
-inDir_hyde = '/Users/sam/Geodata/HYDE_3.2.1_lu' ;
+inDir_hyde = '/Users/samrabin/Geodata/HYDE_3.2.1_lu' ;
 cd(inDir_hyde)
 hyde_files = dir([inDir_hyde '/*.zip']) ;
 hyde_years = str2num(char(strrep({hyde_files.name}','AD_lu.zip',''))) ; %#ok<ST2NM>
@@ -228,7 +228,7 @@ end
 
 % Add manure N for year 2000
 disp('Importing manure for year 2000...')
-load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
+load('/Users/samrabin/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.mat') ;
 manure2crop_hd_YX = manure2crop_hd_YXy(:,:,1860:2014==2000) ;
 manure2crop_hd_YX(manure2crop_hd_YX<1e-6) = 0 ;
 clear manure2crop_hd_YXy

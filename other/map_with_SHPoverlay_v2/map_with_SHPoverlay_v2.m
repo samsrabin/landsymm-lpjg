@@ -99,11 +99,11 @@ if strcmp(thisColormap,'ssr_BFbins') || strcmp(thisColormap,'ssr_CemitBins') ...
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,indices-1) ;
     
     if strcmp(thisColormap,'ssr_BFbins') || strcmp(thisColormap,'ssr_CemitBins')
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr.BF_colormap.indices.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr.BF_colormap.indices.cpt' ;
     elseif strcmp(thisColormap,'ssr_BFbins_v2') || strcmp(thisColormap,'ssr_CemitBins_v2')
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr.BF_colormap.indices_v2.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr.BF_colormap.indices_v2.cpt' ;
     elseif strcmp(thisColormap,'ssr_BFbins_v3') || strcmp(thisColormap,'ssr_CemitBins_v3')
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr.BF_colormap.indices_v3.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr.BF_colormap.indices_v3.cpt' ;
     else
         error(['No cpt_file specified for thisColormap = ' thisColormap '.'])
     end
@@ -129,7 +129,7 @@ elseif strcmp(thisColormap,'rdbu_ssr')
 %         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
         htmp = gca ;
         pcolor(map_data); shading flat; axis equal tight
-%         cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
+%         cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
 %         cptcmap(cpt_file,'ncol',65);
 %         old_cmap = colormap(gca,brewermap(64,'rdbu_ssr')) ;
         old_cmap = brewermap(64,'rdbu_ssr') ;
@@ -147,7 +147,7 @@ elseif strcmp(thisColormap,'rdbu_ssr')
         colorbar('off')
         
         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data_2) ;
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr_plusBGgray_dark.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr_plusBGgray_dark.cpt' ;
         cptcmap(cpt_file,htmp,'ncol',65,'flip',flip);
         hcb = colorbar(cbarOrient) ;
         caxis([cb_lims(1)-negVal cb_lims(2)])
@@ -182,7 +182,7 @@ elseif strcmp(thisColormap,'rdbu_ssr')
                 
     else
         hpcolorm = pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
         cptcmap(cpt_file,'ncol',64);
         if isempty(caxis_lims)
             caxis_lims = [-max(abs(caxis)) max(abs(caxis))] ;
@@ -216,7 +216,7 @@ elseif strcmp(thisColormap,'parula')
         % Get initial colorbar
 %         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
         pcolor(map_data); shading flat; axis equal tight
-%         cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
+%         cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
 %         cptcmap(cpt_file,'ncol',65);
 %         old_cmap = colormap(gca,brewermap(64,'rdbu_ssr')) ;
         old_cmap = brewermap(64,'Reds') ;
@@ -232,7 +232,7 @@ elseif strcmp(thisColormap,'parula')
         map_data_2(bground==1 & isnan(map_data)) = cb_lims(1)-negVal ;
         
         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data_2) ;
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula_plusBGgray_light.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula_plusBGgray_light.cpt' ;
         cptcmap(cpt_file,'ncol',65); % good thru here
         hcb = colorbar(cbarOrient) ; % good thru here
 %         caxis([cb_lims(1)-negVal cb_lims(2)])
@@ -255,7 +255,7 @@ elseif strcmp(thisColormap,'parula')
         end
     else
         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
         cptcmap(cpt_file,'ncol',64);
 %         if isempty(caxis_lims)
 %             caxis_lims = [-max(abs(caxis)) max(abs(caxis))] ;
@@ -297,7 +297,7 @@ elseif strcmp(thisColormap,'rdbu_ssr_neg1to1')
     map_data = [map_data ; nan(1,145)] ;
     
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-    cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
+    cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/rdbu_ssr.cpt' ;
     cptcmap(cpt_file,'ncol',64);
     caxis([-1 1])
 %     hcb = colorbar(cbarOrient) ;
@@ -310,7 +310,7 @@ elseif strcmp(thisColormap,'reds_ssr_withgray_10_0to1')
     map_data = [map_data ; nan(1,145)] ;
     
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-    cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/reds_ssr_withgray_10.cpt' ;
+    cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/reds_ssr_withgray_10.cpt' ;
     cptcmap(cpt_file,'ncol',10);
     caxis([0 1])
 %     caxis([0 max(caxis)])
@@ -324,7 +324,7 @@ elseif strcmp(thisColormap,'blues_ssr_withgray_10_0to1')
     map_data = [map_data ; nan(1,145)] ;
     
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-    cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/blues_ssr_withgray_10.cpt' ;
+    cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/blues_ssr_withgray_10.cpt' ;
     cptcmap(cpt_file,'ncol',10);
     caxis([-1 0])
 %     caxis([min(caxis) 0])
@@ -338,7 +338,7 @@ elseif strcmp(thisColormap,'reds_ssr_withgray_10_0toMax')
     map_data = [map_data ; nan(1,145)] ;
     
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-    cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/reds_ssr_withgray_10.cpt' ;
+    cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/reds_ssr_withgray_10.cpt' ;
     cptcmap(cpt_file,'ncol',10);
     caxis([0 max(caxis)])
 %     hcb = colorbar(cbarOrient) ;
@@ -351,7 +351,7 @@ elseif strcmp(thisColormap,'blues_ssr_withgray_10_minTo0')
     map_data = [map_data ; nan(1,145)] ;
     
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-    cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/blues_ssr_withgray_10.cpt' ;
+    cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/blues_ssr_withgray_10.cpt' ;
     cptcmap(cpt_file,'ncol',10);
     caxis([min(caxis) 0])
 %     hcb = colorbar(cbarOrient) ;
@@ -366,12 +366,12 @@ elseif strcmp(thisColormap,'ssrLC_orange_5') || strcmp(thisColormap,'ssrLC_green
     bground = [bground ; nan(1,145)] ;
     
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,bground) ;
-    cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_allgray.cpt' ;
+    cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_allgray.cpt' ;
     cptcmap(cpt_file,'ncol',1);
     hold on
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
     hold off
-    cpt_file = ['/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/' thisColormap] ;
+    cpt_file = ['/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/' thisColormap] ;
     cptcmap(cpt_file,'ncol',5);
     caxis([0 1])
 %     hcb = colorbar(cbarOrient) ;
@@ -401,12 +401,12 @@ elseif strcmp(thisColormap,'ssrLC_orange_5_pluslo') || strcmp(thisColormap,'ssrL
 %     bground = [bground ; nan(1,145)] ;
 %     
 %     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,bground) ;
-%     cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_allgray.cpt' ;
+%     cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_allgray.cpt' ;
 %     cptcmap(cpt_file,'ncol',1);
 %     hold on
 %     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
 %     hold off
-    cpt_file = ['/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/' thisColormap] ;
+    cpt_file = ['/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/' thisColormap] ;
     cptcmap(cpt_file,'ncol',length(binEdges)-1);
     caxis([0 length(binEdges)-1])
 %     hcb = colorbar(cbarOrient) ;
@@ -422,13 +422,13 @@ elseif strcmp(thisColormap,'heterogeneity_maps')
         bground = [bground nan(size(bground,1),1)] ;
         bground = [bground ; nan(1,size(bground,2))] ;
         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,bground) ;
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_allgray.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_allgray.cpt' ;
         cptcmap(cpt_file,'ncol',1);
         hold on
     end
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
     hold off
-    cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula.cpt' ;
+    cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula.cpt' ;
     cptcmap(cpt_file,'ncol',64);
     if ~isempty(caxis_lims)
         caxis(caxis_lims) ;
@@ -474,7 +474,7 @@ elseif strcmp(thisColormap,'months')
                     '\begin{tabular} Dec.\\1\end{tabular}'} ;
      
     pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-    cpt_file = '/Users/sam/Documents/Dropbox/FireMIP/FireMIP_paper2_results/maps/cptfiles/ssr.months_colormap.cpt' ;
+    cpt_file = '/Users/samrabin/Documents/Dropbox/FireMIP/FireMIP_paper2_results/maps/cptfiles/ssr.months_colormap.cpt' ;
     cptcmap(cpt_file,'ncol',255);
     if ~isempty(caxis_lims)
         caxis(caxis_lims)
@@ -508,9 +508,9 @@ elseif strcmp(thisColormap,'SSEs_optd')
         delete(cb)
         
         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data_2) ;
-%         cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula_plusBGgray_dark.cpt' ;
-%         cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula_plusBGgray_light.cpt' ;
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parulaBright0.5_plusBGgray_dark.cpt' ;
+%         cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula_plusBGgray_dark.cpt' ;
+%         cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula_plusBGgray_light.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parulaBright0.5_plusBGgray_dark.cpt' ;
         cptcmap(cpt_file,'ncol',65);
         hcb = colorbar(cbarOrient) ;
         set(hcb,'YLim',cb_lims) ;
@@ -532,7 +532,7 @@ elseif strcmp(thisColormap,'SSEs_optd')
         end
     else
         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/ssr_parula.cpt' ;
         cptcmap(cpt_file,'ncol',64);
         if ~isempty(caxis_lims)
             caxis(caxis_lims) ;
@@ -550,7 +550,7 @@ elseif strcmp(thisColormap,'SSE_diffs')
         bground = [bground ; nan(1,145)] ;
         
         pcolorm(lat-0.5*cellsize_lat,lon-0.5*cellsize_lon,map_data) ;
-        cpt_file = '/Users/sam/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/tmp.cpt' ;
+        cpt_file = '/Users/samrabin/Documents/Dropbox/Dissertation/MATLAB work/Brian_example_PlotGeographicMap/cptfiles/tmp.cpt' ;
         ncols = linecount(cpt_file) - 1 ;
         if only_optd
             ncols_eachSide = (ncols-2)/2 ;

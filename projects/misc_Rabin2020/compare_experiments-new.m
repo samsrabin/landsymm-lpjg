@@ -89,7 +89,7 @@ end
 
 % Output directory
 outDir_ts = addslashifneeded(...
-    ['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
+    ['/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/'...
      'figures_' thisVer '/diffTS']) ;
 
 if ~exist(outDir_ts,'dir')
@@ -110,7 +110,7 @@ end ; clear r
 
 stdLegend = ['Baseline',runList] ;
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/MATLAB_work/')
 
 
 %% Import

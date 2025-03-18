@@ -46,7 +46,7 @@ for j = 1:Nggcms
     clear S
 end
 
-outDir = sprintf('/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/%s', inDir) ;
+outDir = sprintf('/Users/samrabin/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/%s', inDir) ;
 if ~exist(outDir,'dir')
     mkdir(outDir)
 end

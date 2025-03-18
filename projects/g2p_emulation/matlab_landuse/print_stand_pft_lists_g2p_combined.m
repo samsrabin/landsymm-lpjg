@@ -17,7 +17,7 @@ include_cropphencol = true ;
 addpath(genpath(landsymm_lpjg_path()))
 
 % out_dir = sprintf('/Users/Shared/G2P/inputs/LU/remaps_v%s/',remapVer) ;
-out_dir = '/Users/sam/Downloads/create-ins/ins-all' ;
+out_dir = '/Users/samrabin/Downloads/create-ins/ins-all' ;
 if ~exist(out_dir,'dir')
     mkdir(out_dir) ;
 end

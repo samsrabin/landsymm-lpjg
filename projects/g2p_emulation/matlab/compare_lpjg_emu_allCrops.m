@@ -10,7 +10,7 @@ thisEmu = 'LPJ-GUESS' ;
 incl_cf = true ;
 
 top_dir = '/Users/Shared/GGCMI2PLUM_sh/emulation/outputs/potYields_20200310/IPSL-CM5A-MR_r1i1p1' ;
-fig_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/potYields_20200310_IPSL-CM5A-MR' ;
+fig_dir = '/Users/samrabin/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/potYields_20200310_IPSL-CM5A-MR' ;
 
 
 %% Setup
@@ -21,7 +21,7 @@ N_list_lpj = {'0','0200'} ;
 N_list_emu = {'010','200'} ;
 
 if incl_cf
-    cf_dir = '/Users/sam/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
+    cf_dir = '/Users/samrabin/Documents/Dropbox/GGCMI2PLUM_DB/emulation/outputs_figs/calibration/calibration_tables' ;
     cf_file_emu = dir(sprintf('%s/*%s*', cf_dir, thisEmu)) ;
     if length(cf_file_emu) ~= 1
         error('%d possible cf_file_emu found', length(cf_file_emu))

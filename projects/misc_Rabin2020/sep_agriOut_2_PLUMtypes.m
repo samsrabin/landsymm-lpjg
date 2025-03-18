@@ -19,7 +19,7 @@ force_overwrite = true ;
 fclose_every = 1000 ;
 pct_progress = 25 ;
 
-addpath('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/')
+addpath('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/')
 
 % Get year info
 yearList = y1:yStep:yN ;
@@ -40,8 +40,8 @@ lpj_lumap = lpjgu_matlab_readTable_then2map(LUfile) ;
 %% Import PLUM outputs / LPJG inputs
 
 inDir = find_PLUM2LPJG_run(inDir_tmp) ;
-[~,LUcropDir_tmp] = unix(['/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/get_lu_dir.sh '...
-    ...'/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work']) ;
+[~,LUcropDir_tmp] = unix(['/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/get_lu_dir.sh '...
+    ...'/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work']) ;
     inDir]) ;
 LUcropDir_tmp = LUcropDir_tmp(1:end-1) ;
 LUcropDir_matlab = find_PLUM2LPJG_inputs(LUcropDir_tmp) ;

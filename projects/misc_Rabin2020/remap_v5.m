@@ -51,7 +51,7 @@ list_cropsCombined_fert_in = nfert_in.varNames ;
 NcropsCombined_fert_in = length(list_cropsCombined_fert_in) ;
 
 % Crop fractions
-croparea_in = lpjgu_matlab_readTable_then2map('/Users/sam/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
+croparea_in = lpjgu_matlab_readTable_then2map('/Users/samrabin/Geodata/MIRCA/harvested_area_grids_26crops_30mn/MIRCA.txt',...
     'verboseIfNoMat',true) ;
 
 % Align gridlists
@@ -92,7 +92,7 @@ end
 cropareaCombined_in.varNames = list_cropsCombined_frac_in ;
 
 % Add manure N for year 2000 (new in remap_v5)
-load('/Users/sam/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.BAD.mat') ;
+load('/Users/samrabin/Geodata/Manure_ZhangEtAl2017/zhangManure_1860to2014_agg_hd.BAD.mat') ;
 manure2crop_hd_YX = manure2crop_hd_YXy(:,:,1860:2014==2000) ;
 manure2crop_hd_YX(manure2crop_hd_YX<1e-6) = 0 ;
 clear manure2crop_hd_YXy

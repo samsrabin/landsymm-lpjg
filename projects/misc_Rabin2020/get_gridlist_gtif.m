@@ -1,5 +1,5 @@
-[~,R] = geotiffread('/Users/sam/Geodata/General/Countries RASTER/countries_raster_halfdeg.tif') ;
-outDir = addslashifneeded('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/') ;
+[~,R] = geotiffread('/Users/samrabin/Geodata/General/Countries RASTER/countries_raster_halfdeg.tif') ;
+outDir = addslashifneeded('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper2/MATLAB_work/') ;
 
 
 

@@ -174,7 +174,7 @@ if o.noTitle
     end
 end
 stop
-export_fig('/Users/sam/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/writing/LaTeX_v6.0.1/figures_supp_results/climate_maps.png', '-r300') ;
+export_fig('/Users/samrabin/Documents/Dropbox/LPJ-GUESS-PLUM/LPJGP_paper02_Sam/writing/LaTeX_v6.0.1/figures_supp_results/climate_maps.png', '-r300') ;
 
 
 %% FUNCTIONS
