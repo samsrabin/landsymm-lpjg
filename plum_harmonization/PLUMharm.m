@@ -291,6 +291,12 @@ for d = 1:Ndirs
                 disp('out_y0 from baseline LU')
             end
             out_y0_2deg = base_2deg ;
+            if debug_areas
+                debug_global_areas(out_y0_2deg.maps_YXv, ...
+                    [], ...
+                    'Baseline; should match out_y0 this year', 'baseline', '', ...
+                    LUnames, isCrop, isAgri, dbCrop, thisYear)
+            end    
             out_y0_vegd_YX = sum(base.maps_YXv(:,:,notBare),3) ;
             out_y0_2deg_vegd_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
             out_y0_agri_YXv = base.maps_YXv(:,:,isAgri) ;
