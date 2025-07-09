@@ -444,6 +444,8 @@ for d = 1:Ndirs
         % Check for bad values
         PLUMharm_checkBadVals(in_y1.maps_YXv, [], [], ...
             landArea_YX, LUnames, 'in_y1', outPrec) ;
+        PLUMharm_checkBadVals(in_y1_2deg.maps_YXv, [], [], ...
+            landArea_2deg_YX, LUnames, 'in_y1_2deg', outPrec) ;
         
         % Debugging
         if debug_areas
