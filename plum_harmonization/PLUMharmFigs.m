@@ -39,6 +39,11 @@ PLUMharm_options
 %                 three years here. Recommendation: [2011 2050 2100]
 %     yearList_baselineLU_toPlot: (Optional.) Years from baseline LU dataset to include in
 %                                 plots. If not provided, use all years.
+%     y1_list: If you want to map deltas for multiple pairs of years, put
+%         the first years of the deltas in y1_list and the last years of
+%         deltas in yN_list. The first member of y1_list will also be used
+%         for scatter plots and "harmonization by the numbers."
+%     yN_list: See y1_list.
 %
 % You can also specify any variables listed as being taken from PLUMharm_options.m that
 % you want to override.
@@ -112,6 +117,11 @@ end
 % Process yearLists
 yearList_harm = year1:yearN ;
 yearList_orig = [yearList_harm(1)-1 yearList_harm] ;
+if length(y1_list) > 1
+    y1 = y1_list(1) ;
+else
+    y1 = y1_list ;
+end
 
 % Check/get figure legends
 if exist('runList_legend', 'var')
@@ -158,17 +168,6 @@ geotiffwrite_ssr_verbose = false ;
 
 lines_overlay = shaperead(fullfile(landsymm_lpjg_path(), ...
     'data', 'geodata', 'continents_from_countries', 'continents_from_countries.shp')) ;
-
-% y1_list = 2011 ;
-% yN_list= 2012 ;
-y1_list = 2010 ;
-yN_list= yearList_harm(end) ;
-% y1_list = 2011:1:2099 ;
-% yN_list = 2012:1:2100 ;
-% y1_list = 2011:5:2099 ;
-% yN_list = 2015:5:2100 ;
-% yN_list = 2020:20:yearList_harm(end) ;
-% y1_list = 2010*ones(size(yN_list)) ;
 
 if any(Nruns == [3 4 5])
     thisPos_RxW = [1    33   770   772] ;
@@ -354,6 +353,7 @@ for r = 1:Nruns
     end
     clear harmDir
     
+    [~,~,year_indices] = intersect(S_out.yearList,yearList_orig,'stable') ;
     if length(year_indices) ~= size(S_out.maps_YXvy,4) && ~add_baseline_to_harm
         S_out.maps_YXvy = S_out.maps_YXvy(:,:,:,year_indices) ;
     end
@@ -443,8 +443,6 @@ fontSize = 14 ;
 thisPos = [0         324        1440         376] ;
 %%%%%%%%%%%%%
 
-y1 = 2010 ;
-
 figure('Color','w','Position',thisPos) ;
 
 for r = 1:Nruns
@@ -481,8 +479,17 @@ spacing = [0.1 0.05] ; % v h
 fontSize = 14 ;
 %%%%%%%%%%%%%
 
-y1 = 2010 ;
 yN = yearList_harm(end) ;
+
+if ~any(yearList_orig==y1)
+    error('y1 (%d) not found in yearList_orig', y1)
+elseif ~any(yearList_orig==yN)
+    error('yN (%d) not found in yearList_orig', yN)
+elseif ~any(yearList_harm==y1)
+    error('y1 (%d) not found in yearList_harm', y1)
+elseif ~any(yearList_harm==yN)
+    error('yN (%d) not found in yearList_harm', yN)
+end
 
 thisGray = 0.65*ones(3,1) ;
 
@@ -632,6 +639,10 @@ do_caps = false ;
 ntrl_colormap_name = 'PiYG_ssr' ;
 %%%%%%%%%%%%%%%%%%%
 
+if ~exist('yN_list', 'var')
+    yN_list = yearList_harm(end) ;
+end
+
 if ~any(y1_list==yearList_harm(1) & yN_list==yearList_harm(end))
     y1_list(end+1) = yearList_harm(1) ;
     yN_list(end+1) = yearList_harm(end) ;
@@ -709,29 +720,39 @@ for l = 1:length(tmp_lu_list)
     end
     for y = 1:length(y1_list)
         
-        y1 = y1_list(y) ;
-        yN = yN_list(y) ;
+        y1_tmp = y1_list(y) ;
+        yN_tmp = yN_list(y) ;
+
+        if ~any(yearList_orig==y1_tmp)
+            error('y1_tmp (%d) not found in yearList_orig', y1_tmp)
+        elseif ~any(yearList_orig==yN_tmp)
+            error('yN_tmp (%d) not found in yearList_orig', yN_tmp)
+        elseif ~any(yearList_harm==y1_tmp)
+            error('y1_tmp (%d) not found in yearList_harm', y1_tmp)
+        elseif ~any(yearList_harm==yN_tmp)
+            error('yN_tmp (%d) not found in yearList_harm', yN_tmp)
+        end
         
         area_orig_bl_r = squeeze(sum(sum( ...
-            PLUMorig_xvyr(:,v,yearList_orig==y1,:),1),2))*conv_fact_total ;
+            PLUMorig_xvyr(:,v,yearList_orig==y1_tmp,:),1),2))*conv_fact_total ;
         area_harm_bl_r = squeeze(sum(sum( ...
-            PLUMharm_xvyr(:,v,yearList_harm==y1,:),1),2))*conv_fact_total ;
+            PLUMharm_xvyr(:,v,yearList_harm==y1_tmp,:),1),2))*conv_fact_total ;
         
         total_origDiff_r = squeeze(sum(sum( ...
-            PLUMorig_xvyr(:,v,yearList_orig==yN,:),1),2))*conv_fact_total ...
+            PLUMorig_xvyr(:,v,yearList_orig==yN_tmp,:),1),2))*conv_fact_total ...
             - area_orig_bl_r ;
         total_harmDiff_r = squeeze(sum(sum( ...
-            PLUMharm_xvyr(:,v,yearList_harm==yN,:),1),2))*conv_fact_total ...
+            PLUMharm_xvyr(:,v,yearList_harm==yN_tmp,:),1),2))*conv_fact_total ...
             - area_harm_bl_r ;
         
         % Get difference (%)
         diff_orig_xr = squeeze(nansum( ...
-            PLUMorig_xvyr(:,v,yearList_orig==yN,:) ...
-            - PLUMorig_xvyr(:,v,yearList_orig==y1,:), ...
+            PLUMorig_xvyr(:,v,yearList_orig==yN_tmp,:) ...
+            - PLUMorig_xvyr(:,v,yearList_orig==y1_tmp,:), ...
             2)) ;
         diff_harm_xr = squeeze(nansum( ...
-            PLUMharm_xvyr(:,v,yearList_harm==yN,:) ...
-            - PLUMharm_xvyr(:,v,yearList_harm==y1,:), ...
+            PLUMharm_xvyr(:,v,yearList_harm==yN_tmp,:) ...
+            - PLUMharm_xvyr(:,v,yearList_harm==y1_tmp,:), ...
             2)) ;
         for r = 1:Nruns
             orig_diff_YXrH(:,:,r) = lpjgu_vector2map(100*diff_orig_xr(:,r), map_size, list2map) ;
@@ -749,12 +770,12 @@ for l = 1:length(tmp_lu_list)
 %             error('This only works with as_frac_land TRUE')
 %         end
         
-        col_titles = {sprintf('Original %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN), ...
-            sprintf('Harmonized %s %s, %d%s%d', '\Delta', thisLU, y1, char(8211), yN)} ;
+        col_titles = {sprintf('Original %s %s, %d%s%d', '\Delta', thisLU, y1_tmp, char(8211), yN_tmp), ...
+            sprintf('Harmonized %s %s, %d%s%d', '\Delta', thisLU, y1_tmp, char(8211), yN_tmp)} ;
         [diff_crop_YXr, diff_past_YXr] = make_LUdiff_fig_v5(...
             area_orig_bl_r, area_harm_bl_r, total_origDiff_r, total_harmDiff_r, ...
             orig_diff_YXrH, harm_diff_YXrH, ...
-            y1, yN, runList_legend, ...
+            y1_tmp, yN_tmp, runList_legend, ...
             spacing, fontSize, textX, textY_1, textY_2, ...
             nx, ny, ...
             Nruns, thisPos_RxW, units_map, units_total, do_caps, ...
@@ -762,7 +783,7 @@ for l = 1:length(tmp_lu_list)
             lines_overlay) ;
 
         filename = fullfile(this_outdir, sprintf('maps_deltas_%s_%d-%d_beforeAfter.png', ...
-            thisLU, y1, yN)) ;
+            thisLU, y1_tmp, yN_tmp)) ;
         if ~as_frac_land
             filename = strrep(filename, '.png', sprintf('.%s.png', units_map)) ;
         end
@@ -787,7 +808,7 @@ end
 
 %% Harmonization effects by the numbers
 
-incl_years = 2010:2100 ;
+incl_years = y1:2100 ;
 incl_years = intersect(yearList_orig, incl_years) ;
 
 harm_focus_regions = { ...
@@ -846,8 +867,8 @@ if length(yi_orig) ~= length(incl_years)
 elseif length(yi_harm) ~= length(incl_years)
     error('length(yi_harm) ~= length(incl_years)')
 end
-y1 = min(incl_years) ;
-yN = max(incl_years) ;
+y1_tmp = min(incl_years) ;
+yN_tmp = max(incl_years) ;
 
 tmp_lu_list = {'NATURAL','CROPLAND','PASTURE'} ;
 
@@ -863,7 +884,7 @@ templatefile_relLandArea = fullfile(landsymm_lpjg_path(), 'data', 'templates', '
 for l = 1:length(tmp_lu_list)
     thisLU = tmp_lu_list{l} ;
     outfile = fullfile(harms_figs_dir, sprintf('harm_by_numbers.%d-%d.%s.xlsx', ...
-        y1, yN, thisLU)) ;
+        y1_tmp, yN_tmp, thisLU)) ;
     if combineCrops
         outfile = strrep(outfile, thisLU, ['combCrops.' thisLU]) ;
     end
@@ -881,7 +902,7 @@ for l = 1:length(tmp_lu_list)
     
     for r = 1:Nruns
         thisRun = runList_legend{r} ;
-        fprintf('%d-%d, %s, %s\n', y1, yN, thisRun, thisLU)
+        fprintf('%d-%d, %s, %s\n', y1_tmp, yN_tmp, thisRun, thisLU)
         landArea_byReg = [] ;
         for s = 1:NsuperRegs
             [table_orig, table_orig_relY1, landArea_byReg] = PLUMharmFigs_iterate_superReg( ...
@@ -1109,7 +1130,7 @@ make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
 
 spacing = [0.01 0.025] ;
 cbar_loc = 'SouthOutside' ;
-y1 = 60 ;
+yaxis_1 = 60 ;
 fontSize = 14 ;
 png_res = 150 ;
 
@@ -1127,7 +1148,7 @@ for r = 1:Nruns
             h1 = subplot_tight(2,3,y,spacing) ;
             tmp = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear,r), size(landArea_YX), list2map) ;
             tmp(landArea_YX==0) = NaN ;
-            pcolor(tmp(y1:end,:)) ;
+            pcolor(tmp(yaxis_1:end,:)) ;
             shading flat ; axis equal tight off
             colorbar('Location',cbar_loc) ;
             title(sprintf('%s orig: %s, %d',thisRun,thisLU,thisYear)) ;
@@ -1135,7 +1156,7 @@ for r = 1:Nruns
             h2 = subplot_tight(2,3,y+3,spacing) ;
             tmp = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear,r), size(landArea_YX), list2map) ;
             tmp(landArea_YX==0) = NaN ;
-            pcolor(tmp(y1:end,:)) ;
+            pcolor(tmp(yaxis_1:end,:)) ;
             shading flat ; axis equal tight off
             colorbar('Location',cbar_loc) ;
             title(sprintf('%s harm: %s, %d (km^2)',thisRun,thisLU,thisYear)) ;
@@ -1154,7 +1175,7 @@ end
 
 spacing = [0.01 0.025] ;
 cbar_loc = 'SouthOutside' ;
-y1 = 60 ;
+yaxis_1 = 60 ;
 fontSize = 14 ;
 png_res = 150 ;
 thisPos = [1         500        1440         305] ;
@@ -1176,7 +1197,7 @@ for r = 1:Nruns
             tmp = tmp2 - tmp1 ;
 %             tmp = tmp2/sum(tmp2(:)) - tmp1/sum(tmp1(:)) ;
             tmp(landArea_YX==0) = NaN ;
-            pcolor(tmp(y1:end,:)) ;
+            pcolor(tmp(yaxis_1:end,:)) ;
             shading flat ; axis equal tight off
             colormap(flipud(brewermap(64,'rdbu_ssr'))) ;
             caxis([-1 1]*max(abs(caxis))) ;
@@ -1192,10 +1213,10 @@ end
 
 %% Maps: Diffs between orig and harm at one year for each run
 
-thisYear = 2010 ;
+thisYear = yearList_baselineLU_toPlot(length(yearList_baselineLU_toPlot)) ;
 spacing = [0.05 0.025] ;
 cbar_loc = 'SouthOutside' ;
-y1 = 66 ;
+yaxis_1 = 66 ;
 fontSize = 14 ;
 png_res = 150 ;
 thisPos = figurePos ;
@@ -1226,7 +1247,7 @@ for v = 1:Nlu
         thisRun = runList_legend{r} ;
         h1 = subplot_tight(2,2,r,spacing) ;
         tmp = lpjgu_vector2map(tmp_xvr(:,v,r), map_size, list2map) ;
-        pcolor(tmp(y1:end,:)) ;
+        pcolor(tmp(yaxis_1:end,:)) ;
         shading flat ; axis equal tight off
         colormap(flipud(brewermap(64,'rdbu_ssr'))) ;
         caxis(new_caxis) ;
@@ -1255,7 +1276,7 @@ end
 
 spacing = [0.01 0.025] ;
 cbar_loc = 'SouthOutside' ;
-y1 = 60 ;
+yaxis_1 = 60 ;
 fontSize = 14 ;
 png_res = 150 ;
 
@@ -1276,7 +1297,7 @@ for r = 1:Nruns
             tmp2 = 1e-6*lpjgu_vector2map(PLUMorig_xvyr(:,v,yearList_orig==thisYear2,r), size(landArea_YX), list2map) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
-            pcolor(tmp(y1:end,:)) ;
+            pcolor(tmp(yaxis_1:end,:)) ;
             shading flat ; axis equal tight off
             colormap(brewermap(64,'rdbu_ssr')) ;
             colorbar('Location',cbar_loc) ;
@@ -1287,7 +1308,7 @@ for r = 1:Nruns
             tmp2 = 1e-6*lpjgu_vector2map(PLUMharm_xvyr(:,v,yearList_harm==thisYear2,r), size(landArea_YX), list2map) ;
             tmp = tmp2 - tmp1 ;
             tmp(landArea_YX==0) = NaN ;
-            pcolor(tmp(y1:end,:)) ;
+            pcolor(tmp(yaxis_1:end,:)) ;
             shading flat ; axis equal tight off
             colormap(brewermap(64,'rdbu_ssr')) ;
             colorbar('Location',cbar_loc) ;
