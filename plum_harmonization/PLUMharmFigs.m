@@ -467,7 +467,7 @@ for r = 1:Nruns
     
 end
 
-export_fig(fullfile(harms_figs_dir, 'scatter_hurtt2011_fig4.png'), '-r300') ;
+exportgraphics(gcf, fullfile(harms_figs_dir, 'scatter_hurtt2011_fig4.png'), 'Resolution', 300) ;
 close
 
 
@@ -607,7 +607,7 @@ for r = 1:Nruns
     end
 end
 
-export_fig(fullfile(harms_figs_dir, 'scatter_hurtt2011_fig5.png'), '-r300') ;
+exportgraphics(gcf, fullfile(harms_figs_dir, 'scatter_hurtt2011_fig5.png'), 'Resolution', 300) ;
 close
 
 
@@ -641,10 +641,10 @@ textY_1 = textY_1 + shiftup ; textY_2 = textY_2 + shiftup - shiftup/3 ;
 if length(y1_list) > 1
     this_outdir = fullfile(harms_figs_dir, sprintf('maps_manyDeltas_beforeAfter_%d-%d_by%d', ...
         min(y1_list), max(yN_list), yN_list(2)-yN_list(1))) ;
-    pngres = '-r150' ;
+    pngres = 150 ;
 else
     this_outdir = harms_figs_dir ;
-    pngres = '-r300' ;
+    pngres = 300 ;
 end
 this_outdir_geo = fullfile(harms_figs_dir, 'geo/') ;
 
@@ -766,7 +766,7 @@ for l = 1:length(tmp_lu_list)
         if ~as_frac_land
             filename = strrep(filename, '.png', sprintf('.%s.png', units_map)) ;
         end
-        export_fig(filename, pngres) ;
+        exportgraphics(gcf, filename, 'Resolution', pngres) ;
         close
         if save_geotiffs && as_frac_land && length(y1_list) == 1
             for r = 1:Nruns
@@ -1006,7 +1006,7 @@ hold off
 legend(runList_legend, 'Location', timeseries_legend_loc)
 
 title('Time series of harmonization effect on change in non-agri area')
-export_fig(fullfile(harms_figs_dir, 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf')) ;
+exportgraphics(gcf, fullfile(harms_figs_dir, 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf')) ;
 close
     
 
@@ -1044,7 +1044,7 @@ for v = 1:length(combinedLUs)
 end
 
 % Save
-export_fig(fullfile(harms_figs_dir, 'timeSeries_landUse.pdf')) ;
+exportgraphics(gcf, fullfile(harms_figs_dir, 'timeSeries_landUse.pdf')) ;
 close
 
 
@@ -1144,7 +1144,7 @@ for r = 1:Nruns
             caxis(h2,new_caxis) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig(fullfile(harms_figs_dir, ['maps_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']),['-r' num2str(png_res)]) ;
+        exportgraphics(gcf, fullfile(harms_figs_dir, ['maps_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']), 'Resolution', png_res) ;
         close
     end
 end
@@ -1184,7 +1184,7 @@ for r = 1:Nruns
             title(sprintf('Harm-Orig, %s: %s, %d',thisRun,thisLU,thisYear)) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig(fullfile(harms_figs_dir, ['mapsOHdiffs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']),['-r' num2str(png_res)]) ;
+        exportgraphics(gcf, fullfile(harms_figs_dir, ['mapsOHdiffs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']), 'Resolution', png_res) ;
         close
     end
 end
@@ -1246,7 +1246,7 @@ for v = 1:Nlu
     if as_frac_land
         filename = strrep(filename, 'diffs', 'diffsFrac') ;
     end
-    export_fig(filename,['-r' num2str(png_res)]) ;
+    exportgraphics(gcf, filename, 'Resolution', png_res) ;
     close
 end
 
@@ -1297,7 +1297,7 @@ for r = 1:Nruns
             caxis(h2,new_caxis) ;
             set(gca,'FontSize',fontSize)
         end
-        export_fig(fullfile(harms_figs_dir, ['mapsChgs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']),['-r' num2str(png_res)]) ;
+        exportgraphics(gcf, fullfile(harms_figs_dir, ['mapsChgs_' thisLU '_' strrep(num2str(threeYears),'  ','-') '_' thisRun '.png']), 'Resolution', png_res) ;
         close
     end
 end

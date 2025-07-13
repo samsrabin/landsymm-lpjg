@@ -37,8 +37,7 @@ for v = 1:Ncrops_lpjg
 end
 
 % Save
-warning off export_fig:exportgraphics
-export_fig(fullfile(out_dir, sprintf('timeSeries_%s.pdf', fileWord)))
+exportgraphics(gcf, fullfile(out_dir, sprintf('timeSeries_%s.pdf', fileWord)))
 close
 
 end
