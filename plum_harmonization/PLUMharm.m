@@ -96,6 +96,9 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %                  separate). E.g., comparison in Rabin et al. (2020) Fig. S2.
 %                  Default: false.
 %                  *This may not actually work!*
+%   allow_read_matfiles: (Optional.) Allow import scripts to read existing
+%                        MAT-files? Default true; false means original text
+%                        files will be read instead.
 
 
 PLUMharm_options
@@ -127,6 +130,9 @@ if exist('thisDir', 'var')
         error('thisDir not found: %s', thisDir)
     end
     cd(thisDir)
+end
+if ~exist('allow_read_matfiles', 'var')
+    allow_read_matfiles = true ;
 end
 
 
@@ -353,7 +359,7 @@ for d = 1:Ndirs
                     PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                     LUnames, [], [], [], ...
                     PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil, allow_unveg, outPrec) ;
+                    fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, outPrec) ;
             else
                 [in_y0, in_y0_nfert, in_y0_irrig, in_y0_2deg, in_y0_2deg_nfert, in_y0_2deg_irrig, ...
                     latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
@@ -361,7 +367,7 @@ for d = 1:Ndirs
                     PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                     LUnames, [], latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
                     PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil, allow_unveg, outPrec) ;
+                    fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, outPrec) ;
             end
             bareFrac_y0_YX = in_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
             in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
@@ -422,7 +428,7 @@ for d = 1:Ndirs
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                 LUnames, bareFrac_y0_YX, [], [], ...
                 PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil, allow_unveg, outPrec) ;
+                    fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, outPrec) ;
         else
             [in_y1, in_y1_nfert, in_y1_irrig, in_y1_2deg, in_y1_2deg_nfert, in_y1_2deg_irrig, ...
                 latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
@@ -430,7 +436,7 @@ for d = 1:Ndirs
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                 LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
                 PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil, allow_unveg, outPrec) ;
+                    fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, outPrec) ;
         end
         in_y1_agri_YXv = in_y1.maps_YXv(:,:,isAgri) ;
         in_y1_2deg_agri_YXv = in_y1_2deg.maps_YXv(:,:,isAgri) ;

@@ -2,7 +2,7 @@ function [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
     inDir,base_year,yearList, ...
     landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
     is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, thisVer, ...
-    is_orig, fruitveg_sugar_2oil, allow_unveg)
+    is_orig, fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles)
 
 combineCrops = isempty(PLUMtoLPJG) ;
 
@@ -13,7 +13,7 @@ S_irrig_out = [] ;
 MATfile = [inDir '.processed.' thisVer 'mat'] ;
 MATfile = sprintf('%s.processed.%d-%d.%smat', inDir, yearList(1), yearList(end), thisVer) ;
 disp(MATfile)
-if exist(MATfile,'file')
+if allow_read_matfiles
     MATfile_info = dir(MATfile) ;
     [~, TXTfile] = unix(['ls -t ' inDir '/*/*.' thisVer 'txt | head -n 1  | tr -d ''\n''']) ;
     TXTfile_info = dir(TXTfile) ;
@@ -33,14 +33,14 @@ if exist(MATfile,'file')
                 inDir,base_year,yearList, ...
                 landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
                 is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
-                fruitveg_sugar_2oil, allow_unveg) ;
+                fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles) ;
         else
             [S_out, S_nfert_out, S_irrig_out] = ...
             generate_struct( ...
                 inDir,base_year,yearList, ...
                 landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
                 is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
-                fruitveg_sugar_2oil, allow_unveg) ;
+                fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles) ;
         end
         % Save, catching exceptions to avoid having to re-read everything
         disp('   Saving MAT file...')
@@ -64,7 +64,7 @@ elseif combineCrops
             inDir,base_year,yearList, ...
             landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
-            is_orig, fruitveg_sugar_2oil, allow_unveg) ;
+            is_orig, fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles) ;
     % Save, catching exceptions to avoid having to re-read everything
     disp('   Saving MAT file...')
     try
@@ -82,7 +82,7 @@ else
             inDir,base_year,yearList, ...
             landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
             is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
-            is_orig, fruitveg_sugar_2oil, allow_unveg) ;
+            is_orig, fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles) ;
     % Save, catching exceptions to avoid having to re-read everything
     disp('   Saving MAT file...')
     try
@@ -107,7 +107,7 @@ function [S, S_nfert, S_irrig] = generate_struct(...
     inDir, base_year, yearList, ...
     landArea_YX, LUnames, PLUMtoLPJG, LPJGcrops, ...
     is2deg, bareFrac_y0_YX, norm2extra, inpaint_method, ...
-    is_orig, fruitveg_sugar_2oil, allow_unveg)
+    is_orig, fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles)
 
 combineCrops = isempty(PLUMtoLPJG) ;
 S_nfert = [] ;
@@ -154,9 +154,9 @@ for y = 1:Nyears
         end
     end
     
-    if ~(mat_exists || txt_exists || gz_exists)
-        warning('\n%d (%s) does not exist! Aborting.\n', thisYear, ...
-            strrep(file_in_lu, '.txt.gz', '[.mat,.txt(.gz)]'))
+    if ~((allow_read_matfiles && mat_exists) || txt_exists || gz_exists)
+        warning('\n%d (%s) does not exist! allow_read_matfiles %d. Aborting.\n', thisYear, ...
+            strrep(file_in_lu, '.txt.gz', '[.mat,.txt(.gz)]'), allow_read_matfiles)
         break
     end
     
@@ -169,7 +169,7 @@ for y = 1:Nyears
     else
         fprintf('%d... ',thisYear)
     end
-    if mat_exists % Each loads as structure out_y1
+    if allow_read_matfiles && mat_exists % Each loads as structure out_y1
         
         % Import land use areas
         tmp = load(file_in_lu) ;
@@ -223,7 +223,7 @@ for y = 1:Nyears
                 [~, ~, ~, PLUM_in, nfert_in, irrig_in] = PLUMharm_processPLUMin_areaCrops(...
                     file_in_lu,landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
                     [], [], PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, fruitveg_sugar_2oil, ...
-                    allow_unveg) ;
+                    allow_unveg, allow_read_matfiles) ;
             catch ME
                 if batchStartupOptionUsed
                     rethrow(ME)
@@ -235,7 +235,7 @@ for y = 1:Nyears
             [PLUM_in, nfert_in, irrig_in, ~, ~, ~] = PLUMharm_processPLUMin_areaCrops(...
                 file_in_lu,landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
                 [], [], PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, fruitveg_sugar_2oil, ...
-                allow_unveg) ;
+                allow_unveg, allow_read_matfiles) ;
         end
     end
     if y==1
