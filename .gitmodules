@@ -1,0 +1,3 @@
+[submodule "matlab-functions"]
+	path = matlab-functions
+	url = git@github.com:samsrabin/matlab-functions.git

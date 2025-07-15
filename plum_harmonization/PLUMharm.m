@@ -2,8 +2,13 @@
 %%% LUH1-style harmonization for PLUM outputs, at cropType level %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Ensure we're using the latest MATLAB function library
+cd(landsymm_lpjg_path())
+system(sprintf('git submodule update')) ;
+
 addpath(genpath(landsymm_lpjg_path()))
 rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
+rmpath(genpath(fullfile(landsymm_lpjg_path(), 'matlab-functions', '.git')))
 
 % PLUMharm_options.m must be somewhere on your path.
 % There, specify the following variables:
