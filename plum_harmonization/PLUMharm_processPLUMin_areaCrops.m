@@ -256,7 +256,7 @@ S.maps_YXv(landArea_YXv==0) = NaN ;
 
 % Harmonize vegetated+barren fractions
 if ~isempty(bareFrac_y0_YX)
-    S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX, allow_unveg) ;
+    S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX, allow_unveg, debug) ;
 end
 
 % Convert map to km2 (with zeros instead of NaNs)
