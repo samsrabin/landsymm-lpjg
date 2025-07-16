@@ -137,7 +137,6 @@ if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
     end
-    cd(thisDir)
 end
 if ~exist('allow_read_matfiles', 'var')
     allow_read_matfiles = true ;
@@ -149,6 +148,15 @@ if ischar(plumDirs)
     plumDirs = {plumDirs} ;
 end
 Ndirs = length(plumDirs) ;
+
+for d = 1:Ndirs
+    if ~exist(plumDirs{d}, 'dir')
+        plumDirs{d} = fullfile(thisDir, plumDirs{d}) ;
+        if ~exist(plumDirs{d}, 'dir')
+            error('Directory not found: %s', plumDirs{d})
+        end
+    end
+end
 
 % Get harmDirs, if needed
 harmDirs_specified = exist('harmDirs', 'var') ;
