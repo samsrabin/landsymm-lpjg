@@ -78,7 +78,6 @@ if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
     end
-    cd(thisDir)
 end
 if ~exist('allow_read_matfiles', 'var')
     allow_read_matfiles = true ;
@@ -91,12 +90,31 @@ if ischar(plumDirs)
 end
 Nruns = length(plumDirs) ;
 
+for d = 1:Nruns
+    if ~exist(plumDirs{d}, 'dir')
+        plumDirs{d} = fullfile(thisDir, plumDirs{d}) ;
+        if ~exist(plumDirs{d}, 'dir')
+            error('Directory not found: %s', plumDirs{d})
+        end
+    end
+end
+
+
 % Get harmDirs, if needed
 harmDirs_specified = exist('harmDirs', 'var') ;
 if ~harmDirs_specified
     harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops) ;
 elseif ischar(harmDirs)
     harmDirs = {harmDirs} ;
+end
+
+for d = 1:Nruns
+    if ~exist(harmDirs{d}, 'dir')
+        harmDirs{d} = fullfile(thisDir, harmDirs{d}) ;
+        if ~exist(harmDirs{d}, 'dir')
+            error('Directory not found: %s', harmDirs{d})
+        end
+    end
 end
 
 % Check plumDirs and harmDirs
