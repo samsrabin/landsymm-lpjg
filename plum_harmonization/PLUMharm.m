@@ -2,8 +2,13 @@
 %%% LUH1-style harmonization for PLUM outputs, at cropType level %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Ensure we're using the latest MATLAB function library
+cd(landsymm_lpjg_path())
+system(sprintf('git submodule update')) ;
+
 addpath(genpath(landsymm_lpjg_path()))
 rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
+rmpath(genpath(fullfile(landsymm_lpjg_path(), 'matlab-functions', '.git')))
 
 % PLUMharm_options.m must be somewhere on your path.
 % There, specify the following variables:
@@ -96,6 +101,9 @@ rmpath(genpath(fullfile(landsymm_lpjg_path(), '.git')))
 %                  separate). E.g., comparison in Rabin et al. (2020) Fig. S2.
 %                  Default: false.
 %                  *This may not actually work!*
+%   allow_read_matfiles: (Optional.) Allow import scripts to read existing
+%                        MAT-files? Default true; false means original text
+%                        files will be read instead.
 
 
 PLUMharm_options
@@ -104,6 +112,9 @@ PLUMharm_options
 %% Setup and process options
 
 warning('on','all')
+
+% Are we debugging anything?
+debug = debug_areas || debug_nfert || debug_irrig ;
 
 % Process defaults
 if ~exist('allow_unveg', 'var')
@@ -126,7 +137,9 @@ if exist('thisDir', 'var')
     if ~exist(thisDir, 'dir')
         error('thisDir not found: %s', thisDir)
     end
-    cd(thisDir)
+end
+if ~exist('allow_read_matfiles', 'var')
+    allow_read_matfiles = true ;
 end
 
 
@@ -136,10 +149,19 @@ if ischar(plumDirs)
 end
 Ndirs = length(plumDirs) ;
 
+for d = 1:Ndirs
+    if ~exist(plumDirs{d}, 'dir')
+        plumDirs{d} = fullfile(thisDir, plumDirs{d}) ;
+        if ~exist(plumDirs{d}, 'dir')
+            error('Directory not found: %s', plumDirs{d})
+        end
+    end
+end
+
 % Get harmDirs, if needed
 harmDirs_specified = exist('harmDirs', 'var') ;
 if ~harmDirs_specified
-    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops) ;
+    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops, allow_unveg) ;
 elseif ischar(harmDirs)
     harmDirs = {harmDirs} ;
 end
@@ -291,6 +313,12 @@ for d = 1:Ndirs
                 disp('out_y0 from baseline LU')
             end
             out_y0_2deg = base_2deg ;
+            if debug_areas
+                debug_global_areas(out_y0_2deg.maps_YXv, ...
+                    [], ...
+                    'Baseline; should match out_y0 this year', 'baseline', '', ...
+                    LUnames, isCrop, isAgri, dbCrop, thisYear)
+            end    
             out_y0_vegd_YX = sum(base.maps_YXv(:,:,notBare),3) ;
             out_y0_2deg_vegd_YX = sum(base_2deg.maps_YXv(:,:,notBare),3) ;
             out_y0_agri_YXv = base.maps_YXv(:,:,isAgri) ;
@@ -347,7 +375,7 @@ for d = 1:Ndirs
                     PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                     LUnames, [], [], [], ...
                     PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil, outPrec, allow_unveg) ;
+                    fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, debug, outPrec) ;
             else
                 [in_y0, in_y0_nfert, in_y0_irrig, in_y0_2deg, in_y0_2deg_nfert, in_y0_2deg_irrig, ...
                     latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
@@ -355,7 +383,7 @@ for d = 1:Ndirs
                     PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                     LUnames, [], latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
                     PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil, outPrec, allow_unveg) ;
+                    fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, debug, outPrec) ;
             end
             bareFrac_y0_YX = in_y0.maps_YXv(:,:,strcmp(LUnames,'BARREN')) ./ landArea_YX ;
             in_y0_agri_YXv = in_y0.maps_YXv(:,:,isAgri) ;
@@ -416,7 +444,7 @@ for d = 1:Ndirs
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                 LUnames, bareFrac_y0_YX, [], [], ...
                 PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil, outPrec, allow_unveg) ;
+                    fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, debug, outPrec) ;
         else
             [in_y1, in_y1_nfert, in_y1_irrig, in_y1_2deg, in_y1_2deg_nfert, in_y1_2deg_irrig, ...
                 latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
@@ -424,7 +452,7 @@ for d = 1:Ndirs
                 PLUMharm_processPLUMin_areaCrops(file_in, landArea_YX, landArea_2deg_YX, ...
                 LUnames, bareFrac_y0_YX, latestPLUMin_2deg_nfert_YXv, latestPLUMin_2deg_irrig_YXv, ...
                 PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-                    fruitveg_sugar_2oil, outPrec, allow_unveg) ;
+                    fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, debug, outPrec) ;
         end
         in_y1_agri_YXv = in_y1.maps_YXv(:,:,isAgri) ;
         in_y1_2deg_agri_YXv = in_y1_2deg.maps_YXv(:,:,isAgri) ;
@@ -438,11 +466,16 @@ for d = 1:Ndirs
         % Check for bad values
         PLUMharm_checkBadVals(in_y1.maps_YXv, [], [], ...
             landArea_YX, LUnames, 'in_y1', outPrec) ;
+        PLUMharm_checkBadVals(in_y1_2deg.maps_YXv, [], [], ...
+            landArea_2deg_YX, LUnames, 'in_y1_2deg', outPrec) ;
         
         % Debugging
         if debug_areas
+            debug_global_areas(in_y0.maps_YXv, in_y1.maps_YXv, ...
+                'Initial import (0.5°)', 'in', 'in', ...
+                LUnames, isCrop, isAgri, dbCrop, thisYear)
             debug_global_areas(in_y0_2deg.maps_YXv, in_y1_2deg.maps_YXv, ...
-                'Initial import', 'in_2deg', 'in_2deg', ...
+                'Initial import (2°)', 'in_2deg', 'in_2deg', ...
                 LUnames, isCrop, isAgri, dbCrop, thisYear)
         end
         if ~combineCrops
@@ -664,6 +697,8 @@ for d = 1:Ndirs
         % which---if the issue is with NATURAL---are probably due to PLUM trying to assign
         % more agricultural area than there is vegetated land in a gridcell.
         tmp_YXv = cat(3, mid_y1_2deg_agri_YXv, mid_y1_2deg_ntrl_YX, mid_y1_2deg_bare_YX) ;
+        PLUMharm_checkBadVals(tmp_YXv, [], [], ...
+            landArea_2deg_YX, LUnames, 'mid_y1_2deg', outPrec) ;
         tmp_YXv = PLUMharm_fixTinyNegs(tmp_YXv, repmat(landArea_2deg_YX,[1 1 Nlu]), ...
             LUnames, outPrec, fixTinyNegs_tol_m2, conserv_tol_area, debugIJ_2deg) ;
         PLUMharm_checkBadVals(tmp_YXv, [], [], ...

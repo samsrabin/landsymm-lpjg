@@ -1,18 +1,17 @@
 function S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX, ...
-    allow_unveg)
+    allow_unveg, debug)
+
+if debug
+    disp('=== PLUMharm_harmonize_vegdbare ===')
+end
 
 bareFrac_y1_YX = sum(S.maps_YXv(:,:,~notBare), 3) ;
 if ~isequaln(bareFrac_y0_YX, bareFrac_y1_YX)
-%     % Print info
-%     diff_YX = (bareFrac_y1_YX - bareFrac_y0_YX) .* landArea_YX*1e-6 ;
-%     total_bare_y0 = nansum(nansum(bareFrac_y0_YX .* landArea_YX*1e-6)) ;
-%     netDiff = nansum(nansum(diff_YX)) ;
-%     grossDiff = nansum(nansum(abs(diff_YX))) ;
-%     netDiff_pct = 100 * netDiff / total_bare_y0 ;
-%     grossDiff_pct = 100 * grossDiff / total_bare_y0 ;
-%     disp('    Harmonizing vegd+bare fractions')
-%     fprintf('        Sum bare  diff  = %g km2 (%0.2f%% of y0)\n', netDiff, netDiff_pct)
-%     fprintf('        Sum bare |diff| = %g km2 (%0.2f%% of y0)\n', grossDiff, grossDiff_pct)
+    % Print info
+    if debug
+        debug_S_area(S, landArea_YX, 'before');
+        debug_print(bareFrac_y1_YX, bareFrac_y0_YX, landArea_YX);
+    end
     
     vegdFrac_y1_YX = sum(S.maps_YXv(:,:,notBare),3) ;
     
@@ -31,6 +30,33 @@ if ~isequaln(bareFrac_y0_YX, bareFrac_y1_YX)
         error('Land use fractions don''t sum to 1 within tolerance %g; max abs. difference %g', ...
             tol, maxdiff)
     end
+    % Print info
+    if debug
+        debug_S_area(S, landArea_YX, 'after');
+    end
 end
 
+if debug
+    disp('===================================')
+end
+
+
+end
+
+function debug_print(bareFrac_y1_YX,bareFrac_y0_YX,landArea_YX)
+
+diff_YX = (bareFrac_y1_YX - bareFrac_y0_YX) .* landArea_YX*1e-6 ;
+total_bare_y0 = nansum(nansum(bareFrac_y0_YX .* landArea_YX*1e-6)) ;
+netDiff = nansum(nansum(diff_YX)) ;
+grossDiff = nansum(nansum(abs(diff_YX))) ;
+netDiff_pct = 100 * netDiff / total_bare_y0 ;
+grossDiff_pct = 100 * grossDiff / total_bare_y0 ;
+disp('    Harmonizing vegd+bare fractions')
+fprintf('        Sum bare  diff  = %g km2 (%0.2f%% of y0)\n', netDiff, netDiff_pct)
+fprintf('        Sum bare |diff| = %g km2 (%0.2f%% of y0)\n', grossDiff, grossDiff_pct)
+
+end
+
+function debug_S_area(S, landArea_YX, txt)
+fprintf('S land area %s: %0.4e m2\n', txt, nansum(nansum(sum(S.maps_YXv, 3).*landArea_YX)))
 end

@@ -6,7 +6,26 @@ function [S, S_nfert, S_irrig, ...
         file_in_lcf, landArea_YX, landArea_2deg_YX, LUnames, bareFrac_y0_YX, ...
         latestPLUMin_nfert_2deg_YXv, latestPLUMin_irrig_2deg_YXv, ...
         PLUMtoLPJG, LPJGcrops, norm2extra, inpaint_method, ...
-        fruitveg_sugar_2oil, allow_unveg, varargin)
+        fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, debug, varargin)
+
+if debug
+    disp('--- PLUMharm_processPLUMin_areaCrops ---')
+    fprintf('file_in_lcf: %s\n', file_in_lcf)
+    fprintf('nansum(landArea_YX(:)): %0.4e\n', nansum(landArea_YX(:)))
+    fprintf('nansum(landArea_2deg_YX(:)): %0.4e\n', nansum(landArea_2deg_YX(:)))
+    tmp = sprintf(' %s,', LUnames{:});
+    fprintf('LUnames: %s\n', tmp(1:end-1))
+    fprintf('nansum(bareFrac_y0_YX(:)): %0.4e\n', nansum(bareFrac_y0_YX(:)))
+    tmp = sprintf(' %s,', PLUMtoLPJG{:});
+    fprintf('PLUMtoLPJG: %s\n', tmp(1:end-1))
+    tmp = sprintf(' %s,', LPJGcrops{:});
+    fprintf('LPJGcrops: %s\n', tmp(1:end-1))
+    fprintf('norm2extra: %f\n', norm2extra)
+    fprintf('inpaint_method: %d\n', inpaint_method)
+    fprintf('fruitveg_sugar_2oil: %d\n', fruitveg_sugar_2oil)
+    fprintf('allow_unveg: %d\n', allow_unveg)
+    fprintf('allow_read_matfiles: %d\n', allow_read_matfiles)
+end
 
 outPrec = 6 ;
 if ~isempty(varargin)
@@ -37,7 +56,7 @@ notBare = ~strcmp(LUnames,'BARREN') ;
 isCrop = ~strcmp(LUnames,'NATURAL') & ~strcmp(LUnames,'PASTURE') & notBare ;
 
 % Import LandCoverFract.txt
-S_lcf = lpjgu_matlab_readTable_then2map(file_in_lcf,'verboseIfNoMat',false,'force_mat_save',true) ;
+S_lcf = lpjgu_matlab_readTable_then2map(file_in_lcf,'verboseIfNoMat',false,'force_mat_save',true,'allow_read_matfiles',allow_read_matfiles) ;
 
 % Move URBAN into PUTURBANHERE; remove URBAN
 if any(strcmp(S_lcf.varNames,'URBAN'))
@@ -50,7 +69,10 @@ end
 % Import detailed LandUse.txt
 file_in_dtl = strrep(file_in_lcf,'LandCoverFract','LandUse') ;
 if exist(file_in_dtl,'file') || exist([file_in_dtl '.gz'],'file')
-    S_dtl = lpjgu_matlab_readTable_then2map(file_in_dtl,'verboseIfNoMat',false,'force_mat_save',true) ;
+    S_dtl = lpjgu_matlab_readTable_then2map(file_in_dtl,'verboseIfNoMat',false,'force_mat_save',true,'allow_read_matfiles',allow_read_matfiles) ;
+    if debug
+        fprintf('file_in_dtl: %s\n', file_in_dtl)
+    end
 %     PLUMcrops = S_dtl.varNames ;
     is_actual_PLUMcrops = contains(S_dtl.varNames,'_A') ...
         & ~contains(S_dtl.varNames,'ruminants') ...
@@ -91,15 +113,18 @@ if exist(file_in_dtl,'file') || exist([file_in_dtl '.gz'],'file')
     end
 else
     file_in_cropfrac = strrep(file_in_lcf,'LandCoverFract','CropFract') ;
-    S_cropf = lpjgu_matlab_readTable_then2map(file_in_cropfrac,'verboseIfNoMat',false,'force_mat_save',true) ;
+    if debug
+        fprintf('file_in_cropfrac: %s\n', file_in_cropfrac)
+    end
+    S_cropf = lpjgu_matlab_readTable_then2map(file_in_cropfrac,'verboseIfNoMat',false,'force_mat_save',true,'allow_read_matfiles',allow_read_matfiles) ;
     PLUMcrops = S_cropf.varNames ;
     S_cropa.maps_YXv = S_cropf.maps_YXv .* S_lcf.maps_YXv(:,:,strcmp(S_lcf.varNames,'CROPLAND')) ;
     clear S_cropf
     if ~combineCrops
         file_in_nfert = strrep(file_in_lcf,'LandCoverFract','Fert') ;
-        S_nfert = lpjgu_matlab_readTable_then2map(file_in_nfert,'verboseIfNoMat',false,'force_mat_save',true) ;
+        S_nfert = lpjgu_matlab_readTable_then2map(file_in_nfert,'verboseIfNoMat',false,'force_mat_save',true,'allow_read_matfiles',allow_read_matfiles) ;
         file_in_irrig = strrep(file_in_lcf,'LandCoverFract','Irrig') ;
-        S_irrig = lpjgu_matlab_readTable_then2map(file_in_irrig,'verboseIfNoMat',false,'force_mat_save',true) ;
+        S_irrig = lpjgu_matlab_readTable_then2map(file_in_irrig,'verboseIfNoMat',false,'force_mat_save',true,'allow_read_matfiles',allow_read_matfiles) ;
         if ~any(strcmp(PLUMcrops,'setaside'))
             error('\nsetaside not present, probably because you''re not using LandUse.txt (which wasn''t found): %s', file_in_cropfrac)
         end
@@ -229,9 +254,12 @@ end
 % Match mask with overall mask
 S.maps_YXv(landArea_YXv==0) = NaN ;
 
+% Ensure that LU fractions sum to 1
+PLUMharm_check_LU_map_sum_1(S.maps_YXv) ;
+
 % Harmonize vegetated+barren fractions
 if ~isempty(bareFrac_y0_YX)
-    S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX, allow_unveg) ;
+    S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX, allow_unveg, debug) ;
 end
 
 % Convert map to km2 (with zeros instead of NaNs)
@@ -326,5 +354,8 @@ if ~combineCrops
     end
 end
 
+if debug
+    disp('----------------------------------------')
+end
 
 end
