@@ -5,6 +5,13 @@ function [S_out, S_nfert_out, S_irrig_out] = PLUMharm_pp_readPLUM(...
     is_orig, fruitveg_sugar_2oil, allow_unveg, allow_read_matfiles, ...
     debug)
 
+% When reading harmonized PLUM outputs, we may NEED to read mat-files,
+% because we may not have saved txt-files. allow_read_matfiles was in any
+% case intended to troubleshoot issues with reading original data: i.e.,
+% baseline LU or raw PLUM outputs. So if we're reading harmonized PLUM
+% outputs (i.e., is_orig false), always allow reading mat-files
+allow_read_matfiles = allow_read_matfiles || ~is_orig ;
+
 combineCrops = isempty(PLUMtoLPJG) ;
 
 S_nfert_out = [] ;
