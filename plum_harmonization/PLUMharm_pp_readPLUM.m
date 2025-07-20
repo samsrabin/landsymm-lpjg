@@ -14,7 +14,7 @@ S_irrig_out = [] ;
 MATfile = [inDir '.processed.' thisVer 'mat'] ;
 MATfile = sprintf('%s.processed.%d-%d.%smat', inDir, yearList(1), yearList(end), thisVer) ;
 disp(MATfile)
-if allow_read_matfiles
+if allow_read_matfiles && exist(MATfile, 'file')
     MATfile_info = dir(MATfile) ;
     [~, TXTfile] = unix(['ls -t ' inDir '/*/*.' thisVer 'txt | head -n 1  | tr -d ''\n''']) ;
     TXTfile_info = dir(TXTfile) ;
