@@ -75,7 +75,7 @@ if ~harmDirs_specified
     if ischar(plumDirs)
         plumDirs = {plumDirs} ;
     end
-    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops) ;
+    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops, allow_unveg) ;
 elseif ischar(harmDirs)
     harmDirs = {harmDirs} ;
 end

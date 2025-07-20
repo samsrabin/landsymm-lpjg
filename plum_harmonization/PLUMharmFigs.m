@@ -103,7 +103,7 @@ end
 % Get harmDirs, if needed
 harmDirs_specified = exist('harmDirs', 'var') ;
 if ~harmDirs_specified
-    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops) ;
+    harmDirs = PLUMharm_get_harmDirs(plumDirs, fruitveg_sugar_2oil, combineCrops, allow_unveg) ;
 elseif ischar(harmDirs)
     harmDirs = {harmDirs} ;
 end
