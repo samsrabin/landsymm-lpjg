@@ -467,188 +467,152 @@ end
 disp('Done reading PLUM.')
 
 
-%% Scatter plots after Hurtt et al. (2011) Fig. 4 (crop, pre-harm)
+%% Time series of LUs
 
-% Options %%%
-ny = 1 ;
-nx = Nruns ;
-spacing = [0.05 0.05] ; % v h
-fontSize = 14 ;
-thisPos = [0         324        1440         376] ;
-%%%%%%%%%%%%%
-
-figure('Color','w','Position',thisPos) ;
-
-for r = 1:Nruns
-    
-    % Establish axis
-    subplot_tight(ny, nx, r, spacing) ;
-    
-    % Plot crop scatter
-    plot( ...
-        squeeze(sum(PLUMharm_xvyr(:,isCrop,yearList_harm==y1,r),2)) ./ gcelArea_x, ...
-        squeeze(sum(PLUMorig_xvyr(:,isCrop,yearList_orig==y1,r),2)) ./ gcelArea_x, ...
-        '.k')
-    
-    % Finish up
-    axis equal tight ;
-    set(gca,'XLim',[0 1],'YLim',[0 1], 'FontSize', fontSize)
-    title(runList_legend{r})
-    xlabel(sprintf('Fraction of gridcell %d (Baseline LU)', y1))
-    ylabel(sprintf('Fraction of gridcell %d (PLUM output)', y1))
-    
+ts_base_cy = squeeze(nansum(nansum(base.maps_YXvy,1),2)) ;
+ts_base_cy = cat(1,sum(ts_base_cy(isCrop,:),1),ts_base_cy(~isCrop,:)) ;
+ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
+ts_orig_cyr = cat(1,sum(ts_orig_cyr(isCrop,:,:),1),ts_orig_cyr(~isCrop,:,:)) ;
+ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
+ts_harm_cyr = cat(1,sum(ts_harm_cyr(isCrop,:,:),1),ts_harm_cyr(~isCrop,:,:)) ;
+if ~add_baseline_to_harm
+    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
 end
 
-exportgraphics(gcf, fullfile(harms_figs_dir, 'scatter_hurtt2011_fig4.png'), 'Resolution', 300) ;
+combinedLUs = [{'CROPLAND'} LUnames(~isCrop)] ;
+
+spacing = [0.05 0.1] ;
+
+figure('Color','w','Position',figurePos)
+
+for v = 1:length(combinedLUs)
+    subplot_tight(2,2,v,spacing) ;
+    plot(yearList_baselineLU_toPlot,ts_base_cy(v,:)*1e-6*1e-6,'-k','LineWidth',2) ;
+    set(gca,'ColorOrderIndex',1) ;
+    hold on
+    plot(yearList_orig,squeeze(ts_orig_cyr(v,:,:))*1e-6*1e-6,'--','LineWidth',1)
+    set(gca,'ColorOrderIndex',1) ;
+    plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:))*1e-6*1e-6,'-','LineWidth',1)
+    hold off
+    title(['Area: ' combinedLUs{v}])
+    set(gca,'FontSize',14)
+    ylabel('Million km2')
+    legend(timeseries_legend, 'Location', timeseries_legend_loc)
+end
+
+% Save
+exportgraphics(gcf, fullfile(harms_figs_dir, 'timeSeries_landUse.pdf')) ;
 close
 
 
+%% Time series of crops
 
-%% Scatter plots after Hurtt et al. (2011) Fig. 5 (crop and past, post-harm)
+ts_base_cy = squeeze(nansum(nansum(base.maps_YXvy,1),2)) ;
+ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
+ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
+if ~add_baseline_to_harm
+    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+end
 
-% Options %%%
-ny = 2 ;
-nx = Nruns ;
-spacing = [0.1 0.05] ; % v h
+units = 'Million km2' ;
+ts_base_cy = ts_base_cy*1e-6*1e-6 ;
+ts_orig_cyr = ts_orig_cyr*1e-6*1e-6 ;
+ts_harm_cyr = ts_harm_cyr*1e-6*1e-6 ;
+
+make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
+    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
+    'Area', 'crops', harms_figs_dir, timeseries_legend_loc)
+
+
+%% Time series of Nfert
+
+if is2deg
+    ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot_2deg.maps_YXvy))) ;
+else
+    ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot.maps_YXvy))) ;
+end
+ts_orig_cyr = cf_kg2Mt .* squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_nfert_xvyr,1)) ;
+ts_harm_cyr = cf_kg2Mt .* squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_nfert_xvyr,1)) ;
+if ~add_baseline_to_harm
+    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+end
+
+units = 'Mt N' ;
+make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
+    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
+    'Fert.', 'nfert', harms_figs_dir, timeseries_legend_loc)
+
+
+%% Time series of irrig
+
+if is2deg
+    ts_base_cy = squeeze(nansum(nansum(base_irrigTot_2deg.maps_YXvy))) ;
+else
+    ts_base_cy = squeeze(nansum(nansum(base_irrigTot.maps_YXvy))) ;
+end
+ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_irrig_xvyr,1)) ;
+ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_irrig_xvyr,1)) ;
+if ~isequal(yearList_orig, yearList_harm)
+    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
+end
+
+units = 'intensity \times area' ;
+make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
+    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
+    'Irrigation', 'irrig', harms_figs_dir, timeseries_legend_loc)
+
+
+%% Time series of harmonization effect on change in non-ag area
+
+% Options %%%%%%%%%
 fontSize = 14 ;
-%%%%%%%%%%%%%
+lineWidth = 2 ;
+thisPos = [1         455        1440         350] ;
+%%%%%%%%%%%%%%%%%%%
 
-yN = yearList_harm(end) ;
-
-if ~any(yearList_orig==y1)
-    error('y1 (%d) not found in yearList_orig', y1)
-elseif ~any(yearList_orig==yN)
-    error('yN (%d) not found in yearList_orig', yN)
-elseif ~any(yearList_harm==y1)
-    error('y1 (%d) not found in yearList_harm', y1)
-elseif ~any(yearList_harm==yN)
-    error('yN (%d) not found in yearList_harm', yN)
+if ~isequal(yearList_orig, yearList_harm)
+    error('This code assumes original and harmonized have same yearList.')
 end
 
-thisGray = 0.65*ones(3,1) ;
+ii = strcmp(LUnames, 'NATURAL') ;
+PLUMorig_incr_xyr = squeeze(PLUMorig_xvyr(:,ii,2:end,:) - PLUMorig_xvyr(:,ii,1:end-1,:)) ;
+PLUMharm_incr_xyr = squeeze(PLUMharm_xvyr(:,ii,2:end,:) - PLUMharm_xvyr(:,ii,1:end-1,:)) ;
+PLUMorig_incr_xyr(PLUMorig_incr_xyr<0) = 0 ;
+PLUMharm_incr_xyr(PLUMharm_incr_xyr<0) = 0 ;
+PLUMorig_incr_yr = squeeze(sum(PLUMorig_incr_xyr,1)) ;
+PLUMharm_incr_yr = squeeze(sum(PLUMharm_incr_xyr,1)) ;
+if Nruns == 1
+    PLUMorig_incr_yr = transpose(PLUMorig_incr_yr) ;
+    PLUMharm_incr_yr = transpose(PLUMharm_incr_yr) ;
+end 
+harmEffect_yr = PLUMharm_incr_yr - PLUMorig_incr_yr ;
 
-diff_crop_orig_xr = ...
-    squeeze(sum(PLUMorig_xvyr(:,isCrop,yearList_orig==yN,:) ...
-    - PLUMorig_xvyr(:,isCrop,yearList_orig==y1,:),2)) ...
-    ./ repmat(gcelArea_x, [1 Nruns]) ;
-diff_past_orig_xr = ...
-    squeeze(PLUMorig_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_orig==yN,:) ...
-    - PLUMorig_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_orig==y1,:)) ...
-    ./ repmat(gcelArea_x, [1 Nruns]) ;
-diff_orig_xrL = cat(3, diff_crop_orig_xr, diff_past_orig_xr) ;
-diff_crop_harm_xr = ...
-    squeeze(sum(PLUMharm_xvyr(:,isCrop,yearList_harm==yN,:) ...
-    - PLUMharm_xvyr(:,isCrop,yearList_harm==y1,:),2)) ...
-    ./ repmat(gcelArea_x, [1 Nruns]) ;
-diff_past_harm_xr = ...
-    squeeze(PLUMharm_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_harm==yN,:) ...
-    - PLUMharm_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_harm==y1,:)) ...
-    ./ repmat(gcelArea_x, [1 Nruns]) ;
-diff_harm_xrL = cat(3, diff_crop_harm_xr, diff_past_harm_xr) ;
-
-diff2_orig_xrL = nan(length(list2map_2deg), Nruns, 2) ;
-diff2_harm_xrL = nan(length(list2map_2deg), Nruns, 2) ;
-map_size = size(landArea_YX) ;
-tmp = ...
-    gcelArea_YX(:,1:4:720) + gcelArea_YX(:,2:4:720) + ...
-    gcelArea_YX(:,3:4:720) + gcelArea_YX(:,4:4:720) ;
-gcelArea_2deg_YX = ...
-    tmp(1:4:360,:) + tmp(2:4:360,:) + ...
-    tmp(3:4:360,:) + tmp(4:4:360,:) ;
-clear tmp
+x = yearList_orig(2:end) ;
+lms = cell(Nruns,1) ;
 for r = 1:Nruns
-    for L = 1:2
-        % Orig
-        tmp_YX = lpjgu_vector2map(diff_orig_xrL(:,r,L).*gcelArea_x, ...
-            map_size, list2map) ;
-        tmp = ...
-            tmp_YX(:,1:4:720) + tmp_YX(:,2:4:720) + ...
-            tmp_YX(:,3:4:720) + tmp_YX(:,4:4:720) ;
-        tmp_2deg_YX = ...
-            tmp(1:4:360,:) + tmp(2:4:360,:) + ...
-            tmp(3:4:360,:) + tmp(4:4:360,:) ;
-        clear tmp_YX tmp
-        tmp_2deg_YX = tmp_2deg_YX ./ gcelArea_2deg_YX ;
-        diff2_orig_xrL(:,r,L) = tmp_2deg_YX(list2map_2deg) ;
-        clear tmp_2deg_YX
-        
-        % Harm
-        tmp_YX = lpjgu_vector2map(diff_harm_xrL(:,r,L).*gcelArea_x, ...
-            map_size, list2map) ;
-        tmp = ...
-            tmp_YX(:,1:4:720) + tmp_YX(:,2:4:720) + ...
-            tmp_YX(:,3:4:720) + tmp_YX(:,4:4:720) ;
-        tmp_2deg_YX = ...
-            tmp(1:4:360,:) + tmp(2:4:360,:) + ...
-            tmp(3:4:360,:) + tmp(4:4:360,:) ;
-        clear tmp_YX tmp
-        tmp_2deg_YX = tmp_2deg_YX ./ gcelArea_2deg_YX ;
-        diff2_harm_xrL(:,r,L) = tmp_2deg_YX(list2map_2deg) ;
-        clear tmp_2deg_YX
+    lms{r} = fitlm(x, harmEffect_yr(:,r)) ;
+    if strcmp(lastwarn, 'Regression design matrix is rank deficient to within machine precision.')
+        lms{r} = [] ;
     end
 end
 
-diffFPU_orig_xrL = nan(Nfpu, Nruns, 2) ;
-diffFPU_harm_xrL = nan(Nfpu, Nruns, 2) ;
-for f = 1:Nfpu
-    thisFPU = fpu_list(f) ;
-    isThisFPU = fpu_x==thisFPU ;
-    if ~any(isThisFPU)
-        error('No cells in this FPU?')
-    end
-    gcelArea_thisFPU_x = gcelArea_x(isThisFPU) ;
-    for r = 1:Nruns
-        for L = 1:2
-            diffFPU_orig_xrL(f,r,L) = sum(diff_orig_xrL(isThisFPU,r,L) ...
-                .* gcelArea_thisFPU_x) ./ sum(gcelArea_thisFPU_x) ;
-            diffFPU_harm_xrL(f,r,L) = sum(diff_harm_xrL(isThisFPU,r,L) ...
-                .* gcelArea_thisFPU_x) ./ sum(gcelArea_thisFPU_x) ;
-            clear tmp_2deg_YX
-        end
-    end
-end
-
-figure('Color','w','Position',figurePos) ;
-
+figure('Color', 'w', 'Position', thisPos) ;
+plot(x, harmEffect_yr, ...
+    'LineWidth', 1)
+set(gca, 'FontSize', fontSize) ;
+hold on
+set(gca,'ColorOrderIndex',1) ;
 for r = 1:Nruns
-    for L = 1:2
-        % Establish axis
-        if L==1
-            thisPlot = r ;
-        else
-            thisPlot = Nruns + r ;
-        end
-        subplot_tight(ny, nx, thisPlot, spacing) ;
-        
-        % Plot half-degree points
-        plot(diff_orig_xrL(:,r,L), diff_harm_xrL(:,r,L), '.', ...
-            'MarkerFaceColor', thisGray, 'MarkerEdgeColor', thisGray);
-        
-        % Plot two-degree points
-        hold on
-        plot(diff2_orig_xrL(:,r,L), diff2_harm_xrL(:,r,L), '.k') ;
-        hold off
-        
-%         % Plot FPU points
-%         hold on
-%         plot(diffFPU_orig_xrL(:,r,L), diffFPU_harm_xrL(:,r,L), 'or') ;
-%         hold off
-        
-        % Plot 1:1 line
-        hold on
-        plot([-1 1], [-1 1], '--k')
-        hold off
-        
-        % Finish up
-        axis equal tight ;
-        set(gca,'XLim',[-1 1],'YLim',[-1 1], 'FontSize', fontSize)
-        title(runList_legend{r})
-        xlabel('\Delta gridcell fraction (original)')
-        ylabel('\Delta gridcell fraction (harmonized)')
+    if ~isempty(lms{r})
+        plot(x, lms{r}.Fitted, '--', ...
+            'LineWidth', 2)
     end
 end
+hold off
+legend(runList_legend, 'Location', timeseries_legend_loc)
 
-exportgraphics(gcf, fullfile(harms_figs_dir, 'scatter_hurtt2011_fig5.png'), 'Resolution', 300) ;
+title('Time series of harmonization effect on change in non-agri area')
+exportgraphics(gcf, fullfile(harms_figs_dir, 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf')) ;
 close
 
 
@@ -1009,156 +973,7 @@ for l = 1:length(tmp_lu_list)
     end
 end
 disp('Done.')
-
-
-%% Time series of harmonization effect on change in non-ag area
-
-% Options %%%%%%%%%
-fontSize = 14 ;
-lineWidth = 2 ;
-thisPos = [1         455        1440         350] ;
-%%%%%%%%%%%%%%%%%%%
-
-if ~isequal(yearList_orig, yearList_harm)
-    error('This code assumes original and harmonized have same yearList.')
-end
-
-ii = strcmp(LUnames, 'NATURAL') ;
-PLUMorig_incr_xyr = squeeze(PLUMorig_xvyr(:,ii,2:end,:) - PLUMorig_xvyr(:,ii,1:end-1,:)) ;
-PLUMharm_incr_xyr = squeeze(PLUMharm_xvyr(:,ii,2:end,:) - PLUMharm_xvyr(:,ii,1:end-1,:)) ;
-PLUMorig_incr_xyr(PLUMorig_incr_xyr<0) = 0 ;
-PLUMharm_incr_xyr(PLUMharm_incr_xyr<0) = 0 ;
-PLUMorig_incr_yr = squeeze(sum(PLUMorig_incr_xyr,1)) ;
-PLUMharm_incr_yr = squeeze(sum(PLUMharm_incr_xyr,1)) ;
-if Nruns == 1
-    PLUMorig_incr_yr = transpose(PLUMorig_incr_yr) ;
-    PLUMharm_incr_yr = transpose(PLUMharm_incr_yr) ;
-end 
-harmEffect_yr = PLUMharm_incr_yr - PLUMorig_incr_yr ;
-
-x = yearList_orig(2:end) ;
-lms = cell(Nruns,1) ;
-for r = 1:Nruns
-    lms{r} = fitlm(x, harmEffect_yr(:,r)) ;
-    if strcmp(lastwarn, 'Regression design matrix is rank deficient to within machine precision.')
-        lms{r} = [] ;
-    end
-end
-
-figure('Color', 'w', 'Position', thisPos) ;
-plot(x, harmEffect_yr, ...
-    'LineWidth', 1)
-set(gca, 'FontSize', fontSize) ;
-hold on
-set(gca,'ColorOrderIndex',1) ;
-for r = 1:Nruns
-    if ~isempty(lms{r})
-        plot(x, lms{r}.Fitted, '--', ...
-            'LineWidth', 2)
-    end
-end
-hold off
-legend(runList_legend, 'Location', timeseries_legend_loc)
-
-title('Time series of harmonization effect on change in non-agri area')
-exportgraphics(gcf, fullfile(harms_figs_dir, 'timeSeries_harm_effect_on_change_in_nonagri_area.pdf')) ;
-close
     
-
-%% Time series of LUs
-
-ts_base_cy = squeeze(nansum(nansum(base.maps_YXvy,1),2)) ;
-ts_base_cy = cat(1,sum(ts_base_cy(isCrop,:),1),ts_base_cy(~isCrop,:)) ;
-ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
-ts_orig_cyr = cat(1,sum(ts_orig_cyr(isCrop,:,:),1),ts_orig_cyr(~isCrop,:,:)) ;
-ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
-ts_harm_cyr = cat(1,sum(ts_harm_cyr(isCrop,:,:),1),ts_harm_cyr(~isCrop,:,:)) ;
-if ~add_baseline_to_harm
-    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
-end
-
-combinedLUs = [{'CROPLAND'} LUnames(~isCrop)] ;
-
-spacing = [0.05 0.1] ;
-
-figure('Color','w','Position',figurePos)
-
-for v = 1:length(combinedLUs)
-    subplot_tight(2,2,v,spacing) ;
-    plot(yearList_baselineLU_toPlot,ts_base_cy(v,:)*1e-6*1e-6,'-k','LineWidth',2) ;
-    set(gca,'ColorOrderIndex',1) ;
-    hold on
-    plot(yearList_orig,squeeze(ts_orig_cyr(v,:,:))*1e-6*1e-6,'--','LineWidth',1)
-    set(gca,'ColorOrderIndex',1) ;
-    plot(yearList_orig,squeeze(ts_harm_cyr(v,:,:))*1e-6*1e-6,'-','LineWidth',1)
-    hold off
-    title(['Area: ' combinedLUs{v}])
-    set(gca,'FontSize',14)
-    ylabel('Million km2')
-    legend(timeseries_legend, 'Location', timeseries_legend_loc)
-end
-
-% Save
-exportgraphics(gcf, fullfile(harms_figs_dir, 'timeSeries_landUse.pdf')) ;
-close
-
-
-%% Time series of crops
-
-ts_base_cy = squeeze(nansum(nansum(base.maps_YXvy,1),2)) ;
-ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr,1)) ;
-ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr,1)) ;
-if ~add_baseline_to_harm
-    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
-end
-
-units = 'Million km2' ;
-ts_base_cy = ts_base_cy*1e-6*1e-6 ;
-ts_orig_cyr = ts_orig_cyr*1e-6*1e-6 ;
-ts_harm_cyr = ts_harm_cyr*1e-6*1e-6 ;
-
-make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Area', 'crops', harms_figs_dir, timeseries_legend_loc)
-
-
-%% Time series of Nfert
-
-if is2deg
-    ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot_2deg.maps_YXvy))) ;
-else
-    ts_base_cy = cf_kg2Mt .* squeeze(nansum(nansum(base_nfertTot.maps_YXvy))) ;
-end
-ts_orig_cyr = cf_kg2Mt .* squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_nfert_xvyr,1)) ;
-ts_harm_cyr = cf_kg2Mt .* squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_nfert_xvyr,1)) ;
-if ~add_baseline_to_harm
-    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
-end
-
-units = 'Mt N' ;
-make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Fert.', 'nfert', harms_figs_dir, timeseries_legend_loc)
-
-
-%% Time series of irrig
-
-if is2deg
-    ts_base_cy = squeeze(nansum(nansum(base_irrigTot_2deg.maps_YXvy))) ;
-else
-    ts_base_cy = squeeze(nansum(nansum(base_irrigTot.maps_YXvy))) ;
-end
-ts_orig_cyr = squeeze(nansum(PLUMorig_xvyr(:,isCrop,:,:) .* PLUMorig_irrig_xvyr,1)) ;
-ts_harm_cyr = squeeze(nansum(PLUMharm_xvyr(:,isCrop,:,:) .* PLUMharm_irrig_xvyr,1)) ;
-if ~isequal(yearList_orig, yearList_harm)
-    ts_harm_cyr = cat(2, ts_harm_cyr(:,1,:)-(ts_orig_cyr(:,2,:)-ts_orig_cyr(:,1,:)), ts_harm_cyr) ;
-end
-
-units = 'intensity \times area' ;
-make_crops_timeseries_fig(ts_base_cy, ts_orig_cyr, ts_harm_cyr, ...
-    LPJGcrops, timeseries_legend, yearList_baselineLU_toPlot, yearList_orig, units, ...
-    'Irrigation', 'irrig', harms_figs_dir, timeseries_legend_loc)
-
 
 %% Maps: At three years
 
@@ -1356,6 +1171,191 @@ for r = 1:Nruns
         close
     end
 end
+
+
+%% Scatter plots after Hurtt et al. (2011) Fig. 4 (crop, pre-harm)
+
+% Options %%%
+ny = 1 ;
+nx = Nruns ;
+spacing = [0.05 0.05] ; % v h
+fontSize = 14 ;
+thisPos = [0         324        1440         376] ;
+%%%%%%%%%%%%%
+
+figure('Color','w','Position',thisPos) ;
+
+for r = 1:Nruns
+    
+    % Establish axis
+    subplot_tight(ny, nx, r, spacing) ;
+    
+    % Plot crop scatter
+    plot( ...
+        squeeze(sum(PLUMharm_xvyr(:,isCrop,yearList_harm==y1,r),2)) ./ gcelArea_x, ...
+        squeeze(sum(PLUMorig_xvyr(:,isCrop,yearList_orig==y1,r),2)) ./ gcelArea_x, ...
+        '.k')
+    
+    % Finish up
+    axis equal tight ;
+    set(gca,'XLim',[0 1],'YLim',[0 1], 'FontSize', fontSize)
+    title(runList_legend{r})
+    xlabel(sprintf('Fraction of gridcell %d (Baseline LU)', y1))
+    ylabel(sprintf('Fraction of gridcell %d (PLUM output)', y1))
+    
+end
+
+exportgraphics(gcf, fullfile(harms_figs_dir, 'scatter_hurtt2011_fig4.png'), 'Resolution', 300) ;
+close
+
+
+
+%% Scatter plots after Hurtt et al. (2011) Fig. 5 (crop and past, post-harm)
+
+% Options %%%
+ny = 2 ;
+nx = Nruns ;
+spacing = [0.1 0.05] ; % v h
+fontSize = 14 ;
+%%%%%%%%%%%%%
+
+yN = yearList_harm(end) ;
+
+if ~any(yearList_orig==y1)
+    error('y1 (%d) not found in yearList_orig', y1)
+elseif ~any(yearList_orig==yN)
+    error('yN (%d) not found in yearList_orig', yN)
+elseif ~any(yearList_harm==y1)
+    error('y1 (%d) not found in yearList_harm', y1)
+elseif ~any(yearList_harm==yN)
+    error('yN (%d) not found in yearList_harm', yN)
+end
+
+thisGray = 0.65*ones(3,1) ;
+
+diff_crop_orig_xr = ...
+    squeeze(sum(PLUMorig_xvyr(:,isCrop,yearList_orig==yN,:) ...
+    - PLUMorig_xvyr(:,isCrop,yearList_orig==y1,:),2)) ...
+    ./ repmat(gcelArea_x, [1 Nruns]) ;
+diff_past_orig_xr = ...
+    squeeze(PLUMorig_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_orig==yN,:) ...
+    - PLUMorig_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_orig==y1,:)) ...
+    ./ repmat(gcelArea_x, [1 Nruns]) ;
+diff_orig_xrL = cat(3, diff_crop_orig_xr, diff_past_orig_xr) ;
+diff_crop_harm_xr = ...
+    squeeze(sum(PLUMharm_xvyr(:,isCrop,yearList_harm==yN,:) ...
+    - PLUMharm_xvyr(:,isCrop,yearList_harm==y1,:),2)) ...
+    ./ repmat(gcelArea_x, [1 Nruns]) ;
+diff_past_harm_xr = ...
+    squeeze(PLUMharm_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_harm==yN,:) ...
+    - PLUMharm_xvyr(:,strcmp(LUnames,'PASTURE'),yearList_harm==y1,:)) ...
+    ./ repmat(gcelArea_x, [1 Nruns]) ;
+diff_harm_xrL = cat(3, diff_crop_harm_xr, diff_past_harm_xr) ;
+
+diff2_orig_xrL = nan(length(list2map_2deg), Nruns, 2) ;
+diff2_harm_xrL = nan(length(list2map_2deg), Nruns, 2) ;
+map_size = size(landArea_YX) ;
+tmp = ...
+    gcelArea_YX(:,1:4:720) + gcelArea_YX(:,2:4:720) + ...
+    gcelArea_YX(:,3:4:720) + gcelArea_YX(:,4:4:720) ;
+gcelArea_2deg_YX = ...
+    tmp(1:4:360,:) + tmp(2:4:360,:) + ...
+    tmp(3:4:360,:) + tmp(4:4:360,:) ;
+clear tmp
+for r = 1:Nruns
+    for L = 1:2
+        % Orig
+        tmp_YX = lpjgu_vector2map(diff_orig_xrL(:,r,L).*gcelArea_x, ...
+            map_size, list2map) ;
+        tmp = ...
+            tmp_YX(:,1:4:720) + tmp_YX(:,2:4:720) + ...
+            tmp_YX(:,3:4:720) + tmp_YX(:,4:4:720) ;
+        tmp_2deg_YX = ...
+            tmp(1:4:360,:) + tmp(2:4:360,:) + ...
+            tmp(3:4:360,:) + tmp(4:4:360,:) ;
+        clear tmp_YX tmp
+        tmp_2deg_YX = tmp_2deg_YX ./ gcelArea_2deg_YX ;
+        diff2_orig_xrL(:,r,L) = tmp_2deg_YX(list2map_2deg) ;
+        clear tmp_2deg_YX
+        
+        % Harm
+        tmp_YX = lpjgu_vector2map(diff_harm_xrL(:,r,L).*gcelArea_x, ...
+            map_size, list2map) ;
+        tmp = ...
+            tmp_YX(:,1:4:720) + tmp_YX(:,2:4:720) + ...
+            tmp_YX(:,3:4:720) + tmp_YX(:,4:4:720) ;
+        tmp_2deg_YX = ...
+            tmp(1:4:360,:) + tmp(2:4:360,:) + ...
+            tmp(3:4:360,:) + tmp(4:4:360,:) ;
+        clear tmp_YX tmp
+        tmp_2deg_YX = tmp_2deg_YX ./ gcelArea_2deg_YX ;
+        diff2_harm_xrL(:,r,L) = tmp_2deg_YX(list2map_2deg) ;
+        clear tmp_2deg_YX
+    end
+end
+
+diffFPU_orig_xrL = nan(Nfpu, Nruns, 2) ;
+diffFPU_harm_xrL = nan(Nfpu, Nruns, 2) ;
+for f = 1:Nfpu
+    thisFPU = fpu_list(f) ;
+    isThisFPU = fpu_x==thisFPU ;
+    if ~any(isThisFPU)
+        error('No cells in this FPU?')
+    end
+    gcelArea_thisFPU_x = gcelArea_x(isThisFPU) ;
+    for r = 1:Nruns
+        for L = 1:2
+            diffFPU_orig_xrL(f,r,L) = sum(diff_orig_xrL(isThisFPU,r,L) ...
+                .* gcelArea_thisFPU_x) ./ sum(gcelArea_thisFPU_x) ;
+            diffFPU_harm_xrL(f,r,L) = sum(diff_harm_xrL(isThisFPU,r,L) ...
+                .* gcelArea_thisFPU_x) ./ sum(gcelArea_thisFPU_x) ;
+            clear tmp_2deg_YX
+        end
+    end
+end
+
+figure('Color','w','Position',figurePos) ;
+
+for r = 1:Nruns
+    for L = 1:2
+        % Establish axis
+        if L==1
+            thisPlot = r ;
+        else
+            thisPlot = Nruns + r ;
+        end
+        subplot_tight(ny, nx, thisPlot, spacing) ;
+        
+        % Plot half-degree points
+        plot(diff_orig_xrL(:,r,L), diff_harm_xrL(:,r,L), '.', ...
+            'MarkerFaceColor', thisGray, 'MarkerEdgeColor', thisGray);
+        
+        % Plot two-degree points
+        hold on
+        plot(diff2_orig_xrL(:,r,L), diff2_harm_xrL(:,r,L), '.k') ;
+        hold off
+        
+%         % Plot FPU points
+%         hold on
+%         plot(diffFPU_orig_xrL(:,r,L), diffFPU_harm_xrL(:,r,L), 'or') ;
+%         hold off
+        
+        % Plot 1:1 line
+        hold on
+        plot([-1 1], [-1 1], '--k')
+        hold off
+        
+        % Finish up
+        axis equal tight ;
+        set(gca,'XLim',[-1 1],'YLim',[-1 1], 'FontSize', fontSize)
+        title(runList_legend{r})
+        xlabel('\Delta gridcell fraction (original)')
+        ylabel('\Delta gridcell fraction (harmonized)')
+    end
+end
+
+exportgraphics(gcf, fullfile(harms_figs_dir, 'scatter_hurtt2011_fig5.png'), 'Resolution', 300) ;
+close
 
 
 %%
