@@ -391,6 +391,9 @@ end
 [base_vegd_YX, base_bare_YX, base_vegdFrac_YX, base_bareFrac_YX] = ...
     PLUMharm_get_bl_frac_vegd_bare(base, landArea_YX, notBare, LUnames, doHarm) ;
 
+% Ensure that vegetated + barren fractions look good
+PLUMharm_check_LU_map_sum_1(cat(3, base_vegdFrac_YX, base_bareFrac_YX))
+
 % Aggregate from 0.5-degree to 2-degree
 disp('    Aggregate from 0.5-degree to 2-degree')
 base_2deg.varNames = base.varNames ;

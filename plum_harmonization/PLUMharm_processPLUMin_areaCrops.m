@@ -254,6 +254,9 @@ end
 % Match mask with overall mask
 S.maps_YXv(landArea_YXv==0) = NaN ;
 
+% Ensure that LU fractions sum to 1
+PLUMharm_check_LU_map_sum_1(S.maps_YXv) ;
+
 % Harmonize vegetated+barren fractions
 if ~isempty(bareFrac_y0_YX)
     S = PLUMharm_harmonize_vegdbare(S, notBare, bareFrac_y0_YX, landArea_YX, allow_unveg, debug) ;
